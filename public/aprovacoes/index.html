@@ -1,0 +1,1307 @@
+<!DOCTYPE html>
+<!--
+  ARQUIVO: public/aprovacoes/index.html
+  VERSÃO:  3.0.0
+  DATA:    2026-03-17
+  DESCRIÇÃO: Aprovações — redesign estilo Chamados V2
+-->
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>✅ Aprovações — Portal WKL</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link rel="stylesheet" href="/css/menu.css" />
+  <style>
+    /* ===== VARIÁVEIS (alinhadas com Chamados) ===== */
+    :root {
+      --bg:      #0f172a;
+      --card:    #1e293b;
+      --text:    #f1f5f9;
+      --border:  #334155;
+      --primary: #3b82f6;
+      --success: #10b981;
+      --danger:  #ef4444;
+      --warning: #f59e0b;
+      --purple:  #8b5cf6;
+      --gray:    #94a3b8;
+      --cyan:    #06b6d4;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', 'Segoe UI', sans-serif; }
+    body { background: var(--bg); color: var(--text); padding-top: 60px; font-size: 13px; min-height: 100vh; overflow-x: hidden; }
+    .content-wrapper { padding: 20px; max-width: 1600px; margin: 0 auto; }
+
+    /* ===== HEADER ===== */
+    .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
+    .page-tools  { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .btn-dash { background: var(--success); color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 800; transition: 0.3s; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; text-decoration: none; }
+    .btn-dash:hover { filter: brightness(1.15); transform: translateY(-2px); }
+    .refresh-tag { font-size: 0.7rem; font-weight: 800; background: var(--primary); color: white; padding: 4px 10px; border-radius: 6px; min-width: 45px; text-align: center; }
+
+    /* ===== FILTRO BAR ===== */
+    .filtro-bar { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+    .filtro-btn { background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: var(--gray); padding: 4px 14px; border-radius: 20px; cursor: pointer; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; transition: 0.2s; }
+    .filtro-btn:hover { border-color: var(--primary); color: var(--text); }
+    .filtro-btn.ativo { background: var(--primary); border-color: var(--primary); color: white; }
+
+    /* ===== BUSCA ===== */
+    .search-bar { display: flex; gap: 10px; background: var(--card); padding: 10px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 20px; }
+    .search-bar input { flex: 1; background: transparent; border: none; color: var(--text); outline: none; padding: 5px; font-size: 13px; }
+    .search-bar input::placeholder { color: var(--gray); }
+    .btn-limpar { background: var(--primary); color: white; border: none; padding: 5px 15px; border-radius: 8px; cursor: pointer; font-weight: 800; font-size: 12px; }
+
+    /* ===== GRID LISTA ===== */
+    .list-container { min-width: 1100px; }
+    .grid-header {
+      display: grid;
+      grid-template-columns: 70px 150px 1fr 160px 200px 130px 100px;
+      background: rgba(0,0,0,0.3); padding: 14px 15px; border-radius: 12px 12px 0 0;
+      font-weight: 800; text-transform: uppercase; font-size: 0.62rem; color: var(--gray);
+      border: 1px solid var(--border);
+    }
+    .list-row {
+      display: grid;
+      grid-template-columns: 70px 150px 1fr 160px 200px 130px 100px;
+      align-items: center; background: var(--card); padding: 13px 15px;
+      border: 1px solid var(--border); margin-top: -1px; transition: 0.2s; cursor: pointer;
+    }
+    .list-row:hover { background: #242f44; z-index: 2; border-color: var(--primary); }
+    .btn-abrir { background: var(--primary); color: white; border: none; padding: 7px 14px; border-radius: 6px; cursor: pointer; font-weight: 800; font-size: 0.68rem; text-transform: uppercase; white-space: nowrap; }
+    .btn-abrir:hover { filter: brightness(1.2); }
+
+    /* ===== STATUS BADGES ===== */
+    @keyframes shimmering { 0% { opacity: 1; } 100% { opacity: 0.5; } }
+    .status-badge { padding: 4px 0; border-radius: 6px; font-size: 0.62rem; font-weight: 900; color: white; text-transform: uppercase; text-align: center; width: 120px; display: inline-block; border: 1px solid transparent; }
+    .badge-pendente  { background: rgba(245,158,11,0.15); color: #f59e0b; border-color: #f59e0b; animation: shimmering 2s infinite alternate; }
+    .badge-aprovado  { background: rgba(16,185,129,0.15); color: #10b981; border-color: #10b981; }
+    .badge-reprovado { background: rgba(239,68,68,0.15);  color: #ef4444; border-color: #ef4444; }
+    .badge-cancelado { background: rgba(148,163,184,0.1); color: #94a3b8; border-color: #94a3b8; }
+
+    /* ===== CONSENSO BADGE ===== */
+    .cons-badge { display: inline-block; padding: 3px 8px; border-radius: 6px; font-size: 0.62rem; font-weight: 800; text-transform: uppercase; white-space: nowrap; }
+    .cons-unanimidade         { background: rgba(99,102,241,0.15); color: #818cf8; }
+    .cons-maioria_simples     { background: rgba(16,185,129,0.15); color: #10b981; }
+    .cons-maioria_qualificada { background: rgba(245,158,11,0.15); color: #f59e0b; }
+    .cons-quorum_minimo       { background: rgba(139,92,246,0.15); color: #a78bfa; }
+
+    /* ===== MINI PROGRESSO ===== */
+    .prog-mini { font-size: 0.7rem; color: var(--gray); }
+    .prog-mini-bar  { height: 4px; background: var(--border); border-radius: 2px; margin-top: 4px; overflow: hidden; }
+    .prog-mini-fill { height: 100%; border-radius: 2px; transition: width 0.4s; }
+
+    /* ===== APROVADORES CHIPS MINI ===== */
+    .aprov-chip { display: inline-block; background: rgba(59,130,246,0.12); border: 1px solid rgba(59,130,246,0.25); border-radius: 4px; padding: 1px 6px; font-size: 0.65rem; color: #90caf9; margin: 1px 2px 1px 0; white-space: nowrap; }
+
+    /* ===== MODAL BASE ===== */
+    .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; z-index: 5000; padding: 20px; }
+    .modal-content { background: var(--card); width: 100%; padding: 28px 30px; border-radius: 15px; border: 1px solid var(--border); max-height: 90vh; overflow-y: auto; }
+    .modal-content::-webkit-scrollbar { width: 4px; }
+    .modal-content::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+    .hidden { display: none !important; }
+
+    /* ===== SEÇÕES DO MODAL DETALHE ===== */
+    .secao-card { background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin-bottom: 14px; }
+    .secao-titulo { font-size: 0.68rem; font-weight: 800; text-transform: uppercase; letter-spacing: .07em; color: var(--gray); margin-bottom: 12px; display: flex; align-items: center; gap: 7px; }
+    .secao-titulo i { color: var(--primary); }
+
+    /* ===== BARRA DE PROGRESSO ===== */
+    .progresso-wrap   { display: flex; align-items: center; gap: 12px; margin-bottom: 6px; }
+    .progresso-bar-bg { flex: 1; height: 8px; background: rgba(255,255,255,0.06); border-radius: 4px; overflow: hidden; }
+    .progresso-bar-fill { height: 100%; border-radius: 4px; transition: width 0.5s; }
+    .progresso-texto  { font-size: 0.8rem; font-weight: 600; white-space: nowrap; }
+
+    /* ===== APROVADOR ITEM ===== */
+    .aprovador-item { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--border); }
+    .aprovador-item:last-child { border-bottom: none; }
+    .avatar { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.82rem; font-weight: 700; flex-shrink: 0; color: #fff; }
+    .aprovador-info { flex: 1; min-width: 0; }
+    .aprovador-nome   { font-size: 0.85rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .aprovador-login  { font-size: 0.7rem; color: var(--gray); }
+    .aprovador-motivo { font-size: 0.75rem; color: var(--gray); font-style: italic; margin-top: 2px; }
+    .aprovador-data   { font-size: 0.7rem; color: var(--gray); white-space: nowrap; margin-top: 3px; }
+
+    /* ===== ÁREA RESPOSTA ===== */
+    .area-resposta { background: rgba(59,130,246,0.05); border: 1px solid rgba(59,130,246,0.2); border-radius: 10px; padding: 16px; }
+    .area-resposta-titulo { font-size: 0.8rem; font-weight: 700; color: var(--primary); margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
+    .txt-motivo { width: 100%; background: #0f172a; border: 1px solid var(--border); border-radius: 8px; color: var(--text); padding: 10px 12px; font-size: 0.85rem; font-family: inherit; resize: vertical; min-height: 70px; margin-bottom: 12px; outline: none; transition: border-color .2s; }
+    .txt-motivo:focus { border-color: var(--primary); }
+    .btns-resposta { display: flex; gap: 10px; flex-wrap: wrap; }
+    .btn-aprovar  { background: rgba(16,185,129,0.15); color: #10b981; border: 1px solid #10b981; border-radius: 8px; padding: 9px 18px; font-size: 0.82rem; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; gap: 7px; transition: 0.2s; }
+    .btn-aprovar:hover  { background: rgba(16,185,129,0.25); transform: translateY(-1px); }
+    .btn-reprovar { background: rgba(239,68,68,0.1); color: #ef4444; border: 1px solid #ef4444; border-radius: 8px; padding: 9px 18px; font-size: 0.82rem; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; gap: 7px; transition: 0.2s; }
+    .btn-reprovar:hover { background: rgba(239,68,68,0.2); transform: translateY(-1px); }
+    .btn-editar   { background: transparent; color: var(--primary); border: 1px solid rgba(59,130,246,0.4); border-radius: 8px; padding: 8px 16px; font-size: 0.78rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: 0.2s; }
+    .btn-editar:hover   { background: rgba(59,130,246,0.1); }
+    .btn-cancelar { background: transparent; color: #ef4444; border: 1px solid rgba(239,68,68,0.4); border-radius: 8px; padding: 8px 16px; font-size: 0.78rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: 0.2s; }
+    .btn-cancelar:hover { background: rgba(239,68,68,0.1); }
+    .btn-principal { background: var(--primary); color: #fff; border: none; border-radius: 8px; padding: 10px 22px; font-size: 0.88rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; transition: 0.2s; }
+    .btn-principal:hover    { background: #2563eb; transform: translateY(-1px); }
+    .btn-principal:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+    /* ===== TIMELINE ===== */
+    .timeline { position: relative; }
+    .timeline::before { content: ''; position: absolute; left: 14px; top: 0; bottom: 0; width: 2px; background: var(--border); }
+    .timeline-item { display: flex; gap: 12px; padding: 8px 0; position: relative; }
+    .timeline-dot  { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.65rem; flex-shrink: 0; z-index: 1; }
+    .tl-criou     { background: rgba(59,130,246,0.15);  border: 2px solid #3b82f6; color: #3b82f6; }
+    .tl-editou    { background: rgba(245,158,11,0.15);  border: 2px solid #f59e0b; color: #f59e0b; }
+    .tl-aprovou   { background: rgba(16,185,129,0.15);  border: 2px solid #10b981; color: #10b981; }
+    .tl-reprovou  { background: rgba(239,68,68,0.15);   border: 2px solid #ef4444; color: #ef4444; }
+    .tl-cancelou  { background: rgba(100,116,139,0.15); border: 2px solid #64748b; color: #64748b; }
+    .tl-sistema   { background: rgba(139,92,246,0.15);  border: 2px solid #8b5cf6; color: #8b5cf6; }
+    .tl-anexou    { background: rgba(6,182,212,0.15);   border: 2px solid #06b6d4; color: #06b6d4; }
+    .tl-removeu   { background: rgba(245,158,11,0.2);   border: 2px solid #f59e0b; color: #f59e0b; }
+    .tl-default   { background: rgba(148,163,184,0.1);  border: 2px solid #475569; color: #94a3b8; }
+    .timeline-content { flex: 1; padding-top: 4px; }
+    .timeline-acao { font-size: 0.83rem; color: var(--text); line-height: 1.4; }
+    .timeline-data { font-size: 0.68rem; color: var(--gray); margin-top: 3px; }
+
+    /* ===== ANEXOS ===== */
+    .anexo-item { display: flex; align-items: center; gap: 10px; padding: 8px 10px; background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: 8px; margin-top: 6px; }
+    .anexo-icon  { width: 30px; height: 30px; border-radius: 6px; background: rgba(59,130,246,0.12); display: flex; align-items: center; justify-content: center; color: var(--primary); font-size: 0.82rem; flex-shrink: 0; }
+    .anexo-info  { flex: 1; min-width: 0; }
+    .anexo-nome  { font-size: 0.82rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .anexo-meta  { font-size: 0.7rem; color: var(--gray); }
+    .anexo-btn   { background: none; border: none; cursor: pointer; padding: 4px 7px; border-radius: 5px; font-size: 0.82rem; transition: background .15s; flex-shrink: 0; }
+    .anexo-btn-dl:hover  { background: rgba(59,130,246,0.12); color: var(--primary); }
+    .anexo-btn-del { color: #ef4444; }
+    .anexo-btn-del:hover { background: rgba(239,68,68,0.12); }
+    .upload-area { border: 2px dashed var(--border); border-radius: 8px; padding: 18px; text-align: center; cursor: pointer; transition: 0.2s; color: var(--gray); font-size: 0.82rem; display: flex; align-items: center; justify-content: center; gap: 10px; }
+    .upload-area:hover, .upload-area.dragover { border-color: var(--primary); background: rgba(59,130,246,0.05); color: var(--text); }
+
+    /* ===== CHIP SELECTOR ===== */
+    .chip-selector { border: 1px solid var(--border); border-radius: 8px; background: #0f172a; position: relative; }
+    .chip-selector-top { display: flex; flex-wrap: wrap; gap: 6px; padding: 8px 10px; min-height: 42px; align-items: center; cursor: text; }
+    .chip-selector-top input { background: transparent; border: none; outline: none; color: var(--text); font-size: 0.85rem; font-family: inherit; flex: 1; min-width: 130px; }
+    .chip-selector-top input::placeholder { color: var(--gray); }
+    .chip-selector:focus-within { border-color: var(--primary); }
+    .chip { display: inline-flex; align-items: center; gap: 5px; background: rgba(59,130,246,0.15); border: 1px solid rgba(59,130,246,0.4); border-radius: 20px; padding: 3px 8px 3px 10px; font-size: 0.78rem; color: var(--text); white-space: nowrap; }
+    .chip-obs { background: rgba(16,185,129,0.12); border-color: rgba(16,185,129,0.4); }
+    .chip-rem { cursor: pointer; color: var(--gray); line-height: 1; font-size: 1rem; padding: 0 2px; border-radius: 50%; transition: 0.15s; }
+    .chip-rem:hover { color: #ef4444; background: rgba(239,68,68,0.15); }
+    .chip-dropdown { border-top: 1px solid var(--border); max-height: 180px; overflow-y: auto; display: none; border-radius: 0 0 8px 8px; }
+    .chip-dropdown.aberto { display: block; }
+    .chip-item { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; cursor: pointer; border-bottom: 1px solid var(--border); transition: background .15s; }
+    .chip-item:last-child { border-bottom: none; }
+    .chip-item:hover { background: rgba(59,130,246,0.08); }
+    .chip-item.selecionado { background: rgba(59,130,246,0.06); }
+    .chip-item-nome  { font-size: 0.85rem; }
+    .chip-item-login { font-size: 0.75rem; color: var(--gray); }
+
+    /* ===== CONSENSO SELECT ===== */
+    .consenso-select { width: 100%; background: #0f172a; border: 1px solid var(--border); border-radius: 8px; padding: 10px 32px 10px 14px; color: var(--text); font-size: 0.9rem; font-family: inherit; cursor: pointer; transition: border-color .2s; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2394a3b8' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; }
+    .consenso-select:focus { outline: none; border-color: var(--primary); }
+
+    /* ===== CAMPOS DO FORM ===== */
+    .campo-grupo { margin-bottom: 16px; }
+    .campo-grupo label { display: block; font-size: 0.7rem; font-weight: 700; color: var(--gray); margin-bottom: 6px; text-transform: uppercase; letter-spacing: .06em; }
+    .campo-grupo input, .campo-grupo textarea { width: 100%; background: #0f172a; border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; color: var(--text); font-size: 0.9rem; font-family: inherit; transition: border-color .2s; resize: vertical; }
+    .campo-grupo input:focus, .campo-grupo textarea:focus { outline: none; border-color: var(--primary); }
+    .campo-grupo input::placeholder, .campo-grupo textarea::placeholder { color: var(--gray); }
+
+    /* ===== NOTIF ITEM ===== */
+    .notif-aprov-item {
+      display: flex; align-items: center; justify-content: space-between;
+      background: rgba(255,255,255,0.04); border: 1px solid var(--border);
+      border-radius: 8px; padding: 10px 14px; margin-bottom: 6px; gap: 10px;
+    }
+    .notif-aprov-item:hover { border-color: var(--purple); background: rgba(139,92,246,0.06); }
+    .notif-aprov-info { flex: 1; min-width: 0; }
+    .notif-aprov-id     { font-size: 0.7rem; font-weight: 900; color: var(--gray); }
+    .notif-aprov-titulo { font-weight: 700; font-size: 0.88rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .notif-aprov-meta   { font-size: 0.72rem; color: var(--gray); margin-top: 2px; }
+    .notif-aprov-btn    { flex-shrink: 0; background: var(--purple); color: white; border: none;
+      padding: 7px 16px; border-radius: 6px; cursor: pointer; font-size: 0.75rem; font-weight: 800; white-space: nowrap; }
+    .notif-aprov-btn:hover { filter: brightness(1.2); }
+
+    /* ===== TOAST ===== */
+    #toast { position: fixed; bottom: 24px; right: 24px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
+    .toast-item { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 12px 18px; font-size: 0.85rem; color: var(--text); box-shadow: 0 4px 20px rgba(0,0,0,0.4); display: flex; align-items: center; gap: 10px; animation: toastIn .3s ease; pointer-events: all; }
+    .toast-item.sucesso { border-left: 3px solid #10b981; }
+    .toast-item.erro    { border-left: 3px solid #ef4444; }
+    .toast-item.info    { border-left: 3px solid #3b82f6; }
+    @keyframes toastIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* ===== SPINNER ===== */
+    .spinner { display: inline-block; width: 18px; height: 18px; border: 2px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin .7s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <div id="menu-container"></div>
+
+  <div class="content-wrapper">
+    <!-- Header -->
+    <div class="page-header">
+      <h2 style="display:flex;align-items:center;gap:10px;font-size:1.4rem">✅ Aprovações</h2>
+      <div class="page-tools">
+        <a id="btn-relatorios" href="/aprovacoes/relatorios" class="btn-dash" style="background:#6366f1;display:none">
+          <i class="fas fa-chart-bar"></i> RELATÓRIOS
+        </a>
+        <button onclick="abrirModalCriacao()" class="btn-dash">
+          <i class="fas fa-plus"></i> NOVA APROVAÇÃO
+        </button>
+        <span id="refresh-label" class="refresh-tag">--s</span>
+      </div>
+    </div>
+
+    <!-- Filtro bar -->
+    <div class="filtro-bar">
+      <button class="filtro-btn" onclick="setFiltro('TODOS', this)">Todos</button>
+      <button class="filtro-btn ativo" onclick="setFiltro('Pendente', this)">Pendentes</button>
+      <button class="filtro-btn" onclick="setFiltro('Aprovado', this)">Aprovados</button>
+      <button class="filtro-btn" onclick="setFiltro('Reprovado', this)">Reprovados</button>
+      <button class="filtro-btn" onclick="setFiltro('Cancelado', this)">Cancelados</button>
+      <button class="filtro-btn" onclick="setFiltro('MINHAS', this)">Minhas</button>
+      <button class="filtro-btn" onclick="setFiltro('PARA_MIM', this)">Para mim</button>
+    </div>
+
+    <!-- Search bar -->
+    <div class="search-bar">
+      <input type="text" id="f-search" placeholder="Pesquisar por título, criador…" oninput="renderLista()" />
+      <button class="btn-limpar" onclick="resetFiltros()">LIMPAR</button>
+    </div>
+
+    <!-- Grid list -->
+    <div style="overflow-x: auto;">
+      <div class="list-container">
+        <div class="grid-header">
+          <div>#ID</div>
+          <div>Status</div>
+          <div>Título</div>
+          <div>Criado por</div>
+          <div>Aprovadores</div>
+          <div>Consenso</div>
+          <div>Ações</div>
+        </div>
+        <div id="list-body"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast container -->
+  <div id="toast"></div>
+
+  <!-- ===== MODAL: NOTIFICAÇÕES DE APROVAÇÕES PENDENTES ===== -->
+  <div id="modal-notif-aprov" class="modal hidden" style="z-index:6000">
+    <div class="modal-content" style="max-width:600px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+        <h2 style="color:var(--purple);display:flex;align-items:center;gap:10px">
+          <span style="font-size:1.4rem">✅</span>
+          <span>Aprovações aguardando sua resposta!</span>
+        </h2>
+        <span id="notif-aprov-badge"
+          style="background:#ef4444;color:#fff;font-weight:900;padding:4px 12px;border-radius:20px;font-size:0.8rem"></span>
+      </div>
+
+      <div style="font-size:0.7rem;font-weight:900;color:var(--purple);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">
+        ⏳ Pendentes — Requerem sua aprovação
+      </div>
+      <div id="notif-aprov-lista"></div>
+
+      <div style="display:flex;gap:10px;margin-top:24px;justify-content:flex-end">
+        <button onclick="fecharNotifAprov()"
+          style="background:#475569;color:white;border:none;padding:10px 24px;border-radius:8px;cursor:pointer;font-weight:800;font-size:0.85rem">
+          FECHAR
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MODAL: DETALHE DA APROVAÇÃO ===== -->
+  <div id="modal-detalhe" class="modal hidden">
+    <div class="modal-content" style="max-width:760px">
+      <div id="modal-detalhe-conteudo">
+        <div style="text-align:center;padding:40px"><span class="spinner"></span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MODAL: CRIAR / EDITAR APROVAÇÃO ===== -->
+  <div id="modal-form" class="modal hidden" style="z-index:5500">
+    <div class="modal-content" style="max-width:680px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+        <h3 id="modal-form-titulo" style="color:var(--primary);display:flex;align-items:center;gap:8px">
+          <i class="fas fa-plus-circle"></i> Nova Aprovação
+        </h3>
+        <button onclick="fecharModalForm()" style="background:none;border:none;color:var(--gray);cursor:pointer;font-size:1.4rem;line-height:1">&times;</button>
+      </div>
+
+      <div class="campo-grupo">
+        <label>Título *</label>
+        <input type="text" id="inp-titulo" placeholder="Ex: Aprovação de compra de equipamentos" maxlength="200" />
+      </div>
+
+      <div class="campo-grupo">
+        <label>Objetivo / Descrição</label>
+        <textarea id="inp-objetivo" rows="4" placeholder="Descreva o que está sendo solicitado para aprovação…"></textarea>
+      </div>
+
+      <div class="campo-grupo">
+        <label>Tipo de Consenso</label>
+        <select class="consenso-select" id="inp-consenso" onchange="atualizarConsensoOpcional()">
+          <option value="unanimidade">Unanimidade — todos os aprovadores devem aprovar</option>
+          <option value="maioria_simples">Maioria Simples — mais da metade (50% + 1)</option>
+          <option value="maioria_qualificada">Maioria Qualificada — percentual mínimo personalizado</option>
+          <option value="quorum_minimo">Quórum Mínimo — número mínimo de participantes</option>
+        </select>
+        <div id="consenso-extra" style="display:none;margin-top:10px">
+          <div style="display:flex;align-items:center;gap:8px">
+            <input type="number" id="inp-consenso-valor" class="consenso-select"
+              style="width:110px;padding:8px 12px" min="1" max="99" placeholder="Ex: 67" />
+            <span id="consenso-extra-sufixo" style="color:var(--gray);font-size:.85rem"></span>
+          </div>
+          <small id="consenso-extra-hint" style="color:var(--gray);font-size:.75rem;margin-top:4px;display:block"></small>
+        </div>
+      </div>
+
+      <div class="campo-grupo">
+        <label>Aprovadores *</label>
+        <div class="chip-selector" id="chip-selector">
+          <div class="chip-selector-top" onclick="document.getElementById('chip-busca').focus()">
+            <div id="chips-container"></div>
+            <input type="text" id="chip-busca" placeholder="Buscar e adicionar aprovador…"
+              oninput="filtrarChipDropdown()" onfocus="abrirChipDropdown()" onblur="fecharChipDropdown()" />
+          </div>
+          <div class="chip-dropdown" id="chip-dropdown"></div>
+        </div>
+      </div>
+
+      <div class="campo-grupo">
+        <label>Observadores <span style="font-weight:400;text-transform:none;font-size:.75rem;opacity:.7">(opcional — recebem notificações)</span></label>
+        <div class="chip-selector" id="chip-selector-obs">
+          <div class="chip-selector-top" onclick="document.getElementById('chip-busca-obs').focus()">
+            <div id="chips-container-obs"></div>
+            <input type="text" id="chip-busca-obs" placeholder="Buscar e adicionar observador…"
+              oninput="filtrarChipDropdownObs()" onfocus="abrirChipDropdownObs()" onblur="fecharChipDropdownObs()" />
+          </div>
+          <div class="chip-dropdown" id="chip-dropdown-obs"></div>
+        </div>
+      </div>
+
+      <div class="campo-grupo">
+        <label>Anexos <span style="font-weight:400;text-transform:none;font-size:.75rem;opacity:.7">(opcional — máx. 5 MB cada)</span></label>
+        <div class="upload-area" id="upload-area-form"
+          onclick="document.getElementById('file-input-form').click()"
+          ondragover="event.preventDefault();this.classList.add('dragover')"
+          ondragleave="this.classList.remove('dragover')"
+          ondrop="handleDropForm(event)">
+          <i class="fas fa-cloud-upload-alt"></i>
+          <span>Clique ou arraste arquivos aqui</span>
+        </div>
+        <input type="file" id="file-input-form" style="display:none" multiple
+          accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.txt,.zip,.rar"
+          onchange="handleFileSelectForm(event)" />
+        <div id="lista-arquivos-form"></div>
+      </div>
+
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
+        <button onclick="fecharModalForm()"
+          style="background:none;border:1px solid var(--border);color:var(--gray);border-radius:8px;padding:10px 20px;cursor:pointer;font-size:.88rem">
+          Cancelar
+        </button>
+        <button class="btn-principal" id="btn-form-submit" onclick="submitFormulario()">
+          <i class="fas fa-paper-plane"></i> Criar Aprovação
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/menu.js"></script>
+  <script>
+    // ──────────────────────────────────────────────────────────
+    // ESTADO
+    // ──────────────────────────────────────────────────────────
+    let listaCompleta            = [];
+    let filtroStatus             = 'Pendente';
+    let todosUsuarios            = [];
+    let aprovadoresSelecionados  = [];
+    let observadoresSelecionados = [];
+    let arquivosPendentes        = [];
+    let modoEdicao               = false;
+    let idEdicao                 = null;
+    let idAberto                 = null;
+    let refreshSecs              = 30;
+    let tempoRestante            = refreshSecs;
+    let _dadosAbertos            = null;
+    let _notifFechada            = false; // usuário fechou na sessão → não reabre automaticamente
+
+    // ──────────────────────────────────────────────────────────
+    // INIT
+    // ──────────────────────────────────────────────────────────
+    document.addEventListener('DOMContentLoaded', async () => {
+      await carregarLista();
+      carregarUsuarios();
+      verificarNotificacoesAprov();
+      // Exibe botão de relatórios apenas para admin/gestor
+      (async () => {
+        try {
+          const s = await fetch('/sessao').then(r => r.json());
+          if (['admin','gestor'].includes(s?.nivel)) {
+            const btnRel = document.getElementById('btn-relatorios');
+            if (btnRel) btnRel.style.display = 'inline-flex';
+          }
+        } catch {}
+      })();
+      setInterval(() => {
+        tempoRestante--;
+        const lbl = document.getElementById('refresh-label');
+        if (lbl) lbl.textContent = tempoRestante + 's';
+        if (tempoRestante <= 0) {
+          tempoRestante = refreshSecs;
+          carregarLista().then(verificarNotificacoesAprov);
+        }
+      }, 1000);
+    });
+
+    // ──────────────────────────────────────────────────────────
+    // HELPERS
+    // ──────────────────────────────────────────────────────────
+    function toast(msg, tipo = 'info') {
+      const el = document.createElement('div');
+      el.className = `toast-item ${tipo}`;
+      const icons  = { sucesso: 'fa-check-circle', erro: 'fa-times-circle', info: 'fa-info-circle' };
+      const colors = { sucesso: '#10b981', erro: '#ef4444', info: '#3b82f6' };
+      el.innerHTML = `<i class="fas ${icons[tipo]}" style="color:${colors[tipo]}"></i> ${msg}`;
+      document.getElementById('toast').appendChild(el);
+      setTimeout(() => el.remove(), 4000);
+    }
+
+    function fmtData(d) {
+      if (!d) return '—';
+      return new Date(d).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    }
+    function fmtDataCurta(d) {
+      if (!d) return '—';
+      return new Date(d).toLocaleDateString('pt-BR');
+    }
+    function esc(s) {
+      return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+    function corAvatar(login) {
+      const cores = ['#3b82f6','#8b5cf6','#ec4899','#f59e0b','#10b981','#06b6d4','#ef4444','#84cc16'];
+      let sum = 0; for (let c of (login || 'x')) sum += c.charCodeAt(0);
+      return cores[sum % cores.length];
+    }
+    function inicialAvatar(nome) {
+      if (!nome) return '?';
+      const p = nome.trim().split(' ');
+      return p.length > 1 ? (p[0][0] + p[p.length - 1][0]).toUpperCase() : p[0][0].toUpperCase();
+    }
+
+    function statusBadge(status) {
+      const map = {
+        Pendente:  'badge-pendente',
+        Aprovado:  'badge-aprovado',
+        Reprovado: 'badge-reprovado',
+        Cancelado: 'badge-cancelado',
+      };
+      return `<span class="status-badge ${map[status] || 'badge-cancelado'}">${status || '?'}</span>`;
+    }
+
+    function consBadge(tipo, valor) {
+      const map = {
+        unanimidade:          ['cons-unanimidade',         'Unanimidade'],
+        maioria_simples:      ['cons-maioria_simples',     'Maioria S.'],
+        maioria_qualificada:  ['cons-maioria_qualificada', `Qualif. ${valor || 67}%`],
+        quorum_minimo:        ['cons-quorum_minimo',       `Quórum ${valor || '?'}`],
+      };
+      const [cls, txt] = map[tipo] || ['cons-unanimidade', 'Unanimidade'];
+      return `<span class="cons-badge ${cls}">${txt}</span>`;
+    }
+
+    // ──────────────────────────────────────────────────────────
+    // NOTIFICAÇÕES — APROVAÇÕES PENDENTES
+    // ──────────────────────────────────────────────────────────
+    function verificarNotificacoesAprov() {
+      if (_notifFechada) return;
+      if (!document.getElementById('modal-notif-aprov').classList.contains('hidden')) return;
+
+      const pendentes = listaCompleta.filter(a =>
+        !a.sou_criador &&
+        a.minha_decisao === 'Pendente' &&
+        a.status === 'Pendente'
+      );
+      if (!pendentes.length) return;
+
+      document.getElementById('notif-aprov-badge').textContent =
+        pendentes.length + ' aprovação' + (pendentes.length > 1 ? 'ões' : '');
+
+      document.getElementById('notif-aprov-lista').innerHTML = pendentes.map(a => `
+        <div class="notif-aprov-item">
+          <div class="notif-aprov-info">
+            <div class="notif-aprov-id">#${a.id}</div>
+            <div class="notif-aprov-titulo">${esc(a.titulo)}</div>
+            <div class="notif-aprov-meta">
+              Criado por: ${esc(a.criado_por_nome || a.criado_por)}
+              &bull; ${fmtData(a.criado_em)}
+            </div>
+          </div>
+          <button class="notif-aprov-btn" onclick="abrirDetalheDeNotif(${a.id})">
+            ✅ RESPONDER
+          </button>
+        </div>`).join('');
+
+      document.getElementById('modal-notif-aprov').classList.remove('hidden');
+    }
+
+    function fecharNotifAprov() {
+      document.getElementById('modal-notif-aprov').classList.add('hidden');
+      _notifFechada = true; // não reabre automaticamente até F5
+    }
+
+    function abrirDetalheDeNotif(id) {
+      // Remove o item da lista de notificações (já vai responder)
+      const modal = document.getElementById('modal-notif-aprov');
+      const lista = document.getElementById('notif-aprov-lista');
+      // Abre o detalhe (modal fica por baixo do detalhe, z-index: detalhe = 5000, notif = 6000)
+      // Fecha notif e abre detalhe
+      modal.classList.add('hidden');
+      _notifFechada = false; // permite reabrir se ainda houver pendentes após resposta
+      abrirDetalhe(id);
+    }
+
+    // ──────────────────────────────────────────────────────────
+    // CARREGAR DADOS
+    // ──────────────────────────────────────────────────────────
+    async function carregarLista() {
+      try {
+        const r = await fetch('/api/aprovacoes');
+        if (!r.ok) throw new Error();
+        const data = await r.json();
+        listaCompleta = data.aprovacoes || [];
+        renderLista();
+        // Atualiza modal de detalhe se estiver aberto
+        if (idAberto && !document.getElementById('modal-detalhe').classList.contains('hidden')) {
+          abrirDetalhe(idAberto, true);
+        }
+      } catch { /* silencioso no polling */ }
+    }
+
+    async function carregarUsuarios() {
+      try {
+        let r = await fetch('/api/contatos/usuarios');
+        if (!r.ok) r = await fetch('/api/chamados/usuarios');
+        const data = await r.json();
+        todosUsuarios = data.usuarios || [];
+      } catch { /* silencioso */ }
+    }
+
+    // ──────────────────────────────────────────────────────────
+    // FILTROS
+    // ──────────────────────────────────────────────────────────
+    function setFiltro(status, btn) {
+      filtroStatus = status;
+      document.querySelectorAll('.filtro-btn').forEach(b => b.classList.remove('ativo'));
+      if (btn) btn.classList.add('ativo');
+      renderLista();
+    }
+    function resetFiltros() {
+      document.getElementById('f-search').value = '';
+      filtroStatus = 'Pendente';
+      document.querySelectorAll('.filtro-btn').forEach((b, i) => b.classList.toggle('ativo', i === 1));
+      renderLista();
+    }
+
+    // ──────────────────────────────────────────────────────────
+    // RENDER LISTA
+    // ──────────────────────────────────────────────────────────
+    function renderLista() {
+      const body   = document.getElementById('list-body');
+      if (!body) return;
+      const search = (document.getElementById('f-search')?.value || '').toLowerCase();
+
+      let lista = listaCompleta;
+      if      (filtroStatus === 'MINHAS')   lista = lista.filter(a => a.sou_criador);
+      else if (filtroStatus === 'PARA_MIM') lista = lista.filter(a => !a.sou_criador);
+      else if (filtroStatus !== 'TODOS')    lista = lista.filter(a => a.status === filtroStatus);
+
+      if (search) lista = lista.filter(a =>
+        (a.titulo || '').toLowerCase().includes(search) ||
+        (a.criado_por_nome || a.criado_por || '').toLowerCase().includes(search)
+      );
+
+      if (!lista.length) {
+        body.innerHTML = `<div style="padding:30px;text-align:center;color:var(--gray);background:var(--card);border:1px solid var(--border)">
+          Nenhuma aprovação encontrada.
+        </div>`;
+        return;
+      }
+
+      body.innerHTML = lista.map(a => {
+        const total   = a.total_aprovadores || 0;
+        const aprov   = a.total_aprovados   || 0;
+        const reprov  = a.total_reprovados  || 0;
+        const pct     = total ? Math.round((aprov / total) * 100) : 0;
+        const barClr  = a.status === 'Aprovado' ? '#10b981' : a.status === 'Reprovado' ? '#ef4444' : '#f59e0b';
+
+        // Chips dos aprovadores (até 3 nomes)
+        const nomes = (a.aprovadores_lista || '').split(',').map(n => n.trim()).filter(Boolean);
+        const chipsHtml = nomes.length
+          ? nomes.slice(0, 3).map(n => `<span class="aprov-chip">${esc(n)}</span>`).join('')
+            + (nomes.length > 3 ? `<span style="font-size:.65rem;color:var(--gray)"> +${nomes.length - 3}</span>` : '')
+          : `<span style="font-size:.72rem;color:var(--gray)">${total} aprovador(es)</span>`;
+
+        return `
+          <div class="list-row" onclick="abrirDetalhe(${a.id})">
+            <div style="font-weight:900;color:var(--primary)">#${a.id}</div>
+            <div style="display:flex;gap:4px;flex-direction:column;align-items:flex-start">
+              ${statusBadge(a.status)}
+              ${a.sou_criador
+                ? '<span style="font-size:.6rem;color:var(--gray);margin-top:3px">✏️ criada por mim</span>'
+                : (a.minha_decisao === 'Pendente' ? '<span style="font-size:.6rem;color:#f59e0b;margin-top:3px">⏳ aguardando minha resposta</span>' : '<span style="font-size:.6rem;color:var(--gray);margin-top:3px">👁 observando</span>')
+              }
+            </div>
+            <div>
+              <div style="font-weight:700;margin-bottom:3px">${esc(a.titulo)}</div>
+              <div style="font-size:.68rem;color:var(--gray)">${fmtDataCurta(a.criado_em)}</div>
+            </div>
+            <div style="font-size:.78rem">${esc(a.criado_por_nome || a.criado_por)}</div>
+            <div>
+              <div style="margin-bottom:4px">${chipsHtml}</div>
+              <div class="prog-mini">${aprov}/${total} aprovaram</div>
+              <div class="prog-mini-bar"><div class="prog-mini-fill" style="width:${pct}%;background:${barClr}"></div></div>
+            </div>
+            <div>${consBadge(a.tipo_consenso, a.consenso_valor)}</div>
+            <div>
+              <button onclick="event.stopPropagation();abrirDetalhe(${a.id})" class="btn-abrir">
+                <i class="fas fa-folder-open"></i> Abrir
+              </button>
+            </div>
+          </div>`;
+      }).join('');
+    }
+
+    // ──────────────────────────────────────────────────────────
+    // ABRIR DETALHE (modal)
+    // ──────────────────────────────────────────────────────────
+    async function abrirDetalhe(id, silencioso = false) {
+      idAberto = id;
+      if (!silencioso) {
+        document.getElementById('modal-detalhe').classList.remove('hidden');
+        document.getElementById('modal-detalhe-conteudo').innerHTML =
+          '<div style="text-align:center;padding:50px"><span class="spinner"></span></div>';
+      }
+      try {
+        const r = await fetch(`/api/aprovacoes/${id}`);
+        const data = await r.json();
+        if (!r.ok) throw new Error(data.erro || 'Erro ao carregar aprovação.');
+        renderizarDetalhe(data);
+      } catch (e) {
+        if (!silencioso)
+          document.getElementById('modal-detalhe-conteudo').innerHTML =
+            `<div style="text-align:center;padding:50px;color:#ef4444"><i class="fas fa-exclamation-triangle"></i> ${esc(e.message)}</div>`;
+      }
+    }
+
+    function fecharModalDetalhe() {
+      document.getElementById('modal-detalhe').classList.add('hidden');
+      idAberto = null;
+    }
+
+    // ──────────────────────────────────────────────────────────
+    // RENDERIZAR DETALHE
+    // ──────────────────────────────────────────────────────────
+    function renderizarDetalhe({ aprovacao: apr, participantes, observadores = [], anexos = [], log }) {
+      _dadosAbertos = { apr, participantes, observadores, anexos };
+      const login       = window.usuarioLogado?.usuario || window.usuarioLogado?.login || '';
+      const sou         = apr.sou_criador;
+      const meuPart     = participantes.find(p => p.aprovador_login === login);
+      const possoResp   = meuPart && meuPart.decisao === 'Pendente' && apr.status === 'Pendente';
+      const podeCancelar = sou && apr.status === 'Pendente';
+      const podeEditar   = sou && apr.status === 'Pendente';
+
+      const total     = participantes.length;
+      const aprovados = participantes.filter(p => p.decisao === 'Aprovado').length;
+      const reprovados= participantes.filter(p => p.decisao === 'Reprovado').length;
+      const tipoC     = apr.tipo_consenso  || 'unanimidade';
+      const valorC    = apr.consenso_valor || null;
+
+      // Progresso
+      let needed = total, progressLabel = '', pct = 0;
+      if (tipoC === 'maioria_simples') {
+        needed = Math.floor(total / 2) + 1;
+        pct    = total ? Math.round((aprovados / needed) * 100) : 0;
+        progressLabel = `${aprovados} / ${needed} necessários (de ${total})`;
+      } else if (tipoC === 'maioria_qualificada') {
+        const p2 = valorC || 67;
+        needed   = Math.ceil(total * p2 / 100);
+        pct      = total ? Math.round((aprovados / needed) * 100) : 0;
+        progressLabel = `${aprovados} / ${needed} necessários (${p2}% de ${total})`;
+      } else if (tipoC === 'quorum_minimo') {
+        const quorum = valorC || Math.ceil(total / 2);
+        const resp   = aprovados + reprovados;
+        pct          = quorum ? Math.round((resp / quorum) * 100) : 0;
+        progressLabel = `${resp} responderam / quórum: ${quorum}`;
+      } else {
+        needed = total;
+        pct    = total ? Math.round((aprovados / total) * 100) : 0;
+        progressLabel = `${aprovados} / ${total} aprovaram`;
+      }
+      pct = Math.min(pct, 100);
+
+      const barColor = apr.status === 'Aprovado' ? '#10b981' : apr.status === 'Reprovado' ? '#ef4444' : apr.status === 'Cancelado' ? '#6b7280' : '#f59e0b';
+
+      const cbMap = {
+        unanimidade:         { label: 'Unanimidade',          icon: 'fa-star',          color: '#6366f1' },
+        maioria_simples:     { label: 'Maioria Simples',      icon: 'fa-balance-scale', color: '#3b82f6' },
+        maioria_qualificada: { label: `Maioria ${valorC||67}%`, icon: 'fa-percent',     color: '#8b5cf6' },
+        quorum_minimo:       { label: `Quórum mín. ${valorC||'?'}`, icon: 'fa-users',   color: '#0ea5e9' },
+      };
+      const cb = cbMap[tipoC] || cbMap.unanimidade;
+
+      // HTML participantes
+      const partsHtml = participantes.map(p => {
+        const bClr = { Aprovado: '#10b981', Reprovado: '#ef4444', Pendente: '#f59e0b' }[p.decisao] || '#94a3b8';
+        const bLbl = { Aprovado: '✔ Aprovado', Reprovado: '✘ Reprovado', Pendente: '⏳ Pendente' }[p.decisao] || p.decisao;
+        return `
+          <div class="aprovador-item">
+            <div class="avatar" style="background:${corAvatar(p.aprovador_login)}">${inicialAvatar(p.aprovador_nome || p.aprovador_login)}</div>
+            <div class="aprovador-info">
+              <div class="aprovador-nome">${esc(p.aprovador_nome || p.aprovador_login)}</div>
+              <div class="aprovador-login">${esc(p.aprovador_login)}</div>
+              ${p.motivo ? `<div class="aprovador-motivo">"${esc(p.motivo)}"</div>` : ''}
+            </div>
+            <div style="text-align:right">
+              <span style="background:${bClr}22;color:${bClr};border:1px solid ${bClr}55;border-radius:20px;padding:3px 10px;font-size:.68rem;font-weight:900;white-space:nowrap">${bLbl}</span>
+              ${p.respondido_em ? `<div class="aprovador-data">${fmtData(p.respondido_em)}</div>` : ''}
+            </div>
+          </div>`;
+      }).join('');
+
+      // HTML observadores
+      const obsHtml = observadores.length ? observadores.map(o => `
+        <div class="aprovador-item">
+          <div class="avatar" style="background:${corAvatar(o.observador_login)}">${inicialAvatar(o.observador_nome || o.observador_login)}</div>
+          <div class="aprovador-info">
+            <div class="aprovador-nome">${esc(o.observador_nome || o.observador_login)}</div>
+            <div class="aprovador-login">${esc(o.observador_login)}</div>
+          </div>
+          <span style="background:rgba(16,185,129,0.12);color:#10b981;border:1px solid rgba(16,185,129,0.3);border-radius:20px;padding:3px 10px;font-size:.68rem;font-weight:800"><i class="fas fa-eye"></i> Observador</span>
+        </div>`).join('') : '';
+
+      // Timeline
+      const logHtml = (log || []).map(e => {
+        const a = (e.acao || '').toLowerCase();
+        let icon  = 'fa-circle-dot';
+        let cls   = 'tl-default';
+        if (e.usuario === 'sistema')   { icon = 'fa-robot';      cls = 'tl-sistema'; }
+        else if (a.includes('criou'))  { icon = 'fa-plus';       cls = 'tl-criou';   }
+        else if (a.includes('editou')) { icon = 'fa-pen';        cls = 'tl-editou';  }
+        else if (a.includes('aprovou'))  { icon = 'fa-check';   cls = 'tl-aprovou'; }
+        else if (a.includes('reprovou')) { icon = 'fa-times';   cls = 'tl-reprovou';}
+        else if (a.includes('cancelou')) { icon = 'fa-ban';     cls = 'tl-cancelou';}
+        else if (a.includes('anexou'))   { icon = 'fa-paperclip'; cls = 'tl-anexou'; }
+        else if (a.includes('removeu'))  { icon = 'fa-trash';   cls = 'tl-removeu'; }
+        else if (a.includes('alterado')) { icon = 'fa-arrow-right'; cls = 'tl-sistema'; }
+        return `
+          <div class="timeline-item">
+            <div class="timeline-dot ${cls}"><i class="fas ${icon}"></i></div>
+            <div class="timeline-content">
+              <div class="timeline-acao">${esc(e.acao)}</div>
+              <div class="timeline-data"><i class="fas fa-clock" style="opacity:.5"></i> ${fmtData(e.criado_em)}</div>
+            </div>
+          </div>`;
+      }).join('');
+
+      // Área de resposta
+      const respostaHtml = possoResp ? `
+        <div class="secao-card">
+          <div class="area-resposta">
+            <div class="area-resposta-titulo"><i class="fas fa-reply"></i> Sua resposta</div>
+            <textarea class="txt-motivo" id="txt-motivo-modal" placeholder="Motivo ou comentário (opcional para aprovação, recomendado para reprovação)…"></textarea>
+            <div class="btns-resposta">
+              <button class="btn-aprovar"  onclick="responder(${apr.id}, 'Aprovado')"><i class="fas fa-check"></i> APROVAR</button>
+              <button class="btn-reprovar" onclick="responder(${apr.id}, 'Reprovado')"><i class="fas fa-times"></i> REPROVAR</button>
+            </div>
+          </div>
+        </div>` : '';
+
+      const acoesCriador = (podeEditar || podeCancelar) ? `
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">
+          ${podeEditar   ? `<button class="btn-editar"   onclick="mostrarEdicao(_dadosAbertos.apr,_dadosAbertos.participantes,_dadosAbertos.observadores)"><i class="fas fa-edit"></i> Editar</button>` : ''}
+          ${podeCancelar ? `<button class="btn-cancelar" onclick="cancelar(${apr.id})"><i class="fas fa-ban"></i> Cancelar</button>` : ''}
+        </div>` : '';
+
+      document.getElementById('modal-detalhe-conteudo').innerHTML = `
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:16px">
+          <div style="flex:1">
+            <div style="font-size:1.2rem;font-weight:700;color:var(--text);margin-bottom:4px">${esc(apr.titulo)}</div>
+            <div style="font-size:0.78rem;color:var(--gray)">
+              Criado por <strong>${esc(apr.criado_por_nome || apr.criado_por)}</strong> em ${fmtData(apr.criado_em)}
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px">
+            ${statusBadge(apr.status)}
+            <button onclick="fecharModalDetalhe()" style="background:none;border:none;color:var(--gray);cursor:pointer;font-size:1.2rem;padding:0" title="Fechar">&times;</button>
+          </div>
+        </div>
+
+        ${acoesCriador}
+
+        ${apr.objetivo ? `
+          <div class="secao-card">
+            <div class="secao-titulo"><i class="fas fa-align-left"></i> Objetivo</div>
+            <p style="font-size:.9rem;color:var(--text);line-height:1.65;white-space:pre-wrap">${esc(apr.objetivo)}</p>
+          </div>` : ''}
+
+        <div class="secao-card">
+          <div class="secao-titulo" style="justify-content:space-between">
+            <span><i class="fas fa-chart-bar"></i> Progresso</span>
+            <span style="background:${cb.color}22;color:${cb.color};border:1px solid ${cb.color}55;border-radius:6px;padding:3px 10px;font-size:.7rem;font-weight:700;display:inline-flex;align-items:center;gap:5px">
+              <i class="fas ${cb.icon}" style="font-size:.65rem"></i>${cb.label}
+            </span>
+          </div>
+          <div class="progresso-wrap">
+            <div class="progresso-bar-bg"><div class="progresso-bar-fill" style="width:${pct}%;background:${barColor}"></div></div>
+            <span class="progresso-texto">${progressLabel}</span>
+          </div>
+        </div>
+
+        <div class="secao-card">
+          <div class="secao-titulo"><i class="fas fa-users"></i> Aprovadores (${total})</div>
+          ${partsHtml || '<p style="font-size:.85rem;color:var(--gray)">Nenhum aprovador.</p>'}
+        </div>
+
+        ${obsHtml ? `
+          <div class="secao-card">
+            <div class="secao-titulo"><i class="fas fa-eye"></i> Observadores</div>
+            ${obsHtml}
+          </div>` : ''}
+
+        ${respostaHtml}
+
+        <div class="secao-card" id="secao-anexos-${apr.id}">
+          <div class="secao-titulo" style="justify-content:space-between">
+            <span><i class="fas fa-paperclip"></i> Anexos (${anexos.length})</span>
+            <label style="cursor:pointer;font-size:.72rem;color:var(--primary);font-weight:700;display:flex;align-items:center;gap:5px">
+              <i class="fas fa-plus"></i> Adicionar
+              <input type="file" style="display:none" multiple
+                accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.txt,.zip,.rar"
+                onchange="handleFileSelectDetalhe(event, ${apr.id})" />
+            </label>
+          </div>
+          <div id="lista-anexos-detalhe-${apr.id}">
+            ${renderAnexosHtml(anexos, login, apr.id)}
+          </div>
+        </div>
+
+        <div class="secao-card">
+          <div class="secao-titulo"><i class="fas fa-history"></i> Histórico</div>
+          <div class="timeline">
+            ${logHtml || '<p style="font-size:.85rem;color:var(--gray)">Sem registros.</p>'}
+          </div>
+        </div>
+
+        <div style="text-align:right;margin-top:6px">
+          <button onclick="fecharModalDetalhe()"
+            style="background:none;border:1px solid var(--border);color:var(--gray);border-radius:8px;padding:9px 20px;cursor:pointer;font-size:.85rem">
+            Fechar
+          </button>
+        </div>
+      `;
+    }
+
+    // ──────────────────────────────────────────────────────────
+    // MODAL FORMULÁRIO (criar / editar)
+    // ──────────────────────────────────────────────────────────
+    function abrirModalCriacao() {
+      modoEdicao = false; idEdicao = null;
+      document.getElementById('modal-form-titulo').innerHTML = '<i class="fas fa-plus-circle"></i> Nova Aprovação';
+      document.getElementById('btn-form-submit').innerHTML   = '<i class="fas fa-paper-plane"></i> Criar Aprovação';
+      resetFormulario();
+      document.getElementById('modal-form').classList.remove('hidden');
+    }
+
+    function fecharModalForm() {
+      document.getElementById('modal-form').classList.add('hidden');
+    }
+
+    function resetFormulario() {
+      document.getElementById('inp-titulo').value = '';
+      document.getElementById('inp-objetivo').value = '';
+      document.getElementById('inp-consenso').value = 'unanimidade';
+      document.getElementById('inp-consenso-valor').value = '';
+      document.getElementById('consenso-extra').style.display = 'none';
+      aprovadoresSelecionados = [];  renderChips();
+      document.getElementById('chip-busca').value = '';
+      document.getElementById('chip-dropdown').classList.remove('aberto');
+      observadoresSelecionados = []; renderChipsObs();
+      document.getElementById('chip-busca-obs').value = '';
+      document.getElementById('chip-dropdown-obs').classList.remove('aberto');
+      arquivosPendentes = []; renderListaArquivosForm();
+      document.getElementById('file-input-form').value = '';
+    }
+
+    function mostrarEdicao(apr, participantes, observadores) {
+      modoEdicao = true; idEdicao = apr.id;
+      document.getElementById('modal-form-titulo').innerHTML = '<i class="fas fa-edit"></i> Editar Aprovação';
+      document.getElementById('btn-form-submit').innerHTML   = '<i class="fas fa-save"></i> Salvar Alterações';
+      document.getElementById('inp-titulo').value   = apr.titulo  || '';
+      document.getElementById('inp-objetivo').value = apr.objetivo || '';
+      document.getElementById('inp-consenso').value = apr.tipo_consenso || 'unanimidade';
+      document.getElementById('inp-consenso-valor').value = apr.consenso_valor || '';
+      atualizarConsensoOpcional();
+      aprovadoresSelecionados = participantes
+        .filter(p => p.decisao === 'Pendente')
+        .map(p => ({ login: p.aprovador_login, nome: p.aprovador_nome || p.aprovador_login }));
+      renderChips();
+      document.getElementById('chip-busca').value = '';
+      document.getElementById('chip-dropdown').classList.remove('aberto');
+      observadoresSelecionados = (observadores || [])
+        .map(o => ({ login: o.observador_login, nome: o.observador_nome || o.observador_login }));
+      renderChipsObs();
+      document.getElementById('chip-busca-obs').value = '';
+      document.getElementById('chip-dropdown-obs').classList.remove('aberto');
+      arquivosPendentes = []; renderListaArquivosForm();
+      document.getElementById('modal-form').classList.remove('hidden');
+    }
+
+    // ──────────────────────────────────────────────────────────
+    // TIPO DE CONSENSO
+    // ──────────────────────────────────────────────────────────
+    function atualizarConsensoOpcional() {
+      const tipo = document.getElementById('inp-consenso').value;
+      const div  = document.getElementById('consenso-extra');
+      const inp  = document.getElementById('inp-consenso-valor');
+      const suf  = document.getElementById('consenso-extra-sufixo');
+      const hint = document.getElementById('consenso-extra-hint');
+      if (tipo === 'maioria_qualificada') {
+        div.style.display = 'block';
+        inp.min = 51; inp.max = 99;
+        if (!inp.value) inp.value = 67;
+        suf.textContent  = '%';
+        hint.textContent = 'Ex: 67 = dois terços (2/3), 75 = três quartos (3/4)';
+      } else if (tipo === 'quorum_minimo') {
+        div.style.display = 'block';
+        inp.min = 1; inp.max = 9999; inp.placeholder = 'Ex: 3';
+        suf.textContent  = 'pessoas';
+        hint.textContent = 'Aprovação só é computada após este número de respostas.';
+      } else {
+        div.style.display = 'none';
+      }
+    }
+
+    // ──────────────────────────────────────────────────────────
+    // SUBMIT
+    // ──────────────────────────────────────────────────────────
+    async function submitFormulario() {
+      if (modoEdicao) await salvarEdicao(idEdicao);
+      else            await criarAprovacao();
+    }
+
+    async function criarAprovacao() {
+      const titulo         = document.getElementById('inp-titulo').value.trim();
+      const objetivo       = document.getElementById('inp-objetivo').value.trim();
+      const aprovadores    = aprovadoresSelecionados.map(u => u.login);
+      const observadores   = observadoresSelecionados.map(u => u.login);
+      const tipo_consenso  = document.getElementById('inp-consenso').value;
+      const consenso_valor = parseInt(document.getElementById('inp-consenso-valor').value) || null;
+
+      if (!titulo)             return toast('Informe um título.', 'erro');
+      if (!aprovadores.length) return toast('Selecione ao menos um aprovador.', 'erro');
+      if (tipo_consenso === 'maioria_qualificada' && (!consenso_valor || consenso_valor < 51 || consenso_valor > 99))
+        return toast('Informe um percentual entre 51 e 99 para Maioria Qualificada.', 'erro');
+      if (tipo_consenso === 'quorum_minimo' && (!consenso_valor || consenso_valor < 1))
+        return toast('Informe o número mínimo de participantes para o Quórum.', 'erro');
+
+      const btn = document.getElementById('btn-form-submit');
+      btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Criando…';
+      try {
+        const r = await fetch('/api/aprovacoes', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ titulo, objetivo, aprovadores, observadores, tipo_consenso, consenso_valor })
+        });
+        const data = await r.json();
+        if (!r.ok) throw new Error(data.erro || 'Erro');
+        for (const file of arquivosPendentes) await uploadAnexo(data.id, file);
+        toast('Aprovação criada com sucesso!', 'sucesso');
+        fecharModalForm();
+        await carregarLista();
+        abrirDetalhe(data.id);
+      } catch (e) {
+        toast(e.message, 'erro');
+      } finally {
+        btn.disabled = false; btn.innerHTML = '<i class="fas fa-paper-plane"></i> Criar Aprovação';
+      }
+    }
+
+    async function salvarEdicao(id) {
+      const titulo         = document.getElementById('inp-titulo').value.trim();
+      const objetivo       = document.getElementById('inp-objetivo').value.trim();
+      const aprovadores    = aprovadoresSelecionados.map(u => u.login);
+      const observadores   = observadoresSelecionados.map(u => u.login);
+      const tipo_consenso  = document.getElementById('inp-consenso').value;
+      const consenso_valor = parseInt(document.getElementById('inp-consenso-valor').value) || null;
+
+      if (!titulo)             return toast('Informe um título.', 'erro');
+      if (!aprovadores.length) return toast('Selecione ao menos um aprovador.', 'erro');
+      if (tipo_consenso === 'maioria_qualificada' && (!consenso_valor || consenso_valor < 51 || consenso_valor > 99))
+        return toast('Informe um percentual entre 51 e 99 para Maioria Qualificada.', 'erro');
+      if (tipo_consenso === 'quorum_minimo' && (!consenso_valor || consenso_valor < 1))
+        return toast('Informe o número mínimo de participantes para o Quórum.', 'erro');
+
+      const btn = document.getElementById('btn-form-submit');
+      btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Salvando…';
+      try {
+        const r = await fetch(`/api/aprovacoes/${id}`, {
+          method: 'PUT', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ titulo, objetivo, aprovadores, observadores, tipo_consenso, consenso_valor })
+        });
+        const data = await r.json();
+        if (!r.ok) throw new Error(data.erro || 'Erro');
+        for (const file of arquivosPendentes) await uploadAnexo(id, file);
+        toast('Aprovação atualizada!', 'sucesso');
+        modoEdicao = false; idEdicao = null;
+        fecharModalForm();
+        await carregarLista();
+        abrirDetalhe(id);
+      } catch (e) {
+        toast(e.message, 'erro');
+      } finally {
+        btn.disabled = false; btn.innerHTML = '<i class="fas fa-save"></i> Salvar Alterações';
+      }
+    }
+
+    // ──────────────────────────────────────────────────────────
+    // CHIP SELECTOR — APROVADORES
+    // ──────────────────────────────────────────────────────────
+    function renderChips() {
+      document.getElementById('chips-container').innerHTML = aprovadoresSelecionados.map(u => `
+        <span class="chip">${esc(u.nome || u.login)}
+          <span class="chip-rem" onmousedown="event.preventDefault();removerChip('${esc(u.login)}')">&times;</span>
+        </span>`).join('');
+    }
+    function adicionarChip(login, nome) {
+      if (aprovadoresSelecionados.find(u => u.login === login)) { removerChip(login); return; }
+      aprovadoresSelecionados.push({ login, nome }); renderChips(); renderChipDropdown();
+      document.getElementById('chip-busca').value = '';
+    }
+    function removerChip(login) {
+      aprovadoresSelecionados = aprovadoresSelecionados.filter(u => u.login !== login);
+      renderChips(); renderChipDropdown();
+    }
+    function abrirChipDropdown()   { document.getElementById('chip-dropdown').classList.add('aberto'); renderChipDropdown(); }
+    function fecharChipDropdown()  { setTimeout(() => document.getElementById('chip-dropdown').classList.remove('aberto'), 180); }
+    function filtrarChipDropdown() { document.getElementById('chip-dropdown').classList.add('aberto'); renderChipDropdown(); }
+    function renderChipDropdown() {
+      const q  = (document.getElementById('chip-busca').value || '').toLowerCase();
+      const lg = window.usuarioLogado?.usuario || window.usuarioLogado?.login || '';
+      const el = document.getElementById('chip-dropdown');
+      const lista = todosUsuarios.filter(u => u.login !== lg && ((u.nome||'').toLowerCase().includes(q) || u.login.toLowerCase().includes(q)));
+      if (!lista.length) { el.innerHTML = '<div style="padding:10px 14px;font-size:.82rem;color:var(--gray)">Nenhum resultado.</div>'; return; }
+      el.innerHTML = lista.map(u => {
+        const sel = aprovadoresSelecionados.find(a => a.login === u.login);
+        return `<div class="chip-item ${sel ? 'selecionado' : ''}"
+            onmousedown="event.preventDefault();adicionarChip('${esc(u.login)}','${esc(u.nome||u.login)}')">
+          <span class="chip-item-nome">${esc(u.nome||u.login)}</span>
+          <span style="display:flex;gap:6px;align-items:center">
+            <span class="chip-item-login">${esc(u.login)}</span>
+            ${sel ? '<i class="fas fa-check" style="color:var(--primary);font-size:.72rem"></i>' : ''}
+          </span>
+        </div>`;
+      }).join('');
+    }
+
+    // ──────────────────────────────────────────────────────────
+    // CHIP SELECTOR — OBSERVADORES
+    // ──────────────────────────────────────────────────────────
+    function renderChipsObs() {
+      document.getElementById('chips-container-obs').innerHTML = observadoresSelecionados.map(u => `
+        <span class="chip chip-obs">${esc(u.nome || u.login)}
+          <span class="chip-rem" onmousedown="event.preventDefault();removerChipObs('${esc(u.login)}')">&times;</span>
+        </span>`).join('');
+    }
+    function adicionarChipObs(login, nome) {
+      if (observadoresSelecionados.find(u => u.login === login)) { removerChipObs(login); return; }
+      observadoresSelecionados.push({ login, nome }); renderChipsObs(); renderChipDropdownObs();
+      document.getElementById('chip-busca-obs').value = '';
+    }
+    function removerChipObs(login) {
+      observadoresSelecionados = observadoresSelecionados.filter(u => u.login !== login);
+      renderChipsObs(); renderChipDropdownObs();
+    }
+    function abrirChipDropdownObs()   { document.getElementById('chip-dropdown-obs').classList.add('aberto'); renderChipDropdownObs(); }
+    function fecharChipDropdownObs()  { setTimeout(() => document.getElementById('chip-dropdown-obs').classList.remove('aberto'), 180); }
+    function filtrarChipDropdownObs() { document.getElementById('chip-dropdown-obs').classList.add('aberto'); renderChipDropdownObs(); }
+    function renderChipDropdownObs() {
+      const q  = (document.getElementById('chip-busca-obs').value || '').toLowerCase();
+      const lg = window.usuarioLogado?.usuario || window.usuarioLogado?.login || '';
+      const el = document.getElementById('chip-dropdown-obs');
+      const lista = todosUsuarios.filter(u => u.login !== lg && ((u.nome||'').toLowerCase().includes(q) || u.login.toLowerCase().includes(q)));
+      if (!lista.length) { el.innerHTML = '<div style="padding:10px 14px;font-size:.82rem;color:var(--gray)">Nenhum resultado.</div>'; return; }
+      el.innerHTML = lista.map(u => {
+        const sel = observadoresSelecionados.find(a => a.login === u.login);
+        return `<div class="chip-item ${sel ? 'selecionado' : ''}"
+            onmousedown="event.preventDefault();adicionarChipObs('${esc(u.login)}','${esc(u.nome||u.login)}')">
+          <span class="chip-item-nome">${esc(u.nome||u.login)}</span>
+          <span style="display:flex;gap:6px;align-items:center">
+            <span class="chip-item-login">${esc(u.login)}</span>
+            ${sel ? '<i class="fas fa-check" style="color:var(--primary);font-size:.72rem"></i>' : ''}
+          </span>
+        </div>`;
+      }).join('');
+    }
+
+    // ──────────────────────────────────────────────────────────
+    // RESPONDER
+    // ──────────────────────────────────────────────────────────
+    async function responder(id, decisao) {
+      const motivo = document.getElementById('txt-motivo-modal')?.value?.trim() || '';
+      if (decisao === 'Reprovado' && !motivo) return toast('Informe um motivo para reprovar.', 'erro');
+      if (!confirm(`Confirma ${decisao === 'Aprovado' ? 'APROVAR' : 'REPROVAR'} esta aprovação?`)) return;
+      try {
+        const r = await fetch(`/api/aprovacoes/${id}/responder`, {
+          method: 'PUT', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ decisao, motivo })
+        });
+        const data = await r.json();
+        if (!r.ok) throw new Error(data.erro || 'Erro');
+        toast(`Resposta registrada: ${decisao}`, 'sucesso');
+        await carregarLista();
+        await abrirDetalhe(id);
+        // Reavalia notificações — pode ainda ter outras pendentes
+        _notifFechada = false;
+        verificarNotificacoesAprov();
+      } catch (e) { toast(e.message, 'erro'); }
+    }
+
+    // ──────────────────────────────────────────────────────────
+    // CANCELAR
+    // ──────────────────────────────────────────────────────────
+    async function cancelar(id) {
+      if (!confirm('Cancelar esta aprovação? Esta ação não pode ser desfeita.')) return;
+      try {
+        const r = await fetch(`/api/aprovacoes/${id}`, { method: 'DELETE' });
+        const data = await r.json();
+        if (!r.ok) throw new Error(data.erro || 'Erro');
+        toast('Aprovação cancelada.', 'info');
+        fecharModalDetalhe();
+        await carregarLista();
+      } catch (e) { toast(e.message, 'erro'); }
+    }
+
+    // ──────────────────────────────────────────────────────────
+    // ANEXOS
+    // ──────────────────────────────────────────────────────────
+    const LIMITE_BYTES = 5 * 1024 * 1024;
+
+    function fmtBytes(b) {
+      if (!b) return '';
+      if (b < 1024) return `${b} B`;
+      if (b < 1024 * 1024) return `${(b / 1024).toFixed(1)} KB`;
+      return `${(b / (1024 * 1024)).toFixed(1)} MB`;
+    }
+    function iconePorMime(mime) {
+      if (!mime) return 'fa-file';
+      if (mime.startsWith('image/'))  return 'fa-file-image';
+      if (mime === 'application/pdf') return 'fa-file-pdf';
+      if (mime.includes('word'))      return 'fa-file-word';
+      if (mime.includes('excel') || mime.includes('spreadsheet')) return 'fa-file-excel';
+      if (mime.includes('zip') || mime.includes('rar')) return 'fa-file-archive';
+      if (mime.startsWith('text/'))   return 'fa-file-alt';
+      return 'fa-file';
+    }
+    function renderAnexosHtml(anexos, loginAtual, aprovacaoId) {
+      if (!anexos.length) return '<p style="font-size:.82rem;color:var(--gray)">Nenhum anexo.</p>';
+      return anexos.map(a => `
+        <div class="anexo-item" id="anexo-item-${a.id}">
+          <div class="anexo-icon"><i class="fas ${iconePorMime(a.tipo_mime)}"></i></div>
+          <div class="anexo-info">
+            <div class="anexo-nome" title="${esc(a.nome_original)}">${esc(a.nome_original)}</div>
+            <div class="anexo-meta">${fmtBytes(a.tamanho)} · ${esc(a.enviado_por_nome || a.enviado_por)} · ${fmtData(a.enviado_em)}</div>
+          </div>
+          <button class="anexo-btn anexo-btn-dl" title="Baixar"
+            onclick="baixarAnexo(${aprovacaoId}, ${a.id}, '${esc(a.nome_original)}', '${esc(a.tipo_mime || '')}')">
+            <i class="fas fa-download" style="color:var(--primary)"></i>
+          </button>
+          ${(a.enviado_por === loginAtual || _dadosAbertos?.apr?.sou_criador) ? `
+            <button class="anexo-btn anexo-btn-del" title="Remover" onclick="deletarAnexo(${aprovacaoId}, ${a.id})">
+              <i class="fas fa-trash"></i>
+            </button>` : ''}
+        </div>`).join('');
+    }
+    function arquivoParaBase64(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload  = () => resolve(reader.result.split(',')[1]);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+    async function uploadAnexo(aprovacaoId, file) {
+      try {
+        const dados_base64 = await arquivoParaBase64(file);
+        const r = await fetch(`/api/aprovacoes/${aprovacaoId}/anexos`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ nome_original: file.name, tipo_mime: file.type || null, tamanho: file.size, dados_base64 })
+        });
+        if (!r.ok) { const d = await r.json(); toast(`Erro ao enviar "${file.name}": ${d.erro || 'Erro'}`, 'erro'); }
+      } catch { toast(`Erro ao enviar "${file.name}".`, 'erro'); }
+    }
+    function handleFileSelectForm(e) { adicionarArquivosForm(Array.from(e.target.files)); e.target.value = ''; }
+    function handleDropForm(e) {
+      e.preventDefault();
+      document.getElementById('upload-area-form').classList.remove('dragover');
+      adicionarArquivosForm(Array.from(e.dataTransfer.files));
+    }
+    function adicionarArquivosForm(files) {
+      for (const f of files) {
+        if (f.size > LIMITE_BYTES) { toast(`"${f.name}" excede 5 MB.`, 'erro'); continue; }
+        if (!arquivosPendentes.find(x => x.name === f.name && x.size === f.size)) arquivosPendentes.push(f);
+      }
+      renderListaArquivosForm();
+    }
+    function removerArquivoForm(idx) { arquivosPendentes.splice(idx, 1); renderListaArquivosForm(); }
+    function renderListaArquivosForm() {
+      const el = document.getElementById('lista-arquivos-form');
+      if (!arquivosPendentes.length) { el.innerHTML = ''; return; }
+      el.innerHTML = arquivosPendentes.map((f, i) => `
+        <div class="anexo-item">
+          <div class="anexo-icon"><i class="fas ${iconePorMime(f.type)}"></i></div>
+          <div class="anexo-info">
+            <div class="anexo-nome">${esc(f.name)}</div>
+            <div class="anexo-meta">${fmtBytes(f.size)}</div>
+          </div>
+          <button class="anexo-btn anexo-btn-del" onclick="removerArquivoForm(${i})"><i class="fas fa-times"></i></button>
+        </div>`).join('');
+    }
+    async function handleFileSelectDetalhe(e, aprovacaoId) {
+      const files = Array.from(e.target.files); e.target.value = '';
+      for (const f of files) {
+        if (f.size > LIMITE_BYTES) { toast(`"${f.name}" excede 5 MB.`, 'erro'); continue; }
+        await uploadAnexo(aprovacaoId, f);
+      }
+      const r = await fetch(`/api/aprovacoes/${aprovacaoId}`);
+      const data = await r.json();
+      if (!data.erro) renderizarDetalhe(data);
+    }
+    async function baixarAnexo(aprovacaoId, anexoId, nome, mime) {
+      try {
+        const r = await fetch(`/api/aprovacoes/${aprovacaoId}/anexos/${anexoId}`);
+        const data = await r.json();
+        if (!r.ok) throw new Error(data.erro || 'Erro');
+        const blob = base64ToBlob(data.dados_base64, data.tipo_mime || 'application/octet-stream');
+        const url  = URL.createObjectURL(blob);
+        const a    = document.createElement('a'); a.href = url; a.download = data.nome_original || nome;
+        document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+      } catch { toast('Erro ao baixar arquivo.', 'erro'); }
+    }
+    function base64ToBlob(b64, mime) {
+      const bin = atob(b64); const arr = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+      return new Blob([arr], { type: mime });
+    }
+    async function deletarAnexo(aprovacaoId, anexoId) {
+      if (!confirm('Remover este anexo?')) return;
+      try {
+        const r = await fetch(`/api/aprovacoes/${aprovacaoId}/anexos/${anexoId}`, { method: 'DELETE' });
+        const data = await r.json();
+        if (!r.ok) throw new Error(data.erro || 'Erro');
+        document.getElementById(`anexo-item-${anexoId}`)?.remove();
+        toast('Anexo removido.', 'info');
+      } catch (e) { toast(e.message, 'erro'); }
+    }
+  </script>
+</body>
+</html>

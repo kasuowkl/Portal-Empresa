@@ -1,0 +1,161 @@
+<!-- FRAGMENTO: Telegram -->
+<div class="barra-acoes">
+  <h3><i class="fab fa-telegram-plane"></i> Notificações via Telegram</h3>
+</div>
+
+<div id="alerta-telegram" class="alerta" style="margin-bottom:16px"></div>
+
+<div class="config-linha">
+  <div class="config-info">
+    <strong>Habilitar notificações</strong>
+    <small>Ativar envio de alertas pelo Telegram</small>
+  </div>
+  <div class="config-valor">
+    <label class="toggle">
+      <input type="checkbox" id="tg-ativo">
+      <span class="toggle-slider"></span>
+    </label>
+  </div>
+</div>
+
+<div class="config-linha">
+  <div class="config-info">
+    <strong>Token do Bot</strong>
+    <small>Obtido pelo @BotFather no Telegram</small>
+  </div>
+  <div class="config-valor">
+    <input type="text" id="tg-token" placeholder="1234567890:AAF...">
+  </div>
+</div>
+
+<div class="config-linha">
+  <div class="config-info">
+    <strong>Chat ID</strong>
+    <small>ID do grupo ou canal de destino</small>
+  </div>
+  <div class="config-valor">
+    <input type="text" id="tg-chatid" placeholder="-1001234567890">
+  </div>
+</div>
+
+<div class="config-linha">
+  <div class="config-info">
+    <strong>Notificar ao fazer login</strong>
+    <small>Envia alerta quando um usuário fizer login</small>
+  </div>
+  <div class="config-valor">
+    <label class="toggle">
+      <input type="checkbox" id="tg-notif-login" checked>
+      <span class="toggle-slider"></span>
+    </label>
+  </div>
+</div>
+
+<div class="config-linha">
+  <div class="config-info">
+    <strong>Notificar ao ocorrer erros</strong>
+    <small>Envia alerta quando ocorrer um erro no sistema</small>
+  </div>
+  <div class="config-valor">
+    <label class="toggle">
+      <input type="checkbox" id="tg-notif-erro" checked>
+      <span class="toggle-slider"></span>
+    </label>
+  </div>
+</div>
+
+<div class="config-linha">
+  <div class="config-info">
+    <strong>Notificar ao criar usuário</strong>
+    <small>Envia alerta quando um novo usuário for criado</small>
+  </div>
+  <div class="config-valor">
+    <label class="toggle">
+      <input type="checkbox" id="tg-notif-usuario">
+      <span class="toggle-slider"></span>
+    </label>
+  </div>
+</div>
+
+<div style="display:flex;gap:10px;margin-top:24px;flex-wrap:wrap">
+  <button class="btn btn-primario btn-sm" onclick="salvarTelegram()" style="width:auto">
+    <i class="fas fa-save"></i> Salvar configurações
+  </button>
+  <button class="btn btn-sm" onclick="testarTelegram()" style="width:auto;background:var(--cor-fundo-3);color:var(--cor-texto)">
+    <i class="fas fa-paper-plane"></i> Enviar mensagem de teste
+  </button>
+</div>
+
+<script>
+(function () {
+  carregarTelegram();
+
+  async function carregarTelegram() {
+    try {
+      const resp = await fetch('/api/configuracoes/telegram');
+      if (!resp.ok) return;
+      const { config } = await resp.json();
+      document.getElementById('tg-ativo').checked         = config['tg_ativo'] === 'true';
+      document.getElementById('tg-token').value           = config['tg_token']        || '';
+      document.getElementById('tg-chatid').value          = config['tg_chatid']       || '';
+      document.getElementById('tg-notif-login').checked   = config['tg_notif_login']  !== 'false';
+      document.getElementById('tg-notif-erro').checked    = config['tg_notif_erro']   !== 'false';
+      document.getElementById('tg-notif-usuario').checked = config['tg_notif_usuario'] === 'true';
+    } catch (e) {}
+  }
+
+  window.salvarTelegram = async function () {
+    const configuracoes = {
+      tg_ativo:         String(document.getElementById('tg-ativo').checked),
+      tg_token:         document.getElementById('tg-token').value.trim(),
+      tg_chatid:        document.getElementById('tg-chatid').value.trim(),
+      tg_notif_login:   String(document.getElementById('tg-notif-login').checked),
+      tg_notif_erro:    String(document.getElementById('tg-notif-erro').checked),
+      tg_notif_usuario: String(document.getElementById('tg-notif-usuario').checked)
+    };
+    try {
+      const resp  = await fetch('/api/configuracoes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ grupo: 'telegram', configuracoes })
+      });
+      const dados = await resp.json();
+      mostrarAlerta(dados.mensagem || dados.erro, resp.ok ? 'sucesso' : 'erro');
+    } catch (e) {
+      mostrarAlerta('Erro de comunicação.', 'erro');
+    }
+  };
+
+  window.testarTelegram = async function () {
+    const token  = document.getElementById('tg-token').value.trim();
+    const chatid = document.getElementById('tg-chatid').value.trim();
+    if (!token || !chatid) {
+      mostrarAlerta('Preencha o Token e o Chat ID antes de testar.', 'erro');
+      return;
+    }
+    try {
+      const url  = `https://api.telegram.org/bot${token}/sendMessage`;
+      const resp = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ chat_id: chatid, text: '✅ Portal WKL — Teste de notificação funcionando!' })
+      });
+      const dados = await resp.json();
+      if (dados.ok) {
+        mostrarAlerta('Mensagem de teste enviada com sucesso!', 'sucesso');
+      } else {
+        mostrarAlerta('Erro do Telegram: ' + dados.description, 'erro');
+      }
+    } catch (e) {
+      mostrarAlerta('Não foi possível conectar ao Telegram.', 'erro');
+    }
+  };
+
+  function mostrarAlerta(msg, classe) {
+    const el = document.getElementById('alerta-telegram');
+    el.className = `alerta alerta-${classe} visivel`;
+    el.textContent = msg;
+    setTimeout(() => el.classList.remove('visivel'), 5000);
+  }
+})();
+</script>

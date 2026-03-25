@@ -1,0 +1,990 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Documentação — Portal WKL</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
+
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --azul:       #1a56db;
+      --azul-claro: #e8f0fe;
+      --cinza-1:    #111827;
+      --cinza-2:    #374151;
+      --cinza-3:    #6b7280;
+      --cinza-4:    #d1d5db;
+      --cinza-5:    #f3f4f6;
+      --verde:      #065f46;
+      --verde-bg:   #d1fae5;
+      --vermelho:   #991b1b;
+      --vermelho-bg:#fee2e2;
+      --amarelo:    #92400e;
+      --amarelo-bg: #fef3c7;
+      --roxo:       #4c1d95;
+      --roxo-bg:    #ede9fe;
+      --borda:      #e5e7eb;
+    }
+
+    body {
+      font-family: 'Inter', 'Segoe UI', sans-serif;
+      font-size: 13px;
+      color: var(--cinza-1);
+      background: #fff;
+      line-height: 1.65;
+    }
+
+    @media print {
+      .no-print { display: none !important; }
+      body { font-size: 11px; }
+      .page-break { page-break-before: always; }
+      a { color: inherit; text-decoration: none; }
+      .capa { page-break-after: always; }
+    }
+
+    @page { size: A4; margin: 18mm 15mm 18mm 15mm; }
+
+    .no-print { position: fixed; top: 20px; right: 20px; z-index: 999; }
+
+    .btn-imprimir {
+      background: var(--azul); color: #fff; border: none;
+      padding: 10px 20px; border-radius: 8px; font-family: inherit;
+      font-size: 13px; font-weight: 600; cursor: pointer;
+      box-shadow: 0 4px 12px rgba(26,86,219,0.4);
+    }
+    .btn-imprimir:hover { background: #1347c0; }
+
+    .capa {
+      min-height: 100vh; display: flex; flex-direction: column;
+      justify-content: center; align-items: flex-start;
+      padding: 60px 70px;
+      background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 60%, #1a56db 100%);
+      color: #fff; position: relative; overflow: hidden;
+    }
+    .capa::before {
+      content: ''; position: absolute; top: -120px; right: -120px;
+      width: 500px; height: 500px; border-radius: 50%;
+      background: rgba(255,255,255,0.03);
+    }
+    .capa::after {
+      content: ''; position: absolute; bottom: -80px; left: -80px;
+      width: 350px; height: 350px; border-radius: 50%;
+      background: rgba(255,255,255,0.04);
+    }
+    .capa-tag { font-size: 11px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: #93c5fd; margin-bottom: 24px; }
+    .capa h1 { font-size: 44px; font-weight: 800; line-height: 1.15; margin-bottom: 16px; max-width: 550px; }
+    .capa h1 span { color: #60a5fa; }
+    .capa-desc { font-size: 15px; color: #cbd5e1; max-width: 480px; line-height: 1.7; margin-bottom: 48px; }
+    .capa-meta { display: flex; gap: 40px; flex-wrap: wrap; }
+    .capa-meta-item label { display: block; font-size: 10px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: #64748b; margin-bottom: 4px; }
+    .capa-meta-item span { font-size: 14px; font-weight: 600; color: #e2e8f0; }
+    .capa-linha { width: 60px; height: 4px; background: #3b82f6; border-radius: 2px; margin-bottom: 32px; }
+
+    .documento { max-width: 860px; margin: 0 auto; padding: 48px 40px; }
+
+    .sumario { background: var(--cinza-5); border: 1px solid var(--borda); border-radius: 12px; padding: 32px 36px; margin-bottom: 48px; }
+    .sumario h2 { font-size: 18px; font-weight: 700; color: var(--cinza-1); margin-bottom: 24px; padding-bottom: 12px; border-bottom: 2px solid var(--borda); }
+    .sumario-secao { margin-bottom: 6px; }
+    .sumario-secao a { font-size: 13px; font-weight: 600; color: var(--azul); text-decoration: none; display: flex; align-items: center; gap: 8px; }
+    .sumario-secao a:hover { text-decoration: underline; }
+    .sumario-sub { margin-left: 20px; margin-top: 2px; }
+    .sumario-sub a { font-size: 12px; font-weight: 400; color: var(--cinza-2); }
+
+    .secao { margin-bottom: 56px; }
+    .secao-header { display: flex; align-items: center; gap: 14px; margin-bottom: 24px; padding-bottom: 14px; border-bottom: 2px solid var(--borda); }
+    .secao-numero { width: 36px; height: 36px; border-radius: 8px; background: var(--azul); color: #fff; font-size: 14px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .secao h2 { font-size: 22px; font-weight: 700; color: var(--cinza-1); }
+    h3 { font-size: 15px; font-weight: 700; color: var(--cinza-1); margin-bottom: 12px; margin-top: 28px; }
+    h4 { font-size: 13px; font-weight: 600; color: var(--cinza-2); margin-bottom: 8px; margin-top: 18px; text-transform: uppercase; letter-spacing: 0.5px; }
+    p { color: var(--cinza-2); margin-bottom: 14px; }
+    ul, ol { color: var(--cinza-2); padding-left: 20px; margin-bottom: 14px; }
+    li { margin-bottom: 4px; }
+    strong { color: var(--cinza-1); }
+
+    code { font-family: 'JetBrains Mono', 'Consolas', monospace; font-size: 11.5px; background: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 4px; padding: 2px 6px; color: #1e40af; }
+    pre { font-family: 'JetBrains Mono', 'Consolas', monospace; font-size: 11px; background: #0f172a; color: #e2e8f0; border-radius: 10px; padding: 20px 24px; overflow-x: auto; margin-bottom: 20px; line-height: 1.7; }
+    pre .comentario { color: #64748b; }
+    pre .chave      { color: #7dd3fc; }
+    pre .valor      { color: #86efac; }
+    pre .string     { color: #fda4af; }
+    pre .palavra    { color: #c084fc; }
+
+    table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 12px; }
+    thead th { background: var(--cinza-1); color: #fff; padding: 10px 14px; text-align: left; font-size: 11px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; }
+    thead th:first-child { border-radius: 6px 0 0 0; }
+    thead th:last-child  { border-radius: 0 6px 0 0; }
+    tbody td { padding: 10px 14px; border-bottom: 1px solid var(--borda); color: var(--cinza-2); vertical-align: top; }
+    tbody tr:hover { background: var(--cinza-5); }
+
+    .badge { display: inline-block; font-size: 10.5px; font-weight: 600; border-radius: 20px; padding: 2px 10px; }
+    .badge-azul    { background: var(--azul-claro); color: var(--azul); }
+    .badge-verde   { background: var(--verde-bg);   color: var(--verde); }
+    .badge-vermelho{ background: var(--vermelho-bg); color: var(--vermelho); }
+    .badge-amarelo { background: var(--amarelo-bg);  color: var(--amarelo); }
+    .badge-roxo    { background: var(--roxo-bg);     color: var(--roxo); }
+    .badge-cinza   { background: var(--cinza-5);     color: var(--cinza-2); border: 1px solid var(--borda); }
+
+    .card-info { border: 1px solid var(--borda); border-radius: 10px; padding: 20px 24px; margin-bottom: 16px; }
+    .card-info.azul    { border-left: 4px solid var(--azul);    background: var(--azul-claro); }
+    .card-info.verde   { border-left: 4px solid #059669;        background: var(--verde-bg); }
+    .card-info.amarelo { border-left: 4px solid #d97706;        background: var(--amarelo-bg); }
+    .card-info.vermelho{ border-left: 4px solid #dc2626;        background: var(--vermelho-bg); }
+    .card-info p { margin: 0; font-size: 12.5px; }
+    .card-info strong { display: block; margin-bottom: 4px; font-size: 13px; }
+
+    .grid-stack { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 24px; }
+    .stack-card { border: 1px solid var(--borda); border-radius: 10px; padding: 18px 20px; text-align: center; }
+    .stack-card .icon { font-size: 26px; margin-bottom: 8px; }
+    .stack-card strong { display: block; font-size: 13px; margin-bottom: 4px; }
+    .stack-card small { font-size: 11px; color: var(--cinza-3); }
+
+    .arvore { background: #0f172a; border-radius: 10px; padding: 24px; font-family: 'JetBrains Mono', monospace; font-size: 12px; line-height: 1.9; color: #e2e8f0; margin-bottom: 20px; }
+    .arvore .pasta { color: #7dd3fc; font-weight: 600; }
+    .arvore .arquivo { color: #e2e8f0; }
+    .arvore .comentario { color: #475569; font-style: italic; }
+    .arvore .novo { color: #86efac; font-weight: 600; }
+
+    .fluxo { display: flex; align-items: flex-start; gap: 0; margin-bottom: 20px; flex-wrap: wrap; }
+    .fluxo-passo { display: flex; flex-direction: column; align-items: center; gap: 8px; flex: 1; min-width: 100px; }
+    .fluxo-passo .circulo { width: 42px; height: 42px; border-radius: 50%; background: var(--azul); color: #fff; font-size: 15px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+    .fluxo-passo .label { font-size: 11px; font-weight: 600; text-align: center; color: var(--cinza-2); max-width: 90px; }
+    .fluxo-seta { font-size: 20px; color: var(--cinza-4); margin-top: 10px; padding: 0 4px; }
+
+    .rota { display: flex; align-items: flex-start; gap: 12px; padding: 12px 16px; border: 1px solid var(--borda); border-radius: 8px; margin-bottom: 8px; }
+    .rota-metodo { font-family: 'JetBrains Mono', monospace; font-size: 10.5px; font-weight: 700; padding: 3px 8px; border-radius: 4px; flex-shrink: 0; min-width: 52px; text-align: center; }
+    .metodo-get   { background: #dcfce7; color: #166534; }
+    .metodo-post  { background: #fef9c3; color: #854d0e; }
+    .metodo-put   { background: #dbeafe; color: #1e40af; }
+    .metodo-del   { background: #fee2e2; color: #991b1b; }
+    .metodo-patch { background: #ede9fe; color: #4c1d95; }
+    .rota-path { font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600; color: var(--cinza-1); flex-shrink: 0; min-width: 240px; }
+    .rota-desc { font-size: 12px; color: var(--cinza-3); }
+
+    .status-lista { list-style: none; padding: 0; margin-bottom: 20px; }
+    .status-lista li { display: flex; align-items: center; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--borda); font-size: 12.5px; }
+    .status-lista li:last-child { border-bottom: none; }
+    .status-icone { font-size: 16px; flex-shrink: 0; }
+
+    .versao { border: 1px solid var(--borda); border-radius: 10px; margin-bottom: 16px; overflow: hidden; }
+    .versao-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; background: var(--cinza-5); border-bottom: 1px solid var(--borda); }
+    .versao-header strong { font-size: 14px; font-weight: 700; }
+    .versao-body { padding: 16px 20px; }
+    .versao-body ul { margin: 0; }
+    .versao-body li { margin-bottom: 4px; font-size: 12px; }
+
+    .doc-rodape { text-align: center; padding: 40px 0 20px; border-top: 2px solid var(--borda); color: var(--cinza-3); font-size: 11.5px; }
+
+    hr { border: none; border-top: 1px solid var(--borda); margin: 32px 0; }
+  </style>
+</head>
+<body>
+
+  <div class="no-print">
+    <button class="btn-imprimir" onclick="window.print()">&#128438; Salvar como PDF</button>
+  </div>
+
+  <!-- CAPA -->
+  <div class="capa">
+    <div class="capa-tag">Documentação Técnica</div>
+    <div class="capa-linha"></div>
+    <h1>Portal <span>WKL</span><br>de Sistemas</h1>
+    <p class="capa-desc">
+      Documentação completa do Portal de Sistemas e Serviços —
+      arquitetura, banco de dados, rotas de API, autenticação,
+      Active Directory, Agenda de Tarefas e roadmap de versões.
+    </p>
+    <div class="capa-meta">
+      <div class="capa-meta-item">
+        <label>Versão</label>
+        <span>2.0.0</span>
+      </div>
+      <div class="capa-meta-item">
+        <label>Data</label>
+        <span>03 / 03 / 2026</span>
+      </div>
+      <div class="capa-meta-item">
+        <label>Ambiente</label>
+        <span>Node.js + MSSQL</span>
+      </div>
+      <div class="capa-meta-item">
+        <label>Servidor</label>
+        <span>192.168.0.80 : 3132</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="documento">
+
+    <!-- SUMÁRIO -->
+    <div class="sumario">
+      <h2>Sumário</h2>
+      <div class="sumario-secao"><a href="#s1">1. Visão Geral do Projeto</a></div>
+      <div class="sumario-secao"><a href="#s2">2. Stack Tecnológica</a></div>
+      <div class="sumario-secao"><a href="#s3">3. Estrutura de Arquivos</a></div>
+      <div class="sumario-secao"><a href="#s4">4. Banco de Dados</a>
+        <div class="sumario-sub">
+          <div><a href="#s4-1">4.1 Tabelas do Portal</a></div>
+          <div><a href="#s4-2">4.2 Tabelas da Agenda de Tarefas</a></div>
+          <div><a href="#s4-3">4.3 Variáveis de Ambiente</a></div>
+        </div>
+      </div>
+      <div class="sumario-secao"><a href="#s5">5. Autenticação e Sessão</a>
+        <div class="sumario-sub">
+          <div><a href="#s5-1">5.1 Login Local (bcrypt)</a></div>
+          <div><a href="#s5-2">5.2 Login via Active Directory (LDAP)</a></div>
+        </div>
+      </div>
+      <div class="sumario-secao"><a href="#s6">6. Rotas da API</a>
+        <div class="sumario-sub">
+          <div><a href="#s6-1">6.1 Autenticação</a></div>
+          <div><a href="#s6-2">6.2 Portal e Configurações</a></div>
+          <div><a href="#s6-3">6.3 Usuários e Sistemas (CRUD)</a></div>
+          <div><a href="#s6-4">6.4 Active Directory</a></div>
+          <div><a href="#s6-5">6.5 Agenda de Tarefas</a></div>
+        </div>
+      </div>
+      <div class="sumario-secao"><a href="#s7">7. Páginas do Frontend</a></div>
+      <div class="sumario-secao"><a href="#s8">8. Página de Configurações (Abas)</a></div>
+      <div class="sumario-secao"><a href="#s9">9. Agenda de Tarefas</a></div>
+      <div class="sumario-secao"><a href="#s10">10. Sistema de Logs</a></div>
+      <div class="sumario-secao"><a href="#s11">11. Roadmap de Versões</a></div>
+      <div class="sumario-secao"><a href="#s12">12. Como Executar o Projeto</a></div>
+    </div>
+
+    <!-- ===== 1. VISÃO GERAL ===== -->
+    <div class="secao" id="s1">
+      <div class="secao-header">
+        <div class="secao-numero">1</div>
+        <h2>Visão Geral do Projeto</h2>
+      </div>
+      <p>
+        O <strong>Portal WKL de Sistemas</strong> é uma aplicação web interna que serve como
+        ponto central de acesso a todos os sistemas e serviços da empresa. Após autenticar-se,
+        o usuário visualiza uma grade com todos os sistemas disponíveis e pode navegar para
+        qualquer um deles com um clique.
+      </p>
+      <p>
+        O portal é acessado pela rede local no endereço <code>http://192.168.0.80:3132</code>
+        e suporta dois tipos de autenticação: usuários locais (banco de dados) e usuários do
+        domínio Active Directory (LDAP). O módulo <strong>Agenda de Tarefas</strong> está
+        integrado ao mesmo servidor, acessível em <code>/agenda</code>.
+      </p>
+      <div class="card-info azul">
+        <strong>Objetivo principal</strong>
+        <p>Centralizar o acesso a todos os sistemas internos da empresa com autenticação segura
+        (local + AD), painel administrativo completo e módulos integrados como a Agenda de Tarefas.</p>
+      </div>
+      <h3>Credenciais padrão</h3>
+      <table>
+        <thead><tr><th>Campo</th><th>Valor</th><th>Observação</th></tr></thead>
+        <tbody>
+          <tr><td>Usuário</td><td><code>admin</code></td><td>Hardcoded no <code>criarBancoPortal.js</code></td></tr>
+          <tr><td>Senha</td><td><code>admin</code></td><td>Armazenada como hash bcrypt no banco</td></tr>
+          <tr><td>Nível</td><td><span class="badge badge-azul">admin</span></td><td>Acesso total ao painel de configurações</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ===== 2. STACK ===== -->
+    <div class="secao page-break" id="s2">
+      <div class="secao-header">
+        <div class="secao-numero">2</div>
+        <h2>Stack Tecnológica</h2>
+      </div>
+      <div class="grid-stack">
+        <div class="stack-card"><div class="icon">🟢</div><strong>Node.js</strong><small>Runtime JavaScript no servidor</small></div>
+        <div class="stack-card"><div class="icon">⚡</div><strong>Express 4.18</strong><small>Framework HTTP, rotas e middlewares</small></div>
+        <div class="stack-card"><div class="icon">🗄️</div><strong>SQL Server (MSSQL)</strong><small>Banco de dados relacional via mssql 10</small></div>
+        <div class="stack-card"><div class="icon">🔐</div><strong>bcryptjs</strong><small>Hash de senhas com salt (10 rounds)</small></div>
+        <div class="stack-card"><div class="icon">🍪</div><strong>express-session</strong><small>Sessão de autenticação (8 horas)</small></div>
+        <div class="stack-card"><div class="icon">📋</div><strong>Winston</strong><small>Logging em arquivo e console</small></div>
+        <div class="stack-card"><div class="icon">🔧</div><strong>dotenv</strong><small>Variáveis de ambiente via .env</small></div>
+        <div class="stack-card"><div class="icon">🏢</div><strong>ldapjs 3.x</strong><small>Autenticação Active Directory via LDAP</small></div>
+        <div class="stack-card"><div class="icon">🎨</div><strong>Font Awesome 6</strong><small>Biblioteca de ícones (CDN)</small></div>
+      </div>
+      <h3>Dependências do package.json</h3>
+      <table>
+        <thead><tr><th>Pacote</th><th>Versão</th><th>Finalidade</th></tr></thead>
+        <tbody>
+          <tr><td><code>express</code></td><td>^4.18.2</td><td>Servidor HTTP e roteamento</td></tr>
+          <tr><td><code>mssql</code></td><td>^10.0.1</td><td>Driver para SQL Server</td></tr>
+          <tr><td><code>express-session</code></td><td>^1.17.3</td><td>Gerenciamento de sessão de login</td></tr>
+          <tr><td><code>bcryptjs</code></td><td>^2.4.3</td><td>Hashing de senhas</td></tr>
+          <tr><td><code>dotenv</code></td><td>^16.3.1</td><td>Carregamento de variáveis de ambiente</td></tr>
+          <tr><td><code>winston</code></td><td>^3.11.0</td><td>Sistema de logging estruturado</td></tr>
+          <tr><td><code>ldapjs</code></td><td>^3.0.7</td><td>Comunicação LDAP com Active Directory</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ===== 3. ESTRUTURA DE ARQUIVOS ===== -->
+    <div class="secao page-break" id="s3">
+      <div class="secao-header">
+        <div class="secao-numero">3</div>
+        <h2>Estrutura de Arquivos</h2>
+      </div>
+      <div class="arvore">
+<span class="pasta">Portal/</span>
+├── <span class="arquivo">portal.js</span>                    <span class="comentario">← Servidor principal (entry point) — v1.1.0</span>
+├── <span class="arquivo">criarBancoPortal.js</span>          <span class="comentario">← Setup do banco, tabelas e dados iniciais — v1.2.0</span>
+├── <span class="arquivo">package.json</span>                 <span class="comentario">← Dependências e scripts npm</span>
+├── <span class="arquivo">documentacao.html</span>            <span class="comentario">← Esta documentação (salvar como PDF)</span>
+├── <span class="arquivo">.env</span>                         <span class="comentario">← Variáveis de ambiente (não versionado)</span>
+│
+├── <span class="pasta">middleware/</span>
+│   └── <span class="arquivo">verificarLogin.js</span>        <span class="comentario">← Proteção de rotas autenticadas</span>
+│
+├── <span class="pasta novo">lib/</span>                              <span class="comentario">← ★ NOVO</span>
+│   └── <span class="arquivo novo">ad.js</span>                        <span class="comentario">← Helper LDAP para Active Directory — v1.2.0</span>
+│
+├── <span class="pasta">routes/</span>
+│   ├── <span class="arquivo">auth.js</span>                  <span class="comentario">← Login local + login AD — v1.1.0</span>
+│   ├── <span class="arquivo">portal.js</span>               <span class="comentario">← Portal, configs, usuários, sistemas, AD</span>
+│   └── <span class="arquivo novo">agenda.js</span>                    <span class="comentario">← ★ NOVO: Todas as rotas da Agenda de Tarefas</span>
+│
+├── <span class="pasta">public/</span>
+│   ├── <span class="arquivo">login.html</span>              <span class="comentario">← Página de login (local + domínio)</span>
+│   ├── <span class="arquivo">portal.html</span>             <span class="comentario">← Grade de sistemas</span>
+│   ├── <span class="arquivo">configuracoes.html</span>      <span class="comentario">← Painel administrativo com abas</span>
+│   │
+│   ├── <span class="pasta novo">agendaTarefas/</span>                 <span class="comentario">← ★ NOVO</span>
+│   │   ├── <span class="arquivo novo">index.html</span>               <span class="comentario">← App da Agenda (lista + kanban + modais)</span>
+│   │   └── <span class="pasta novo">css/</span>
+│   │       └── <span class="arquivo novo">agenda.css</span>           <span class="comentario">← Estilos do sidebar, kanban, modais</span>
+│   │
+│   ├── <span class="pasta">componentes/</span>
+│   │   └── <span class="arquivo">menu.html</span>           <span class="comentario">← Menu compartilhado (todas as páginas)</span>
+│   │
+│   ├── <span class="pasta">css/</span>
+│   │   ├── <span class="arquivo">style.css</span>           <span class="comentario">← Estilos globais (Dark Mode)</span>
+│   │   ├── <span class="arquivo">menu.css</span>            <span class="comentario">← Estilos do menu e painel flutuante</span>
+│   │   └── <span class="arquivo">configuracoes.css</span>   <span class="comentario">← Estilos das abas, tabelas, modais</span>
+│   │
+│   ├── <span class="pasta">fragmentos/</span>              <span class="comentario">← Fragmentos HTML (lazy loading)</span>
+│   │   ├── <span class="arquivo">usuarios-locais.html</span>
+│   │   ├── <span class="arquivo">usuarios-dominio.html</span> <span class="comentario">← Inclui config AD + buscar no AD</span>
+│   │   ├── <span class="arquivo">sistemas.html</span>
+│   │   ├── <span class="arquivo">telegram.html</span>
+│   │   ├── <span class="arquivo">email.html</span>
+│   │   ├── <span class="arquivo">seguranca.html</span>
+│   │   └── <span class="arquivo">logs.html</span>
+│   │
+│   └── <span class="pasta">js/</span>
+│       └── <span class="arquivo">menu.js</span>             <span class="comentario">← Carrega o menu e inicializa por página</span>
+│
+└── <span class="pasta">logs/</span>
+    ├── <span class="arquivo">atividade.log</span>
+    └── <span class="arquivo">erros.log</span>
+      </div>
+    </div>
+
+    <!-- ===== 4. BANCO DE DADOS ===== -->
+    <div class="secao page-break" id="s4">
+      <div class="secao-header">
+        <div class="secao-numero">4</div>
+        <h2>Banco de Dados</h2>
+      </div>
+      <p>O banco de dados é criado automaticamente na primeira execução. O nome é configurado pela variável
+      <code>DB_NAME</code>. Todas as tabelas usam <code>IF NOT EXISTS</code>, portanto reinicializações
+      são seguras. Para adicionar as novas tabelas em uma instalação existente: <code>node criarBancoPortal.js</code>.</p>
+
+      <h3 id="s4-1">4.1 Tabelas do Portal</h3>
+
+      <h4>usuarios</h4>
+      <table>
+        <thead><tr><th>Coluna</th><th>Tipo</th><th>Descrição</th></tr></thead>
+        <tbody>
+          <tr><td><code>id</code></td><td>INT IDENTITY PK</td><td>Identificador único</td></tr>
+          <tr><td><code>nome</code></td><td>VARCHAR(100) NOT NULL</td><td>Nome completo</td></tr>
+          <tr><td><code>usuario</code></td><td>VARCHAR(50) UNIQUE NOT NULL</td><td>Login de acesso</td></tr>
+          <tr><td><code>senha_hash</code></td><td>VARCHAR(255) NOT NULL</td><td>Senha criptografada (bcrypt)</td></tr>
+          <tr><td><code>nivel</code></td><td>VARCHAR(20) DEFAULT 'usuario'</td><td><code>admin</code> ou <code>usuario</code></td></tr>
+          <tr><td><code>ativo</code></td><td>BIT DEFAULT 1</td><td>0 = bloqueado</td></tr>
+          <tr><td><code>criado_em</code></td><td>DATETIME DEFAULT GETDATE()</td><td>Data de criação</td></tr>
+        </tbody>
+      </table>
+
+      <h4>usuarios_dominio</h4>
+      <p>Usuários do Active Directory com acesso autorizado ao portal.</p>
+      <table>
+        <thead><tr><th>Coluna</th><th>Tipo</th><th>Descrição</th></tr></thead>
+        <tbody>
+          <tr><td><code>id</code></td><td>INT IDENTITY PK</td><td>Identificador único</td></tr>
+          <tr><td><code>login</code></td><td>VARCHAR(100) UNIQUE NOT NULL</td><td>sAMAccountName do AD</td></tr>
+          <tr><td><code>nome</code></td><td>VARCHAR(200)</td><td>displayName do AD</td></tr>
+          <tr><td><code>email</code></td><td>VARCHAR(200)</td><td>mail do AD</td></tr>
+          <tr><td><code>departamento</code></td><td>VARCHAR(200)</td><td>department do AD</td></tr>
+          <tr><td><code>nivel</code></td><td>VARCHAR(20) DEFAULT 'usuario'</td><td>Nível de acesso no portal</td></tr>
+          <tr><td><code>ativo</code></td><td>BIT DEFAULT 1</td><td>0 = bloqueado</td></tr>
+          <tr><td><code>criado_em</code></td><td>DATETIME DEFAULT GETDATE()</td><td>Data de cadastro</td></tr>
+        </tbody>
+      </table>
+
+      <h4>sistemas</h4>
+      <table>
+        <thead><tr><th>Coluna</th><th>Tipo</th><th>Descrição</th></tr></thead>
+        <tbody>
+          <tr><td><code>id</code></td><td>INT IDENTITY PK</td><td></td></tr>
+          <tr><td><code>nome</code></td><td>VARCHAR(100) NOT NULL</td><td>Nome exibido no card</td></tr>
+          <tr><td><code>url</code></td><td>VARCHAR(255) NOT NULL</td><td>Endereço do sistema</td></tr>
+          <tr><td><code>icone</code></td><td>VARCHAR(50) DEFAULT 'fa-window-maximize'</td><td>Classe Font Awesome</td></tr>
+          <tr><td><code>descricao</code></td><td>VARCHAR(255)</td><td>Descrição curta no card</td></tr>
+          <tr><td><code>ativo</code></td><td>BIT DEFAULT 1</td><td>Visibilidade no portal</td></tr>
+        </tbody>
+      </table>
+
+      <h4>configuracoes</h4>
+      <table>
+        <thead><tr><th>Coluna</th><th>Tipo</th><th>Descrição</th></tr></thead>
+        <tbody>
+          <tr><td><code>id</code></td><td>INT IDENTITY PK</td><td></td></tr>
+          <tr><td><code>chave</code></td><td>VARCHAR(100) UNIQUE NOT NULL</td><td>Ex: <code>telegram_token</code>, <code>ad_servidor</code></td></tr>
+          <tr><td><code>valor</code></td><td>VARCHAR(500)</td><td>Valor armazenado</td></tr>
+          <tr><td><code>grupo</code></td><td>VARCHAR(50) NOT NULL</td><td><code>telegram</code> | <code>email</code> | <code>seguranca</code> | <code>ad</code></td></tr>
+          <tr><td><code>descricao</code></td><td>VARCHAR(200)</td><td>Texto explicativo</td></tr>
+        </tbody>
+      </table>
+
+      <h4>logs_atividade / logs_erro</h4>
+      <p>Registros de auditoria e erros do sistema. Detalhes na seção 10.</p>
+
+      <h3 id="s4-2">4.2 Tabelas da Agenda de Tarefas</h3>
+
+      <h4>agenda_listas</h4>
+      <table>
+        <thead><tr><th>Coluna</th><th>Tipo</th><th>Descrição</th></tr></thead>
+        <tbody>
+          <tr><td><code>id</code></td><td>INT IDENTITY PK</td><td></td></tr>
+          <tr><td><code>nome</code></td><td>VARCHAR(100) NOT NULL</td><td>Nome da lista/projeto</td></tr>
+          <tr><td><code>descricao</code></td><td>VARCHAR(500)</td><td>Descrição opcional</td></tr>
+          <tr><td><code>cor</code></td><td>VARCHAR(20) DEFAULT '#3b82f6'</td><td>Cor de identificação (hex)</td></tr>
+          <tr><td><code>dono</code></td><td>VARCHAR(100) NOT NULL</td><td>Login do criador</td></tr>
+          <tr><td><code>criado_em</code></td><td>DATETIME DEFAULT GETDATE()</td><td></td></tr>
+        </tbody>
+      </table>
+
+      <h4>agenda_membros</h4>
+      <table>
+        <thead><tr><th>Coluna</th><th>Tipo</th><th>Descrição</th></tr></thead>
+        <tbody>
+          <tr><td><code>id</code></td><td>INT IDENTITY PK</td><td></td></tr>
+          <tr><td><code>lista_id</code></td><td>INT FK → agenda_listas</td><td></td></tr>
+          <tr><td><code>usuario</code></td><td>VARCHAR(100) NOT NULL</td><td>Login do membro</td></tr>
+          <tr><td><code>permissao</code></td><td>VARCHAR(10) DEFAULT 'leitura'</td><td><code>leitura</code> | <code>edicao</code></td></tr>
+          <tr><td><code>adicionado_em</code></td><td>DATETIME DEFAULT GETDATE()</td><td></td></tr>
+        </tbody>
+      </table>
+
+      <h4>agenda_categorias</h4>
+      <table>
+        <thead><tr><th>Coluna</th><th>Tipo</th><th>Descrição</th></tr></thead>
+        <tbody>
+          <tr><td><code>id</code></td><td>INT IDENTITY PK</td><td></td></tr>
+          <tr><td><code>lista_id</code></td><td>INT FK → agenda_listas</td><td></td></tr>
+          <tr><td><code>nome</code></td><td>VARCHAR(50) NOT NULL</td><td></td></tr>
+          <tr><td><code>cor</code></td><td>VARCHAR(20) DEFAULT '#6b7280'</td><td>Cor de identificação (hex)</td></tr>
+        </tbody>
+      </table>
+
+      <h4>agenda_tarefas</h4>
+      <table>
+        <thead><tr><th>Coluna</th><th>Tipo</th><th>Descrição</th></tr></thead>
+        <tbody>
+          <tr><td><code>id</code></td><td>INT IDENTITY PK</td><td></td></tr>
+          <tr><td><code>lista_id</code></td><td>INT FK → agenda_listas</td><td></td></tr>
+          <tr><td><code>titulo</code></td><td>VARCHAR(200) NOT NULL</td><td></td></tr>
+          <tr><td><code>descricao</code></td><td>VARCHAR(MAX)</td><td>Texto livre</td></tr>
+          <tr><td><code>prazo</code></td><td>DATE</td><td>Data limite (nullable)</td></tr>
+          <tr><td><code>prioridade</code></td><td>VARCHAR(10) DEFAULT 'media'</td><td><code>baixa</code> | <code>media</code> | <code>alta</code></td></tr>
+          <tr><td><code>status</code></td><td>VARCHAR(20) DEFAULT 'a_fazer'</td><td><code>a_fazer</code> | <code>em_andamento</code> | <code>concluida</code></td></tr>
+          <tr><td><code>categoria_id</code></td><td>INT FK → agenda_categorias (nullable)</td><td></td></tr>
+          <tr><td><code>criado_por</code></td><td>VARCHAR(100) NOT NULL</td><td>Login de quem criou</td></tr>
+          <tr><td><code>criado_em</code></td><td>DATETIME DEFAULT GETDATE()</td><td></td></tr>
+          <tr><td><code>atualizado_em</code></td><td>DATETIME DEFAULT GETDATE()</td><td>Atualizado via trigger ou UPDATE</td></tr>
+        </tbody>
+      </table>
+
+      <h3 id="s4-3">4.3 Variáveis de Ambiente (.env)</h3>
+      <pre>
+<span class="comentario"># Conexão com o SQL Server</span>
+<span class="chave">DB_SERVER</span>=<span class="valor">192.168.0.80</span>
+<span class="chave">DB_PORT</span>=<span class="valor">1433</span>
+<span class="chave">DB_USER</span>=<span class="valor">sa</span>
+<span class="chave">DB_PASSWORD</span>=<span class="valor">SUA_SENHA</span>
+<span class="chave">DB_NAME</span>=<span class="valor">PortalSistemas</span>
+
+<span class="comentario"># Segurança da sessão</span>
+<span class="chave">SESSION_SECRET</span>=<span class="valor">chave_secreta_muito_longa_aqui</span>
+
+<span class="comentario"># Porta do servidor</span>
+<span class="chave">PORTA_APP</span>=<span class="valor">3132</span>
+      </pre>
+    </div>
+
+    <!-- ===== 5. AUTENTICAÇÃO ===== -->
+    <div class="secao page-break" id="s5">
+      <div class="secao-header">
+        <div class="secao-numero">5</div>
+        <h2>Autenticação e Sessão</h2>
+      </div>
+
+      <h3 id="s5-1">5.1 Login Local (bcrypt)</h3>
+      <div class="fluxo">
+        <div class="fluxo-passo"><div class="circulo">1</div><div class="label">Usuário preenche login e senha</div></div>
+        <div class="fluxo-seta">→</div>
+        <div class="fluxo-passo"><div class="circulo">2</div><div class="label">POST /login</div></div>
+        <div class="fluxo-seta">→</div>
+        <div class="fluxo-passo"><div class="circulo">3</div><div class="label">Busca em <code>usuarios</code></div></div>
+        <div class="fluxo-seta">→</div>
+        <div class="fluxo-passo"><div class="circulo">4</div><div class="label">bcrypt.compare</div></div>
+        <div class="fluxo-seta">→</div>
+        <div class="fluxo-passo"><div class="circulo">5</div><div class="label">Cria sessão <code>tipo: 'local'</code></div></div>
+      </div>
+
+      <h3 id="s5-2">5.2 Login via Active Directory (LDAP)</h3>
+      <p>Quando o login local falha, o sistema verifica se o usuário está na tabela
+      <code>usuarios_dominio</code> e, se estiver, autentica via LDAP usando as
+      configurações salvas no banco (grupo <code>ad</code>).</p>
+      <div class="fluxo">
+        <div class="fluxo-passo"><div class="circulo">1</div><div class="label">Login local falha</div></div>
+        <div class="fluxo-seta">→</div>
+        <div class="fluxo-passo"><div class="circulo">2</div><div class="label">Busca em <code>usuarios_dominio</code></div></div>
+        <div class="fluxo-seta">→</div>
+        <div class="fluxo-passo"><div class="circulo">3</div><div class="label">LDAP bind <code>login@dominio</code></div></div>
+        <div class="fluxo-seta">→</div>
+        <div class="fluxo-passo"><div class="circulo">4</div><div class="label">Cria sessão <code>tipo: 'dominio'</code></div></div>
+      </div>
+
+      <h3>Dados armazenados na sessão</h3>
+      <pre>
+<span class="comentario">// req.session.usuario</span>
+{
+  <span class="chave">id</span>:      <span class="valor">1</span>,
+  <span class="chave">nome</span>:    <span class="string">"João da Silva"</span>,
+  <span class="chave">usuario</span>: <span class="string">"joao.silva"</span>,
+  <span class="chave">nivel</span>:   <span class="string">"usuario"</span>,   <span class="comentario">// "admin" | "usuario"</span>
+  <span class="chave">tipo</span>:    <span class="string">"dominio"</span>    <span class="comentario">// "local" | "dominio"</span>
+}
+      </pre>
+
+      <h3>Configurações do Active Directory (tabela configuracoes)</h3>
+      <table>
+        <thead><tr><th>Chave</th><th>Descrição</th></tr></thead>
+        <tbody>
+          <tr><td><code>ad_servidor</code></td><td>IP ou hostname do servidor LDAP</td></tr>
+          <tr><td><code>ad_porta</code></td><td>Porta LDAP (padrão: 389)</td></tr>
+          <tr><td><code>ad_dominio</code></td><td>FQDN do domínio (ex: <code>empresa.com</code>)</td></tr>
+          <tr><td><code>ad_basedn</code></td><td>Base de pesquisa (ex: <code>DC=empresa,DC=com</code>)</td></tr>
+          <tr><td><code>ad_usuario_svc</code></td><td>Login da conta de serviço para busca no AD</td></tr>
+          <tr><td><code>ad_senha_svc</code></td><td>Senha da conta de serviço</td></tr>
+        </tbody>
+      </table>
+
+      <div class="card-info amarelo">
+        <strong>Nota sobre ldapjs v3</strong>
+        <p>O ldapjs v3 retorna atributos como arrays via <code>entry.attributes[].values</code>.
+        O helper <code>lerAtributo()</code> em <code>lib/ad.js</code> normaliza esse comportamento
+        garantindo compatibilidade. O bind é feito no formato UPN: <code>login@dominio</code>.</p>
+      </div>
+    </div>
+
+    <!-- ===== 6. ROTAS DA API ===== -->
+    <div class="secao page-break" id="s6">
+      <div class="secao-header">
+        <div class="secao-numero">6</div>
+        <h2>Rotas da API</h2>
+      </div>
+
+      <h3 id="s6-1">6.1 Autenticação — routes/auth.js</h3>
+      <div class="rota"><span class="rota-metodo metodo-post">POST</span><span class="rota-path">/login</span><span class="rota-desc">Autentica local (bcrypt) ou via AD (LDAP). Cria sessão, registra log. Retorna <code>{ sucesso, redirecionar }</code>.</span></div>
+      <div class="rota"><span class="rota-metodo metodo-get">GET</span><span class="rota-path">/logout</span><span class="rota-desc">Destrói sessão e redireciona para <code>/login.html</code>.</span></div>
+      <div class="rota"><span class="rota-metodo metodo-get">GET</span><span class="rota-path">/sessao</span><span class="rota-desc">Retorna dados do usuário logado (nome, usuario, nivel, tipo). Usado pelo menu.js.</span></div>
+
+      <h3 id="s6-2">6.2 Portal e Configurações — routes/portal.js</h3>
+      <div class="rota"><span class="rota-metodo metodo-get">GET</span><span class="rota-path">/portal</span><span class="rota-desc">Serve portal.html. Registra acesso no log.</span></div>
+      <div class="rota"><span class="rota-metodo metodo-get">GET</span><span class="rota-path">/sistemas</span><span class="rota-desc">Retorna JSON com sistemas ativos ordenados por nome.</span></div>
+      <div class="rota"><span class="rota-metodo metodo-get">GET</span><span class="rota-path">/configuracoes</span><span class="rota-desc">Serve configuracoes.html. Requer nível <strong>admin</strong>.</span></div>
+      <div class="rota"><span class="rota-metodo metodo-get">GET</span><span class="rota-path">/conf/:aba</span><span class="rota-desc">Serve fragmento HTML de cada aba (lazy loading). Abas: <code>usuarios-locais</code>, <code>usuarios-dominio</code>, <code>sistemas</code>, <code>telegram</code>, <code>email</code>, <code>seguranca</code>, <code>logs</code>.</span></div>
+      <div class="rota"><span class="rota-metodo metodo-get">GET</span><span class="rota-path">/logs</span><span class="rota-desc">Retorna últimos 50 registros de atividade. Requer admin.</span></div>
+
+      <h3 id="s6-3">6.3 Usuários e Sistemas (CRUD)</h3>
+      <div class="rota"><span class="rota-metodo metodo-get">GET</span><span class="rota-path">/api/usuarios</span><span class="rota-desc">Lista todos os usuários locais.</span></div>
+      <div class="rota"><span class="rota-metodo metodo-post">POST</span><span class="rota-path">/api/usuarios</span><span class="rota-desc">Criar usuário local com hash bcrypt.</span></div>
+      <div class="rota"><span class="rota-metodo metodo-put">PUT</span><span class="rota-path">/api/usuarios/:id</span><span class="rota-desc">Editar nome, nível ou senha.</span></div>
+      <div class="rota"><span class="rota-metodo metodo-patch">PATCH</span><span class="rota-path">/api/usuarios/:id/status</span><span class="rota-desc">Ativar / bloquear usuário.</span></div>
+      <div class="rota"><span class="rota-metodo metodo-del">DELETE</span><span class="rota-path">/api/usuarios/:id</span><span class="rota-desc">Excluir usuário local.</span></div>
+      <div class="rota"><span class="rota-metodo metodo-get">GET</span><span class="rota-path">/api/sistemas</span><span class="rota-desc">Lista todos os sistemas (admin).</span></div>
+      <div class="rota"><span class="rota-metodo metodo-post">POST</span><span class="rota-path">/api/sistemas</span><span class="rota-desc">Criar sistema.</span></div>
+      <div class="rota"><span class="rota-metodo metodo-put">PUT</span><span class="rota-path">/api/sistemas/:id</span><span class="rota-desc">Editar sistema.</span></div>
+      <div class="rota"><span class="rota-metodo metodo-patch">PATCH</span><span class="rota-path">/api/sistemas/:id/status</span><span class="rota-desc">Ativar / desativar sistema.</span></div>
+      <div class="rota"><span class="rota-metodo metodo-del">DELETE</span><span class="rota-path">/api/sistemas/:id</span><span class="rota-desc">Excluir sistema.</span></div>
+      <div class="rota"><span class="rota-metodo metodo-post">POST</span><span class="rota-path">/api/configuracoes</span><span class="rota-desc">Salvar configurações por grupo (telegram, email, seguranca, ad).</span></div>
+
+      <h3 id="s6-4">6.4 Active Directory — routes/portal.js</h3>
+      <div class="rota"><span class="rota-metodo metodo-post">POST</span><span class="rota-path">/api/ad/testar</span><span class="rota-desc">Testa conexão com o AD usando a conta de serviço configurada.</span></div>
+      <div class="rota"><span class="rota-metodo metodo-get">GET</span><span class="rota-path">/api/ad/buscar</span><span class="rota-desc">Lista todos os usuários ativos do AD (via LDAP). Usado pelo modal "Buscar no AD".</span></div>
+      <div class="rota"><span class="rota-metodo metodo-get">GET</span><span class="rota-path">/api/ad/usuarios-portal</span><span class="rota-desc">Lista usuários do AD já cadastrados na tabela <code>usuarios_dominio</code>.</span></div>
+      <div class="rota"><span class="rota-metodo metodo-post">POST</span><span class="rota-path">/api/ad/usuarios/lote</span><span class="rota-desc">Adiciona múltiplos usuários do AD ao portal de uma vez.</span></div>
+      <div class="rota"><span class="rota-metodo metodo-put">PUT</span><span class="rota-path">/api/ad/usuarios/:id</span><span class="rota-desc">Altera nível de acesso do usuário de domínio.</span></div>
+      <div class="rota"><span class="rota-metodo metodo-patch">PATCH</span><span class="rota-path">/api/ad/usuarios/:id/status</span><span class="rota-desc">Ativar / bloquear usuário de domínio.</span></div>
+      <div class="rota"><span class="rota-metodo metodo-del">DELETE</span><span class="rota-path">/api/ad/usuarios/:id</span><span class="rota-desc">Remover usuário de domínio do portal.</span></div>
+
+      <h3 id="s6-5">6.5 Agenda de Tarefas — routes/agenda.js</h3>
+      <p>Todas as rotas requerem autenticação. Permissões: <strong>dono</strong> &gt; <strong>edição</strong> &gt; <strong>leitura</strong>.</p>
+      <div class="rota"><span class="rota-metodo metodo-get">GET</span><span class="rota-path">/agenda</span><span class="rota-desc">Serve a página HTML da Agenda de Tarefas.</span></div>
+      <div class="rota"><span class="rota-metodo metodo-get">GET</span><span class="rota-path">/api/agenda/listas</span><span class="rota-desc">Retorna listas do usuário (próprias + compartilhadas com permissão e nome do dono).</span></div>
+      <div class="rota"><span class="rota-metodo metodo-post">POST</span><span class="rota-path">/api/agenda/listas</span><span class="rota-desc">Criar nova lista. Retorna o objeto criado com <code>permissao: 'dono'</code>.</span></div>
+      <div class="rota"><span class="rota-metodo metodo-put">PUT</span><span class="rota-path">/api/agenda/listas/:id</span><span class="rota-desc">Editar lista (somente dono).</span></div>
+      <div class="rota"><span class="rota-metodo metodo-del">DELETE</span><span class="rota-path">/api/agenda/listas/:id</span><span class="rota-desc">Excluir lista em cascata: tarefas → categorias → membros → lista (somente dono).</span></div>
+      <div class="rota"><span class="rota-metodo metodo-get">GET</span><span class="rota-path">/api/agenda/listas/:id/membros</span><span class="rota-desc">Listar membros da lista.</span></div>
+      <div class="rota"><span class="rota-metodo metodo-post">POST</span><span class="rota-path">/api/agenda/listas/:id/membros</span><span class="rota-desc">Adicionar ou atualizar membro (somente dono). Usa UPSERT.</span></div>
+      <div class="rota"><span class="rota-metodo metodo-del">DELETE</span><span class="rota-path">/api/agenda/listas/:id/membros/:usuario</span><span class="rota-desc">Remover membro (somente dono).</span></div>
+      <div class="rota"><span class="rota-metodo metodo-get">GET</span><span class="rota-path">/api/agenda/listas/:id/tarefas</span><span class="rota-desc">Listar tarefas (ordenadas por status, prioridade, prazo).</span></div>
+      <div class="rota"><span class="rota-metodo metodo-post">POST</span><span class="rota-path">/api/agenda/listas/:id/tarefas</span><span class="rota-desc">Criar tarefa (requer edição ou dono).</span></div>
+      <div class="rota"><span class="rota-metodo metodo-put">PUT</span><span class="rota-path">/api/agenda/tarefas/:id</span><span class="rota-desc">Editar tarefa completa (título, descrição, prazo, prioridade, status, categoria).</span></div>
+      <div class="rota"><span class="rota-metodo metodo-patch">PATCH</span><span class="rota-path">/api/agenda/tarefas/:id/status</span><span class="rota-desc">Atualizar apenas o status (checkbox rápido).</span></div>
+      <div class="rota"><span class="rota-metodo metodo-del">DELETE</span><span class="rota-path">/api/agenda/tarefas/:id</span><span class="rota-desc">Excluir tarefa.</span></div>
+      <div class="rota"><span class="rota-metodo metodo-get">GET</span><span class="rota-path">/api/agenda/listas/:id/categorias</span><span class="rota-desc">Listar categorias da lista.</span></div>
+      <div class="rota"><span class="rota-metodo metodo-post">POST</span><span class="rota-path">/api/agenda/listas/:id/categorias</span><span class="rota-desc">Criar categoria com cor.</span></div>
+      <div class="rota"><span class="rota-metodo metodo-del">DELETE</span><span class="rota-path">/api/agenda/categorias/:id</span><span class="rota-desc">Excluir categoria (desvincula tarefas antes de excluir).</span></div>
+      <div class="rota"><span class="rota-metodo metodo-get">GET</span><span class="rota-path">/api/agenda/usuarios</span><span class="rota-desc">Lista todos usuários ativos (locais + domínio) para o seletor de membros.</span></div>
+    </div>
+
+    <!-- ===== 7. FRONTEND ===== -->
+    <div class="secao page-break" id="s7">
+      <div class="secao-header">
+        <div class="secao-numero">7</div>
+        <h2>Páginas do Frontend</h2>
+      </div>
+
+      <h3>login.html</h3>
+      <p>Página pública de autenticação. Formulário com campos <em>usuário</em> e <em>senha</em>,
+      animação de entrada e feedback visual. Suporta login com usuário local e usuário de domínio
+      transparentemente — o backend determina o tipo.</p>
+
+      <h3>portal.html</h3>
+      <p>Página principal pós-login. Saudação personalizada por horário. Carrega sistemas via
+      <code>GET /sistemas</code> e renderiza cards com ícone Font Awesome, nome e descrição.
+      Clique abre o sistema em nova aba.</p>
+
+      <h3>configuracoes.html</h3>
+      <p>Painel administrativo com <strong>7 abas</strong> usando lazy loading via fetch.
+      Fragmentos HTML carregados sob demanda e executados dinamicamente.</p>
+
+      <h3>public/agendaTarefas/index.html</h3>
+      <p>Aplicação completa da Agenda de Tarefas com sidebar, vista lista e vista kanban.
+      Detalhes na seção 9.</p>
+
+      <h3>Tema visual — Dark Mode</h3>
+      <table>
+        <thead><tr><th>Variável CSS</th><th>Valor</th><th>Uso</th></tr></thead>
+        <tbody>
+          <tr><td><code>--cor-fundo</code></td><td><code>#1a1a2e</code></td><td>Fundo principal</td></tr>
+          <tr><td><code>--cor-fundo-2</code></td><td><code>#16213e</code></td><td>Cards e painéis</td></tr>
+          <tr><td><code>--cor-fundo-3</code></td><td><code>#0f3460</code></td><td>Inputs e campos</td></tr>
+          <tr><td><code>--cor-destaque</code></td><td><code>#4e9af1</code></td><td>Links, botões, ícones ativos</td></tr>
+          <tr><td><code>--cor-destaque-2</code></td><td><code>#e94560</code></td><td>Perigo, botão sair</td></tr>
+          <tr><td><code>--cor-texto</code></td><td><code>#e0e0e0</code></td><td>Texto principal</td></tr>
+          <tr><td><code>--cor-texto-fraco</code></td><td><code>#9e9e9e</code></td><td>Labels e texto secundário</td></tr>
+          <tr><td><code>--cor-borda</code></td><td><code>#1e3a5f</code></td><td>Bordas suaves</td></tr>
+          <tr><td><code>--cor-sucesso</code></td><td><code>#4caf50</code></td><td>Mensagens OK</td></tr>
+          <tr><td><code>--cor-erro</code></td><td><code>#f44336</code></td><td>Erros e alertas</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ===== 8. CONFIGURAÇÕES ===== -->
+    <div class="secao page-break" id="s8">
+      <div class="secao-header">
+        <div class="secao-numero">8</div>
+        <h2>Página de Configurações (Abas)</h2>
+      </div>
+      <p>Todas as 7 abas estão implementadas e funcionais:</p>
+
+      <ul class="status-lista">
+        <li><span class="status-icone">✅</span> <strong>Usuários Locais</strong> — Tabela com CRUD completo: criar, editar nome/nível/senha, bloquear/ativar, excluir</li>
+        <li><span class="status-icone">✅</span> <strong>Domínio (AD)</strong> — Configuração LDAP, teste de conexão, lista de usuários com acesso, modal "Buscar no AD" com checkbox em lote</li>
+        <li><span class="status-icone">✅</span> <strong>Sistemas</strong> — CRUD completo: criar, editar, ativar/desativar, excluir, ícone Font Awesome</li>
+        <li><span class="status-icone">✅</span> <strong>Telegram</strong> — Configuração de bot (token + chat ID), toggle de notificações, botão de teste</li>
+        <li><span class="status-icone">✅</span> <strong>Email (SMTP)</strong> — Configuração SMTP completa, toggle SSL, botão de teste</li>
+        <li><span class="status-icone">✅</span> <strong>Segurança</strong> — Tempo de sessão, tentativas de login, bloqueio, política de senha</li>
+        <li><span class="status-icone">✅</span> <strong>Logs</strong> — Tabela com filtros por usuário, ação, IP e período</li>
+      </ul>
+
+      <h3>Funcionamento do Lazy Loading</h3>
+      <p>Cada aba faz um <code>fetch()</code> para <code>/conf/{nome-da-aba}</code> e injeta o HTML
+      retornado no painel. Scripts dentro dos fragmentos são recriados dinamicamente via
+      <code>document.createElement('script')</code>. Abas já carregadas ficam em memória.</p>
+
+      <h3>Aba Domínio (AD) — Fluxo completo</h3>
+      <ol>
+        <li>Admin preenche servidor, porta, domínio, Base DN, usuário e senha de serviço</li>
+        <li>Clica "Salvar" → <code>POST /api/configuracoes</code> com grupo <code>ad</code></li>
+        <li>Clica "Testar conexão" → <code>POST /api/ad/testar</code> → bind LDAP com conta de serviço</li>
+        <li>Clica "Buscar no AD" → <code>GET /api/ad/buscar</code> → lista todos os <code>sAMAccountName</code> ativos</li>
+        <li>Admin seleciona usuários via checkbox, escolhe nível e clica "Adicionar selecionados"</li>
+        <li><code>POST /api/ad/usuarios/lote</code> insere na tabela <code>usuarios_dominio</code></li>
+        <li>Usuários adicionados podem logar com suas credenciais de rede</li>
+      </ol>
+    </div>
+
+    <!-- ===== 9. AGENDA DE TAREFAS ===== -->
+    <div class="secao page-break" id="s9">
+      <div class="secao-header">
+        <div class="secao-numero">9</div>
+        <h2>Agenda de Tarefas</h2>
+      </div>
+      <p>Módulo integrado ao portal na rota <code>/agenda</code>. Utiliza a mesma sessão,
+      menu e tema visual do portal. Acessível a todos os usuários autenticados.</p>
+
+      <h3>Interface</h3>
+      <table>
+        <thead><tr><th>Área</th><th>Descrição</th></tr></thead>
+        <tbody>
+          <tr><td>Sidebar</td><td>Lista de projetos do usuário (próprias + compartilhadas). Exibe nome e "por [dono]" para listas compartilhadas.</td></tr>
+          <tr><td>Cabeçalho</td><td>Nome da lista com cor identificadora. Para listas compartilhadas: "Compartilhada por [Nome]". Botões de ação conforme permissão.</td></tr>
+          <tr><td>Vista Lista</td><td>Tabela com colunas: checkbox, título, prazo, prioridade, categoria, status, ações. Prazo vencido destacado em vermelho.</td></tr>
+          <tr><td>Vista Kanban</td><td>3 colunas: A Fazer / Em Andamento / Concluída. Cards com prioridade, categoria e prazo.</td></tr>
+          <tr><td>Filtros</td><td>Por status, prioridade e categoria. Aplicados em tempo real sem nova requisição.</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Sistema de Permissões</h3>
+      <table>
+        <thead><tr><th>Nível</th><th>Capacidades</th></tr></thead>
+        <tbody>
+          <tr><td><span class="badge badge-azul">dono</span></td><td>Criar/editar/excluir tarefas, gerenciar membros, gerenciar categorias, editar e excluir a lista</td></tr>
+          <tr><td><span class="badge badge-verde">edição</span></td><td>Criar/editar/excluir tarefas, gerenciar categorias</td></tr>
+          <tr><td><span class="badge badge-cinza">leitura</span></td><td>Somente visualizar (modal abre em modo leitura)</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Campos de uma tarefa</h3>
+      <table>
+        <thead><tr><th>Campo</th><th>Tipo</th><th>Opções</th></tr></thead>
+        <tbody>
+          <tr><td>Título</td><td>Texto obrigatório</td><td>—</td></tr>
+          <tr><td>Descrição</td><td>Texto longo (textarea)</td><td>—</td></tr>
+          <tr><td>Prazo</td><td>Data</td><td>Opcional. Destacado em vermelho se vencido.</td></tr>
+          <tr><td>Prioridade</td><td>Select</td><td><code>baixa</code> | <code>media</code> | <code>alta</code></td></tr>
+          <tr><td>Status</td><td>Select ou checkbox</td><td><code>a_fazer</code> | <code>em_andamento</code> | <code>concluida</code></td></tr>
+          <tr><td>Categoria</td><td>Select</td><td>Categorias da lista (com cor personalizada)</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Categorias</h3>
+      <p>Cada lista tem suas próprias categorias com nome e cor personalizada. Ao excluir uma
+      categoria, as tarefas vinculadas ficam sem categoria (não são excluídas).</p>
+
+      <h3>Compartilhamento</h3>
+      <p>O dono pode adicionar membros ao projeto (usuários locais ou de domínio) com permissão
+      de leitura ou edição. A alteração de permissão é feita inline no modal de membros sem
+      necessidade de recarregar. Remoção de membro revoga o acesso imediatamente.</p>
+
+      <h3>Arquivos relacionados</h3>
+      <table>
+        <thead><tr><th>Arquivo</th><th>Responsabilidade</th></tr></thead>
+        <tbody>
+          <tr><td><code>routes/agenda.js</code></td><td>Todas as rotas de API e rota de página</td></tr>
+          <tr><td><code>public/agendaTarefas/index.html</code></td><td>SPA completa: sidebar, vistas, modais</td></tr>
+          <tr><td><code>public/agendaTarefas/css/agenda.css</code></td><td>Estilos: layout sidebar/kanban, modais, badges, toast</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ===== 10. LOGS ===== -->
+    <div class="secao page-break" id="s10">
+      <div class="secao-header">
+        <div class="secao-numero">10</div>
+        <h2>Sistema de Logs</h2>
+      </div>
+      <p>Dois sistemas paralelos: arquivos em disco (Winston) e banco de dados SQL Server.</p>
+      <table>
+        <thead><tr><th>Arquivo</th><th>Conteúdo</th><th>Formato</th></tr></thead>
+        <tbody>
+          <tr><td><code>logs/atividade.log</code></td><td>Logins, logouts, acessos a rotas</td><td><code>[DD/MM/YYYY HH:mm:ss] mensagem</code></td></tr>
+          <tr><td><code>logs/erros.log</code></td><td>Erros de sistema, exceções, stack traces</td><td><code>[DD/MM/YYYY HH:mm:ss] ERRO: mensagem</code></td></tr>
+        </tbody>
+      </table>
+      <table>
+        <thead><tr><th>Evento</th><th>Tipo</th><th>Destino</th></tr></thead>
+        <tbody>
+          <tr><td>Login bem-sucedido (local ou AD)</td><td><span class="badge badge-verde">ATIVIDADE</span></td><td>Arquivo + Banco</td></tr>
+          <tr><td>Tentativa de login falhou</td><td><span class="badge badge-amarelo">AVISO</span></td><td>Arquivo</td></tr>
+          <tr><td>Usuário bloqueado</td><td><span class="badge badge-amarelo">AVISO</span></td><td>Arquivo</td></tr>
+          <tr><td>Logout</td><td><span class="badge badge-verde">ATIVIDADE</span></td><td>Arquivo</td></tr>
+          <tr><td>Acesso ao portal / configurações</td><td><span class="badge badge-verde">ATIVIDADE</span></td><td>Arquivo</td></tr>
+          <tr><td>Erro de sistema (exceções)</td><td><span class="badge badge-vermelho">ERRO</span></td><td>Arquivo + Banco</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ===== 11. ROADMAP ===== -->
+    <div class="secao page-break" id="s11">
+      <div class="secao-header">
+        <div class="secao-numero">11</div>
+        <h2>Roadmap de Versões</h2>
+      </div>
+
+      <div class="versao">
+        <div class="versao-header">
+          <strong>v1.0.0 — 02/03/2026 — Versão inicial</strong>
+          <span class="badge badge-verde">Concluída</span>
+        </div>
+        <div class="versao-body">
+          <ul>
+            <li>Servidor Express com sessão, logging e Dark Mode</li>
+            <li>Setup automático do banco de dados (criarBancoPortal.js)</li>
+            <li>Login/Logout com bcrypt, sessão de 8 horas</li>
+            <li>Portal com grade de sistemas</li>
+            <li>Menu compartilhado via componente</li>
+            <li>Usuário admin padrão hardcoded</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="versao">
+        <div class="versao-header">
+          <strong>v1.1.0 — 03/03/2026 — Painel de Configurações completo</strong>
+          <span class="badge badge-verde">Concluída</span>
+        </div>
+        <div class="versao-body">
+          <ul>
+            <li>✅ Página de configurações com 7 abas (lazy loading)</li>
+            <li>✅ Aba Usuários Locais — CRUD completo</li>
+            <li>✅ Aba Sistemas — CRUD completo com seletor de ícone</li>
+            <li>✅ Aba Telegram — configuração de bot e notificações</li>
+            <li>✅ Aba Email (SMTP) — configuração completa com SSL</li>
+            <li>✅ Aba Segurança — política de senhas e sessão</li>
+            <li>✅ Aba Logs — tabela com filtros por usuário, ação, IP e período</li>
+            <li>✅ Tabela <code>configuracoes</code> (chave-valor por grupo)</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="versao">
+        <div class="versao-header">
+          <strong>v2.0.0 — 03/03/2026 — Active Directory + Agenda de Tarefas</strong>
+          <span class="badge badge-verde">Concluída</span>
+        </div>
+        <div class="versao-body">
+          <ul>
+            <li>✅ Autenticação via Active Directory (LDAP — UPN format)</li>
+            <li>✅ lib/ad.js — helper LDAP compatível com ldapjs v3 (atributos como arrays)</li>
+            <li>✅ Tabela <code>usuarios_dominio</code> — usuários do AD com acesso ao portal</li>
+            <li>✅ Aba Domínio (AD) — configuração, teste de conexão, gerenciamento de usuários</li>
+            <li>✅ Modal "Buscar no AD" — seleção em lote com checkbox e nível de acesso</li>
+            <li>✅ Login suporta usuários locais e de domínio transparentemente</li>
+            <li>✅ Módulo Agenda de Tarefas em <code>/agenda</code></li>
+            <li>✅ 4 novas tabelas: agenda_listas, agenda_membros, agenda_categorias, agenda_tarefas</li>
+            <li>✅ Vista Lista (tabela) e Vista Kanban (3 colunas)</li>
+            <li>✅ Compartilhamento por lista com permissões dono / edição / leitura</li>
+            <li>✅ Categorias por lista com cor personalizada</li>
+            <li>✅ Exibição de "Compartilhada por [nome]" no sidebar e cabeçalho</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="versao">
+        <div class="versao-header">
+          <strong>v3.0.0 — Planejada — Melhorias futuras</strong>
+          <span class="badge badge-cinza">Planejada</span>
+        </div>
+        <div class="versao-body">
+          <ul>
+            <li>⬜ Notificações por Telegram ao vencer prazo de tarefas</li>
+            <li>⬜ Anexos em tarefas (upload de arquivos)</li>
+            <li>⬜ Comentários em tarefas</li>
+            <li>⬜ Sub-tarefas (checklist)</li>
+            <li>⬜ Dashboard com métricas (tarefas por status, por usuário)</li>
+            <li>⬜ Sincronização de grupos do AD com níveis do portal</li>
+            <li>⬜ API para sistemas externos consultarem o portal</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== 12. COMO EXECUTAR ===== -->
+    <div class="secao" id="s12">
+      <div class="secao-header">
+        <div class="secao-numero">12</div>
+        <h2>Como Executar o Projeto</h2>
+      </div>
+
+      <h3>Pré-requisitos</h3>
+      <ul>
+        <li>Node.js 18+ instalado</li>
+        <li>SQL Server acessível na rede</li>
+        <li>Arquivo <code>.env</code> configurado na raiz</li>
+        <li>(Opcional) Active Directory acessível na porta 389</li>
+      </ul>
+
+      <h3>Primeira execução</h3>
+      <pre>
+<span class="comentario"># 1. Instalar dependências (inclui ldapjs)</span>
+npm install
+
+<span class="comentario"># 2. Criar .env com credenciais do banco (veja seção 4.3)</span>
+
+<span class="comentario"># 3. Iniciar o servidor (cria banco e tabelas automaticamente)</span>
+npm start
+      </pre>
+
+      <h3>Atualizar banco em instalação existente</h3>
+      <pre>
+<span class="comentario"># Adiciona as novas tabelas (IF NOT EXISTS — seguro rodar novamente)</span>
+node criarBancoPortal.js
+
+<span class="comentario"># Reiniciar o servidor</span>
+pm2 restart portal
+      </pre>
+
+      <h3>Deploy de novos arquivos no servidor</h3>
+      <pre>
+<span class="comentario"># Copiar arquivos para o servidor Linux</span>
+scp portal.js kasuo@192.168.0.80:/var/www/html/wkl/Portal/portal.js
+scp routes/agenda.js kasuo@192.168.0.80:/var/www/html/wkl/Portal/routes/agenda.js
+scp -r lib kasuo@192.168.0.80:/var/www/html/wkl/Portal/lib
+scp -r public/agendaTarefas kasuo@192.168.0.80:/var/www/html/wkl/Portal/public/agendaTarefas
+
+<span class="comentario"># Instalar dependências novas (ldapjs)</span>
+ssh kasuo@192.168.0.80 "cd /var/www/html/wkl/Portal &amp;&amp; npm install"
+
+<span class="comentario"># Criar novas tabelas</span>
+ssh kasuo@192.168.0.80 "cd /var/www/html/wkl/Portal &amp;&amp; node criarBancoPortal.js"
+
+<span class="comentario"># Reiniciar</span>
+ssh kasuo@192.168.0.80 "pm2 restart portal"
+      </pre>
+
+      <h3>Acessar o portal</h3>
+      <pre>
+<span class="comentario"># Portal principal</span>
+http://192.168.0.80:3132
+
+<span class="comentario"># Agenda de Tarefas</span>
+http://192.168.0.80:3132/agenda
+
+<span class="comentario"># Login padrão</span>
+Usuário: admin   |   Senha: admin
+      </pre>
+
+      <div class="card-info verde">
+        <strong>Produção com PM2</strong>
+        <p><code>pm2 start portal.js --name portal</code> &nbsp;|&nbsp;
+        <code>pm2 restart portal</code> &nbsp;|&nbsp;
+        <code>pm2 logs portal</code></p>
+      </div>
+    </div>
+
+    <!-- RODAPÉ -->
+    <div class="doc-rodape">
+      <strong>Portal WKL de Sistemas e Serviços</strong><br>
+      Versão 2.0.0 &mdash; Documentação gerada em 03/03/2026<br>
+      <span style="opacity:0.6">Documento interno &mdash; uso restrito</span>
+    </div>
+
+  </div>
+</body>
+</html>

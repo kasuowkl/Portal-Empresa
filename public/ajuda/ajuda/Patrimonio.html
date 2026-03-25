@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<!--
+  ARQUIVO: public/ajuda/Patrimonio.html
+  VERSÃO:  1.1.0
+  DATA:    2026-03-10
+  DESCRIÇÃO: Documentação do módulo de Gestão de Patrimônio
+-->
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ajuda — Gestão de Patrimônio</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/menu.css">
+  <style>
+    .doc-layout {
+      display: flex;
+      max-width: 1100px;
+      margin: 32px auto;
+      padding: 0 24px;
+      gap: 32px;
+    }
+    .doc-sidebar { width: 220px; flex-shrink: 0; }
+    .doc-sidebar-sticky { position: sticky; top: calc(var(--altura-menu) + 20px); }
+    .doc-sidebar h4 {
+      font-size: 11px; letter-spacing: 1.4px; text-transform: uppercase;
+      color: var(--cor-texto-fraco); margin-bottom: 12px;
+    }
+    .doc-sidebar a {
+      display: block; padding: 6px 12px; font-size: 13px;
+      color: var(--cor-texto-fraco); border-left: 2px solid var(--cor-borda);
+      text-decoration: none; transition: all .15s;
+    }
+    .doc-sidebar a:hover { color: #f59e0b; border-left-color: #f59e0b; }
+    .doc-conteudo { flex: 1; min-width: 0; }
+    .doc-breadcrumb { font-size: 12px; color: var(--cor-texto-fraco); margin-bottom: 24px; }
+    .doc-breadcrumb a { color: var(--cor-destaque); text-decoration: none; }
+    .doc-breadcrumb span { margin: 0 6px; }
+    .doc-titulo {
+      font-size: 26px; font-weight: 700; margin-bottom: 6px;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .doc-titulo i { color: #f59e0b; }
+    .doc-subtitulo { color: var(--cor-texto-fraco); font-size: 14px; margin-bottom: 36px; }
+    .doc-secao { margin-bottom: 40px; scroll-margin-top: calc(var(--altura-menu) + 16px); }
+    .doc-secao h2 {
+      font-size: 18px; font-weight: 600; margin-bottom: 16px;
+      padding-bottom: 8px; border-bottom: 1px solid var(--cor-borda);
+      display: flex; align-items: center; gap: 10px;
+    }
+    .doc-secao h2 i { color: #f59e0b; font-size: 16px; }
+    .doc-secao p, .doc-secao li {
+      font-size: 14px; color: var(--cor-texto-fraco); line-height: 1.7; margin-bottom: 8px;
+    }
+    .doc-secao ul, .doc-secao ol { padding-left: 20px; margin-bottom: 12px; }
+    .doc-secao strong { color: var(--cor-texto); }
+    .doc-card {
+      background: var(--cor-fundo-2); border: 1px solid var(--cor-borda);
+      border-radius: 8px; padding: 16px 20px; margin-bottom: 12px;
+    }
+    .doc-card h4 {
+      font-size: 13px; font-weight: 700; color: var(--cor-texto);
+      margin-bottom: 8px; display: flex; align-items: center; gap: 8px;
+    }
+    .doc-card h4 i { color: #f59e0b; }
+    .doc-card p, .doc-card li {
+      font-size: 13px; color: var(--cor-texto-fraco); line-height: 1.6; margin-bottom: 6px;
+    }
+    .doc-card ul { padding-left: 18px; margin: 0; }
+    .tag-list { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0; }
+    .det-tag {
+      font-size: 11px; padding: 3px 10px; border-radius: 20px;
+      background: rgba(78,154,241,0.12); color: var(--cor-destaque);
+      border: 1px solid rgba(78,154,241,0.25);
+    }
+    .det-tag.laranja { background: rgba(245,158,11,0.12); color: #f59e0b; border-color: rgba(245,158,11,0.25); }
+    .det-tag.verde   { background: rgba(16,185,129,0.12);  color: #10b981; border-color: rgba(16,185,129,0.25); }
+    .det-tag.vermelho{ background: rgba(239,68,68,0.12);   color: #ef4444; border-color: rgba(239,68,68,0.25); }
+    .det-tag.roxo    { background: rgba(139,92,246,0.12);  color: #8b5cf6; border-color: rgba(139,92,246,0.25); }
+    .doc-nota {
+      background: rgba(78,154,241,0.07); border-left: 3px solid var(--cor-destaque);
+      border-radius: 0 6px 6px 0; padding: 10px 14px; margin: 14px 0;
+      font-size: 13px; color: var(--cor-texto-fraco); line-height: 1.6;
+    }
+    .doc-aviso {
+      background: rgba(245,158,11,0.08); border-left: 3px solid #f59e0b;
+      border-radius: 0 6px 6px 0; padding: 10px 14px; margin: 14px 0;
+      font-size: 13px; color: var(--cor-texto-fraco); line-height: 1.6;
+    }
+    .doc-perigo {
+      background: rgba(239,68,68,0.08); border-left: 3px solid #ef4444;
+      border-radius: 0 6px 6px 0; padding: 10px 14px; margin: 14px 0;
+      font-size: 13px; color: var(--cor-texto-fraco); line-height: 1.6;
+    }
+    /* Tabela de referência */
+    .doc-table { width: 100%; border-collapse: collapse; margin: 12px 0 20px; font-size: 13px; }
+    .doc-table th {
+      background: var(--cor-fundo-3); color: var(--cor-texto); font-weight: 600;
+      padding: 8px 12px; text-align: left; border-bottom: 1px solid var(--cor-borda);
+    }
+    .doc-table td {
+      padding: 8px 12px; border-bottom: 1px solid var(--cor-borda);
+      color: var(--cor-texto-fraco); vertical-align: top;
+    }
+    .doc-table tr:last-child td { border-bottom: none; }
+    /* Badge de tipo/status inline */
+    .badge-doc {
+      display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 20px;
+      font-weight: 600; white-space: nowrap;
+    }
+    .bd-ativo     { background: rgba(16,185,129,0.15);  color: #10b981; }
+    .bd-disponivel{ background: rgba(78,154,241,0.15);  color: #4e9af1; }
+    .bd-manut     { background: rgba(245,158,11,0.15);  color: #f59e0b; }
+    .bd-baixado   { background: rgba(107,114,128,0.2);  color: #9ca3af; }
+    .bd-novo      { background: rgba(139,92,246,0.15);  color: #8b5cf6; }
+    .bd-bom       { background: rgba(16,185,129,0.15);  color: #10b981; }
+    .bd-regular   { background: rgba(245,158,11,0.15);  color: #f59e0b; }
+    .bd-danif     { background: rgba(239,68,68,0.15);   color: #ef4444; }
+    /* Steps numerados */
+    .steps { counter-reset: step; list-style: none; padding: 0; }
+    .steps li {
+      counter-increment: step; display: flex; gap: 14px;
+      margin-bottom: 14px; align-items: flex-start;
+    }
+    .steps li::before {
+      content: counter(step); flex-shrink: 0;
+      width: 26px; height: 26px; border-radius: 50%;
+      background: rgba(245,158,11,0.2); color: #f59e0b;
+      font-size: 12px; font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .steps li span { font-size: 14px; color: var(--cor-texto-fraco); line-height: 1.6; padding-top: 3px; }
+    .steps li strong { color: var(--cor-texto); }
+    /* Fluxo de evento horizontal */
+    .fluxo {
+      display: flex; align-items: center; gap: 8px;
+      flex-wrap: wrap; margin: 12px 0;
+    }
+    .fluxo-item {
+      background: var(--cor-fundo-3); border: 1px solid var(--cor-borda);
+      border-radius: 6px; padding: 6px 12px; font-size: 12px; color: var(--cor-texto);
+    }
+    .fluxo-seta { color: var(--cor-texto-fraco); font-size: 14px; }
+    @media (max-width: 768px) {
+      .doc-layout { flex-direction: column; }
+      .doc-sidebar { width: 100%; }
+      .doc-sidebar-sticky { position: static; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="menu-container"></div>
+
+<div class="doc-layout">
+
+  <!-- Sidebar de navegação -->
+  <nav class="doc-sidebar">
+    <div class="doc-sidebar-sticky">
+      <h4>Nesta página</h4>
+      <a href="#visao-geral">Visão Geral</a>
+      <a href="#cadastro">Cadastrar Bem</a>
+      <a href="#lista">Listagem e Filtros</a>
+      <a href="#ocorrencias">Registrar Ocorrência</a>
+      <a href="#tipos-evento">Tipos de Evento</a>
+      <a href="#termos">Termos Formais</a>
+      <a href="#categorias">Categorias e Unidades</a>
+      <a href="#status">Status e Estados</a>
+      <a href="#banco">Banco de Dados</a>
+      <a href="#logs">Logs de Auditoria</a>
+    </div>
+  </nav>
+
+  <!-- Conteúdo principal -->
+  <main class="doc-conteudo">
+
+    <div class="doc-breadcrumb">
+      <a href="/ajuda/Ajuda.html"><i class="fas fa-life-ring"></i> Ajuda</a>
+      <span>›</span>
+      Gestão de Patrimônio
+    </div>
+
+    <div class="doc-titulo">
+      <i class="fas fa-box-open"></i>
+      Gestão de Patrimônio
+    </div>
+    <div class="doc-subtitulo">
+      Controle completo de bens patrimoniais — cadastro, localização, histórico de movimentações e geração de termos formais.
+    </div>
+
+    <!-- ── VISÃO GERAL ─────────────────────────────────────── -->
+    <section class="doc-secao" id="visao-geral">
+      <h2><i class="fas fa-info-circle"></i> Visão Geral</h2>
+      <p>
+        O módulo de <strong>Gestão de Patrimônio</strong> permite controlar todos os bens da organização: desde o cadastro inicial com dados de aquisição até o rastreamento completo de onde o bem está, quem é responsável, e toda a sua vida útil através de um histórico detalhado de eventos.
+      </p>
+      <div class="tag-list">
+        <span class="det-tag">Cadastro de Bens</span>
+        <span class="det-tag">Localização</span>
+        <span class="det-tag">Histórico de Movimentações</span>
+        <span class="det-tag laranja">Termos Formais</span>
+        <span class="det-tag verde">Responsável Atual</span>
+        <span class="det-tag">Fotos</span>
+        <span class="det-tag roxo">Registro de Ocorrências</span>
+      </div>
+      <div class="doc-nota">
+        <i class="fas fa-map-marker-alt" style="color:var(--cor-destaque);margin-right:6px"></i>
+        Acesse em <strong>/patrimonio</strong> ou pelo menu lateral do portal.
+      </div>
+    </section>
+
+    <!-- ── CADASTRO ───────────────────────────────────────── -->
+    <section class="doc-secao" id="cadastro">
+      <h2><i class="fas fa-plus-circle"></i> Cadastrar Bem</h2>
+      <p>Clique em <strong>+ Novo Bem</strong> no canto superior direito. O formulário está dividido em quatro blocos:</p>
+
+      <div class="doc-card">
+        <h4><i class="fas fa-tag"></i> 1. Identificação do Bem</h4>
+        <ul>
+          <li><strong>Código / Plaqueta *</strong> — identificador único do patrimônio (ex: PAT-001, 00125). Não pode ser repetido.</li>
+          <li><strong>Descrição Completa *</strong> — nome ou descrição do item.</li>
+          <li><strong>Categoria</strong> — selecione da lista configurável (Informática, Móveis, Veículos…).</li>
+          <li><strong>Marca / Modelo</strong> e <strong>Número de Série</strong> — dados de identificação do fabricante.</li>
+        </ul>
+      </div>
+
+      <div class="doc-card">
+        <h4><i class="fas fa-file-invoice-dollar"></i> 2. Dados Financeiros</h4>
+        <ul>
+          <li><strong>Fornecedor</strong> — empresa ou pessoa de quem foi adquirido.</li>
+          <li><strong>Nota Fiscal</strong> — número da NF de compra.</li>
+          <li><strong>Data de Compra</strong> e <strong>Valor (R$)</strong> — para controle contábil e depreciação.</li>
+        </ul>
+      </div>
+
+      <div class="doc-card">
+        <h4><i class="fas fa-map-marker-alt"></i> 3. Localização Atual</h4>
+        <ul>
+          <li><strong>Unidade / Tipo</strong> — selecione da lista configurável (Matriz, Filial, Obra, Armazém…).</li>
+          <li><strong>Detalhe</strong> — sala, setor, andar, endereço específico.</li>
+          <li><strong>Observação</strong> — informações adicionais de localização.</li>
+        </ul>
+      </div>
+
+      <div class="doc-card">
+        <h4><i class="fas fa-camera"></i> 4. Estado e Imagens</h4>
+        <ul>
+          <li><strong>Estado de Conservação</strong> — Novo, Bom, Regular ou Danificado.</li>
+          <li><strong>Status do Bem</strong> — Ativo, Disponível, Em Manutenção ou Baixado.</li>
+          <li><strong>Fotos</strong> — importe uma ou mais fotos do bem (armazenadas no banco como base64). Clique em qualquer foto para ampliar.</li>
+        </ul>
+      </div>
+
+      <div class="doc-nota">
+        <i class="fas fa-info-circle" style="color:var(--cor-destaque);margin-right:6px"></i>
+        Ao salvar um novo bem, o sistema registra automaticamente um evento <strong>"Cadastro Inicial"</strong> no histórico com a data e o usuário logado.
+      </div>
+    </section>
+
+    <!-- ── LISTAGEM ───────────────────────────────────────── -->
+    <section class="doc-secao" id="lista">
+      <h2><i class="fas fa-list"></i> Listagem e Filtros</h2>
+      <p>A tela inicial exibe todos os bens cadastrados em uma tabela com até 500 registros por consulta.</p>
+
+      <p><strong>Filtros disponíveis:</strong></p>
+      <div class="tag-list">
+        <span class="det-tag">Pesquisa livre (código, descrição, marca, série, fornecedor)</span>
+        <span class="det-tag laranja">Status do Bem</span>
+        <span class="det-tag">Categoria</span>
+      </div>
+
+      <p><strong>Colunas da tabela:</strong> Código, Descrição / Marca, Localização, Status, Estado, Valor e Ações.</p>
+
+      <p><strong>Ações disponíveis por linha:</strong></p>
+      <div class="doc-card">
+        <h4><i class="fas fa-edit"></i> Editar</h4>
+        <p>Abre o formulário completo com todos os dados do bem e o histórico de eventos abaixo. Permite alterar qualquer campo e adicionar novas ocorrências.</p>
+      </div>
+      <div class="doc-card">
+        <h4><i class="fas fa-plus-circle" style="color:#f59e0b"></i> Novo Registro (botão laranja)</h4>
+        <p>Atalho para registrar uma ocorrência diretamente da lista, <strong>sem precisar abrir o formulário de edição</strong>. Ideal para movimentações rápidas. Após salvar, a tabela é atualizada automaticamente.</p>
+      </div>
+      <div class="doc-card">
+        <h4><i class="fas fa-trash" style="color:#ef4444"></i> Excluir</h4>
+        <p>Remove o bem e todo o seu histórico permanentemente. Requer confirmação. <strong>Ação irreversível.</strong></p>
+      </div>
+
+      <p>As colunas <strong>Código</strong>, <strong>Localização</strong>, <strong>Status</strong> e <strong>Valor</strong> são clicáveis para ordenação crescente/decrescente.</p>
+    </section>
+
+    <!-- ── OCORRÊNCIAS ─────────────────────────────────────── -->
+    <section class="doc-secao" id="ocorrencias">
+      <h2><i class="fas fa-history"></i> Registrar Ocorrência</h2>
+      <p>
+        Todo evento que acontece com um bem deve ser registrado no histórico. Isso garante rastreabilidade completa da vida útil do equipamento.
+      </p>
+
+      <ol class="steps">
+        <li><span>Abra o bem pelo botão <strong>Editar</strong> ou use o botão <strong>Novo Registro</strong> direto na lista.</span></li>
+        <li><span>Selecione o <strong>Tipo de Evento</strong> — os campos do modal mudam automaticamente conforme o tipo.</span></li>
+        <li><span>Preencha a <strong>Data</strong>, o <strong>Responsável Recebedor</strong> (quando aplicável) e as <strong>Observações</strong>.</span></li>
+        <li><span>O campo <strong>Registrado por</strong> é preenchido automaticamente com o nome do usuário logado.</span></li>
+        <li><span>Clique em <strong>Salvar Ocorrência</strong>. Para eventos que geram termo, marque <strong>"Abrir termo após salvar"</strong> para imprimir imediatamente.</span></li>
+      </ol>
+
+      <p><strong>Campos que atualizam o bem automaticamente ao registrar:</strong></p>
+      <table class="doc-table">
+        <thead>
+          <tr><th>Campo no Modal</th><th>Campo Atualizado no Bem</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Responsável Recebedor</td><td>Responsável Atual</td></tr>
+          <tr><td>Setor / Departamento</td><td>Setor Atual</td></tr>
+          <tr><td>Atualizar Status do Bem</td><td>Status</td></tr>
+          <tr><td>Novo Estado</td><td>Estado de Conservação</td></tr>
+          <tr><td>Nova Localização</td><td>Unidade / Tipo e Detalhe</td></tr>
+        </tbody>
+      </table>
+
+      <div class="doc-nota">
+        <i class="fas fa-user-check" style="color:var(--cor-destaque);margin-right:6px"></i>
+        Os campos <strong>Responsável Recebedor</strong> e <strong>Responsável Anterior</strong> usam autocomplete com todos os usuários do sistema (locais e do Active Directory). Também é possível digitar livremente para registrar nomes de externos (fornecedores, prestadores).
+      </div>
+    </section>
+
+    <!-- ── TIPOS DE EVENTO ────────────────────────────────── -->
+    <section class="doc-secao" id="tipos-evento">
+      <h2><i class="fas fa-tags"></i> Tipos de Evento</h2>
+      <p>Cada tipo de evento mostra campos específicos no modal e pode gerar um termo formal para assinatura:</p>
+
+      <table class="doc-table">
+        <thead>
+          <tr><th>Tipo</th><th>Uso</th><th>Campos extras</th><th>Gera Termo</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Armazenado</strong></td>
+            <td>Bem guardado em estoque/almoxarifado</td>
+            <td>Nova Localização</td>
+            <td>—</td>
+          </tr>
+          <tr>
+            <td><strong>Disponibilizado</strong></td>
+            <td>Entrega do bem a um colaborador</td>
+            <td>Destinatário, Setor, Status</td>
+            <td><span class="det-tag verde">Sim</span></td>
+          </tr>
+          <tr>
+            <td><strong>Transferido</strong></td>
+            <td>Mudança de responsável ou unidade</td>
+            <td>Responsável Anterior, Novo Responsável, Setor, Localização</td>
+            <td><span class="det-tag verde">Sim</span></td>
+          </tr>
+          <tr>
+            <td><strong>Devolvido</strong></td>
+            <td>Bem retornado ao patrimônio</td>
+            <td>Responsável Anterior, Nova Localização</td>
+            <td><span class="det-tag verde">Sim</span></td>
+          </tr>
+          <tr>
+            <td><strong>Empréstimo</strong></td>
+            <td>Saída temporária</td>
+            <td>Tomador, Setor, Status</td>
+            <td><span class="det-tag verde">Sim</span></td>
+          </tr>
+          <tr>
+            <td><strong>Manutenção</strong></td>
+            <td>Envio para reparo</td>
+            <td>Prestador / Técnico, Setor</td>
+            <td><span class="det-tag verde">Sim</span></td>
+          </tr>
+          <tr>
+            <td><strong>Ocorrência</strong></td>
+            <td>Registro genérico de evento</td>
+            <td>Observações</td>
+            <td>—</td>
+          </tr>
+          <tr>
+            <td><strong>Avaria</strong></td>
+            <td>Dano físico identificado</td>
+            <td>Grau (Leve / Moderado / Grave), Observações, Novo Estado</td>
+            <td><span class="det-tag verde">Sim</span></td>
+          </tr>
+          <tr>
+            <td><strong>Sinistro</strong></td>
+            <td>Perda, roubo ou acidente grave</td>
+            <td>Grau, Observações, Novo Estado</td>
+            <td><span class="det-tag verde">Sim</span></td>
+          </tr>
+          <tr>
+            <td><strong>Descarte</strong></td>
+            <td>Baixa definitiva do bem</td>
+            <td>Observações — limpa responsável e setor</td>
+            <td><span class="det-tag verde">Sim</span></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p>Para os tipos <strong>Devolvido</strong> e <strong>Descarte</strong>, o sistema limpa automaticamente o <em>Responsável Atual</em> e o <em>Setor Atual</em> do bem.</p>
+    </section>
+
+    <!-- ── TERMOS ─────────────────────────────────────────── -->
+    <section class="doc-secao" id="termos">
+      <h2><i class="fas fa-file-alt"></i> Termos Formais</h2>
+      <p>
+        Eventos importantes geram automaticamente um <strong>número de termo</strong> no formato <code>TERM-AAAAMMDD-NNNN</code> (ex: <code>TERM-20260309-0005</code>).
+        Esse número aparece na coluna de ações do histórico.
+      </p>
+
+      <p><strong>Termos disponíveis:</strong></p>
+      <div class="tag-list">
+        <span class="det-tag laranja">Termo de Entrega de Equipamento</span>
+        <span class="det-tag laranja">Termo de Transferência</span>
+        <span class="det-tag laranja">Termo de Devolução</span>
+        <span class="det-tag laranja">Termo de Empréstimo</span>
+        <span class="det-tag laranja">Termo de Envio para Manutenção</span>
+        <span class="det-tag laranja">Termo de Registro de Avaria</span>
+        <span class="det-tag laranja">Registro de Sinistro</span>
+        <span class="det-tag laranja">Termo de Descarte / Baixa</span>
+      </div>
+
+      <p>Cada termo contém:</p>
+      <ul>
+        <li><strong>Dados completos do equipamento</strong> — código, descrição, marca, número de série, estado e localização.</li>
+        <li><strong>Movimentação de responsabilidade</strong> — de quem saiu e para quem foi, com setor/departamento.</li>
+        <li><strong>Detalhes do evento</strong> — tipo, data, observações, registrado por e usuário do sistema.</li>
+        <li><strong>Linhas de assinatura</strong> — espaço para assinatura/CPF do entregador e do recebedor.</li>
+        <li><strong>Rodapé</strong> com número do termo e data de emissão.</li>
+      </ul>
+
+      <p><strong>Como imprimir:</strong></p>
+      <div class="fluxo">
+        <div class="fluxo-item">Registrar Ocorrência</div>
+        <span class="fluxo-seta">→</span>
+        <div class="fluxo-item">Marcar "Abrir termo após salvar"</div>
+        <span class="fluxo-seta">→</span>
+        <div class="fluxo-item">Salvar</div>
+        <span class="fluxo-seta">→</span>
+        <div class="fluxo-item">Termo abre em nova aba</div>
+        <span class="fluxo-seta">→</span>
+        <div class="fluxo-item">Clicar "Imprimir / Salvar PDF"</div>
+      </div>
+
+      <p>Para reimprimir um termo já gerado, vá ao histórico do bem (aba Editar) e clique no ícone <i class="fas fa-file-alt" style="color:#f59e0b"></i> na linha correspondente.</p>
+
+      <div class="doc-nota">
+        <i class="fas fa-print" style="color:var(--cor-destaque);margin-right:6px"></i>
+        O botão <strong>"Imprimir / Salvar PDF"</strong> usa a impressão nativa do navegador. Para salvar em PDF, escolha "Salvar como PDF" na janela de impressão. O botão é ocultado automaticamente na impressão.
+      </div>
+    </section>
+
+    <!-- ── CATEGORIAS ─────────────────────────────────────── -->
+    <section class="doc-secao" id="categorias">
+      <h2><i class="fas fa-cog"></i> Categorias e Unidades</h2>
+      <p>
+        As listas de <strong>Categoria</strong> e <strong>Unidade / Tipo</strong> são <strong>configuráveis diretamente na tela</strong>, sem necessidade de acessar o banco de dados.
+      </p>
+
+      <ol class="steps">
+        <li><span>No formulário de cadastro, clique no ícone <i class="fas fa-cog" style="color:#f59e0b"></i> ao lado do label <strong>Categoria</strong> ou <strong>Unidade / Tipo</strong>.</span></li>
+        <li><span>Um painel abre mostrando todos os itens cadastrados.</span></li>
+        <li><span>Para <strong>adicionar</strong>, digite o nome e pressione <kbd>Enter</kbd> ou clique no botão <strong>+</strong>.</span></li>
+        <li><span>Para <strong>remover</strong>, clique no <i class="fas fa-times"></i> ao lado do item. Requer confirmação.</span></li>
+        <li><span>O select é atualizado automaticamente após cada alteração.</span></li>
+      </ol>
+
+      <p><strong>Valores padrão instalados:</strong></p>
+      <table class="doc-table">
+        <thead><tr><th>Categorias</th><th>Unidades</th></tr></thead>
+        <tbody>
+          <tr><td>Informática, Móveis, Veículos, Máquinas, Ferramentas, Outros</td><td>Matriz, Filial, Obra, Armazém, Externo / Home Office</td></tr>
+        </tbody>
+      </table>
+
+      <div class="doc-aviso">
+        <i class="fas fa-exclamation-triangle" style="color:#f59e0b;margin-right:6px"></i>
+        Remover uma categoria não altera os bens já cadastrados com esse valor — eles mantêm a categoria anterior. O item simplesmente deixa de aparecer como opção para novos cadastros.
+      </div>
+    </section>
+
+    <!-- ── STATUS E ESTADOS ───────────────────────────────── -->
+    <section class="doc-secao" id="status">
+      <h2><i class="fas fa-traffic-light"></i> Status e Estados</h2>
+
+      <p><strong>Status do Bem</strong> — indica a situação operacional:</p>
+      <table class="doc-table">
+        <thead><tr><th>Status</th><th>Significado</th></tr></thead>
+        <tbody>
+          <tr><td><span class="badge-doc bd-ativo">Ativo</span></td><td>Em uso, com responsável definido</td></tr>
+          <tr><td><span class="badge-doc bd-disponivel">Disponível</span></td><td>Em estoque, sem responsável — pronto para uso</td></tr>
+          <tr><td><span class="badge-doc bd-manut">Em Manutenção</span></td><td>Enviado para reparo</td></tr>
+          <tr><td><span class="badge-doc bd-baixado">Baixado</span></td><td>Descartado, vendido ou irrecuperável</td></tr>
+        </tbody>
+      </table>
+
+      <p><strong>Estado de Conservação</strong> — indica a condição física:</p>
+      <table class="doc-table">
+        <thead><tr><th>Estado</th><th>Descrição</th></tr></thead>
+        <tbody>
+          <tr><td><span class="badge-doc bd-novo">Novo</span></td><td>Acabou de ser adquirido, nunca usado</td></tr>
+          <tr><td><span class="badge-doc bd-bom">Bom</span></td><td>Funcionando perfeitamente, sem avarias</td></tr>
+          <tr><td><span class="badge-doc bd-regular">Regular</span></td><td>Funcionando com desgaste visível</td></tr>
+          <tr><td><span class="badge-doc bd-danif">Danificado</span></td><td>Com avaria que compromete o uso</td></tr>
+        </tbody>
+      </table>
+
+      <div class="doc-nota">
+        <i class="fas fa-magic" style="color:var(--cor-destaque);margin-right:6px"></i>
+        Ao registrar uma ocorrência, o campo <strong>"Atualizar Status do Bem"</strong> é sugerido automaticamente conforme o tipo de evento (ex: Manutenção sugere "Em Manutenção", Descarte sugere "Baixado").
+      </div>
+    </section>
+
+    <!-- ── BANCO DE DADOS ─────────────────────────────────── -->
+    <section class="doc-secao" id="banco">
+      <h2><i class="fas fa-database"></i> Banco de Dados</h2>
+      <p>O módulo utiliza 4 tabelas no SQL Server:</p>
+
+      <table class="doc-table">
+        <thead><tr><th>Tabela</th><th>Descrição</th></tr></thead>
+        <tbody>
+          <tr><td><code>pat_bens</code></td><td>Cadastro dos bens — dados de identificação, financeiro, localização, responsável e estado atual</td></tr>
+          <tr><td><code>pat_historico</code></td><td>Todos os eventos registrados por bem, com número de termo quando aplicável</td></tr>
+          <tr><td><code>pat_categorias</code></td><td>Lista configurável de categorias</td></tr>
+          <tr><td><code>pat_unidades</code></td><td>Lista configurável de unidades/locais</td></tr>
+        </tbody>
+      </table>
+
+      <p>Para criar as tabelas no servidor (primeira vez ou após atualização):</p>
+      <div class="doc-aviso">
+        <code>node criarBancoPortal.js</code><br>
+        Execute este comando na pasta do Portal. O script é seguro para re-execução — usa <code>IF NOT EXISTS</code> em todas as operações.
+      </div>
+
+      <div class="doc-perigo">
+        <i class="fas fa-trash-alt" style="color:#ef4444;margin-right:6px"></i>
+        A exclusão de um bem é <strong>permanente</strong> — remove o bem e todo o seu histórico do banco. Não há soft delete neste módulo. Faça backup antes de exclusões em massa.
+      </div>
+    </section>
+
+    <!-- ── LOGS ───────────────────────────────────────────── -->
+    <section class="doc-secao" id="logs">
+      <h2><i class="fas fa-clipboard-list"></i> Logs de Auditoria</h2>
+      <p>Todas as ações do módulo Patrimônio são registradas automaticamente nos <strong>Logs de Atividade</strong> do portal. Acesse em <strong>Configurações → Logs</strong> e filtre por <em>Sistema: Patrimônio</em>.</p>
+
+      <table class="doc-table">
+        <thead><tr><th>Ação</th><th>O que é registrado</th></tr></thead>
+        <tbody>
+          <tr><td>Bem cadastrado</td><td>Código e descrição do bem</td></tr>
+          <tr><td>Bem editado</td><td>Código e descrição do bem</td></tr>
+          <tr><td>Bem excluído</td><td>Código e descrição do bem removido</td></tr>
+          <tr><td>Ocorrência registrada</td><td>Código do bem e tipo de evento</td></tr>
+        </tbody>
+      </table>
+
+      <div class="doc-nota">
+        <i class="fas fa-info-circle" style="color:var(--cor-destaque);margin-right:6px"></i>
+        Cada log registra o usuário responsável, data/hora e o IP de origem da ação.
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script src="/js/menu.js"></script>
+</body>
+</html>

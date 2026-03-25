@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<!--
+  ARQUIVO: public/ajuda/Chamados.html
+  VERSÃO:  1.6.0
+  DATA:    2026-03-10
+  DESCRIÇÃO: Documentação do sistema de Chamados (+ Vinculado, Relatórios, Soft Delete, Notificações)
+-->
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ajuda — Chamados</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/menu.css">
+  <style>
+    .doc-layout {
+      display: flex;
+      max-width: 1100px;
+      margin: 32px auto;
+      padding: 0 24px;
+      gap: 32px;
+    }
+    .doc-sidebar { width: 220px; flex-shrink: 0; }
+    .doc-sidebar-sticky { position: sticky; top: calc(var(--altura-menu) + 20px); }
+    .doc-sidebar h4 {
+      font-size: 11px; letter-spacing: 1.4px; text-transform: uppercase;
+      color: var(--cor-texto-fraco); margin-bottom: 12px;
+    }
+    .doc-sidebar a {
+      display: block; padding: 6px 12px; font-size: 13px;
+      color: var(--cor-texto-fraco); border-left: 2px solid var(--cor-borda);
+      text-decoration: none; transition: all .15s;
+    }
+    .doc-sidebar a:hover { color: #ef4444; border-left-color: #ef4444; }
+    .doc-conteudo { flex: 1; min-width: 0; }
+    .doc-breadcrumb { font-size: 12px; color: var(--cor-texto-fraco); margin-bottom: 24px; }
+    .doc-breadcrumb a { color: var(--cor-destaque); text-decoration: none; }
+    .doc-breadcrumb span { margin: 0 6px; }
+    .doc-titulo {
+      font-size: 26px; font-weight: 700; margin-bottom: 6px;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .doc-titulo i { color: #ef4444; }
+    .doc-subtitulo { color: var(--cor-texto-fraco); font-size: 14px; margin-bottom: 36px; }
+    .doc-secao { margin-bottom: 40px; scroll-margin-top: calc(var(--altura-menu) + 16px); }
+    .doc-secao h2 {
+      font-size: 18px; font-weight: 600; margin-bottom: 16px;
+      padding-bottom: 8px; border-bottom: 1px solid var(--cor-borda);
+      display: flex; align-items: center; gap: 10px;
+    }
+    .doc-secao h2 i { color: #ef4444; font-size: 16px; }
+    .doc-secao p, .doc-secao li {
+      font-size: 14px; color: var(--cor-texto-fraco); line-height: 1.7; margin-bottom: 8px;
+    }
+    .doc-secao ul, .doc-secao ol { padding-left: 20px; margin-bottom: 12px; }
+    .doc-secao strong { color: var(--cor-texto); }
+    .doc-card {
+      background: var(--cor-fundo-2); border: 1px solid var(--cor-borda);
+      border-radius: 8px; padding: 16px 20px; margin-bottom: 12px;
+    }
+    .doc-card h4 { font-size: 14px; margin-bottom: 6px; color: var(--cor-texto); }
+    .doc-card p { margin: 0; }
+    .doc-info {
+      background: rgba(239,68,68,0.08); border-left: 3px solid #ef4444;
+      border-radius: 0 8px 8px 0; padding: 12px 16px; margin-bottom: 16px;
+      font-size: 13px; color: var(--cor-texto-fraco);
+    }
+    .doc-warn {
+      background: rgba(245,158,11,0.08); border-left: 3px solid #f59e0b;
+      border-radius: 0 8px 8px 0; padding: 12px 16px; margin-bottom: 16px;
+      font-size: 13px; color: var(--cor-texto-fraco);
+    }
+    .passo { display: flex; gap: 14px; margin-bottom: 14px; align-items: flex-start; }
+    .passo-num {
+      width: 28px; height: 28px; border-radius: 50%; background: #ef4444;
+      color: #fff; font-size: 12px; font-weight: 700;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .passo-txt { font-size: 14px; color: var(--cor-texto-fraco); line-height: 1.6; }
+    .passo-txt strong { color: var(--cor-texto); }
+
+    /* Fluxo de status */
+    .status-flow {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin: 12px 0;
+    }
+    .sf-badge {
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .sf-arrow { color: var(--cor-texto-fraco); font-size: 14px; }
+    .sf-aberto       { background: rgba(59,130,246,.15);  color: #3b82f6; }
+    .sf-em-at        { background: rgba(245,158,11,.15);  color: #f59e0b; }
+    .sf-respondido   { background: rgba(139,92,246,.15);  color: #8b5cf6; }
+    .sf-finalizado   { background: rgba(16,185,129,.15);  color: #10b981; }
+    .sf-transferido  { background: rgba(107,114,128,.15); color: #6b7280; }
+    .sf-aprovacao    { background: rgba(234,179,8,.15);   color: #ca8a04; }
+    .sf-aprovado     { background: rgba(16,185,129,.2);   color: #10b981; }
+    .sf-reprovado    { background: rgba(239,68,68,.15);   color: #ef4444; }
+    .sf-reaberto     { background: rgba(249,115,22,.15);  color: #f97316; }
+    .sf-bloqueado    { background: rgba(245,158,11,.2);   color: #f59e0b; }
+    .sf-vinculado    { background: rgba(6,182,212,.15);   color: #06b6d4; }
+
+    /* Tabela de permissões */
+    .perm-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 16px; }
+    .perm-table th {
+      background: var(--cor-fundo-3); padding: 8px 12px; text-align: left;
+      font-weight: 600; color: var(--cor-texto); border-bottom: 1px solid var(--cor-borda);
+    }
+    .perm-table td { padding: 8px 12px; border-bottom: 1px solid var(--cor-borda); color: var(--cor-texto-fraco); }
+    .sim { color: #10b981; font-weight: 700; }
+    .nao { color: #ef4444; }
+
+    /* Cargo badges */
+    .cargo { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+    .c-admin  { background: rgba(239,68,68,.15);   color: #ef4444; }
+    .c-gestor { background: rgba(139,92,246,.15);  color: #8b5cf6; }
+    .c-tec    { background: rgba(78,154,241,.15);  color: #4e9af1; }
+    .c-solic  { background: rgba(107,114,128,.15); color: #9ca3af; }
+
+    @media (max-width: 700px) {
+      .doc-layout { flex-direction: column; }
+      .doc-sidebar { width: 100%; }
+      .doc-sidebar-sticky { position: static; }
+      .status-flow { gap: 4px; }
+    }
+  </style>
+</head>
+<body>
+  <div id="menu-container"></div>
+
+  <div class="doc-layout">
+
+    <aside class="doc-sidebar">
+      <div class="doc-sidebar-sticky">
+        <h4>Nesta página</h4>
+        <a href="#visao-geral">Visão Geral</a>
+        <a href="#abrir">Abrir Chamado</a>
+        <a href="#acompanhar">Acompanhar</a>
+        <a href="#fluxo">Fluxo de Status</a>
+        <a href="#acoes">Ações</a>
+        <a href="#vinculado">Chamado Vinculado</a>
+        <a href="#notificacoes">Notificações</a>
+        <a href="#email-notif">E-mail Automático</a>
+        <a href="#logs">Logs de Auditoria</a>
+        <a href="#relatorios">Relatórios</a>
+        <a href="#perfis">Perfis de Acesso</a>
+        <a href="#configurar">Configurar</a>
+        <a href="#telegram">Telegram</a>
+        <a href="#tv">Monitor TV</a>
+        <a href="#integracao-ad">Integração AD</a>
+        <a href="#permissoes">Permissões</a>
+        <br>
+        <a href="/ajuda/Ajuda.html" style="color:var(--cor-destaque);font-size:12px;border:none;padding-left:0">
+          ← Voltar à Ajuda
+        </a>
+      </div>
+    </aside>
+
+    <main class="doc-conteudo">
+
+      <div class="doc-breadcrumb">
+        <a href="/ajuda/Ajuda.html">Ajuda</a>
+        <span>›</span> Chamados
+      </div>
+
+      <div class="doc-titulo">
+        <i class="fas fa-headset"></i> Chamados
+      </div>
+      <div class="doc-subtitulo">
+        Sistema de abertura e acompanhamento de chamados de suporte integrado ao Portal WKL.
+      </div>
+
+      <!-- VISÃO GERAL -->
+      <section class="doc-secao" id="visao-geral">
+        <h2><i class="fas fa-eye"></i> Visão Geral</h2>
+        <p>O sistema de Chamados permite que qualquer usuário do portal abra uma solicitação de suporte direcionada a um <strong>setor</strong> (ex: TI, RH, Financeiro). A equipe de atendimento recebe, aceita e resolve o chamado, mantendo um histórico completo de toda a comunicação.</p>
+        <p>Acesse pelo menu superior do portal clicando em <strong>Chamados</strong> ou diretamente em <strong>/chamados</strong>.</p>
+        <div class="doc-info">
+          <i class="fas fa-info-circle" style="color:#ef4444;margin-right:6px"></i>
+          O sistema usa os mesmos usuários do portal — não é necessário criar uma conta separada.
+        </div>
+      </section>
+
+      <!-- ABRIR CHAMADO -->
+      <section class="doc-secao" id="abrir">
+        <h2><i class="fas fa-plus-circle"></i> Abrir Chamado</h2>
+        <div class="passo">
+          <div class="passo-num">1</div>
+          <div class="passo-txt">Clique em <strong>+ Novo Chamado</strong> no canto superior direito.</div>
+        </div>
+        <div class="passo">
+          <div class="passo-num">2</div>
+          <div class="passo-txt">Selecione o <strong>setor</strong> responsável pela solicitação.</div>
+        </div>
+        <div class="passo">
+          <div class="passo-num">3</div>
+          <div class="passo-txt">Preencha o <strong>assunto</strong> (obrigatório) e a <strong>descrição</strong> detalhando o problema.</div>
+        </div>
+        <div class="passo">
+          <div class="passo-num">4</div>
+          <div class="passo-txt">Opcionalmente, anexe um arquivo (máx. <strong>2 MB</strong>) como print ou documento.</div>
+        </div>
+        <div class="passo">
+          <div class="passo-num">5</div>
+          <div class="passo-txt">Clique em <strong>Enviar</strong>. O chamado recebe um número de protocolo único (ex: <code>TI-001</code>).</div>
+        </div>
+        <div class="doc-warn">
+          <i class="fas fa-exclamation-triangle" style="color:#f59e0b;margin-right:6px"></i>
+          O protocolo é gerado automaticamente com base no nome do setor e em um contador sequencial.
+        </div>
+      </section>
+
+      <!-- ACOMPANHAR -->
+      <section class="doc-secao" id="acompanhar">
+        <h2><i class="fas fa-list-alt"></i> Acompanhar Chamados</h2>
+        <p>Na tela principal você vê todos os chamados que tem permissão de visualizar. Use os filtros para navegar:</p>
+        <ul>
+          <li><strong>Ativos</strong> — chamados ainda não finalizados ou reprovados (filtro padrão)</li>
+          <li><strong>Todos</strong> — todos sem exceção</li>
+          <li><strong>Aberto / Em Atend. / Respondido / Finalizado</strong> — por status específico</li>
+          <li><strong>Setor</strong> — filtra por setor de atendimento</li>
+          <li><strong>Busca</strong> — pesquisa por protocolo, assunto ou nome do solicitante</li>
+        </ul>
+        <p>Clique em qualquer linha da tabela para abrir os detalhes e o histórico completo do chamado.</p>
+      </section>
+
+      <!-- FLUXO DE STATUS -->
+      <section class="doc-secao" id="fluxo">
+        <h2><i class="fas fa-project-diagram"></i> Fluxo de Status</h2>
+        <p>Um chamado passa pelos seguintes estados:</p>
+
+        <div class="status-flow">
+          <span class="sf-badge sf-aberto">Aberto</span>
+          <span class="sf-arrow">→</span>
+          <span class="sf-badge sf-em-at">Em Atendimento</span>
+          <span class="sf-arrow">→</span>
+          <span class="sf-badge sf-respondido">Respondido</span>
+          <span class="sf-arrow">→</span>
+          <span class="sf-badge sf-finalizado">Finalizado</span>
+        </div>
+
+        <p>Situações especiais:</p>
+        <div class="status-flow">
+          <span class="sf-badge sf-em-at">Em Atendimento</span>
+          <span class="sf-arrow">→</span>
+          <span class="sf-badge sf-transferido">TRANSFERIDO</span>
+          <span class="sf-arrow">→</span>
+          <span class="sf-badge sf-em-at">Em Atendimento</span>
+          <span style="font-size:12px;color:var(--cor-texto-fraco)">(novo setor aceita)</span>
+        </div>
+        <div class="status-flow">
+          <span class="sf-badge sf-em-at">Em Atendimento</span>
+          <span class="sf-arrow">→</span>
+          <span class="sf-badge sf-aprovacao">APROVAÇÃO</span>
+          <span class="sf-arrow">→</span>
+          <span class="sf-badge sf-aprovado">APROVADO</span>
+          <span class="sf-arrow">→</span>
+          <span class="sf-badge sf-em-at">Em Atendimento</span>
+          <span class="sf-arrow">ou</span>
+          <span class="sf-badge sf-reprovado">REPROVADO</span>
+        </div>
+        <div class="status-flow">
+          <span class="sf-badge sf-finalizado">Finalizado</span>
+          <span class="sf-arrow">→</span>
+          <span class="sf-badge sf-reaberto">Reaberto</span>
+          <span class="sf-arrow">→</span>
+          <span class="sf-badge sf-em-at">Em Atendimento</span>
+        </div>
+        <div class="status-flow">
+          <span class="sf-badge sf-em-at">Em Atendimento</span>
+          <span class="sf-arrow">→</span>
+          <span class="sf-badge sf-bloqueado">🔒 BLOQUEADO</span>
+          <span class="sf-arrow">+</span>
+          <span class="sf-badge sf-vinculado">🔗 Vínculo Aberto</span>
+          <span class="sf-arrow">→</span>
+          <span class="sf-badge sf-em-at">Desbloqueado</span>
+          <span style="font-size:12px;color:var(--cor-texto-fraco)">(vínculo finalizado)</span>
+        </div>
+
+        <p style="margin-top:12px"><strong>Comportamento automático de mensagens:</strong></p>
+        <ul>
+          <li>Quando técnico envia mensagem em atendimento: status → <strong>Respondido</strong></li>
+          <li>Quando solicitante responde: status → <strong>Em Atendimento</strong></li>
+          <li>Quando chamado está <strong>BLOQUEADO</strong>: apenas mensagens são permitidas; aceitar, finalizar, transferir e solicitar aprovação ficam desabilitados até o vínculo ser finalizado.</li>
+        </ul>
+      </section>
+
+      <!-- AÇÕES -->
+      <section class="doc-secao" id="acoes">
+        <h2><i class="fas fa-bolt"></i> Ações Disponíveis</h2>
+
+        <div class="doc-card">
+          <h4><i class="fas fa-hand-paper" style="color:#3b82f6;margin-right:6px"></i> Aceitar</h4>
+          <p>Disponível para TECNICO/GESTOR/ADMIN quando o chamado está <em>Aberto</em>, <em>TRANSFERIDO</em> ou <em>Reaberto</em>. Registra o atendedor e muda o status para <strong>Em Atendimento</strong>.</p>
+        </div>
+
+        <div class="doc-card">
+          <h4><i class="fas fa-paper-plane" style="color:#8b5cf6;margin-right:6px"></i> Enviar Mensagem</h4>
+          <p>Qualquer parte pode enviar mensagens enquanto o chamado não está finalizado. A mensagem fica registrada no histórico com data e hora.</p>
+        </div>
+
+        <div class="doc-card">
+          <h4><i class="fas fa-check" style="color:#10b981;margin-right:6px"></i> Finalizar</h4>
+          <p>Disponível para TECNICO/GESTOR/ADMIN. Encerra o chamado com status <strong>Finalizado</strong>. O solicitante pode reabrir se necessário.</p>
+        </div>
+
+        <div class="doc-card">
+          <h4><i class="fas fa-exchange-alt" style="color:#f59e0b;margin-right:6px"></i> Transferir</h4>
+          <p>Redireciona o chamado para outro setor. É obrigatório informar o motivo. O chamado volta a <em>TRANSFERIDO</em> aguardando aceitação pelo novo setor.</p>
+        </div>
+
+        <div class="doc-card">
+          <h4><i class="fas fa-user-check" style="color:#8b5cf6;margin-right:6px"></i> Solicitar Aprovação</h4>
+          <p>Pausa o chamado aguardando decisão de um GESTOR ou ADMIN. É obrigatório selecionar o aprovador e informar o motivo.</p>
+        </div>
+
+        <div class="doc-card">
+          <h4><i class="fas fa-gavel" style="color:#ca8a04;margin-right:6px"></i> Aprovar / Reprovar</h4>
+          <p>Disponível para GESTOR/ADMIN quando o chamado está em <em>APROVAÇÃO</em>. Requer justificativa. Aprovação retorna a <strong>Em Atendimento</strong>; reprovação encerra o chamado como <strong>REPROVADO</strong>.</p>
+        </div>
+
+        <div class="doc-card">
+          <h4><i class="fas fa-undo" style="color:#f97316;margin-right:6px"></i> Reabrir</h4>
+          <p>Disponível para GESTOR/ADMIN ou para o próprio solicitante. Requer motivo obrigatório. Retorna o chamado para <strong>Reaberto</strong>.</p>
+        </div>
+
+        <div class="doc-card">
+          <h4><i class="fas fa-trash" style="color:#ef4444;margin-right:6px"></i> Excluir</h4>
+          <p>Disponível apenas para ADMIN. O chamado é <strong>excluído de forma lógica</strong> (soft delete) — os dados são preservados no banco para consulta nos relatórios, mas o chamado deixa de aparecer na listagem normal. O histórico registra quem excluiu e quando.</p>
+        </div>
+      </section>
+
+      <!-- CHAMADO VINCULADO -->
+      <section class="doc-secao" id="vinculado">
+        <h2><i class="fas fa-link"></i> Chamado Vinculado</h2>
+        <p>Quando o atendimento de um chamado depende da conclusão de uma tarefa em <strong>outro setor</strong>, é possível criar um <strong>chamado vinculado</strong>. Isso bloqueia o chamado pai e cria um novo chamado independente no setor destino.</p>
+
+        <div class="doc-info">
+          <i class="fas fa-info-circle" style="color:#ef4444;margin-right:6px"></i>
+          Exemplo: o chamado de TI depende de uma compra no setor de Compras. O técnico cria um chamado vinculado para Compras. O chamado de TI fica bloqueado até que o chamado de Compras seja finalizado.
+        </div>
+
+        <p><strong>Como criar um chamado vinculado:</strong></p>
+        <div class="passo">
+          <div class="passo-num">1</div>
+          <div class="passo-txt">Abra o chamado pai e clique em <strong>🛠️ MAIS AÇÕES</strong>.</div>
+        </div>
+        <div class="passo">
+          <div class="passo-num">2</div>
+          <div class="passo-txt">Na seção <strong>🔗 Abrir Chamado Vinculado</strong>, selecione o <strong>setor destino</strong> e preencha o <strong>assunto</strong> do vínculo.</div>
+        </div>
+        <div class="passo">
+          <div class="passo-num">3</div>
+          <div class="passo-txt">Opcionalmente, preencha o detalhamento e clique em <strong>🔗 ABRIR CHAMADO VINCULADO E BLOQUEAR ESTE</strong>.</div>
+        </div>
+        <div class="passo">
+          <div class="passo-num">4</div>
+          <div class="passo-txt">O chamado pai recebe o indicador <strong>🔒 BLOQUEADO</strong> e um banner informativo com link para o chamado vinculado. Somente mensagens são permitidas no chamado pai enquanto bloqueado.</div>
+        </div>
+
+        <p style="margin-top:16px"><strong>Comportamento do chamado vinculado:</strong></p>
+        <ul>
+          <li>Recebe um protocolo próprio no setor destino (ex: <code>COM-001</code>).</li>
+          <li>Exibe um banner cyan com o link para o <strong>chamado pai</strong> e um painel recolhível com o histórico completo do pai — para que o técnico do setor destino tenha contexto completo.</li>
+          <li>Segue o fluxo normal de atendimento independentemente.</li>
+          <li>Ao ser <strong>Finalizado</strong>, o chamado pai é <strong>desbloqueado automaticamente</strong> e o histórico do pai recebe uma entrada informando que o vínculo foi concluído.</li>
+        </ul>
+
+        <div class="doc-warn">
+          <i class="fas fa-exclamation-triangle" style="color:#f59e0b;margin-right:6px"></i>
+          Não é possível criar um chamado vinculado em um chamado que já está bloqueado, encerrado ou que é ele mesmo um chamado vinculado.
+        </div>
+      </section>
+
+      <!-- NOTIFICAÇÕES -->
+      <section class="doc-secao" id="notificacoes">
+        <h2><i class="fas fa-bell"></i> Notificações</h2>
+        <p>O ícone de sino no canto superior da tela exibe um contador de alertas para cada perfil:</p>
+
+        <div class="doc-card">
+          <h4><span class="cargo c-admin" style="margin-right:8px">ADMIN</span> <span class="cargo c-gestor" style="margin-right:8px">GESTOR</span> <span class="cargo c-tec">TECNICO</span></h4>
+          <ul style="margin:8px 0 0 0">
+            <li><strong>Abertos</strong> — novos chamados aguardando aceite no setor</li>
+            <li><strong>Reabertos</strong> — chamados que foram reabertos pelo solicitante</li>
+            <li><strong>Transferidos</strong> — chamados transferidos para o setor do técnico</li>
+            <li><strong>Aprovados</strong> — chamados que foram aprovados e aguardam aceite do técnico</li>
+            <li><strong>Pendentes</strong> — chamados em atendimento com última mensagem do solicitante (aguardando resposta do técnico)</li>
+          </ul>
+        </div>
+
+        <div class="doc-card">
+          <h4><span class="cargo c-admin" style="margin-right:8px">ADMIN</span> <span class="cargo c-gestor">GESTOR</span></h4>
+          <ul style="margin:8px 0 0 0">
+            <li><strong>Aprovações pendentes</strong> — chamados que aguardam decisão de aprovação. O modal de aprovação é <strong>obrigatório</strong>: não pode ser fechado sem aprovar ou reprovar todos os chamados listados.</li>
+          </ul>
+        </div>
+
+        <div class="doc-card">
+          <h4><span class="cargo c-solic">SOLICITANTE</span></h4>
+          <ul style="margin:8px 0 0 0">
+            <li><strong>Respondidos</strong> — chamados com resposta do técnico aguardando retorno do solicitante</li>
+          </ul>
+        </div>
+
+        <div class="doc-info">
+          <i class="fas fa-info-circle" style="color:#ef4444;margin-right:6px"></i>
+          O modal de aprovações (<em>Ag. Aprovação</em>) é obrigatório — o gestor deve aprovar ou reprovar cada chamado antes de fechar o painel. O histórico completo do chamado é exibido dentro do modal de aprovação para apoiar a decisão.
+        </div>
+      </section>
+
+      <!-- E-MAIL AUTOMÁTICO -->
+      <section class="doc-secao" id="email-notif">
+        <h2><i class="fas fa-envelope"></i> E-mail Automático</h2>
+        <p>O sistema de Chamados pode enviar e-mails automáticos para manter todos informados sobre o andamento dos chamados. Os destinatários e eventos são configurados em <strong>Configurações → E-mail → Chamados</strong>.</p>
+
+        <div class="doc-card">
+          <h4><i class="fas fa-plus-circle" style="color:#4e9af1;margin-right:6px"></i> Novo Chamado (<code>chamados.novo</code>)</h4>
+          <p>Disparado ao abrir um chamado. Informa protocolo, assunto, setor e solicitante.</p>
+        </div>
+        <div class="doc-card">
+          <h4><i class="fas fa-user-check" style="color:#10b981;margin-right:6px"></i> Chamado Atribuído (<code>chamados.atribuido</code>)</h4>
+          <p>Disparado quando um técnico aceita o chamado. Informa quem assumiu o atendimento.</p>
+        </div>
+        <div class="doc-card">
+          <h4><i class="fas fa-comment" style="color:#4e9af1;margin-right:6px"></i> Nova Mensagem (<code>chamados.nova_mensagem</code>)</h4>
+          <p>Disparado a cada nova mensagem no chamado. Mantém todos os envolvidos atualizados sobre o diálogo.</p>
+        </div>
+        <div class="doc-card">
+          <h4><i class="fas fa-exchange-alt" style="color:#f59e0b;margin-right:6px"></i> Chamado Transferido (<code>chamados.transferido</code>)</h4>
+          <p>Disparado quando o chamado é transferido para outro setor.</p>
+        </div>
+        <div class="doc-card">
+          <h4><i class="fas fa-sync-alt" style="color:#ab5cf7;margin-right:6px"></i> Chamado Reaberto (<code>chamados.reaberto</code>)</h4>
+          <p>Disparado quando o solicitante reabre um chamado finalizado.</p>
+        </div>
+        <div class="doc-card">
+          <h4><i class="fas fa-link" style="color:#78d6c8;margin-right:6px"></i> Chamado Vinculado (<code>chamados.vinculado</code>)</h4>
+          <p>Disparado quando um chamado filho é criado vinculado a um chamado pai.</p>
+        </div>
+        <div class="doc-card">
+          <h4><i class="fas fa-gavel" style="color:#f59e0b;margin-right:6px"></i> Aprovação Solicitada (<code>chamados.aprovacao_solicitada</code>)</h4>
+          <p>Disparado quando um técnico solicita aprovação do gestor para prosseguir.</p>
+        </div>
+        <div class="doc-card">
+          <h4><i class="fas fa-check-double" style="color:#10b981;margin-right:6px"></i> Aprovação Concluída (<code>chamados.aprovacao_concluida</code>)</h4>
+          <p>Disparado após o gestor aprovar ou reprovar o chamado.</p>
+        </div>
+        <div class="doc-card">
+          <h4><i class="fas fa-flag-checkered" style="color:#10b981;margin-right:6px"></i> Chamado Concluído (<code>chamados.concluido</code>)</h4>
+          <p>Disparado quando o chamado é finalizado. Informa o técnico responsável e a resolução.</p>
+        </div>
+        <div class="doc-card">
+          <h4><i class="fas fa-times-circle" style="color:#ef4444;margin-right:6px"></i> Chamado Cancelado (<code>chamados.cancelado</code>)</h4>
+          <p>Disparado quando um chamado é excluído (soft delete) pelo administrador.</p>
+        </div>
+        <div class="doc-card">
+          <h4><i class="fas fa-info-circle" style="color:#9ca3af;margin-right:6px"></i> Status Alterado (<code>chamados.status_alterado</code>)</h4>
+          <p>Disparado em mudanças de status genéricas não cobertas pelos eventos específicos.</p>
+        </div>
+
+        <div class="doc-info">
+          <i class="fas fa-info-circle" style="color:#ef4444;margin-right:6px"></i>
+          Para cada evento, você pode definir os destinatários em <strong>Configurações → E-mail</strong>: <em>Criado por</em> (quem abriu o chamado), <em>E-mail padrão</em> ou <em>Administradores</em>. Os eventos ficam ativos/inativos por chip.
+        </div>
+      </section>
+
+      <!-- LOGS -->
+      <section class="doc-secao" id="logs">
+        <h2><i class="fas fa-clipboard-list"></i> Logs de Auditoria</h2>
+        <p>Todas as ações relevantes do módulo Chamados são registradas automaticamente nos <strong>Logs de Atividade</strong> do portal, acessíveis em <strong>Configurações → Logs</strong> (filtre por <em>Sistema: Chamados</em>).</p>
+
+        <table class="perm-table">
+          <thead><tr><th>Ação</th><th>O que é registrado</th></tr></thead>
+          <tbody>
+            <tr><td>Chamado criado</td><td>Protocolo, assunto e setor</td></tr>
+            <tr><td>Chamado aceito</td><td>Protocolo e técnico que aceitou</td></tr>
+            <tr><td>Chamado finalizado</td><td>Protocolo do chamado</td></tr>
+            <tr><td>Chamado reaberto</td><td>Protocolo do chamado</td></tr>
+            <tr><td>Chamado transferido</td><td>Protocolo e setor de destino</td></tr>
+            <tr><td>Aprovação solicitada</td><td>Protocolo do chamado</td></tr>
+            <tr><td>Aprovação respondida</td><td>Protocolo e decisão (aprovado/reprovado)</td></tr>
+            <tr><td>Chamado excluído</td><td>Protocolo do chamado</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- RELATÓRIOS -->
+      <section class="doc-secao" id="relatorios">
+        <h2><i class="fas fa-chart-bar"></i> Relatórios</h2>
+        <p>Disponível para <span class="cargo c-admin">ADMIN</span> e <span class="cargo c-gestor">GESTOR</span>. Acesse pelo botão <strong>📊 RELATÓRIOS</strong> na tela de Chamados ou em <strong>/chamados/relatorios</strong>.</p>
+
+        <p><strong>Filtros disponíveis:</strong></p>
+        <ul>
+          <li><strong>Período rápido</strong> — Hoje, Esta Semana, Este Mês, Trimestre, Este Ano ou datas personalizadas</li>
+          <li><strong>Setor</strong> — filtra por setor específico</li>
+          <li><strong>Técnico / Atendente</strong> — filtra pelos chamados atendidos por um técnico</li>
+          <li><strong>Status</strong> — seleção múltipla de status (deixe todos desmarcados para incluir todos)</li>
+          <li><strong>Incluir chamados excluídos</strong> — ao marcar esta opção, chamados com soft delete são incluídos nos resultados</li>
+        </ul>
+
+        <p style="margin-top:12px"><strong>Tipos de relatório:</strong></p>
+        <div class="doc-card">
+          <h4><i class="fas fa-chart-pie" style="color:#3b82f6;margin-right:6px"></i> Resumido</h4>
+          <p>Exibe <strong>cards de totais</strong> (total, abertos, em atendimento, respondidos, finalizados, reprovados, excluídos, tempo médio de resolução), um <strong>gráfico de barras CSS</strong> por status, uma <strong>tabela por setor</strong> com taxa de resolução e uma <strong>tabela por técnico</strong> com desempenho individual.</p>
+        </div>
+        <div class="doc-card">
+          <h4><i class="fas fa-list" style="color:#10b981;margin-right:6px"></i> Detalhado</h4>
+          <p>Lista todos os chamados paginados (50 por página) com protocolo, setor, assunto, solicitante, técnico, status, datas e duração. Chamados excluídos aparecem com linha riscada e badge <em>excluído</em>. Botão <strong>Exportar CSV</strong> gera arquivo compatível com Excel (UTF-8 BOM) com todos os campos incluindo dados de exclusão.</p>
+        </div>
+
+        <div class="doc-info">
+          <i class="fas fa-info-circle" style="color:#ef4444;margin-right:6px"></i>
+          GESTOR vê apenas os chamados dos setores aos quais está vinculado. ADMIN vê tudo.
+        </div>
+      </section>
+
+      <!-- PERFIS -->
+      <section class="doc-secao" id="perfis">
+        <h2><i class="fas fa-users"></i> Perfis de Acesso</h2>
+        <p>Todo usuário do portal tem um perfil no sistema de Chamados. O perfil determina o que cada pessoa pode fazer:</p>
+
+        <div class="doc-card">
+          <h4><span class="cargo c-admin" style="margin-right:8px">ADMIN</span> Administrador</h4>
+          <p>Perfil automático para quem é administrador do portal. Acesso total: gerencia setores, perfis, aceita qualquer chamado, aprova, exclui.</p>
+        </div>
+        <div class="doc-card">
+          <h4><span class="cargo c-gestor" style="margin-right:8px">GESTOR</span> Gestor</h4>
+          <p>Configurado pelo admin. Pode aprovar/reprovar chamados, reabrir e ver todos os chamados dos setores aos quais está vinculado.</p>
+        </div>
+        <div class="doc-card">
+          <h4><span class="cargo c-tec" style="margin-right:8px">TECNICO</span> Técnico</h4>
+          <p>Configurado pelo admin. Aceita, atende, finaliza e transfere chamados dos setores atribuídos.</p>
+        </div>
+        <div class="doc-card">
+          <h4><span class="cargo c-solic" style="margin-right:8px">SOLICITANTE</span> Solicitante</h4>
+          <p>Perfil padrão. Pode abrir chamados e acompanhar apenas os seus próprios.</p>
+        </div>
+      </section>
+
+      <!-- CONFIGURAR -->
+      <section class="doc-secao" id="configurar">
+        <h2><i class="fas fa-sliders-h"></i> Configurar o Sistema</h2>
+        <p>Administradores podem acessar as configurações clicando em <strong>Configurar</strong> na tela de Chamados.</p>
+
+        <p><strong>Aba Setores:</strong></p>
+        <div class="passo">
+          <div class="passo-num">1</div>
+          <div class="passo-txt">Digite o nome do setor (ex: TI, RH, Financeiro) e clique em <strong>Adicionar</strong>.</div>
+        </div>
+        <div class="passo">
+          <div class="passo-num">2</div>
+          <div class="passo-txt">O setor ficará disponível no formulário de abertura de chamado.</div>
+        </div>
+        <div class="passo">
+          <div class="passo-num">3</div>
+          <div class="passo-txt">Para excluir, clique no ícone de lixeira ao lado do setor.</div>
+        </div>
+
+        <p style="margin-top:16px"><strong>Monitor TV:</strong> Acesse <strong>/chamados/tv</strong> (ou clique no botão <strong>📺 TV</strong>) para abrir o painel em tela cheia para exibição em televisores.</p>
+        <p style="margin-top:8px"><strong>Notificações Telegram:</strong> Acesse via botão <strong>🤖 TELEGRAM</strong> nas configurações para configurar notificações automáticas por setor. <a href="#telegram" style="color:#ef4444">Ver detalhes →</a></p>
+        <p style="margin-top:8px"><strong>Integração AD:</strong> Acesse via botão <strong>🔌 Integração AD</strong> nas configurações para importar usuários do Active Directory e sincronizar setores automaticamente.</p>
+
+        <p style="margin-top:16px"><strong>Aba Perfis de Usuário:</strong></p>
+        <div class="passo">
+          <div class="passo-num">1</div>
+          <div class="passo-txt">Localize o usuário na lista (use o campo de busca).</div>
+        </div>
+        <div class="passo">
+          <div class="passo-num">2</div>
+          <div class="passo-txt">Selecione o <strong>papel</strong>: SOLICITANTE, TECNICO ou GESTOR.</div>
+        </div>
+        <div class="passo">
+          <div class="passo-num">3</div>
+          <div class="passo-txt">Para TECNICO e GESTOR, clique nos <strong>chips de setor</strong> para definir quais setores o usuário atende. O sistema salva automaticamente.</div>
+        </div>
+        <div class="doc-info">
+          <i class="fas fa-info-circle" style="color:#ef4444;margin-right:6px"></i>
+          Se um TECNICO não tiver setores configurados, ele verá todos os chamados do sistema.
+        </div>
+      </section>
+
+      <!-- TELEGRAM -->
+      <section class="doc-secao" id="telegram">
+        <h2><i class="fab fa-telegram-plane" style="color:#0088cc"></i> Notificações Telegram</h2>
+        <p>O sistema pode enviar mensagens automáticas para grupos do Telegram sempre que um chamado mudar de status. Cada <strong>setor</strong> pode ter seu próprio grupo configurado.</p>
+        <p>Acesse em <strong>Configurações dos Chamados → 🤖 TELEGRAM</strong> (disponível para <span class="cargo c-admin">ADMIN</span>).</p>
+
+        <p style="margin-top:14px"><strong>Como configurar:</strong></p>
+        <div class="passo">
+          <div class="passo-num">1</div>
+          <div class="passo-txt">Crie um bot no Telegram via <strong>@BotFather</strong> e copie o <strong>Token do Bot</strong> gerado.</div>
+        </div>
+        <div class="passo">
+          <div class="passo-num">2</div>
+          <div class="passo-txt">Adicione o bot ao grupo do Telegram do setor e obtenha o <strong>Chat ID</strong> do grupo (use <code>@getidsbot</code> ou a API <code>/getUpdates</code>).</div>
+        </div>
+        <div class="passo">
+          <div class="passo-num">3</div>
+          <div class="passo-txt">Cole o token na configuração, marque os <strong>status que devem gerar notificação</strong> (ex: Aberto, Finalizado) e informe o <strong>Chat ID</strong> para cada setor desejado.</div>
+        </div>
+        <div class="passo">
+          <div class="passo-num">4</div>
+          <div class="passo-txt">Clique em <strong>SALVAR CONFIGURAÇÕES</strong>. As notificações automáticas passam a funcionar imediatamente para novos chamados.</div>
+        </div>
+        <div class="passo">
+          <div class="passo-num">5</div>
+          <div class="passo-txt">Use o botão <strong>TESTAR</strong> ao lado de cada setor para enviar uma mensagem de teste e confirmar que o Chat ID está correto.</div>
+        </div>
+
+        <p style="margin-top:14px"><strong>Status disponíveis para notificação:</strong></p>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px">
+          <span class="sf-badge sf-aberto">Aberto</span>
+          <span class="sf-badge sf-em-at">Em Atendimento</span>
+          <span class="sf-badge sf-respondido">Respondido</span>
+          <span class="sf-badge sf-finalizado">Finalizado</span>
+          <span class="sf-badge sf-reaberto">Reaberto</span>
+          <span class="sf-badge sf-transferido">TRANSFERIDO</span>
+          <span class="sf-badge sf-aprovacao">APROVACAO</span>
+          <span class="sf-badge sf-aprovado">APROVADO</span>
+          <span class="sf-badge sf-reprovado">REPROVADO</span>
+        </div>
+
+        <div class="doc-card">
+          <h4><i class="fas fa-broadcast-tower" style="color:#0088cc;margin-right:6px"></i> Broadcast</h4>
+          <p>Envie uma mensagem manual para <strong>todos os grupos configurados</strong> de uma vez. Útil para avisos de manutenção ou comunicados gerais.</p>
+        </div>
+
+        <div class="doc-info">
+          <i class="fas fa-info-circle" style="color:#ef4444;margin-right:6px"></i>
+          As notificações são enviadas de forma assíncrona — o desempenho do sistema não é afetado mesmo que o Telegram esteja temporariamente indisponível. Erros são registrados no log do servidor.
+        </div>
+        <div class="doc-warn">
+          <i class="fas fa-exclamation-triangle" style="color:#f59e0b;margin-right:6px"></i>
+          Setores sem <strong>Chat ID</strong> configurado não recebem notificações, mesmo que o token esteja válido.
+        </div>
+      </section>
+
+      <!-- TV MONITOR -->
+      <section class="doc-secao" id="tv">
+        <h2><i class="fas fa-tv"></i> Monitor TV</h2>
+        <p>O Monitor TV é uma tela fullscreen projetada para ser exibida em televisores ou painéis de NOC. Acesse clicando no botão <strong>📺 TV</strong> na tela principal de Chamados (abre em nova aba) ou navegando para <strong>/chamados/tv</strong>.</p>
+
+        <p style="margin-top:12px"><strong>Tela de Setup:</strong></p>
+        <div class="passo">
+          <div class="passo-num">1</div>
+          <div class="passo-txt">Selecione os <strong>setores</strong> que deseja monitorar (múltipla seleção com Ctrl/Shift).</div>
+        </div>
+        <div class="passo">
+          <div class="passo-num">2</div>
+          <div class="passo-txt">Configure o intervalo de <strong>Refresh</strong> (segundos entre cada atualização) e o tempo do <strong>Popup</strong> (quanto tempo a notificação visual fica na tela).</div>
+        </div>
+        <div class="passo">
+          <div class="passo-num">3</div>
+          <div class="passo-txt">Na tabela de <strong>Triggers</strong>, defina para cada status se deve exibir popup visual e/ou tocar som de alerta quando um chamado mudar para aquele estado.</div>
+        </div>
+        <div class="passo">
+          <div class="passo-num">4</div>
+          <div class="passo-txt">Clique em <strong>💾 Salvar Configuração</strong> para guardar as preferências no navegador (localStorage), depois em <strong>▶ Iniciar</strong>.</div>
+        </div>
+
+        <p style="margin-top:12px"><strong>Durante o monitoramento:</strong></p>
+        <ul>
+          <li>O <strong>contador circular</strong> no canto mostra os segundos para o próximo refresh.</li>
+          <li>Chamados são ordenados por prioridade: Reaberto → Aberto → Em Atendimento → APROVAÇÃO → Transferido → Respondido.</li>
+          <li>Use os <strong>filtros de status</strong> no topo para focar em um grupo específico.</li>
+          <li>Quando um chamado novo chega ou muda de status, o sistema dispara os alertas configurados nos triggers.</li>
+          <li>Ao finalizar um chamado, chuva de confetti é exibida se o popup estiver habilitado para o status Finalizado.</li>
+          <li>Clique em <strong>⚙️</strong> para reabrir o setup sem perder a configuração atual.</li>
+        </ul>
+
+        <div class="doc-info">
+          <i class="fas fa-info-circle" style="color:#ef4444;margin-right:6px"></i>
+          A configuração de setores, refresh e triggers é salva localmente no navegador — cada máquina/TV mantém sua própria configuração.
+        </div>
+      </section>
+
+      <!-- INTEGRAÇÃO AD -->
+      <section class="doc-secao" id="integracao-ad">
+        <h2><i class="fas fa-plug"></i> Integração com Active Directory (AD)</h2>
+        <p>Disponível apenas para <span class="cargo c-admin">ADMIN</span>. Acesse pelo botão <strong>🔌 Integração AD</strong> na tela de Configurações do Chamados (<strong>/chamados/integracao</strong>).</p>
+
+        <p style="margin-top:12px"><strong>1. Configurar Servidor AD:</strong></p>
+        <div class="passo">
+          <div class="passo-num">1</div>
+          <div class="passo-txt">Preencha <strong>IP do Servidor</strong>, <strong>Porta</strong> (padrão 389), <strong>Base DN</strong> e <strong>Domínio</strong> (ex: empresa.local).</div>
+        </div>
+        <div class="passo">
+          <div class="passo-num">2</div>
+          <div class="passo-txt">Informe o <strong>Usuário de Serviço</strong> (service account) e sua <strong>Senha</strong>.</div>
+        </div>
+        <div class="passo">
+          <div class="passo-num">3</div>
+          <div class="passo-txt">Clique em <strong>💾 Salvar Configuração</strong>. As configurações são compartilhadas com o módulo de Usuários do portal.</div>
+        </div>
+        <div class="passo">
+          <div class="passo-num">4</div>
+          <div class="passo-txt">Clique em <strong>⚡ Testar Conexão</strong> para validar as credenciais. O resultado aparece no console de Rastreabilidade.</div>
+        </div>
+
+        <p style="margin-top:12px"><strong>2. Sincronização Massiva:</strong></p>
+        <div class="passo">
+          <div class="passo-num">1</div>
+          <div class="passo-txt">Clique em <strong>🔍 Buscar Usuários no AD</strong>. O sistema conecta ao servidor e lista todos os usuários ativos.</div>
+        </div>
+        <div class="passo">
+          <div class="passo-num">2</div>
+          <div class="passo-txt">Use o campo de <strong>filtro</strong> para localizar usuários por nome, login ou setor. Marque/desmarque com os botões <em>Marcar Todos</em> / <em>Desmarcar Todos</em>.</div>
+        </div>
+        <div class="passo">
+          <div class="passo-num">3</div>
+          <div class="passo-txt">Clique em <strong>✅ Importar Selecionados e Sincronizar Setores</strong>. O sistema executa duas ações em sequência:<br>
+            <strong>a)</strong> Importa os usuários para o portal (tabela <code>usuarios_dominio</code>)<br>
+            <strong>b)</strong> Cria automaticamente setores nos Chamados para cada <em>departamento</em> encontrado nos usuários importados
+          </div>
+        </div>
+
+        <div class="doc-info">
+          <i class="fas fa-info-circle" style="color:#ef4444;margin-right:6px"></i>
+          A criação de setores é incremental — setores já existentes não são duplicados. Usuários já cadastrados no portal também não são duplicados.
+        </div>
+        <div class="doc-warn">
+          <i class="fas fa-exclamation-triangle" style="color:#f59e0b;margin-right:6px"></i>
+          O <strong>console de Rastreabilidade</strong> no final da página registra todas as operações com timestamps. Use o botão <em>Check Servidor</em> para verificar se a conexão com o portal está ativa.
+        </div>
+      </section>
+
+      <!-- PERMISSÕES -->
+      <section class="doc-secao" id="permissoes">
+        <h2><i class="fas fa-shield-alt"></i> Tabela de Permissões</h2>
+        <table class="perm-table">
+          <thead>
+            <tr>
+              <th>Ação</th>
+              <th>ADMIN</th>
+              <th>GESTOR</th>
+              <th>TECNICO</th>
+              <th>SOLICITANTE</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Abrir chamado</td><td class="sim">✓</td><td class="sim">✓</td><td class="sim">✓</td><td class="sim">✓</td></tr>
+            <tr><td>Ver próprios chamados</td><td class="sim">✓</td><td class="sim">✓</td><td class="sim">✓</td><td class="sim">✓</td></tr>
+            <tr><td>Ver chamados do setor</td><td class="sim">✓</td><td class="sim">✓</td><td class="sim">✓ <small style="color:var(--cor-texto-fraco)">(seu setor)</small></td><td class="nao">—</td></tr>
+            <tr><td>Aceitar chamado</td><td class="sim">✓</td><td class="sim">✓</td><td class="sim">✓ <small style="color:var(--cor-texto-fraco)">(seu setor)</small></td><td class="nao">—</td></tr>
+            <tr><td>Enviar mensagem</td><td class="sim">✓</td><td class="sim">✓</td><td class="sim">✓</td><td class="sim">✓</td></tr>
+            <tr><td>Finalizar chamado</td><td class="sim">✓</td><td class="sim">✓</td><td class="sim">✓ <small style="color:var(--cor-texto-fraco)">(seu setor ou atendendo)</small></td><td class="nao">—</td></tr>
+            <tr><td>Transferir setor</td><td class="sim">✓</td><td class="sim">✓</td><td class="sim">✓ <small style="color:var(--cor-texto-fraco)">(seu setor)</small></td><td class="nao">—</td></tr>
+            <tr><td>Solicitar aprovação</td><td class="sim">✓</td><td class="sim">✓</td><td class="sim">✓ <small style="color:var(--cor-texto-fraco)">(seu setor)</small></td><td class="nao">—</td></tr>
+            <tr><td>Aprovar / Reprovar</td><td class="sim">✓</td><td class="sim">✓</td><td class="nao">—</td><td class="nao">—</td></tr>
+            <tr><td>Abrir chamado vinculado</td><td class="sim">✓</td><td class="sim">✓</td><td class="sim">✓</td><td class="nao">—</td></tr>
+            <tr><td>Reabrir chamado</td><td class="sim">✓</td><td class="sim">✓</td><td class="nao">—</td><td class="sim">Próprios</td></tr>
+            <tr><td>Excluir chamado (soft)</td><td class="sim">✓</td><td class="nao">—</td><td class="nao">—</td><td class="nao">—</td></tr>
+            <tr><td>Acessar Relatórios</td><td class="sim">✓</td><td class="sim">✓ <small style="color:var(--cor-texto-fraco)">(seus setores)</small></td><td class="nao">—</td><td class="nao">—</td></tr>
+            <tr><td>Gerenciar setores</td><td class="sim">✓</td><td class="nao">—</td><td class="nao">—</td><td class="nao">—</td></tr>
+            <tr><td>Gerenciar perfis</td><td class="sim">✓</td><td class="nao">—</td><td class="nao">—</td><td class="nao">—</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+    </main>
+  </div>
+
+  <script src="/js/menu.js"></script>
+</body>
+</html>

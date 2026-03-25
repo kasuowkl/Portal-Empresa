@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<!--
+  ARQUIVO: public/ajuda/AgendaTarefa.html
+  VERSÃO:  1.1.0
+  DATA:    2026-03-10
+  DESCRIÇÃO: Documentação da Agenda de Tarefas
+-->
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ajuda — Agenda de Tarefas</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/menu.css">
+  <style>
+    .doc-layout {
+      display: flex;
+      max-width: 1100px;
+      margin: 32px auto;
+      padding: 0 24px;
+      gap: 32px;
+    }
+    .doc-sidebar {
+      width: 220px;
+      flex-shrink: 0;
+    }
+    .doc-sidebar-sticky {
+      position: sticky;
+      top: calc(var(--altura-menu) + 20px);
+    }
+    .doc-sidebar h4 {
+      font-size: 11px;
+      letter-spacing: 1.4px;
+      text-transform: uppercase;
+      color: var(--cor-texto-fraco);
+      margin-bottom: 12px;
+    }
+    .doc-sidebar a {
+      display: block;
+      padding: 6px 12px;
+      font-size: 13px;
+      color: var(--cor-texto-fraco);
+      border-left: 2px solid var(--cor-borda);
+      text-decoration: none;
+      transition: all .15s;
+    }
+    .doc-sidebar a:hover {
+      color: #8b5cf6;
+      border-left-color: #8b5cf6;
+    }
+    .doc-conteudo { flex: 1; min-width: 0; }
+    .doc-breadcrumb {
+      font-size: 12px;
+      color: var(--cor-texto-fraco);
+      margin-bottom: 24px;
+    }
+    .doc-breadcrumb a { color: var(--cor-destaque); text-decoration: none; }
+    .doc-breadcrumb span { margin: 0 6px; }
+    .doc-titulo {
+      font-size: 26px;
+      font-weight: 700;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .doc-titulo i { color: #8b5cf6; }
+    .doc-subtitulo {
+      color: var(--cor-texto-fraco);
+      font-size: 14px;
+      margin-bottom: 36px;
+    }
+    .doc-secao {
+      margin-bottom: 40px;
+      scroll-margin-top: calc(var(--altura-menu) + 16px);
+    }
+    .doc-secao h2 {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--cor-borda);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .doc-secao h2 i { color: #8b5cf6; font-size: 16px; }
+    .doc-secao p, .doc-secao li {
+      font-size: 14px;
+      color: var(--cor-texto-fraco);
+      line-height: 1.7;
+      margin-bottom: 8px;
+    }
+    .doc-secao ul, .doc-secao ol { padding-left: 20px; margin-bottom: 12px; }
+    .doc-secao strong { color: var(--cor-texto); }
+    .doc-card {
+      background: var(--cor-fundo-2);
+      border: 1px solid var(--cor-borda);
+      border-radius: 8px;
+      padding: 16px 20px;
+      margin-bottom: 12px;
+    }
+    .doc-card h4 { font-size: 14px; margin-bottom: 6px; color: var(--cor-texto); }
+    .doc-card p { margin: 0; }
+    .doc-info {
+      background: rgba(139,92,246,0.08);
+      border-left: 3px solid #8b5cf6;
+      border-radius: 0 8px 8px 0;
+      padding: 12px 16px;
+      margin-bottom: 16px;
+      font-size: 13px;
+      color: var(--cor-texto-fraco);
+    }
+    .doc-warn {
+      background: rgba(245,158,11,0.08);
+      border-left: 3px solid #f59e0b;
+      border-radius: 0 8px 8px 0;
+      padding: 12px 16px;
+      margin-bottom: 16px;
+      font-size: 13px;
+      color: var(--cor-texto-fraco);
+    }
+    .passo {
+      display: flex;
+      gap: 14px;
+      margin-bottom: 14px;
+      align-items: flex-start;
+    }
+    .passo-num {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: #8b5cf6;
+      color: #fff;
+      font-size: 12px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .passo-txt { font-size: 14px; color: var(--cor-texto-fraco); line-height: 1.6; }
+    .passo-txt strong { color: var(--cor-texto); }
+    .kanban-demo {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin: 16px 0;
+    }
+    .kanban-col {
+      background: var(--cor-fundo-2);
+      border: 1px solid var(--cor-borda);
+      border-radius: 8px;
+      padding: 12px;
+    }
+    .kanban-col-titulo {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+    .kanban-card-demo {
+      background: var(--cor-fundo-3);
+      border-radius: 6px;
+      padding: 8px 10px;
+      font-size: 12px;
+      color: var(--cor-texto-fraco);
+      margin-bottom: 6px;
+    }
+    .perm-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 16px; }
+    .perm-table th {
+      background: var(--cor-fundo-3);
+      padding: 8px 12px;
+      text-align: left;
+      font-weight: 600;
+      color: var(--cor-texto);
+      border-bottom: 1px solid var(--cor-borda);
+    }
+    .perm-table td {
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--cor-borda);
+      color: var(--cor-texto-fraco);
+    }
+    .sim { color: #10b981; font-weight: 700; }
+    .nao { color: #ef4444; }
+    @media (max-width: 700px) {
+      .doc-layout { flex-direction: column; }
+      .doc-sidebar { width: 100%; }
+      .doc-sidebar-sticky { position: static; }
+      .kanban-demo { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div id="menu-container"></div>
+
+  <div class="doc-layout">
+
+    <aside class="doc-sidebar">
+      <div class="doc-sidebar-sticky">
+        <h4>Nesta página</h4>
+        <a href="#visao-geral">Visão Geral</a>
+        <a href="#listas">Listas</a>
+        <a href="#tarefas">Tarefas</a>
+        <a href="#kanban">Vista Kanban</a>
+        <a href="#categorias">Categorias</a>
+        <a href="#compartilhar">Compartilhar</a>
+        <a href="#logs">Logs de Auditoria</a>
+        <a href="#permissoes">Permissões</a>
+        <br>
+        <a href="/ajuda/Ajuda.html" style="color:var(--cor-destaque); font-size:12px; border:none; padding-left:0">
+          ← Voltar à Ajuda
+        </a>
+      </div>
+    </aside>
+
+    <main class="doc-conteudo">
+
+      <div class="doc-breadcrumb">
+        <a href="/ajuda/Ajuda.html">Ajuda</a>
+        <span>›</span> Agenda de Tarefas
+      </div>
+
+      <div class="doc-titulo">
+        <i class="fas fa-tasks"></i> Agenda de Tarefas
+      </div>
+      <div class="doc-subtitulo">
+        Gerencie projetos e tarefas em equipe com listas compartilhadas e visualização Kanban.
+      </div>
+
+      <!-- VISÃO GERAL -->
+      <section class="doc-secao" id="visao-geral">
+        <h2><i class="fas fa-eye"></i> Visão Geral</h2>
+        <p>A Agenda de Tarefas permite organizar atividades em <strong>listas</strong> (projetos). Dentro de cada lista você cria <strong>tarefas</strong> com título, descrição, prazo, prioridade e categoria. As listas podem ser compartilhadas com outros usuários do portal.</p>
+        <p>Acesse pelo menu lateral do portal ou diretamente em <strong>/agenda</strong>.</p>
+      </section>
+
+      <!-- LISTAS -->
+      <section class="doc-secao" id="listas">
+        <h2><i class="fas fa-list"></i> Listas</h2>
+        <p>Uma lista funciona como um projeto ou área de trabalho. Você pode ter quantas listas quiser.</p>
+        <p><strong>Para criar uma lista:</strong></p>
+        <div class="passo"><div class="passo-num">1</div><div class="passo-txt">Clique em <strong>+ Nova Lista</strong> no rodapé da sidebar.</div></div>
+        <div class="passo"><div class="passo-num">2</div><div class="passo-txt">Preencha o <strong>nome</strong>, uma <strong>descrição</strong> opcional e escolha uma <strong>cor</strong>.</div></div>
+        <div class="passo"><div class="passo-num">3</div><div class="passo-txt">Clique em <strong>Salvar</strong>. A lista aparecerá na sidebar e será selecionada automaticamente.</div></div>
+        <p>Para <strong>editar</strong> ou <strong>excluir</strong> uma lista, use os ícones no cabeçalho após selecioná-la. A exclusão remove também todas as tarefas da lista.</p>
+        <div class="doc-warn">
+          <i class="fas fa-exclamation-triangle" style="color:#f59e0b; margin-right:6px"></i>
+          A exclusão de uma lista é permanente e não pode ser desfeita.
+        </div>
+      </section>
+
+      <!-- TAREFAS -->
+      <section class="doc-secao" id="tarefas">
+        <h2><i class="fas fa-check-square"></i> Tarefas</h2>
+        <p>Para criar uma tarefa, selecione uma lista e clique em <strong>+ Nova Tarefa</strong>.</p>
+        <div class="doc-card">
+          <h4>Campos disponíveis</h4>
+          <ul style="margin:8px 0 0; padding-left:18px">
+            <li><strong>Título</strong> — nome da tarefa (obrigatório)</li>
+            <li><strong>Descrição</strong> — detalhes da tarefa</li>
+            <li><strong>Prazo</strong> — data limite para conclusão</li>
+            <li><strong>Prioridade</strong> — Baixa, Média ou Alta</li>
+            <li><strong>Categoria</strong> — agrupamento personalizado</li>
+            <li><strong>Status</strong> — A Fazer, Em Andamento ou Concluída</li>
+          </ul>
+        </div>
+        <p>Para <strong>mover o status</strong> de uma tarefa, use os botões de ação na lista ou arraste o card no Kanban. Para <strong>editar</strong>, clique no ícone de lápis. Para <strong>excluir</strong>, clique no ícone de lixeira.</p>
+      </section>
+
+      <!-- KANBAN -->
+      <section class="doc-secao" id="kanban">
+        <h2><i class="fas fa-columns"></i> Vista Kanban</h2>
+        <p>Alterne entre a <strong>Vista Lista</strong> (tabela) e a <strong>Vista Kanban</strong> (colunas) usando as abas no topo do painel. O Kanban organiza as tarefas em três colunas:</p>
+        <div class="kanban-demo">
+          <div class="kanban-col">
+            <div class="kanban-col-titulo" style="color:#9ca3af">A Fazer</div>
+            <div class="kanban-card-demo">Revisar relatório</div>
+            <div class="kanban-card-demo">Atualizar planilha</div>
+          </div>
+          <div class="kanban-col">
+            <div class="kanban-col-titulo" style="color:#f59e0b">Em Andamento</div>
+            <div class="kanban-card-demo">Desenvolver módulo X</div>
+          </div>
+          <div class="kanban-col">
+            <div class="kanban-col-titulo" style="color:#10b981">Concluída</div>
+            <div class="kanban-card-demo">Reunião de alinhamento</div>
+          </div>
+        </div>
+        <p>Use os botões nas ações de cada card para mover a tarefa entre colunas.</p>
+      </section>
+
+      <!-- CATEGORIAS -->
+      <section class="doc-secao" id="categorias">
+        <h2><i class="fas fa-tag"></i> Categorias</h2>
+        <p>Categorias são rótulos personalizados por lista para agrupar tarefas relacionadas. Exemplos: <em>Bug</em>, <em>Feature</em>, <em>Documentação</em>.</p>
+        <p>Para gerenciar categorias, abra o modal de nova tarefa e clique no ícone <strong>⚙️</strong> ao lado do campo Categoria.</p>
+        <div class="doc-info">
+          <i class="fas fa-info-circle" style="color:#8b5cf6; margin-right:6px"></i>
+          Ao excluir uma categoria, as tarefas vinculadas ficam sem categoria (ficam em branco).
+        </div>
+      </section>
+
+      <!-- COMPARTILHAR -->
+      <section class="doc-secao" id="compartilhar">
+        <h2><i class="fas fa-share-alt"></i> Compartilhar Lista</h2>
+        <p>Você pode compartilhar uma lista com outros usuários do portal. Para isso:</p>
+        <div class="passo"><div class="passo-num">1</div><div class="passo-txt">Selecione a lista e clique em <strong>Membros</strong> no cabeçalho.</div></div>
+        <div class="passo"><div class="passo-num">2</div><div class="passo-txt">Selecione o <strong>usuário</strong> no campo de busca e defina a <strong>permissão</strong>.</div></div>
+        <div class="passo"><div class="passo-num">3</div><div class="passo-txt">Clique em <strong>Adicionar</strong>. O usuário verá a lista na seção "Compartilhadas" na sidebar.</div></div>
+        <p>A lista compartilhada aparecerá na sidebar da outra pessoa com o nome de quem a compartilhou.</p>
+      </section>
+
+      <!-- LOGS -->
+      <section class="doc-secao" id="logs">
+        <h2><i class="fas fa-clipboard-list"></i> Logs de Auditoria</h2>
+        <p>Todas as ações do módulo Agenda de Tarefas são registradas automaticamente nos <strong>Logs de Atividade</strong> do portal. Acesse em <strong>Configurações → Logs</strong> e filtre por <em>Sistema: Ag. Tarefas</em>.</p>
+
+        <table class="perm-table">
+          <thead><tr><th>Ação</th><th>O que é registrado</th></tr></thead>
+          <tbody>
+            <tr><td>Lista criada</td><td>Nome da lista</td></tr>
+            <tr><td>Lista excluída</td><td>Nome da lista</td></tr>
+            <tr><td>Tarefa criada</td><td>Título da tarefa e lista de destino</td></tr>
+            <tr><td>Tarefa concluída</td><td>Título da tarefa</td></tr>
+            <tr><td>Tarefa excluída</td><td>Título da tarefa</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- PERMISSÕES -->
+      <section class="doc-secao" id="permissoes">
+        <h2><i class="fas fa-shield-alt"></i> Permissões</h2>
+        <table class="perm-table">
+          <thead>
+            <tr>
+              <th>Ação</th>
+              <th>Dono</th>
+              <th>Edição</th>
+              <th>Leitura</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Visualizar tarefas</td><td class="sim">✓</td><td class="sim">✓</td><td class="sim">✓</td></tr>
+            <tr><td>Criar / editar / excluir tarefas</td><td class="sim">✓</td><td class="sim">✓</td><td class="nao">—</td></tr>
+            <tr><td>Gerenciar categorias</td><td class="sim">✓</td><td class="sim">✓</td><td class="nao">—</td></tr>
+            <tr><td>Adicionar / remover membros</td><td class="sim">✓</td><td class="nao">—</td><td class="nao">—</td></tr>
+            <tr><td>Editar / excluir a lista</td><td class="sim">✓</td><td class="nao">—</td><td class="nao">—</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+    </main>
+  </div>
+
+  <script src="/js/menu.js"></script>
+</body>
+</html>

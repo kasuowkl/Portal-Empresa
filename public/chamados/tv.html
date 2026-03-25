@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📺 TV MONITOR — Chamados</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        /* ===== TV_MONITORAMENTO.CSS (original V7.8 adaptado) ===== */
+        :root {
+            --bg: #020617;
+            --card: #1e293b;
+            --text: #f1f5f9;
+            --border: #334155;
+            --primary: #3b82f6;
+            --open: #ef4444;
+            --progress: #3b82f6;
+            --closed: #10b981;
+            --details: #f59e0b;
+            --purple: #8b5cf6;
+            --cyan: #06b6d4;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { background-color: var(--bg); color: var(--text); overflow: hidden; height: 100vh; }
+
+        /* TELA DE SETUP */
+        #setup-screen {
+            position: fixed; inset: 0;
+            background: rgba(2, 6, 23, 0.95);
+            z-index: 9000; display: flex;
+            align-items: center; justify-content: center;
+            overflow-y: auto; padding: 20px;
+        }
+        .setup-card {
+            background: var(--card); padding: 2rem;
+            border-radius: 20px; width: 650px;
+            border: 2px solid var(--primary);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        }
+        .setup-card h2 { margin-bottom: 20px; color: var(--primary); font-weight: 900; }
+        .setup-card select, .setup-card input[type="number"] {
+            width: 100%; padding: 10px; margin: 5px 0;
+            border-radius: 8px; border: 1px solid var(--border);
+            background: #0f172a; color: white;
+        }
+        .trigger-table { width: 100%; margin: 15px 0; border-collapse: collapse; font-size: 0.75rem; text-align: left; }
+        .trigger-table th { padding: 8px; border-bottom: 1px solid var(--border); color: var(--primary); text-transform: uppercase; }
+        .trigger-table td { padding: 6px 8px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .trigger-table input { cursor: pointer; width: 16px; height: 16px; }
+        .btn-start {
+            background: var(--primary); color: white; border: none;
+            padding: 15px; border-radius: 10px; font-weight: 900;
+            width: 100%; cursor: pointer; text-transform: uppercase;
+            margin-top: 15px; transition: 0.3s;
+        }
+        .btn-save {
+            background: var(--closed); color: white; border: none;
+            padding: 10px; border-radius: 8px; font-weight: 800;
+            width: 100%; cursor: pointer; text-transform: uppercase;
+            margin-top: 10px; font-size: 0.7rem;
+        }
+        .btn-start:hover, .btn-save:hover { filter: brightness(1.2); }
+        .link-fechar {
+            display: block; margin-top: 20px; color: #94a3b8;
+            background: none; border: none; cursor: pointer;
+            width: 100%; font-size: 0.75rem; text-decoration: underline;
+            opacity: 0.6; transition: 0.3s;
+        }
+        .link-fechar:hover { opacity: 1; color: #fff; }
+
+        /* INTERFACE TV */
+        .page-header {
+            background: var(--card); padding: 15px 40px;
+            display: flex; justify-content: space-between;
+            align-items: center; border-bottom: 4px solid var(--primary); height: 90px;
+        }
+        .page-header h1 { font-size: 2rem; font-weight: 900; letter-spacing: -1px; }
+        .header-controls { display: flex; align-items: center; gap: 20px; }
+        .countdown-circle {
+            width: 60px; height: 60px; border-radius: 50%;
+            border: 4px solid var(--primary);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.4rem; font-weight: 900; color: var(--primary);
+            background: rgba(37, 99, 235, 0.1);
+        }
+        .list-scroll-wrapper {
+            padding: 10px 40px;
+            height: calc(100vh - 100px);
+            overflow-y: auto; scrollbar-width: none;
+        }
+        .grid-header {
+            display: grid;
+            grid-template-columns: 100px 150px 1fr 200px 200px 160px;
+            background: rgba(255,255,255,0.05); padding: 15px;
+            border-radius: 10px; font-weight: 800;
+            text-transform: uppercase; font-size: 0.75rem;
+            opacity: 0.7; margin-bottom: 10px;
+        }
+        .list-row {
+            display: grid;
+            grid-template-columns: 100px 150px 1fr 200px 200px 160px;
+            background: var(--card); padding: 15px;
+            border-radius: 10px; align-items: center;
+            border: 1px solid var(--border); margin-bottom: 8px; transition: 0.3s;
+        }
+        .list-row:hover { border-color: var(--primary); }
+        .list-item { font-size: 0.85rem; }
+        .status-badge {
+            padding: 8px 12px; border-radius: 8px; font-size: 0.7rem;
+            font-weight: 900; color: white; text-transform: uppercase;
+            text-align: center; display: inline-block;
+            border: 1px solid transparent; width: 130px;
+        }
+        @keyframes shimmering { 0%{opacity:1} 100%{opacity:0.5} }
+        .badge-aberto      { background:rgba(239,68,68,0.15);  color:#ef4444; border-color:#ef4444; animation:shimmering 1.5s infinite alternate; }
+        .badge-reaberto    { background:rgba(239,68,68,0.2);   color:#ef4444; border-color:#ef4444; animation:shimmering 1s infinite alternate; }
+        .badge-atendimento { background:rgba(59,130,246,0.15); color:#3b82f6; border-color:#3b82f6; }
+        .badge-respondido  { background:rgba(245,158,11,0.15); color:#f59e0b; border-color:#f59e0b; animation:shimmering 2s infinite alternate; }
+        .badge-finalizado  { background:rgba(16,185,129,0.15); color:#10b981; border-color:#10b981; }
+        .badge-aprovacao   { background:rgba(139,92,246,0.15); color:#a78bfa; border-color:#a78bfa; animation:shimmering 1.5s infinite alternate; }
+        .badge-transferido { background:rgba(6,182,212,0.15);  color:#06b6d4; border-color:#06b6d4; }
+        .badge-reprovado   { background:rgba(239,68,68,0.3);   color:#fff;    border-color:#ef4444; animation:shimmering 1.5s infinite alternate; }
+
+        /* POPUP CENTRAL */
+        #notification-popup {
+            position: fixed; top: 50%; left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            background: #fff; color: #000;
+            padding: 60px; border-radius: 40px;
+            text-align: center; z-index: 9999;
+            box-shadow: 0 0 200px rgba(0,0,0,1);
+            transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            pointer-events: none; width: 80%;
+        }
+        #notification-popup.show { transform: translate(-50%, -50%) scale(1); }
+        #notification-popup h2 { font-size: 3rem; margin-bottom: 20px; }
+        #notification-popup p  { font-size: 1.5rem; }
+
+        .hidden { display: none !important; }
+
+        /* Filtros na TV */
+        .tv-filtros {
+            display: flex; gap: 8px; padding: 8px 40px;
+            background: rgba(0,0,0,0.3); flex-wrap: wrap;
+        }
+        .tv-filtro-btn {
+            background: rgba(255,255,255,0.05); border: 1px solid var(--border);
+            color: #94a3b8; padding: 4px 14px; border-radius: 20px;
+            cursor: pointer; font-size: 0.65rem; font-weight: 700;
+            text-transform: uppercase; transition: 0.2s;
+        }
+        .tv-filtro-btn.ativo { background: var(--primary); border-color: var(--primary); color: white; }
+        .vazio-msg { padding: 60px; text-align: center; color: #334155; font-size: 1.2rem; font-weight: 800; }
+    </style>
+</head>
+<body>
+
+    <!-- SETUP SCREEN -->
+    <div id="setup-screen">
+        <div class="setup-card">
+            <h2>📺 SETUP — Monitor TV Chamados</h2>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; text-align:left;">
+                <div>
+                    <label style="font-weight:800; font-size:0.7rem; display:block; margin-bottom:5px;">SETORES PARA MONITORAR:</label>
+                    <select id="config-deptos" multiple size="7"></select>
+                </div>
+                <div>
+                    <div style="display:flex; gap:10px;">
+                        <div style="flex:1">
+                            <label style="font-size:0.7rem; font-weight:800; display:block; margin-bottom:4px;">REFRESH (S):</label>
+                            <input type="number" id="config-refresh" value="20" min="5">
+                        </div>
+                        <div style="flex:1">
+                            <label style="font-size:0.7rem; font-weight:800; display:block; margin-bottom:4px;">POPUP (S):</label>
+                            <input type="number" id="config-popup" value="7" min="2">
+                        </div>
+                    </div>
+                    <button onclick="salvarConfigLocal()" class="btn-save">💾 SALVAR CONFIGURAÇÃO</button>
+                </div>
+            </div>
+
+            <table class="trigger-table">
+                <thead>
+                    <tr>
+                        <th>Status do Chamado</th>
+                        <th style="text-align:center">Popup?</th>
+                        <th style="text-align:center">Som?</th>
+                    </tr>
+                </thead>
+                <tbody id="trigger-body"></tbody>
+            </table>
+
+            <button onclick="iniciarTV()" class="btn-start">▶ Iniciar Centro de Comando</button>
+            <button onclick="fecharSetup()" class="link-fechar">Fechar sem alterações / Voltar à TV</button>
+        </div>
+    </div>
+
+    <!-- MAIN DISPLAY -->
+    <div id="main-display" class="hidden">
+        <header class="page-header">
+            <div>
+                <h1>📺 MONITOR TV — CHAMADOS</h1>
+                <p id="label-deptos-ativos" style="opacity:0.5; font-weight:bold; font-size:0.8rem;"></p>
+            </div>
+            <div class="header-controls">
+                <button onclick="abrirSetup()" style="background:none; border:none; color:var(--primary); cursor:pointer; font-size:1.5rem;" title="Configurações">⚙️</button>
+                <div class="countdown-circle" id="countdown">--</div>
+            </div>
+        </header>
+
+        <div class="tv-filtros">
+            <button class="tv-filtro-btn ativo" onclick="setFiltroStatus('ATIVOS', this)">Ativos</button>
+            <button class="tv-filtro-btn" onclick="setFiltroStatus('TODOS', this)">Todos</button>
+            <button class="tv-filtro-btn" onclick="setFiltroStatus('Aberto', this)">Abertos</button>
+            <button class="tv-filtro-btn" onclick="setFiltroStatus('Em Atendimento', this)">Em Atendimento</button>
+            <button class="tv-filtro-btn" onclick="setFiltroStatus('APROVACAO', this)">Aprovação</button>
+            <button class="tv-filtro-btn" onclick="setFiltroStatus('Finalizado', this)">Finalizados</button>
+        </div>
+
+        <div class="list-scroll-wrapper">
+            <div class="grid-header">
+                <div>ID</div>
+                <div>Status</div>
+                <div>Informações do Chamado</div>
+                <div>Setor</div>
+                <div>Envolvidos</div>
+                <div>Abertura</div>
+            </div>
+            <div id="list-body"></div>
+        </div>
+    </div>
+
+    <!-- POPUP DE NOTIFICAÇÃO -->
+    <div id="notification-popup">
+        <h2 id="pop-title">NOTIFICAÇÃO</h2>
+        <p id="pop-msg"></p>
+    </div>
+
+    <!-- SOM -->
+    <audio id="snd-new"     src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3"></audio>
+    <audio id="snd-success" src="https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3"></audio>
+
+    <script>
+        // ── Configuração dos status disponíveis ──────────────────────────
+        const statusList = [
+            "Aberto", "Reaberto", "Em Atendimento", "Respondido",
+            "APROVACAO", "TRANSFERIDO", "Finalizado", "REPROVADO"
+        ];
+
+        const statusLabels = {
+            "APROVACAO": "Aguard. Aprovação",
+            "TRANSFERIDO": "Transferido"
+        };
+
+        // ── Estado ────────────────────────────────────────────────────────
+        let monitorSets     = [];
+        let refreshSecs     = 20;
+        let popupSecs       = 7;
+        let clock           = 20;
+        let lastState       = [];
+        let configTriggers  = {};
+        let timerInterval   = null;
+        let filtroStatus    = "ATIVOS";
+
+        // ── Init ──────────────────────────────────────────────────────────
+        window.onload = async () => {
+            // Verificar autenticação
+            try {
+                const r = await fetch('/api/chamados/meu-perfil');
+                if (!r.ok) { window.location.href = '/login.html'; return; }
+            } catch (e) { window.location.href = '/login.html'; return; }
+
+            // Carregar setores
+            try {
+                const r = await fetch('/api/chamados/setores');
+                const setores = r.ok ? await r.json() : [];
+                const select  = document.getElementById('config-deptos');
+                const saved   = JSON.parse(localStorage.getItem('tv_config')) || {};
+
+                setores.forEach(s => {
+                    const sel = (saved.deptos || []).includes(s.nome) ? 'selected' : '';
+                    select.innerHTML += `<option value="${s.nome}" ${sel}>${s.nome}</option>`;
+                });
+
+                document.getElementById('config-refresh').value = saved.refresh || 20;
+                document.getElementById('config-popup').value   = saved.popup   || 7;
+
+                // Tabela de triggers
+                const trigBody = document.getElementById('trigger-body');
+                trigBody.innerHTML = statusList.map(s => {
+                    const label  = statusLabels[s] || s;
+                    const vCheck = saved.triggers?.[s] ? saved.triggers[s].visual : ['Aberto','Reaberto','Finalizado'].includes(s);
+                    const sCheck = saved.triggers?.[s] ? saved.triggers[s].sound  : ['Aberto','Reaberto'].includes(s);
+                    return `<tr>
+                        <td><b>${label}</b></td>
+                        <td style="text-align:center"><input type="checkbox" id="v-${s}" ${vCheck?'checked':''}></td>
+                        <td style="text-align:center"><input type="checkbox" id="s-${s}" ${sCheck?'checked':''}></td>
+                    </tr>`;
+                }).join('');
+
+            } catch (e) { console.error('Erro ao carregar setup:', e); }
+        };
+
+        // ── Setup ─────────────────────────────────────────────────────────
+        function salvarConfigLocal() {
+            const config = {
+                deptos:  Array.from(document.getElementById('config-deptos').selectedOptions).map(o => o.value),
+                refresh: parseInt(document.getElementById('config-refresh').value),
+                popup:   parseInt(document.getElementById('config-popup').value),
+                triggers: {}
+            };
+            statusList.forEach(s => {
+                config.triggers[s] = {
+                    visual: document.getElementById(`v-${s}`).checked,
+                    sound:  document.getElementById(`s-${s}`).checked
+                };
+            });
+            localStorage.setItem('tv_config', JSON.stringify(config));
+            alert("Configuração salva!");
+        }
+
+        function abrirSetup() {
+            document.getElementById('setup-screen').classList.remove('hidden');
+        }
+
+        function fecharSetup() {
+            if (monitorSets.length === 0) return alert("Selecione os setores e clique em Iniciar primeiro!");
+            document.getElementById('setup-screen').classList.add('hidden');
+            document.getElementById('main-display').classList.remove('hidden');
+        }
+
+        function iniciarTV() {
+            monitorSets = Array.from(document.getElementById('config-deptos').selectedOptions).map(o => o.value);
+            if (!monitorSets.length) return alert("Selecione ao menos um setor!");
+
+            refreshSecs = parseInt(document.getElementById('config-refresh').value) || 20;
+            popupSecs   = parseInt(document.getElementById('config-popup').value) || 7;
+
+            statusList.forEach(s => {
+                configTriggers[s] = {
+                    visual: document.getElementById(`v-${s}`).checked,
+                    sound:  document.getElementById(`s-${s}`).checked
+                };
+            });
+
+            document.getElementById('setup-screen').classList.add('hidden');
+            document.getElementById('main-display').classList.remove('hidden');
+            document.getElementById('label-deptos-ativos').innerText = 'SETORES: ' + monitorSets.join(' | ');
+
+            clock = refreshSecs;
+            renderTV();
+
+            if (timerInterval) clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                clock--;
+                const el = document.getElementById('countdown');
+                if (el) el.innerText = clock;
+                if (clock <= 0) { clock = refreshSecs; renderTV(); }
+            }, 1000);
+        }
+
+        function setFiltroStatus(s, btn) {
+            filtroStatus = s;
+            document.querySelectorAll('.tv-filtro-btn').forEach(b => b.classList.remove('ativo'));
+            if (btn) btn.classList.add('ativo');
+            renderTV();
+        }
+
+        // ── Render principal ──────────────────────────────────────────────
+        async function renderTV() {
+            try {
+                const res = await fetch('/api/chamados/lista');
+                if (!res.ok) return;
+                const todos = await res.json();
+
+                // Filtrar pelos setores selecionados no setup
+                const tkts = todos.filter(t => monitorSets.includes(t.setor));
+
+                verificarMudancas(tkts);
+
+                let filtrados = tkts.filter(t => {
+                    if (filtroStatus === "ATIVOS") return !['Finalizado','REPROVADO'].includes(t.status);
+                    if (filtroStatus === "TODOS")  return true;
+                    return t.status === filtroStatus;
+                });
+
+                // Ordenar por prioridade de status
+                const prio = { 'Reaberto':0,'Aberto':1,'Em Atendimento':2,'APROVACAO':3,'TRANSFERIDO':4,'Respondido':5 };
+                filtrados.sort((a, b) => (prio[a.status] ?? 10) - (prio[b.status] ?? 10));
+
+                const body = document.getElementById('list-body');
+                if (!filtrados.length) {
+                    body.innerHTML = '<div class="vazio-msg">✅ Nenhum chamado encontrado para os setores selecionados.</div>';
+                    return;
+                }
+
+                body.innerHTML = filtrados.map(t => {
+                    const bc = statusClass(t.status);
+                    const label = statusLabels[t.status] || t.status;
+                    return `<div class="list-row">
+                        <div class="list-item" style="font-weight:900">#${escHtml(t.protocolo)}</div>
+                        <div class="list-item"><span class="status-badge ${bc}">${label}</span></div>
+                        <div class="list-item">
+                            <div style="font-size:1.1rem; font-weight:800; color:#fff">${escHtml(t.assunto)}</div>
+                            ${t.detalhe ? `<div style="font-size:0.7rem; opacity:0.5; margin-top:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:400px">${escHtml(t.detalhe.substring(0,100))}${t.detalhe.length>100?'...':''}</div>` : ''}
+                        </div>
+                        <div class="list-item" style="font-size:0.8rem"><b>${escHtml(t.setor)}</b></div>
+                        <div class="list-item" style="font-size:0.8rem">
+                            S: ${escHtml(t.nome_solicitante)}<br>
+                            T: ${escHtml(t.nome_atendedor || '---')}
+                        </div>
+                        <div class="list-item" style="opacity:0.6; font-size:0.75rem">${fmtDate(t.criado_em)}</div>
+                    </div>`;
+                }).join('');
+
+            } catch (e) { console.error('Erro ao renderizar TV:', e); }
+        }
+
+        // ── Detecção de mudanças e alertas ────────────────────────────────
+        function verificarMudancas(novosTkts) {
+            if (lastState.length === 0) { lastState = [...novosTkts]; return; }
+
+            novosTkts.forEach(t => {
+                const anterior = lastState.find(old => old.protocolo === t.protocolo);
+                if (!anterior) {
+                    processarAlerta(t, "🚨 NOVO CHAMADO");
+                } else if (anterior.status !== t.status) {
+                    processarAlerta(t, "🔄 STATUS ATUALIZADO");
+                }
+            });
+
+            lastState = [...novosTkts];
+        }
+
+        function processarAlerta(ticket, tituloPrefix) {
+            const st     = ticket.status;
+            const config = configTriggers[st] || { visual: false, sound: false };
+            if (!config.visual && !config.sound) return;
+
+            if (config.sound) {
+                const audio = document.getElementById(st === 'Finalizado' ? 'snd-success' : 'snd-new');
+                audio.play().catch(() => {});
+            }
+
+            if (config.visual) {
+                const label = statusLabels[st] || st;
+                document.getElementById('pop-title').innerHTML = tituloPrefix;
+                document.getElementById('pop-msg').innerHTML =
+                    `Ticket: <b>${ticket.protocolo}</b><br>Setor: ${ticket.setor}<br>Status: ${label}`;
+                document.getElementById('notification-popup').classList.add('show');
+
+                if (st === 'Finalizado') {
+                    confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+                }
+
+                setTimeout(() => {
+                    document.getElementById('notification-popup').classList.remove('show');
+                }, popupSecs * 1000);
+            }
+        }
+
+        // ── Helpers ───────────────────────────────────────────────────────
+        function statusClass(s) {
+            return {
+                'Aberto':'badge-aberto','Reaberto':'badge-reaberto',
+                'Em Atendimento':'badge-atendimento','Respondido':'badge-respondido',
+                'Finalizado':'badge-finalizado','REPROVADO':'badge-reprovado',
+                'APROVACAO':'badge-aprovacao','TRANSFERIDO':'badge-transferido'
+            }[s] || 'badge-atendimento';
+        }
+
+        function fmtDate(dt) {
+            if (!dt) return '---';
+            return new Date(dt).toLocaleString('pt-BR', { day:'2-digit', month:'2-digit', year:'2-digit', hour:'2-digit', minute:'2-digit' });
+        }
+
+        function escHtml(s) {
+            return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+        }
+    </script>
+</body>
+</html>

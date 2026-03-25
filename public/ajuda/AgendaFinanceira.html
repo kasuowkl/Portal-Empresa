@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<!--
+  ARQUIVO: public/ajuda/AgendaFinanceira.html
+  VERSÃO:  1.2.0
+  DATA:    2026-03-17
+  DESCRIÇÃO: Documentação da Agenda Financeira
+-->
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ajuda — Agenda Financeira</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/menu.css">
+  <style>
+    .doc-layout {
+      display: flex;
+      max-width: 1100px;
+      margin: 32px auto;
+      padding: 0 24px;
+      gap: 32px;
+    }
+    .doc-sidebar {
+      width: 220px;
+      flex-shrink: 0;
+    }
+    .doc-sidebar-sticky {
+      position: sticky;
+      top: calc(var(--altura-menu) + 20px);
+    }
+    .doc-sidebar h4 {
+      font-size: 11px;
+      letter-spacing: 1.4px;
+      text-transform: uppercase;
+      color: var(--cor-texto-fraco);
+      margin-bottom: 12px;
+    }
+    .doc-sidebar a {
+      display: block;
+      padding: 6px 12px;
+      font-size: 13px;
+      color: var(--cor-texto-fraco);
+      border-left: 2px solid var(--cor-borda);
+      text-decoration: none;
+      transition: all .15s;
+    }
+    .doc-sidebar a:hover {
+      color: #10b981;
+      border-left-color: #10b981;
+    }
+    .doc-conteudo { flex: 1; min-width: 0; }
+    .doc-breadcrumb {
+      font-size: 12px;
+      color: var(--cor-texto-fraco);
+      margin-bottom: 24px;
+    }
+    .doc-breadcrumb a { color: var(--cor-destaque); text-decoration: none; }
+    .doc-breadcrumb span { margin: 0 6px; }
+    .doc-titulo {
+      font-size: 26px;
+      font-weight: 700;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .doc-titulo i { color: #10b981; }
+    .doc-subtitulo {
+      color: var(--cor-texto-fraco);
+      font-size: 14px;
+      margin-bottom: 36px;
+    }
+    .doc-secao {
+      margin-bottom: 40px;
+      scroll-margin-top: calc(var(--altura-menu) + 16px);
+    }
+    .doc-secao h2 {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--cor-borda);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .doc-secao h2 i { color: #10b981; font-size: 16px; }
+    .doc-secao p, .doc-secao li {
+      font-size: 14px;
+      color: var(--cor-texto-fraco);
+      line-height: 1.7;
+      margin-bottom: 8px;
+    }
+    .doc-secao ul, .doc-secao ol { padding-left: 20px; margin-bottom: 12px; }
+    .doc-secao strong { color: var(--cor-texto); }
+    .doc-card {
+      background: var(--cor-fundo-2);
+      border: 1px solid var(--cor-borda);
+      border-radius: 8px;
+      padding: 16px 20px;
+      margin-bottom: 12px;
+    }
+    .doc-card h4 { font-size: 14px; margin-bottom: 6px; color: var(--cor-texto); }
+    .doc-card p { margin: 0; }
+    .doc-info {
+      background: rgba(16,185,129,0.08);
+      border-left: 3px solid #10b981;
+      border-radius: 0 8px 8px 0;
+      padding: 12px 16px;
+      margin-bottom: 16px;
+      font-size: 13px;
+      color: var(--cor-texto-fraco);
+    }
+    .doc-warn {
+      background: rgba(245,158,11,0.08);
+      border-left: 3px solid #f59e0b;
+      border-radius: 0 8px 8px 0;
+      padding: 12px 16px;
+      margin-bottom: 16px;
+      font-size: 13px;
+      color: var(--cor-texto-fraco);
+    }
+    .passo {
+      display: flex;
+      gap: 14px;
+      margin-bottom: 14px;
+      align-items: flex-start;
+    }
+    .passo-num {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: #10b981;
+      color: #fff;
+      font-size: 12px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .passo-txt { font-size: 14px; color: var(--cor-texto-fraco); line-height: 1.6; }
+    .passo-txt strong { color: var(--cor-texto); }
+    .cards-resumo-demo {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin: 16px 0;
+    }
+    .card-demo {
+      background: var(--cor-fundo-2);
+      border: 1px solid var(--cor-borda);
+      border-radius: 8px;
+      padding: 12px 14px;
+    }
+    .card-demo span { font-size: 10px; color: var(--cor-texto-fraco); display: block; margin-bottom: 4px; }
+    .card-demo h4 { font-size: 15px; font-weight: 700; }
+    .perm-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 16px; }
+    .perm-table th {
+      background: var(--cor-fundo-3);
+      padding: 8px 12px;
+      text-align: left;
+      font-weight: 600;
+      color: var(--cor-texto);
+      border-bottom: 1px solid var(--cor-borda);
+    }
+    .perm-table td {
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--cor-borda);
+      color: var(--cor-texto-fraco);
+    }
+    .sim { color: #10b981; font-weight: 700; }
+    .nao { color: #ef4444; }
+    @media (max-width: 700px) {
+      .doc-layout { flex-direction: column; }
+      .doc-sidebar { width: 100%; }
+      .doc-sidebar-sticky { position: static; }
+      .cards-resumo-demo { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+  <div id="menu-container"></div>
+
+  <div class="doc-layout">
+
+    <aside class="doc-sidebar">
+      <div class="doc-sidebar-sticky">
+        <h4>Nesta página</h4>
+        <a href="#visao-geral">Visão Geral</a>
+        <a href="#agendas">Agendas</a>
+        <a href="#lancamentos">Lançamentos</a>
+        <a href="#recorrencia">Recorrência Mensal</a>
+        <a href="#categorias">Categorias</a>
+        <a href="#empresas">Empresas</a>
+        <a href="#filtros">Filtros e Calendário</a>
+        <a href="#resumo">Cards de Resumo</a>
+        <a href="#status">Status e Fluxo</a>
+        <a href="#configuracoes">Configurações</a>
+        <a href="#logs">Logs de Auditoria</a>
+        <a href="#notificacoes">Notificações por E-mail</a>
+        <a href="#compartilhar">Compartilhar</a>
+        <a href="#permissoes">Permissões</a>
+        <br>
+        <a href="/ajuda/Ajuda.html" style="color:var(--cor-destaque); font-size:12px; border:none; padding-left:0">
+          ← Voltar à Ajuda
+        </a>
+      </div>
+    </aside>
+
+    <main class="doc-conteudo">
+
+      <div class="doc-breadcrumb">
+        <a href="/ajuda/Ajuda.html">Ajuda</a>
+        <span>›</span> Agenda Financeira
+      </div>
+
+      <div class="doc-titulo">
+        <i class="fas fa-wallet"></i> Agenda Financeira
+      </div>
+      <div class="doc-subtitulo">
+        Controle de contas a pagar com categorias, empresas, recorrência, fluxo de lançamento e calendário integrado.
+      </div>
+
+      <!-- VISÃO GERAL -->
+      <section class="doc-secao" id="visao-geral">
+        <h2><i class="fas fa-eye"></i> Visão Geral</h2>
+        <p>A Agenda Financeira organiza contas a pagar em <strong>agendas</strong> (ex: <em>Contas da Empresa</em>, <em>Pessoal</em>). Cada agenda contém <strong>lançamentos</strong> com valor, data de vencimento, categoria e empresa. Os lançamentos podem ser únicos ou mensais recorrentes.</p>
+        <p>Acesse em <strong>/agendaFinanceira</strong> ou pelo menu lateral do portal.</p>
+      </section>
+
+      <!-- AGENDAS -->
+      <section class="doc-secao" id="agendas">
+        <h2><i class="fas fa-folder-open"></i> Agendas</h2>
+        <p>Uma agenda agrupa todos os lançamentos de um mesmo contexto financeiro.</p>
+        <p><strong>Para criar uma agenda:</strong></p>
+        <div class="passo"><div class="passo-num">1</div><div class="passo-txt">Clique em <strong>+ Nova Agenda</strong> no rodapé da sidebar.</div></div>
+        <div class="passo"><div class="passo-num">2</div><div class="passo-txt">Preencha o <strong>nome</strong>, uma <strong>descrição</strong> opcional e escolha uma <strong>cor</strong>.</div></div>
+        <div class="passo"><div class="passo-num">3</div><div class="passo-txt">Clique em <strong>Salvar</strong>. A agenda será selecionada automaticamente.</div></div>
+        <p>Use o ícone de lápis no cabeçalho para editar e o ícone de lixeira para excluir. A exclusão remove todos os lançamentos da agenda.</p>
+      </section>
+
+      <!-- LANÇAMENTOS -->
+      <section class="doc-secao" id="lancamentos">
+        <h2><i class="fas fa-file-invoice-dollar"></i> Lançamentos</h2>
+        <p>Para adicionar um lançamento, selecione uma agenda e clique em <strong>+ Nova Conta</strong>.</p>
+        <div class="doc-card">
+          <h4>Campos do lançamento</h4>
+          <ul style="margin:8px 0 0; padding-left:18px">
+            <li><strong>Descrição</strong> — nome da conta (ex: Conta de Luz) — obrigatório</li>
+            <li><strong>Valor (R$)</strong> — valor a pagar — obrigatório</li>
+            <li><strong>Data de Vencimento</strong> — data de vencimento — obrigatório</li>
+            <li><strong>Categoria</strong> — agrupamento personalizado (ex: Energia, Internet)</li>
+            <li><strong>Empresa</strong> — fornecedor ou empresa responsável pela conta</li>
+          </ul>
+        </div>
+        <p>Para <strong>editar</strong> um lançamento, clique no botão <strong>Editar</strong> na lista. Para excluir, clique em <strong>Excluir</strong>.</p>
+        <p><strong>Botões de ação disponíveis por conta (da esquerda para a direita):</strong></p>
+        <div class="doc-card">
+          <h4><i class="fas fa-file-invoice-dollar" style="color:#f97316; margin-right:6px"></i> Lançar <span style="font-size:11px;color:#f97316">(somente pendentes)</span></h4>
+          <p>Registra que o pagamento foi enviado/iniciado mas ainda não foi confirmado. A conta passa para o status <strong>Lançado</strong> e permanece visível nas pendências até ser marcada como <strong>Paga</strong>.</p>
+        </div>
+        <div class="doc-card">
+          <h4><i class="fas fa-check-circle" style="color:#10b981; margin-right:6px"></i> Pagar <span style="font-size:11px;color:var(--cor-texto-fraco)">(pendentes e lançadas)</span></h4>
+          <p>Quita a conta. Exibe o badge <span style="color:#10b981;font-weight:700">PAGO ✅</span> e move a conta para a aba <strong>Pagas</strong>.</p>
+        </div>
+        <div class="doc-info">
+          <i class="fas fa-info-circle" style="color:#10b981; margin-right:6px"></i>
+          Ao editar um lançamento recorrente, apenas aquela parcela é alterada. Para excluir todas as parcelas do grupo, use o botão <strong>Excluir Grupo</strong>.
+        </div>
+      </section>
+
+      <!-- RECORRÊNCIA -->
+      <section class="doc-secao" id="recorrencia">
+        <h2><i class="fas fa-sync-alt"></i> Recorrência Mensal</h2>
+        <p>Contas que se repetem mensalmente (ex: aluguel, internet) podem ser criadas de uma só vez com a opção de recorrência.</p>
+        <div class="passo"><div class="passo-num">1</div><div class="passo-txt">No modal "Novo Lançamento", ative o toggle <strong>HABILITAR RECORRÊNCIA MENSAL</strong>.</div></div>
+        <div class="passo"><div class="passo-num">2</div><div class="passo-txt">Defina a <strong>Data de Término</strong> e/ou o número máximo de <strong>parcelas</strong> (padrão: 12).</div></div>
+        <div class="passo"><div class="passo-num">3</div><div class="passo-txt">Salve. O sistema criará uma parcela por mês automaticamente, numeradas como <em>Descrição (1)</em>, <em>Descrição (2)</em>, etc.</div></div>
+        <div class="doc-warn">
+          <i class="fas fa-exclamation-triangle" style="color:#f59e0b; margin-right:6px"></i>
+          Parcelas individuais de um grupo recorrente não podem ser excluídas isoladamente — apenas o grupo inteiro via <strong>Excluir Grupo</strong> (disponível na parcela 1).
+        </div>
+      </section>
+
+      <!-- CATEGORIAS -->
+      <section class="doc-secao" id="categorias">
+        <h2><i class="fas fa-tag"></i> Categorias</h2>
+        <p>Categorias classificam os lançamentos por tipo de despesa. Exemplos: <em>Energia</em>, <em>Internet</em>, <em>Aluguel</em>, <em>Impostos</em>.</p>
+        <p>Para gerenciar categorias, abra o modal de lançamento e clique no ícone <strong>⚙️</strong> ao lado do campo Categoria.</p>
+        <ul>
+          <li>Digite o nome e clique em <strong>ADD</strong> para criar.</li>
+          <li>Clique em <strong>✕</strong> para excluir uma categoria.</li>
+        </ul>
+        <div class="doc-info">
+          <i class="fas fa-info-circle" style="color:#10b981; margin-right:6px"></i>
+          Ao excluir uma categoria, os lançamentos vinculados voltam para a categoria <strong>Geral</strong>.
+        </div>
+      </section>
+
+      <!-- EMPRESAS -->
+      <section class="doc-secao" id="empresas">
+        <h2><i class="fas fa-building"></i> Empresas</h2>
+        <p>O campo <strong>Empresa</strong> identifica o fornecedor ou empresa responsável pela conta. Exemplos: <em>CPFL Energia</em>, <em>Vivo</em>, <em>Correios</em>.</p>
+        <p>Para gerenciar empresas, abra o modal de lançamento e clique no ícone <strong>⚙️</strong> ao lado do campo Empresa.</p>
+        <ul>
+          <li>Digite o nome e clique em <strong>ADD</strong> para criar.</li>
+          <li>Clique em <strong>✕</strong> para excluir uma empresa.</li>
+        </ul>
+        <div class="doc-info">
+          <i class="fas fa-info-circle" style="color:#10b981; margin-right:6px"></i>
+          Ao excluir uma empresa, os lançamentos vinculados ficam sem empresa (campo em branco).
+        </div>
+      </section>
+
+      <!-- FILTROS -->
+      <section class="doc-secao" id="filtros">
+        <h2><i class="fas fa-filter"></i> Filtros e Calendário</h2>
+        <p>A tela principal exibe os lançamentos do mês atual. Use os controles disponíveis para navegar:</p>
+        <div class="doc-card">
+          <h4><i class="fas fa-calendar" style="color:#10b981; margin-right:6px"></i> Calendário</h4>
+          <p>Navegue entre meses com os botões <strong>‹</strong> e <strong>›</strong>. Clique em um dia para filtrar apenas os lançamentos daquele dia.</p>
+          <ul style="margin:8px 0 0;padding-left:18px">
+            <li><span style="color:#ef4444">●</span> <strong>Vermelho</strong> — conta pendente (não lançada)</li>
+            <li><span style="color:#f97316">●</span> <strong>Laranja</strong> — conta lançada (aguardando confirmação de pagamento)</li>
+            <li><span style="color:#10b981">●</span> <strong>Verde</strong> — conta paga</li>
+          </ul>
+        </div>
+        <div class="doc-card">
+          <h4><i class="fas fa-tabs" style="color:#10b981; margin-right:6px"></i> Abas de status</h4>
+          <p>
+            <strong>Todas</strong> — todos os lançamentos do mês &nbsp;|&nbsp;
+            <strong>Pendentes</strong> — pendentes e lançadas &nbsp;|&nbsp;
+            <strong>Lançadas</strong> — somente <span style="color:#f97316">lançadas</span> &nbsp;|&nbsp;
+            <strong>Pagas</strong> — somente pagas
+          </p>
+        </div>
+        <div class="doc-card">
+          <h4><i class="fas fa-search" style="color:#10b981; margin-right:6px"></i> Busca por texto</h4>
+          <p>Filtre por descrição, categoria ou frequência digitando no campo de busca.</p>
+        </div>
+      </section>
+
+      <!-- RESUMO -->
+      <section class="doc-secao" id="resumo">
+        <h2><i class="fas fa-chart-bar"></i> Cards de Resumo</h2>
+        <p>Os quatro cards no topo da agenda mostram totalizadores do mês. Clique em qualquer card para filtrar os lançamentos correspondentes:</p>
+        <div class="cards-resumo-demo">
+          <div class="card-demo"><span>PENDÊNCIAS MENSAL</span><h4 style="color:#4e9af1">3 (R$ 2.400,00)</h4></div>
+          <div class="card-demo"><span>VENCIDAS</span><h4 style="color:#ef4444">1 (R$ 1.500,00)</h4></div>
+          <div class="card-demo"><span>PRÓXIMOS 7 DIAS</span><h4 style="color:#f59e0b">2 (R$ 900,00)</h4></div>
+          <div class="card-demo"><span>PAGAS NO MÊS</span><h4 style="color:#10b981">5 (R$ 3.200,00)</h4></div>
+        </div>
+        <div class="doc-info">
+          <i class="fas fa-info-circle" style="color:#10b981; margin-right:6px"></i>
+          Contas com status <strong>Lançado</strong> são contabilizadas junto com as <strong>Pendentes</strong> nos cards de Pendências, Vencidas e Próximos 7 Dias — pois ainda não foram quitadas.
+        </div>
+      </section>
+
+      <!-- STATUS -->
+      <section class="doc-secao" id="status">
+        <h2><i class="fas fa-check-circle"></i> Status e Fluxo</h2>
+        <p>Cada lançamento percorre um fluxo de três status:</p>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:12px 0 20px">
+          <div style="background:var(--cor-fundo-2);border:1px solid var(--cor-borda);border-radius:6px;padding:8px 14px;font-size:13px;color:#f59e0b"><i class="fas fa-clock" style="margin-right:6px"></i>Pendente</div>
+          <span style="color:var(--cor-texto-fraco)">→</span>
+          <div style="background:var(--cor-fundo-2);border:1px solid #f97316;border-radius:6px;padding:8px 14px;font-size:13px;color:#f97316"><i class="fas fa-paper-plane" style="margin-right:6px"></i>Lançado</div>
+          <span style="color:var(--cor-texto-fraco)">→</span>
+          <div style="background:var(--cor-fundo-2);border:1px solid #10b981;border-radius:6px;padding:8px 14px;font-size:13px;color:#10b981"><i class="fas fa-check-circle" style="margin-right:6px"></i>Pago</div>
+        </div>
+        <div class="doc-card">
+          <h4><i class="fas fa-clock" style="color:#f59e0b; margin-right:6px"></i> Pendente</h4>
+          <p>A conta existe mas ainda não foi encaminhada para pagamento. Contas vencidas (data anterior a hoje) são destacadas em <span style="color:#ef4444">vermelho</span>. O botão disponível é <strong>Lançar</strong>.</p>
+        </div>
+        <div class="doc-card">
+          <h4><i class="fas fa-paper-plane" style="color:#f97316; margin-right:6px"></i> Lançado</h4>
+          <p>O pagamento foi enviado/iniciado mas ainda não confirmado (ex: boleto emitido, transferência agendada). O valor é exibido em <span style="color:#f97316">laranja</span> com o badge <span style="color:#f97316;font-weight:700">LANÇADO</span>. A conta ainda aparece na aba <strong>Pendentes</strong> e nos cards de resumo pois não foi quitada. O botão disponível é <strong>Pagar</strong>.</p>
+        </div>
+        <div class="doc-card">
+          <h4><i class="fas fa-check-circle" style="color:#10b981; margin-right:6px"></i> Pago</h4>
+          <p>A conta foi quitada. Exibida com badge <span style="color:#10b981; font-weight:700">PAGO ✅</span> na lista e movida para a aba <strong>Pagas</strong>. Não é possível reverter.</p>
+        </div>
+        <div class="doc-info">
+          <i class="fas fa-info-circle" style="color:#10b981; margin-right:6px"></i>
+          É possível ir de <strong>Pendente direto para Pago</strong> clicando em <strong>Pagar</strong> sem passar pelo Lançado. O status Lançado é opcional — serve para registrar que o pagamento está em trânsito.
+        </div>
+      </section>
+
+      <!-- CONFIGURAÇÕES -->
+      <section class="doc-secao" id="configuracoes">
+        <h2><i class="fas fa-sliders-h"></i> Configurações</h2>
+        <p>A barra lateral da Agenda Financeira possui uma seção de Configurações (visível apenas para administradores) com o seguinte campo:</p>
+        <div class="doc-card">
+          <h4><i class="fas fa-clock" style="color:#f97316; margin-right:6px"></i> Dias para lembrete de lançamento</h4>
+          <p>Define com quantos dias de antecedência o sistema deve enviar o e-mail de lembrete para registrar o lançamento de uma conta. Padrão: <strong>3 dias</strong>. Valor configurável de 1 a 60 dias. Aplica-se ao envio diário automático das <strong>07:00</strong>.</p>
+        </div>
+      </section>
+
+      <!-- LOGS -->
+      <section class="doc-secao" id="logs">
+        <h2><i class="fas fa-history"></i> Logs de Auditoria</h2>
+        <p>Todos os criações, edições e exclusões são registradas automaticamente. Para consultar o histórico, clique em <strong>Logs</strong> no cabeçalho da agenda.</p>
+        <p>Cada registro mostra: data/hora, tipo de ação (CRIAR / ATUALIZAR / EXCLUIR), conta afetada, detalhes e usuário responsável.</p>
+      </section>
+
+      <!-- NOTIFICAÇÕES -->
+      <section class="doc-secao" id="notificacoes">
+        <h2><i class="fas fa-bell"></i> Notificações por E-mail</h2>
+        <p>O módulo Financeiro envia e-mails automáticos para o <strong>dono</strong> da agenda e os <strong>membros com permissão de edição</strong>. Configure em <strong>Configurações → E-mail → Financeiro</strong>.</p>
+
+        <p><strong>Eventos em tempo real (disparados na ação):</strong></p>
+
+        <div class="doc-card">
+          <h4><i class="fas fa-plus-circle" style="color:#4e9af1; margin-right:6px"></i> Nova Conta Criada (<code>financeiro.nova_conta</code>)</h4>
+          <p>Disparado quando uma nova conta é cadastrada. O e-mail informa descrição, valor, vencimento e agenda de destino.</p>
+        </div>
+
+        <div class="doc-card">
+          <h4><i class="fas fa-paper-plane" style="color:#f97316; margin-right:6px"></i> Lançamento Registrado (<code>financeiro.lancamento</code>)</h4>
+          <p>Disparado quando uma conta é marcada como <strong>Lançada</strong>. Informa que o pagamento foi enviado e está em processamento.</p>
+        </div>
+
+        <div class="doc-card">
+          <h4><i class="fas fa-check-circle" style="color:#10b981; margin-right:6px"></i> Conta Paga (<code>financeiro.conta_paga</code>)</h4>
+          <p>Disparado quando uma conta é marcada como <strong>Paga</strong>. Confirma a quitação da conta.</p>
+        </div>
+
+        <div class="doc-card">
+          <h4><i class="fas fa-exclamation-circle" style="color:#ef4444; margin-right:6px"></i> Conta Vencida (<code>financeiro.conta_vencida</code>)</h4>
+          <p>Disparado ao cadastrar uma conta com data de vencimento no passado (conta já vencida no momento do cadastro).</p>
+        </div>
+
+        <p style="margin-top:20px"><strong>Lembretes automáticos diários (enviados às 07:00):</strong></p>
+
+        <div class="doc-card">
+          <h4><i class="fas fa-calendar-day" style="color:#f59e0b; margin-right:6px"></i> Vence hoje (<code>financeiro.lembrete_hoje</code>)</h4>
+          <p>Lista todas as contas (pendentes e lançadas) com vencimento <strong>hoje</strong>. Contém tabela com descrição, valor, categoria e agenda.</p>
+        </div>
+
+        <div class="doc-card">
+          <h4><i class="fas fa-calendar-week" style="color:#ab5cf7; margin-right:6px"></i> Vence em 7 dias (<code>financeiro.lembrete_7dias</code>)</h4>
+          <p>Lista todas as contas (pendentes e lançadas) com vencimento nos <strong>próximos 7 dias</strong> (excluindo hoje). Útil para planejamento de caixa semanal.</p>
+        </div>
+
+        <div class="doc-card">
+          <h4><i class="fas fa-bell" style="color:#f97316; margin-right:6px"></i> Lembrete para lançar conta (<code>financeiro.lembrete_lancamento</code>)</h4>
+          <p>Lista contas com status <strong>Pendente</strong> (ainda não lançadas) que vencem em <strong>N dias</strong>, onde N é configurável na sidebar da Agenda Financeira (padrão: 3 dias). Serve para lembrar de registrar o lançamento antes do vencimento.</p>
+        </div>
+
+        <div class="doc-card">
+          <h4><i class="fas fa-exclamation-triangle" style="color:#ef4444; margin-right:6px"></i> Contas vencidas diário (<code>financeiro.conta_vencida_diario</code>)</h4>
+          <p>Lista todas as contas (pendentes e lançadas) cuja data de vencimento já passou. Enviado todo dia para alertar sobre inadimplência acumulada.</p>
+        </div>
+
+        <div class="doc-info">
+          <i class="fas fa-info-circle" style="color:#10b981; margin-right:6px"></i>
+          Os lembretes diários são enviados <strong>individualmente</strong> para cada membro da agenda (dono + editores), com as contas específicas das agendas que ele participa. Se não houver contas no período, o e-mail não é disparado. Use o botão <strong>"Testar e-mails Financeiro"</strong> em Configurações → E-mail → Financeiro para validar o envio.
+        </div>
+      </section>
+
+      <!-- COMPARTILHAR -->
+      <section class="doc-secao" id="compartilhar">
+        <h2><i class="fas fa-share-alt"></i> Compartilhar Agenda</h2>
+        <p>Você pode dar acesso à sua agenda para outros usuários do portal.</p>
+        <div class="passo"><div class="passo-num">1</div><div class="passo-txt">Selecione a agenda e clique em <strong>Membros</strong> no cabeçalho.</div></div>
+        <div class="passo"><div class="passo-num">2</div><div class="passo-txt">Selecione o <strong>usuário</strong> e defina a permissão (<strong>Leitura</strong> ou <strong>Edição</strong>).</div></div>
+        <div class="passo"><div class="passo-num">3</div><div class="passo-txt">Clique em <strong>Adicionar</strong>. A agenda aparecerá na sidebar do outro usuário em "Compartilhadas".</div></div>
+      </section>
+
+      <!-- PERMISSÕES -->
+      <section class="doc-secao" id="permissoes">
+        <h2><i class="fas fa-shield-alt"></i> Permissões</h2>
+        <table class="perm-table">
+          <thead>
+            <tr>
+              <th>Ação</th>
+              <th>Dono</th>
+              <th>Edição</th>
+              <th>Leitura</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Visualizar lançamentos</td><td class="sim">✓</td><td class="sim">✓</td><td class="sim">✓</td></tr>
+            <tr><td>Consultar logs</td><td class="sim">✓</td><td class="sim">✓</td><td class="sim">✓</td></tr>
+            <tr><td>Criar / editar / excluir lançamentos</td><td class="sim">✓</td><td class="sim">✓</td><td class="nao">—</td></tr>
+            <tr><td>Marcar como lançado</td><td class="sim">✓</td><td class="sim">✓</td><td class="nao">—</td></tr>
+            <tr><td>Marcar como pago</td><td class="sim">✓</td><td class="sim">✓</td><td class="nao">—</td></tr>
+            <tr><td>Gerenciar categorias e empresas</td><td class="sim">✓</td><td class="sim">✓</td><td class="nao">—</td></tr>
+            <tr><td>Alterar dias de lembrete</td><td class="sim">✓</td><td class="nao">—</td><td class="nao">—</td></tr>
+            <tr><td>Adicionar / remover membros</td><td class="sim">✓</td><td class="nao">—</td><td class="nao">—</td></tr>
+            <tr><td>Editar / excluir a agenda</td><td class="sim">✓</td><td class="nao">—</td><td class="nao">—</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+    </main>
+  </div>
+
+  <script src="/js/menu.js"></script>
+</body>
+</html>

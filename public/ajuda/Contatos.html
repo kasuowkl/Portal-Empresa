@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<!--
+  ARQUIVO: public/ajuda/Contatos.html
+  VERSÃO:  2.0.0
+  DATA:    2026-03-16
+  DESCRIÇÃO: Documentação do módulo Agenda de Contatos
+-->
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ajuda — Contatos</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/menu.css">
+  <style>
+    .doc-layout {
+      display: flex;
+      max-width: 1100px;
+      margin: 32px auto;
+      padding: 0 24px;
+      gap: 32px;
+    }
+    .doc-sidebar { width: 220px; flex-shrink: 0; }
+    .doc-sidebar-sticky {
+      position: sticky;
+      top: calc(var(--altura-menu) + 20px);
+    }
+    .doc-sidebar h4 {
+      font-size: 11px; letter-spacing: 1.4px; text-transform: uppercase;
+      color: var(--cor-texto-fraco); margin-bottom: 12px;
+    }
+    .doc-sidebar a {
+      display: block; padding: 6px 12px; font-size: 13px;
+      color: var(--cor-texto-fraco); border-left: 2px solid var(--cor-borda);
+      text-decoration: none; transition: all .15s;
+    }
+    .doc-sidebar a:hover { color: #78d6c8; border-left-color: #78d6c8; }
+    .doc-conteudo { flex: 1; min-width: 0; }
+    .doc-breadcrumb { font-size: 12px; color: var(--cor-texto-fraco); margin-bottom: 24px; }
+    .doc-breadcrumb a { color: var(--cor-destaque); text-decoration: none; }
+    .doc-breadcrumb span { margin: 0 6px; }
+    .doc-titulo {
+      font-size: 26px; font-weight: 700; margin-bottom: 6px;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .doc-titulo i { color: #78d6c8; }
+    .doc-subtitulo { color: var(--cor-texto-fraco); font-size: 14px; margin-bottom: 36px; }
+    .doc-secao {
+      margin-bottom: 40px;
+      scroll-margin-top: calc(var(--altura-menu) + 16px);
+    }
+    .doc-secao h2 {
+      font-size: 18px; font-weight: 600; margin-bottom: 16px;
+      padding-bottom: 8px; border-bottom: 1px solid var(--cor-borda);
+      display: flex; align-items: center; gap: 10px;
+    }
+    .doc-secao h2 i { color: #78d6c8; font-size: 16px; }
+    .doc-secao p, .doc-secao li {
+      font-size: 14px; color: var(--cor-texto-fraco); line-height: 1.7; margin-bottom: 8px;
+    }
+    .doc-secao ul, .doc-secao ol { padding-left: 20px; margin-bottom: 12px; }
+    .doc-secao strong { color: var(--cor-texto); }
+    .doc-card {
+      background: var(--cor-fundo-2); border: 1px solid var(--cor-borda);
+      border-radius: 8px; padding: 16px 20px; margin-bottom: 12px;
+    }
+    .doc-card h4 { font-size: 14px; margin-bottom: 6px; color: var(--cor-texto); }
+    .doc-card p { margin: 0; }
+    .doc-info {
+      background: rgba(120,214,200,0.08); border-left: 3px solid #78d6c8;
+      border-radius: 0 8px 8px 0; padding: 12px 16px; margin-bottom: 16px;
+      font-size: 13px; color: var(--cor-texto-fraco);
+    }
+    .doc-warn {
+      background: rgba(245,158,11,0.08); border-left: 3px solid #f59e0b;
+      border-radius: 0 8px 8px 0; padding: 12px 16px; margin-bottom: 16px;
+      font-size: 13px; color: var(--cor-texto-fraco);
+    }
+    .passo { display: flex; gap: 14px; margin-bottom: 14px; align-items: flex-start; }
+    .passo-num {
+      width: 28px; height: 28px; border-radius: 50%; background: #78d6c8;
+      color: #111; font-size: 12px; font-weight: 700;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .passo-txt { font-size: 14px; color: var(--cor-texto-fraco); line-height: 1.6; }
+    .passo-txt strong { color: var(--cor-texto); }
+    .campo-grid {
+      display: grid; grid-template-columns: 160px 1fr;
+      gap: 6px 16px; font-size: 13px; margin: 12px 0;
+    }
+    .campo-grid .label { color: var(--cor-texto); font-weight: 600; }
+    .campo-grid .desc  { color: var(--cor-texto-fraco); }
+    .perm-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 16px; }
+    .perm-table th {
+      background: var(--cor-fundo-3); padding: 8px 12px; text-align: left;
+      font-weight: 600; color: var(--cor-texto); border-bottom: 1px solid var(--cor-borda);
+    }
+    .perm-table td { padding: 8px 12px; border-bottom: 1px solid var(--cor-borda); color: var(--cor-texto-fraco); }
+    .sim { color: #10b981; font-weight: 700; }
+    .nao { color: #ef4444; }
+    .tag-empresa {
+      display: inline-block; background: rgba(120,214,200,0.12);
+      color: #78d6c8; border: 1px solid rgba(120,214,200,0.3);
+      border-radius: 4px; font-size: 11px; padding: 1px 7px; margin-left: 6px;
+      vertical-align: middle;
+    }
+    .icon-btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 22px; height: 22px; border-radius: 5px;
+      background: var(--cor-fundo-3); border: 1px solid var(--cor-borda);
+      color: var(--cor-texto-fraco); font-size: 11px; vertical-align: middle;
+    }
+    @media (max-width: 700px) {
+      .doc-layout { flex-direction: column; }
+      .doc-sidebar { width: 100%; }
+      .doc-sidebar-sticky { position: static; }
+      .campo-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div id="menu-container"></div>
+
+  <div class="doc-layout">
+
+    <aside class="doc-sidebar">
+      <div class="doc-sidebar-sticky">
+        <h4>Nesta página</h4>
+        <a href="#visao-geral">Visão Geral</a>
+        <a href="#sidebar">Barra Lateral</a>
+        <a href="#listas-empresa">Listas da Empresa</a>
+        <a href="#listas">Criar / Gerenciar Listas</a>
+        <a href="#compartilhar">Compartilhar Listas</a>
+        <a href="#contatos">Gerenciar Contatos</a>
+        <a href="#copiar-mover">Copiar e Mover</a>
+        <a href="#detalhe">Painel de Detalhes</a>
+        <a href="#exportar">Exportar / Importar</a>
+        <a href="#campos">Campos Disponíveis</a>
+        <a href="#busca">Busca e Filtros</a>
+        <a href="#permissoes">Permissões</a>
+        <a href="#logs">Logs de Auditoria</a>
+        <br>
+        <a href="/ajuda/Ajuda.html" style="color:var(--cor-destaque); font-size:12px; border:none; padding-left:0">
+          ← Voltar à Ajuda
+        </a>
+      </div>
+    </aside>
+
+    <main class="doc-conteudo">
+
+      <div class="doc-breadcrumb">
+        <a href="/ajuda/Ajuda.html">Ajuda</a>
+        <span>›</span> Contatos
+      </div>
+
+      <div class="doc-titulo">
+        <i class="fas fa-address-book"></i> Agenda de Contatos
+      </div>
+      <div class="doc-subtitulo">
+        Gerencie contatos em listas personalizadas, listas compartilhadas da empresa e listas colaborativas com permissões por usuário.
+      </div>
+
+      <!-- VISÃO GERAL -->
+      <section class="doc-secao" id="visao-geral">
+        <h2><i class="fas fa-eye"></i> Visão Geral</h2>
+        <p>A <strong>Agenda de Contatos</strong> organiza pessoas e empresas em <strong>listas</strong> separadas por contexto (ex: Clientes, Fornecedores, Equipe). Cada contato armazena dados completos: telefones, e-mails, redes sociais, endereço e mais.</p>
+        <p>Existem três tipos de listas:</p>
+        <ul>
+          <li><strong>Listas da Empresa</strong> — visíveis para todos os usuários do portal; qualquer um pode visualizar, copiar e mover contatos.</li>
+          <li><strong>Minhas Listas</strong> — listas pessoais que só você gerencia; pode compartilhar com outros usuários com permissão de edição ou leitura.</li>
+          <li><strong>Compartilhadas</strong> — listas de outros usuários que foram compartilhadas com você.</li>
+        </ul>
+        <div class="doc-info">
+          <i class="fas fa-info-circle" style="color:#78d6c8; margin-right:6px"></i>
+          Acesse a Agenda de Contatos pelo menu <strong>Sistemas → Contatos</strong> ou diretamente em <strong>/contatos</strong>.
+        </div>
+      </section>
+
+      <!-- BARRA LATERAL -->
+      <section class="doc-secao" id="sidebar">
+        <h2><i class="fas fa-bars"></i> Barra Lateral</h2>
+        <p>A sidebar esquerda organiza suas listas em três seções:</p>
+        <div class="doc-card">
+          <h4><i class="fas fa-building" style="color:#78d6c8; margin-right:6px"></i> Empresa</h4>
+          <p>Listas compartilhadas da organização. Aparecem no topo e são visíveis para todos os usuários.</p>
+        </div>
+        <div class="doc-card">
+          <h4><i class="fas fa-user" style="color:#78d6c8; margin-right:6px"></i> Minhas Listas</h4>
+          <p>Listas pessoais criadas por você. Exibem o total de contatos e botões de editar/excluir.</p>
+        </div>
+        <div class="doc-card">
+          <h4><i class="fas fa-users" style="color:#78d6c8; margin-right:6px"></i> Compartilhadas</h4>
+          <p>Listas de outros usuários que foram compartilhadas com você (somente quando existirem).</p>
+        </div>
+        <p>Clique em qualquer lista para abri-la. O botão <strong>+ Nova Lista</strong> fica fixo no rodapé da sidebar.</p>
+      </section>
+
+      <!-- LISTAS DA EMPRESA -->
+      <section class="doc-secao" id="listas-empresa">
+        <h2><i class="fas fa-building"></i> Listas da Empresa <span class="tag-empresa">Empresa</span></h2>
+        <p>Listas marcadas como <strong>Agenda da Empresa</strong> são visíveis para todos os usuários autenticados no portal, independente de permissão individual.</p>
+        <p>Para criar uma lista da empresa:</p>
+        <div class="passo"><div class="passo-num">1</div><div class="passo-txt">Clique em <strong>+ Nova Lista</strong> na sidebar.</div></div>
+        <div class="passo"><div class="passo-num">2</div><div class="passo-txt">Marque a opção <strong>"Agenda da Empresa (visível para todos)"</strong>.</div></div>
+        <div class="passo"><div class="passo-num">3</div><div class="passo-txt">Preencha nome e cor e clique em <strong>Criar</strong>.</div></div>
+        <div class="doc-info">
+          <i class="fas fa-info-circle" style="color:#78d6c8; margin-right:6px"></i>
+          Apenas o <strong>dono</strong> da lista pode editá-la, excluí-la, adicionar/remover contatos e gerenciar membros. Os demais usuários podem visualizar, copiar e mover contatos.
+        </div>
+      </section>
+
+      <!-- CRIAR / GERENCIAR LISTAS -->
+      <section class="doc-secao" id="listas">
+        <h2><i class="fas fa-folder-plus"></i> Criar / Gerenciar Listas</h2>
+        <p><strong>Criar lista:</strong></p>
+        <div class="passo"><div class="passo-num">1</div><div class="passo-txt">Clique em <strong>+ Nova Lista</strong> na sidebar.</div></div>
+        <div class="passo"><div class="passo-num">2</div><div class="passo-txt">Informe o <strong>nome</strong>, uma <strong>descrição</strong> opcional e escolha uma <strong>cor</strong>.</div></div>
+        <div class="passo"><div class="passo-num">3</div><div class="passo-txt">Clique em <strong>Criar</strong>. A lista será selecionada automaticamente.</div></div>
+
+        <p><strong>Editar lista:</strong> clique no ícone <span class="icon-btn"><i class="fas fa-edit"></i></span> no cabeçalho da lista aberta, ou no ícone de lápis ao lado do nome na sidebar.</p>
+        <p><strong>Excluir lista:</strong> clique no ícone de lixeira ao lado do nome na sidebar. Disponível apenas para o dono.</p>
+        <div class="doc-warn">
+          <i class="fas fa-exclamation-triangle" style="color:#f59e0b; margin-right:6px"></i>
+          A exclusão de uma lista é <strong>permanente</strong>. Todos os contatos vinculados também serão removidos.
+        </div>
+      </section>
+
+      <!-- COMPARTILHAR -->
+      <section class="doc-secao" id="compartilhar">
+        <h2><i class="fas fa-user-friends"></i> Compartilhar Listas</h2>
+        <p>O dono de uma lista pode compartilhá-la com outros usuários do portal, definindo o nível de acesso de cada um.</p>
+        <div class="passo"><div class="passo-num">1</div><div class="passo-txt">Com a lista aberta, clique no ícone <span class="icon-btn"><i class="fas fa-user-friends"></i></span> no cabeçalho.</div></div>
+        <div class="passo"><div class="passo-num">2</div><div class="passo-txt">Digite o <strong>login do usuário</strong>, escolha a permissão (<strong>Edição</strong> ou <strong>Leitura</strong>) e clique em <strong>Adicionar</strong>.</div></div>
+        <div class="passo"><div class="passo-num">3</div><div class="passo-txt">Para remover um membro, clique no ícone de lixeira ao lado do nome.</div></div>
+        <table class="perm-table" style="margin-top:12px">
+          <thead>
+            <tr><th>Permissão</th><th>O que pode fazer</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>Edição</strong></td><td>Adicionar, editar, excluir, mover e copiar contatos</td></tr>
+            <tr><td><strong>Leitura</strong></td><td>Visualizar contatos, copiar para outras listas</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- GERENCIAR CONTATOS -->
+      <section class="doc-secao" id="contatos">
+        <h2><i class="fas fa-user-plus"></i> Gerenciar Contatos</h2>
+        <p><strong>Adicionar contato:</strong></p>
+        <div class="passo"><div class="passo-num">1</div><div class="passo-txt">Clique em <strong>+ Novo Contato</strong> na barra de ferramentas.</div></div>
+        <div class="passo"><div class="passo-num">2</div><div class="passo-txt">Preencha os campos desejados. Apenas o <strong>Nome</strong> é obrigatório.</div></div>
+        <div class="passo"><div class="passo-num">3</div><div class="passo-txt">Clique em <strong>Salvar</strong>.</div></div>
+
+        <p><strong>Editar contato:</strong> clique no ícone <span class="icon-btn"><i class="fas fa-pencil-alt"></i></span> no card ou no botão <strong>Editar</strong> no painel de detalhes.</p>
+        <p><strong>Excluir contato:</strong> clique no ícone <span class="icon-btn"><i class="fas fa-trash"></i></span> no card. Disponível apenas para quem tem permissão de <strong>edição</strong> ou <strong>dono</strong>.</p>
+        <p><strong>Favoritar:</strong> clique na estrela <span class="icon-btn"><i class="fas fa-star"></i></span> no canto superior direito do card para marcar/desmarcar como favorito.</p>
+
+        <div class="doc-info">
+          <i class="fas fa-info-circle" style="color:#78d6c8; margin-right:6px"></i>
+          Os contatos favoritos aparecem no topo da lista e podem ser filtrados pelo botão <strong>Favoritos</strong>.
+        </div>
+      </section>
+
+      <!-- COPIAR E MOVER -->
+      <section class="doc-secao" id="copiar-mover">
+        <h2><i class="fas fa-copy"></i> Copiar e Mover Contatos</h2>
+        <p>É possível copiar ou mover contatos entre listas diretamente nos cards ou no painel de detalhes.</p>
+
+        <div class="doc-card">
+          <h4><i class="fas fa-copy" style="color:#78d6c8; margin-right:6px"></i> Copiar contato</h4>
+          <p>Cria uma cópia do contato em outra lista. O original permanece na lista atual. Disponível para todos os usuários com acesso de <strong>leitura ou superior</strong>, inclusive em listas da empresa.</p>
+        </div>
+        <div class="doc-card">
+          <h4><i class="fas fa-exchange-alt" style="color:#78d6c8; margin-right:6px"></i> Mover contato</h4>
+          <p>Transfere o contato para outra lista, removendo-o da lista atual. Em listas da empresa, qualquer usuário pode mover. Em listas pessoais, requer permissão de <strong>edição</strong>.</p>
+        </div>
+        <div class="doc-card">
+          <h4><i class="fas fa-copy" style="color:#78d6c8; margin-right:6px"></i> Copiar múltiplos contatos (em massa)</h4>
+          <p>Copia todos os contatos de uma lista de origem para a lista atual. Use o ícone <span class="icon-btn"><i class="fas fa-copy"></i></span> no cabeçalho. Disponível apenas para quem tem permissão de <strong>edição</strong> na lista destino.</p>
+        </div>
+
+        <div class="doc-info">
+          <i class="fas fa-info-circle" style="color:#78d6c8; margin-right:6px"></i>
+          Ao copiar em massa, é possível escolher se quer copiar <strong>todos</strong> os contatos ou apenas os <strong>filtrados</strong> (resultado da busca atual).
+        </div>
+      </section>
+
+      <!-- PAINEL DE DETALHES -->
+      <section class="doc-secao" id="detalhe">
+        <h2><i class="fas fa-id-card"></i> Painel de Detalhes</h2>
+        <p>Clique em qualquer card para abrir o painel de detalhes lateral, que exibe todas as informações do contato organizadas por seção: <strong>Profissional</strong>, <strong>Contato</strong>, <strong>Redes Sociais</strong> e <strong>Endereço</strong>.</p>
+        <p>No rodapé do painel estão disponíveis os botões de ação rápida:</p>
+        <ul>
+          <li><strong>Editar</strong> — abre o formulário de edição (requer edição/dono)</li>
+          <li><span class="icon-btn"><i class="fas fa-exchange-alt"></i></span> <strong>Mover</strong> — transfere para outra lista</li>
+          <li><span class="icon-btn"><i class="fas fa-copy"></i></span> <strong>Copiar</strong> — copia para outra lista</li>
+          <li><span class="icon-btn"><i class="fas fa-envelope"></i></span> <strong>E-mail</strong> — abre cliente de e-mail padrão</li>
+          <li><span class="icon-btn"><i class="fab fa-whatsapp"></i></span> <strong>WhatsApp</strong> — abre conversa no WhatsApp Web</li>
+        </ul>
+        <p>Feche o painel clicando no <strong>×</strong> ou clicando fora dele.</p>
+      </section>
+
+      <!-- EXPORTAR / IMPORTAR -->
+      <section class="doc-secao" id="exportar">
+        <h2><i class="fas fa-file-export"></i> Exportar / Importar</h2>
+        <p>Os ícones de exportação e importação ficam no cabeçalho da lista aberta, disponíveis para quem tem permissão de <strong>edição</strong> ou <strong>dono</strong>.</p>
+
+        <div class="doc-card">
+          <h4><i class="fas fa-file-export" style="color:#78d6c8; margin-right:6px"></i> Exportar CSV</h4>
+          <p>Baixa todos os contatos da lista em formato <strong>.csv</strong>, compatível com Excel e Google Sheets.</p>
+        </div>
+        <div class="doc-card">
+          <h4><i class="fas fa-id-card" style="color:#78d6c8; margin-right:6px"></i> Exportar vCard (.vcf)</h4>
+          <p>Baixa todos os contatos em formato <strong>.vcf</strong>, importável em celulares e apps de contatos (Gmail, Outlook, iOS).</p>
+        </div>
+        <div class="doc-card">
+          <h4><i class="fas fa-file-import" style="color:#78d6c8; margin-right:6px"></i> Importar CSV / vCard</h4>
+          <p>Importa contatos a partir de um arquivo <strong>.csv</strong> (com cabeçalho) ou <strong>.vcf</strong>. Os contatos são adicionados à lista atual sem remover os existentes.</p>
+        </div>
+        <div class="doc-warn">
+          <i class="fas fa-exclamation-triangle" style="color:#f59e0b; margin-right:6px"></i>
+          Na importação CSV, a coluna <strong>nome</strong> é obrigatória. Demais colunas são opcionais e devem ter o mesmo nome dos campos do sistema.
+        </div>
+      </section>
+
+      <!-- CAMPOS -->
+      <section class="doc-secao" id="campos">
+        <h2><i class="fas fa-list-alt"></i> Campos Disponíveis</h2>
+        <p>Cada contato pode armazenar os seguintes campos, organizados por aba no formulário:</p>
+        <div class="doc-card">
+          <h4>Identificação</h4>
+          <div class="campo-grid">
+            <span class="label">Nome *</span>         <span class="desc">Nome completo do contato — obrigatório</span>
+            <span class="label">Cargo</span>           <span class="desc">Função exercida na empresa</span>
+            <span class="label">Empresa</span>         <span class="desc">Empresa ou organização do contato</span>
+            <span class="label">Departamento</span>    <span class="desc">Setor ou área dentro da empresa</span>
+            <span class="label">Tags</span>            <span class="desc">Palavras-chave separadas por vírgula para categorizar</span>
+          </div>
+        </div>
+        <div class="doc-card">
+          <h4>Contato</h4>
+          <div class="campo-grid">
+            <span class="label">Cel. Pessoal</span>    <span class="desc">Celular de uso pessoal</span>
+            <span class="label">Cel. Corporativo</span><span class="desc">Celular de uso profissional</span>
+            <span class="label">Tel. Fixo</span>       <span class="desc">Telefone fixo</span>
+            <span class="label">Ramal</span>           <span class="desc">Ramal interno</span>
+            <span class="label">WhatsApp</span>        <span class="desc">Número do WhatsApp (gera link direto)</span>
+            <span class="label">E-mail Pessoal</span>  <span class="desc">E-mail pessoal</span>
+            <span class="label">E-mail Corp.</span>    <span class="desc">E-mail corporativo</span>
+          </div>
+        </div>
+        <div class="doc-card">
+          <h4>Online</h4>
+          <div class="campo-grid">
+            <span class="label">LinkedIn</span>        <span class="desc">URL ou usuário do LinkedIn</span>
+            <span class="label">Instagram</span>       <span class="desc">URL ou usuário do Instagram</span>
+            <span class="label">Facebook</span>        <span class="desc">URL ou usuário do Facebook</span>
+            <span class="label">Twitter / X</span>     <span class="desc">URL ou usuário do Twitter/X</span>
+            <span class="label">Site</span>            <span class="desc">Site pessoal ou da empresa</span>
+          </div>
+        </div>
+        <div class="doc-card">
+          <h4>Endereço / Outros</h4>
+          <div class="campo-grid">
+            <span class="label">Endereço</span>        <span class="desc">Logradouro</span>
+            <span class="label">Cidade / Estado</span> <span class="desc">Cidade e UF</span>
+            <span class="label">CEP</span>             <span class="desc">Código postal</span>
+            <span class="label">País</span>            <span class="desc">País de origem</span>
+            <span class="label">CNPJ / CPF</span>      <span class="desc">Documento de identificação</span>
+            <span class="label">Data de Nasc.</span>   <span class="desc">Data de nascimento</span>
+            <span class="label">Observações</span>     <span class="desc">Notas livres sobre o contato</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- BUSCA -->
+      <section class="doc-secao" id="busca">
+        <h2><i class="fas fa-search"></i> Busca e Filtros</h2>
+        <p>Use o campo de busca na barra de ferramentas para filtrar contatos em tempo real. A busca considera:</p>
+        <ul>
+          <li>Nome, Empresa, E-mail Pessoal, E-mail Corporativo</li>
+          <li>Celular Pessoal, Celular Corporativo</li>
+          <li>Tags</li>
+        </ul>
+        <p>Use os botões de filtro rápido abaixo da busca:</p>
+        <ul>
+          <li><strong>Todos</strong> — exibe todos os contatos da lista</li>
+          <li><strong>Favoritos</strong> — exibe apenas os contatos marcados com estrela</li>
+        </ul>
+        <div class="doc-info">
+          <i class="fas fa-info-circle" style="color:#78d6c8; margin-right:6px"></i>
+          A busca é realizada no servidor com um breve atraso de 300ms após a última tecla digitada, evitando consultas desnecessárias.
+        </div>
+      </section>
+
+      <!-- PERMISSÕES -->
+      <section class="doc-secao" id="permissoes">
+        <h2><i class="fas fa-shield-alt"></i> Permissões</h2>
+        <p>Cada lista possui um modelo de permissão por usuário. A tabela abaixo resume o que cada nível pode fazer:</p>
+        <table class="perm-table">
+          <thead>
+            <tr>
+              <th>Ação</th>
+              <th>Leitura</th>
+              <th>Edição</th>
+              <th>Dono</th>
+              <th>Empresa *</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Visualizar contatos</td>             <td class="sim">✓</td><td class="sim">✓</td><td class="sim">✓</td><td class="sim">✓</td></tr>
+            <tr><td>Copiar contato para outra lista</td> <td class="sim">✓</td><td class="sim">✓</td><td class="sim">✓</td><td class="sim">✓</td></tr>
+            <tr><td>Mover contato para outra lista</td>  <td class="nao">—</td><td class="sim">✓</td><td class="sim">✓</td><td class="sim">✓</td></tr>
+            <tr><td>Adicionar / editar contatos</td>     <td class="nao">—</td><td class="sim">✓</td><td class="sim">✓</td><td class="nao">—</td></tr>
+            <tr><td>Excluir contatos</td>                <td class="nao">—</td><td class="sim">✓</td><td class="sim">✓</td><td class="nao">—</td></tr>
+            <tr><td>Importar contatos</td>               <td class="nao">—</td><td class="sim">✓</td><td class="sim">✓</td><td class="nao">—</td></tr>
+            <tr><td>Copiar contatos em massa</td>        <td class="nao">—</td><td class="sim">✓</td><td class="sim">✓</td><td class="nao">—</td></tr>
+            <tr><td>Editar / excluir a lista</td>        <td class="nao">—</td><td class="nao">—</td><td class="sim">✓</td><td class="nao">—</td></tr>
+            <tr><td>Gerenciar membros</td>               <td class="nao">—</td><td class="nao">—</td><td class="sim">✓</td><td class="nao">—</td></tr>
+          </tbody>
+        </table>
+        <p style="font-size:12px; color:var(--cor-texto-fraco)">* <strong>Empresa</strong>: permissão aplicada a todos os usuários em listas do tipo "Empresa", independente de membros cadastrados.</p>
+        <div class="doc-info">
+          <i class="fas fa-info-circle" style="color:#78d6c8; margin-right:6px"></i>
+          Para mover um contato, o usuário também precisa ter permissão de <strong>edição ou dono</strong> na lista de destino.
+        </div>
+      </section>
+
+      <!-- LOGS -->
+      <section class="doc-secao" id="logs">
+        <h2><i class="fas fa-history"></i> Logs de Auditoria</h2>
+        <p>Todas as ações realizadas no módulo Contatos são registradas automaticamente.</p>
+        <table class="perm-table">
+          <thead>
+            <tr><th>Ação</th><th>O que é registrado</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Lista criada</td><td>Nome e tipo da lista</td></tr>
+            <tr><td>Lista editada</td><td>Nome da lista</td></tr>
+            <tr><td>Lista excluída</td><td>Nome da lista</td></tr>
+            <tr><td>Contato criado</td><td>Nome do contato e lista de destino</td></tr>
+            <tr><td>Contato editado</td><td>Nome do contato</td></tr>
+            <tr><td>Contato excluído</td><td>Nome e empresa do contato</td></tr>
+            <tr><td>Contato copiado</td><td>Nome do contato, lista origem e lista destino</td></tr>
+            <tr><td>Cópia em massa</td><td>Quantidade copiada, lista origem e lista destino</td></tr>
+            <tr><td>Importação</td><td>Quantidade importada e lista de destino</td></tr>
+          </tbody>
+        </table>
+        <p>Para consultar os logs, acesse <strong>Configurações → Logs</strong> e filtre por <strong>Sistema: Contatos</strong>.</p>
+      </section>
+
+    </main>
+  </div>
+
+  <script src="/js/menu.js"></script>
+</body>
+</html>

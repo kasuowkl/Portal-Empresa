@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<!--
+  ARQUIVO: public/ajuda/Contatos.html
+  VERSÃO:  1.0.0
+  DATA:    2026-03-10
+  DESCRIÇÃO: Documentação do módulo Contatos
+-->
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ajuda — Contatos</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/menu.css">
+  <style>
+    .doc-layout {
+      display: flex;
+      max-width: 1100px;
+      margin: 32px auto;
+      padding: 0 24px;
+      gap: 32px;
+    }
+    .doc-sidebar {
+      width: 220px;
+      flex-shrink: 0;
+    }
+    .doc-sidebar-sticky {
+      position: sticky;
+      top: calc(var(--altura-menu) + 20px);
+    }
+    .doc-sidebar h4 {
+      font-size: 11px;
+      letter-spacing: 1.4px;
+      text-transform: uppercase;
+      color: var(--cor-texto-fraco);
+      margin-bottom: 12px;
+    }
+    .doc-sidebar a {
+      display: block;
+      padding: 6px 12px;
+      font-size: 13px;
+      color: var(--cor-texto-fraco);
+      border-left: 2px solid var(--cor-borda);
+      text-decoration: none;
+      transition: all .15s;
+    }
+    .doc-sidebar a:hover {
+      color: #78d6c8;
+      border-left-color: #78d6c8;
+    }
+    .doc-conteudo { flex: 1; min-width: 0; }
+    .doc-breadcrumb {
+      font-size: 12px;
+      color: var(--cor-texto-fraco);
+      margin-bottom: 24px;
+    }
+    .doc-breadcrumb a { color: var(--cor-destaque); text-decoration: none; }
+    .doc-breadcrumb span { margin: 0 6px; }
+    .doc-titulo {
+      font-size: 26px;
+      font-weight: 700;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .doc-titulo i { color: #78d6c8; }
+    .doc-subtitulo {
+      color: var(--cor-texto-fraco);
+      font-size: 14px;
+      margin-bottom: 36px;
+    }
+    .doc-secao {
+      margin-bottom: 40px;
+      scroll-margin-top: calc(var(--altura-menu) + 16px);
+    }
+    .doc-secao h2 {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--cor-borda);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .doc-secao h2 i { color: #78d6c8; font-size: 16px; }
+    .doc-secao p, .doc-secao li {
+      font-size: 14px;
+      color: var(--cor-texto-fraco);
+      line-height: 1.7;
+      margin-bottom: 8px;
+    }
+    .doc-secao ul, .doc-secao ol { padding-left: 20px; margin-bottom: 12px; }
+    .doc-secao strong { color: var(--cor-texto); }
+    .doc-card {
+      background: var(--cor-fundo-2);
+      border: 1px solid var(--cor-borda);
+      border-radius: 8px;
+      padding: 16px 20px;
+      margin-bottom: 12px;
+    }
+    .doc-card h4 { font-size: 14px; margin-bottom: 6px; color: var(--cor-texto); }
+    .doc-card p { margin: 0; }
+    .doc-info {
+      background: rgba(120,214,200,0.08);
+      border-left: 3px solid #78d6c8;
+      border-radius: 0 8px 8px 0;
+      padding: 12px 16px;
+      margin-bottom: 16px;
+      font-size: 13px;
+      color: var(--cor-texto-fraco);
+    }
+    .doc-warn {
+      background: rgba(245,158,11,0.08);
+      border-left: 3px solid #f59e0b;
+      border-radius: 0 8px 8px 0;
+      padding: 12px 16px;
+      margin-bottom: 16px;
+      font-size: 13px;
+      color: var(--cor-texto-fraco);
+    }
+    .passo {
+      display: flex;
+      gap: 14px;
+      margin-bottom: 14px;
+      align-items: flex-start;
+    }
+    .passo-num {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: #78d6c8;
+      color: #111;
+      font-size: 12px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .passo-txt { font-size: 14px; color: var(--cor-texto-fraco); line-height: 1.6; }
+    .passo-txt strong { color: var(--cor-texto); }
+    .campo-grid {
+      display: grid;
+      grid-template-columns: 160px 1fr;
+      gap: 6px 16px;
+      font-size: 13px;
+      margin: 12px 0;
+    }
+    .campo-grid .label { color: var(--cor-texto); font-weight: 600; }
+    .campo-grid .desc  { color: var(--cor-texto-fraco); }
+    .perm-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 16px; }
+    .perm-table th {
+      background: var(--cor-fundo-3);
+      padding: 8px 12px;
+      text-align: left;
+      font-weight: 600;
+      color: var(--cor-texto);
+      border-bottom: 1px solid var(--cor-borda);
+    }
+    .perm-table td {
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--cor-borda);
+      color: var(--cor-texto-fraco);
+    }
+    .sim { color: #10b981; font-weight: 700; }
+    .nao { color: #ef4444; }
+    @media (max-width: 700px) {
+      .doc-layout { flex-direction: column; }
+      .doc-sidebar { width: 100%; }
+      .doc-sidebar-sticky { position: static; }
+      .campo-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div id="menu-container"></div>
+
+  <div class="doc-layout">
+
+    <aside class="doc-sidebar">
+      <div class="doc-sidebar-sticky">
+        <h4>Nesta página</h4>
+        <a href="#visao-geral">Visão Geral</a>
+        <a href="#listas">Listas de Contatos</a>
+        <a href="#contatos">Gerenciar Contatos</a>
+        <a href="#campos">Campos Disponíveis</a>
+        <a href="#busca">Busca e Filtros</a>
+        <a href="#logs">Logs de Auditoria</a>
+        <a href="#permissoes">Permissões</a>
+        <br>
+        <a href="/ajuda/Ajuda.html" style="color:var(--cor-destaque); font-size:12px; border:none; padding-left:0">
+          ← Voltar à Ajuda
+        </a>
+      </div>
+    </aside>
+
+    <main class="doc-conteudo">
+
+      <div class="doc-breadcrumb">
+        <a href="/ajuda/Ajuda.html">Ajuda</a>
+        <span>›</span> Contatos
+      </div>
+
+      <div class="doc-titulo">
+        <i class="fas fa-address-book"></i> Contatos
+      </div>
+      <div class="doc-subtitulo">
+        Agenda de contatos organizados em listas personalizáveis, com busca rápida e campos detalhados.
+      </div>
+
+      <!-- VISÃO GERAL -->
+      <section class="doc-secao" id="visao-geral">
+        <h2><i class="fas fa-eye"></i> Visão Geral</h2>
+        <p>O módulo <strong>Contatos</strong> permite cadastrar e consultar pessoas e empresas em <strong>listas</strong> separadas por contexto (ex: <em>Clientes</em>, <em>Fornecedores</em>, <em>Equipe</em>). Cada contato armazena informações como nome, empresa, telefone, e-mail, setor e observações.</p>
+        <p>Acesse em <strong>/contatos</strong> ou pelo menu lateral do portal.</p>
+        <div class="doc-info">
+          <i class="fas fa-info-circle" style="color:#78d6c8; margin-right:6px"></i>
+          Todas as ações (criação, edição, exclusão) ficam registradas nos <strong>Logs de Atividade</strong> do portal, acessíveis em Configurações → Logs.
+        </div>
+      </section>
+
+      <!-- LISTAS -->
+      <section class="doc-secao" id="listas">
+        <h2><i class="fas fa-folder"></i> Listas de Contatos</h2>
+        <p>Listas organizam os contatos por categoria ou finalidade. Você pode criar quantas listas precisar.</p>
+        <p><strong>Para criar uma lista:</strong></p>
+        <div class="passo"><div class="passo-num">1</div><div class="passo-txt">Clique em <strong>+ Nova Lista</strong> na sidebar.</div></div>
+        <div class="passo"><div class="passo-num">2</div><div class="passo-txt">Informe o <strong>nome da lista</strong> e clique em <strong>Criar</strong>.</div></div>
+        <div class="passo"><div class="passo-num">3</div><div class="passo-txt">A lista será criada e selecionada automaticamente.</div></div>
+
+        <p>Para <strong>excluir</strong> uma lista, clique no ícone de lixeira ao lado do nome. A exclusão remove todos os contatos da lista.</p>
+        <div class="doc-warn">
+          <i class="fas fa-exclamation-triangle" style="color:#f59e0b; margin-right:6px"></i>
+          A exclusão de uma lista é permanente. Todos os contatos vinculados serão removidos junto.
+        </div>
+      </section>
+
+      <!-- CONTATOS -->
+      <section class="doc-secao" id="contatos">
+        <h2><i class="fas fa-user-plus"></i> Gerenciar Contatos</h2>
+        <p>Com uma lista selecionada, você pode adicionar, editar e excluir contatos.</p>
+
+        <p><strong>Para adicionar um contato:</strong></p>
+        <div class="passo"><div class="passo-num">1</div><div class="passo-txt">Clique em <strong>+ Novo Contato</strong>.</div></div>
+        <div class="passo"><div class="passo-num">2</div><div class="passo-txt">Preencha os campos desejados. Apenas o <strong>Nome</strong> é obrigatório.</div></div>
+        <div class="passo"><div class="passo-num">3</div><div class="passo-txt">Clique em <strong>Salvar</strong>.</div></div>
+
+        <p><strong>Para editar</strong> um contato, clique no ícone de lápis na linha correspondente. Para <strong>excluir</strong>, clique no ícone de lixeira.</p>
+        <div class="doc-info">
+          <i class="fas fa-info-circle" style="color:#78d6c8; margin-right:6px"></i>
+          A edição abre o mesmo modal de criação com os campos preenchidos. Altere apenas o que precisar e clique em <strong>Salvar</strong>.
+        </div>
+      </section>
+
+      <!-- CAMPOS -->
+      <section class="doc-secao" id="campos">
+        <h2><i class="fas fa-list-alt"></i> Campos Disponíveis</h2>
+        <p>Cada contato pode armazenar as seguintes informações:</p>
+        <div class="doc-card">
+          <div class="campo-grid">
+            <span class="label">Nome</span>       <span class="desc">Nome completo do contato — <strong>obrigatório</strong></span>
+            <span class="label">Empresa</span>    <span class="desc">Empresa ou organização à qual o contato pertence</span>
+            <span class="label">Cargo / Setor</span> <span class="desc">Cargo ou departamento dentro da empresa</span>
+            <span class="label">Telefone</span>   <span class="desc">Número de telefone ou celular</span>
+            <span class="label">E-mail</span>     <span class="desc">Endereço de e-mail do contato</span>
+            <span class="label">Observações</span><span class="desc">Informações adicionais em texto livre</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- BUSCA -->
+      <section class="doc-secao" id="busca">
+        <h2><i class="fas fa-search"></i> Busca e Filtros</h2>
+        <p>Use o campo de busca no topo da lista de contatos para filtrar em tempo real. A busca considera:</p>
+        <ul>
+          <li><strong>Nome</strong> do contato</li>
+          <li><strong>Empresa</strong></li>
+          <li><strong>Cargo / Setor</strong></li>
+          <li><strong>Telefone</strong></li>
+          <li><strong>E-mail</strong></li>
+        </ul>
+        <div class="doc-info">
+          <i class="fas fa-info-circle" style="color:#78d6c8; margin-right:6px"></i>
+          A busca é instantânea — os resultados são filtrados conforme você digita, sem recarregar a página.
+        </div>
+      </section>
+
+      <!-- LOGS -->
+      <section class="doc-secao" id="logs">
+        <h2><i class="fas fa-history"></i> Logs de Auditoria</h2>
+        <p>Todas as ações realizadas no módulo Contatos são registradas automaticamente nos logs de atividade do portal.</p>
+        <table class="perm-table">
+          <thead>
+            <tr><th>Ação</th><th>O que é registrado</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Lista criada</td><td>Nome da lista</td></tr>
+            <tr><td>Lista excluída</td><td>Nome da lista</td></tr>
+            <tr><td>Contato criado</td><td>Nome e empresa do contato, lista de destino</td></tr>
+            <tr><td>Contato editado</td><td>Nome e empresa do contato</td></tr>
+            <tr><td>Contato excluído</td><td>Nome e empresa do contato</td></tr>
+          </tbody>
+        </table>
+        <p>Para consultar os logs, acesse <strong>Configurações → Logs</strong> e filtre por <strong>Sistema: Contatos</strong>.</p>
+      </section>
+
+      <!-- PERMISSÕES -->
+      <section class="doc-secao" id="permissoes">
+        <h2><i class="fas fa-shield-alt"></i> Permissões</h2>
+        <p>O acesso ao módulo Contatos é disponível para todos os usuários autenticados no portal. Não há restrições por perfil — qualquer usuário logado pode criar listas, adicionar e editar contatos.</p>
+        <table class="perm-table">
+          <thead>
+            <tr>
+              <th>Ação</th>
+              <th>Usuário</th>
+              <th>Admin</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Visualizar listas e contatos</td><td class="sim">✓</td><td class="sim">✓</td></tr>
+            <tr><td>Criar / editar / excluir contatos</td><td class="sim">✓</td><td class="sim">✓</td></tr>
+            <tr><td>Criar / excluir listas</td><td class="sim">✓</td><td class="sim">✓</td></tr>
+            <tr><td>Consultar logs no painel de logs</td><td class="nao">—</td><td class="sim">✓</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+    </main>
+  </div>
+
+  <script src="/js/menu.js"></script>
+</body>
+</html>

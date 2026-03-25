@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<!--
+  ARQUIVO: public/ajuda/Portal.html
+  VERSÃO:  1.3.0
+  DATA:    2026-03-10
+  DESCRIÇÃO: Documentação do Portal WKL
+-->
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ajuda — Portal WKL</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/menu.css">
+  <style>
+    .doc-layout {
+      display: flex;
+      max-width: 1100px;
+      margin: 32px auto;
+      padding: 0 24px;
+      gap: 32px;
+    }
+    /* Sumário lateral */
+    .doc-sidebar {
+      width: 220px;
+      flex-shrink: 0;
+    }
+    .doc-sidebar-sticky {
+      position: sticky;
+      top: calc(var(--altura-menu) + 20px);
+    }
+    .doc-sidebar h4 {
+      font-size: 11px;
+      letter-spacing: 1.4px;
+      text-transform: uppercase;
+      color: var(--cor-texto-fraco);
+      margin-bottom: 12px;
+    }
+    .doc-sidebar a {
+      display: block;
+      padding: 6px 12px;
+      font-size: 13px;
+      color: var(--cor-texto-fraco);
+      border-left: 2px solid var(--cor-borda);
+      text-decoration: none;
+      transition: all .15s;
+    }
+    .doc-sidebar a:hover {
+      color: var(--cor-destaque);
+      border-left-color: var(--cor-destaque);
+    }
+    /* Conteúdo */
+    .doc-conteudo {
+      flex: 1;
+      min-width: 0;
+    }
+    .doc-breadcrumb {
+      font-size: 12px;
+      color: var(--cor-texto-fraco);
+      margin-bottom: 24px;
+    }
+    .doc-breadcrumb a { color: var(--cor-destaque); text-decoration: none; }
+    .doc-breadcrumb span { margin: 0 6px; }
+    .doc-titulo {
+      font-size: 26px;
+      font-weight: 700;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .doc-titulo i { color: #4e9af1; }
+    .doc-subtitulo {
+      color: var(--cor-texto-fraco);
+      font-size: 14px;
+      margin-bottom: 36px;
+    }
+    .doc-secao {
+      margin-bottom: 40px;
+      scroll-margin-top: calc(var(--altura-menu) + 16px);
+    }
+    .doc-secao h2 {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--cor-borda);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .doc-secao h2 i { color: var(--cor-destaque); font-size: 16px; }
+    .doc-secao p, .doc-secao li {
+      font-size: 14px;
+      color: var(--cor-texto-fraco);
+      line-height: 1.7;
+      margin-bottom: 8px;
+    }
+    .doc-secao ul, .doc-secao ol {
+      padding-left: 20px;
+      margin-bottom: 12px;
+    }
+    .doc-secao strong { color: var(--cor-texto); }
+    .doc-card {
+      background: var(--cor-fundo-2);
+      border: 1px solid var(--cor-borda);
+      border-radius: 8px;
+      padding: 16px 20px;
+      margin-bottom: 12px;
+    }
+    .doc-card h4 {
+      font-size: 14px;
+      margin-bottom: 6px;
+      color: var(--cor-texto);
+    }
+    .doc-card p { margin: 0; }
+    .doc-info {
+      background: rgba(78,154,241,0.08);
+      border-left: 3px solid var(--cor-destaque);
+      border-radius: 0 8px 8px 0;
+      padding: 12px 16px;
+      margin-bottom: 16px;
+      font-size: 13px;
+      color: var(--cor-texto-fraco);
+    }
+    .doc-warn {
+      background: rgba(245,158,11,0.08);
+      border-left: 3px solid #f59e0b;
+      border-radius: 0 8px 8px 0;
+      padding: 12px 16px;
+      margin-bottom: 16px;
+      font-size: 13px;
+      color: var(--cor-texto-fraco);
+    }
+    .nivel-badge {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .nivel-admin { background: rgba(239,68,68,0.15); color: #ef4444; }
+    .nivel-user  { background: rgba(78,154,241,0.15); color: #4e9af1; }
+    .passo {
+      display: flex;
+      gap: 14px;
+      margin-bottom: 14px;
+      align-items: flex-start;
+    }
+    .passo-num {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--cor-destaque);
+      color: #fff;
+      font-size: 12px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .passo-txt { font-size: 14px; color: var(--cor-texto-fraco); line-height: 1.6; }
+    .passo-txt strong { color: var(--cor-texto); }
+    @media (max-width: 700px) {
+      .doc-layout { flex-direction: column; }
+      .doc-sidebar { width: 100%; }
+      .doc-sidebar-sticky { position: static; }
+    }
+  </style>
+</head>
+<body>
+  <div id="menu-container"></div>
+
+  <div class="doc-layout">
+
+    <!-- Sumário -->
+    <aside class="doc-sidebar">
+      <div class="doc-sidebar-sticky">
+        <h4>Nesta página</h4>
+        <a href="#login">Login e Sessão</a>
+        <a href="#navegacao">Navegação</a>
+        <a href="#modulos">Módulos</a>
+        <a href="#sistemas">Sistemas e Serviços</a>
+        <a href="#configuracoes">Configurações</a>
+        <a href="#email-smtp">Email (SMTP)</a>
+        <a href="#logs">Logs de Atividade</a>
+        <a href="#manutencao">Manutenção</a>
+        <a href="#usuarios">Usuários</a>
+        <a href="#niveis">Níveis de Acesso</a>
+        <br>
+        <a href="/ajuda/Ajuda.html" style="color:var(--cor-destaque); font-size:12px; border:none; padding-left:0">
+          ← Voltar à Ajuda
+        </a>
+      </div>
+    </aside>
+
+    <!-- Conteúdo -->
+    <main class="doc-conteudo">
+
+      <div class="doc-breadcrumb">
+        <a href="/ajuda/Ajuda.html">Ajuda</a>
+        <span>›</span> Portal WKL
+      </div>
+
+      <div class="doc-titulo">
+        <i class="fas fa-home"></i> Portal WKL
+      </div>
+      <div class="doc-subtitulo">
+        Guia de uso do portal de sistemas e serviços internos.
+      </div>
+
+      <!-- LOGIN -->
+      <section class="doc-secao" id="login">
+        <h2><i class="fas fa-sign-in-alt"></i> Login e Sessão</h2>
+        <p>O acesso ao portal é feito pela página de login em <strong>/login.html</strong>. São suportados dois tipos de autenticação:</p>
+        <div class="doc-card">
+          <h4><i class="fas fa-user" style="color:#4e9af1; margin-right:6px"></i> Usuário local</h4>
+          <p>Criado diretamente no portal pelo administrador. Use o login e senha fornecidos pelo administrador.</p>
+        </div>
+        <div class="doc-card">
+          <h4><i class="fas fa-building" style="color:#8b5cf6; margin-right:6px"></i> Usuário de domínio (Active Directory)</h4>
+          <p>Use o login de rede (sem @domínio). Ex: <strong>joao.silva</strong> com a senha de rede. O usuário deve estar cadastrado no portal pelo administrador.</p>
+        </div>
+        <div class="doc-info">
+          <i class="fas fa-info-circle" style="color:var(--cor-destaque); margin-right:6px"></i>
+          A sessão expira automaticamente após <strong>8 horas</strong> de inatividade.
+        </div>
+      </section>
+
+      <!-- NAVEGAÇÃO -->
+      <section class="doc-secao" id="navegacao">
+        <h2><i class="fas fa-compass"></i> Navegação</h2>
+        <p>O menu superior está disponível em todas as páginas do portal:</p>
+        <ul>
+          <li><strong>Início</strong> — volta para o painel principal do portal</li>
+          <li><strong>Sistemas</strong> — abre painel com lista de sistemas cadastrados</li>
+          <li><strong>Serviços</strong> — abre painel com lista de serviços cadastrados</li>
+          <li><strong>Ajuda</strong> — abre esta central de ajuda</li>
+          <li><strong>Configurações</strong> — visível apenas para administradores</li>
+          <li><strong>Sair</strong> — encerra a sessão</li>
+        </ul>
+      </section>
+
+      <!-- MÓDULOS -->
+      <section class="doc-secao" id="modulos">
+        <h2><i class="fas fa-th-large"></i> Módulos Disponíveis</h2>
+        <p>O Portal WKL integra os seguintes módulos acessíveis pelo menu superior:</p>
+        <div class="doc-card">
+          <h4><i class="fas fa-tasks" style="color:#8b5cf6;margin-right:6px"></i> Agenda de Tarefas <code style="font-size:11px;color:var(--cor-texto-fraco)">/agenda</code></h4>
+          <p>Gerenciamento de tarefas em equipe com listas, Kanban, categorias e compartilhamento.</p>
+        </div>
+        <div class="doc-card">
+          <h4><i class="fas fa-wallet" style="color:#10b981;margin-right:6px"></i> Agenda Financeira <code style="font-size:11px;color:var(--cor-texto-fraco)">/agendaFinanceira</code></h4>
+          <p>Controle de contas a pagar com recorrência mensal, categorias, empresas e calendário.</p>
+        </div>
+        <div class="doc-card">
+          <h4><i class="fas fa-headset" style="color:#ef4444;margin-right:6px"></i> Chamados <code style="font-size:11px;color:var(--cor-texto-fraco)">/chamados</code></h4>
+          <p>Sistema completo de suporte: abertura, atendimento por setores, aprovações, chamados vinculados, relatórios e monitor TV. Possui perfis próprios (ADMIN, GESTOR, TECNICO, SOLICITANTE) independentes do nível do portal.</p>
+        </div>
+        <div class="doc-card">
+          <h4><i class="fas fa-box-open" style="color:#f59e0b;margin-right:6px"></i> Patrimônio <code style="font-size:11px;color:var(--cor-texto-fraco)">/patrimonio</code></h4>
+          <p>Cadastro e controle de bens físicos com histórico de movimentações, termos formais e categorias dinâmicas.</p>
+        </div>
+        <div class="doc-card">
+          <h4><i class="fas fa-address-book" style="color:#78d6c8;margin-right:6px"></i> Contatos <code style="font-size:11px;color:var(--cor-texto-fraco)">/contatos</code></h4>
+          <p>Agenda de contatos profissionais com campos completos, listas compartilháveis, exportação CSV/VCF e importação em lote.</p>
+        </div>
+        <div class="doc-info">
+          <i class="fas fa-info-circle" style="color:var(--cor-destaque);margin-right:6px"></i>
+          Cada módulo tem sua própria documentação acessível pela <a href="/ajuda/Ajuda.html" style="color:var(--cor-destaque)">Central de Ajuda</a>.
+        </div>
+      </section>
+
+      <!-- SISTEMAS E SERVIÇOS -->
+      <section class="doc-secao" id="sistemas">
+        <h2><i class="fas fa-th-large"></i> Sistemas e Serviços</h2>
+        <p>Os <strong>sistemas</strong> são links para ferramentas internas ou externas acessíveis pela empresa. Os <strong>serviços</strong> são recursos adicionais disponibilizados. Ambos são configurados pelo administrador.</p>
+        <p>Ao clicar em um item no painel flutuante, ele será aberto em uma nova aba do navegador.</p>
+        <div class="doc-warn">
+          <i class="fas fa-exclamation-triangle" style="color:#f59e0b; margin-right:6px"></i>
+          Apenas administradores podem cadastrar, editar ou remover sistemas e serviços.
+        </div>
+      </section>
+
+      <!-- CONFIGURAÇÕES -->
+      <section class="doc-secao" id="configuracoes">
+        <h2><i class="fas fa-sliders-h"></i> Configurações <span class="nivel-badge nivel-admin">Admin</span></h2>
+        <p>Acessível pelo menu superior para administradores. Organizado nas seguintes abas:</p>
+        <div class="doc-card">
+          <h4><i class="fas fa-users" style="color:#4e9af1; margin-right:6px"></i> Usuários Locais</h4>
+          <p>Criar, ativar/desativar e redefinir senha de usuários locais do portal.</p>
+        </div>
+        <div class="doc-card">
+          <h4><i class="fas fa-network-wired" style="color:#8b5cf6; margin-right:6px"></i> Domínio (AD)</h4>
+          <p>Gerenciar quais usuários do Active Directory têm acesso ao portal e configurar o servidor LDAP.</p>
+        </div>
+        <div class="doc-card">
+          <h4><i class="fas fa-th-large" style="color:#10b981; margin-right:6px"></i> Sistemas</h4>
+          <p>Cadastrar, editar, ativar/desativar e remover sistemas exibidos no painel inicial do portal.</p>
+        </div>
+        <div class="doc-card">
+          <h4><i class="fas fa-cogs" style="color:#06b6d4; margin-right:6px"></i> Serviços</h4>
+          <p>Cadastrar, editar, ativar/desativar e remover serviços exibidos na seção <em>Serviços Disponíveis</em> do portal. A seção só aparece quando há ao menos um serviço ativo.</p>
+        </div>
+        <div class="doc-card">
+          <h4><i class="fab fa-telegram-plane" style="color:#0088cc; margin-right:6px"></i> Telegram</h4>
+          <p>Configurar notificações Telegram do portal (token do bot e grupos por funcionalidade).</p>
+        </div>
+        <div class="doc-card">
+          <h4><i class="fas fa-envelope" style="color:#f59e0b; margin-right:6px"></i> Email (SMTP)</h4>
+          <p>Configurar servidor de e-mail e notificações por módulo. Organizado em sub-abas: <strong>Configuração</strong>, Portal, Chamados, Patrimônio, Ag. Tarefas, Financeiro e Contatos. Em cada sub-aba é possível ativar eventos individualmente e escolher destinatários por chips clicáveis. <a href="#email-smtp" style="color:var(--cor-destaque)">Ver detalhes →</a></p>
+        </div>
+        <div class="doc-card">
+          <h4><i class="fas fa-shield-alt" style="color:#ef4444; margin-right:6px"></i> Segurança</h4>
+          <p>Configurações de sessão, bloqueio por tentativas e política de senha.</p>
+        </div>
+        <div class="doc-card">
+          <h4><i class="fas fa-clipboard-list" style="color:#6b7280; margin-right:6px"></i> Logs de Atividade</h4>
+          <p>Visualizar e filtrar o histórico de ações de todos os módulos. Filtros por usuário, ação, sistema, busca em detalhes e intervalo de datas. Paginação com 100 registros por página. <a href="#logs" style="color:var(--cor-destaque)">Ver detalhes →</a></p>
+        </div>
+        <div class="doc-card">
+          <h4><i class="fas fa-tools" style="color:#f59e0b; margin-right:6px"></i> Manutenção</h4>
+          <p>Backup/Restore do banco, limpeza de dados por sistema, transferência de agendas e reset completo do portal. <a href="#manutencao" style="color:var(--cor-destaque)">Ver detalhes →</a></p>
+        </div>
+      </section>
+
+      <!-- EMAIL SMTP -->
+      <section class="doc-secao" id="email-smtp">
+        <h2><i class="fas fa-envelope"></i> Email (SMTP) <span class="nivel-badge nivel-admin">Admin</span></h2>
+        <p>Acessível em <strong>Configurações → Email (SMTP)</strong>. Organizado em sub-abas:</p>
+
+        <div class="doc-card">
+          <h4><i class="fas fa-cog" style="color:#4e9af1;margin-right:6px"></i> Aba Configuração</h4>
+          <p>Preencha os campos do servidor SMTP (host, porta, usuário, senha, e-mail destino padrão) e ative o toggle <strong>Ativar envio de e-mails</strong>. Clique em <strong>Salvar</strong> para persistir. Use <strong>Enviar e-mail de teste</strong> para verificar se o servidor responde corretamente.</p>
+        </div>
+
+        <div class="doc-card">
+          <h4><i class="fas fa-layer-group" style="color:#8b5cf6;margin-right:6px"></i> Abas por módulo</h4>
+          <p>Cada módulo tem sua própria sub-aba com os eventos disponíveis. Para cada evento:</p>
+          <ul style="margin:8px 0 0 14px">
+            <li>Marque o <strong>checkbox</strong> para ativar o evento.</li>
+            <li>Clique nos <strong>chips de destinatário</strong> para selecionar quem recebe (chip azul = ativo).</li>
+          </ul>
+          <p style="margin-top:8px">Tipos de destinatário disponíveis (variam por módulo):</p>
+          <ul style="margin:0 0 0 14px">
+            <li><strong>Criado por</strong> — usuário que criou o item</li>
+            <li><strong>Email padrão</strong> — endereço configurado na aba Configuração</li>
+            <li><strong>Técnicos do setor</strong> / <strong>Gestores do setor</strong> — chamados</li>
+            <li><strong>Solicitante</strong> / <strong>Aprovador</strong> / <strong>Técnico responsável</strong> — chamados</li>
+            <li><strong>Administradores</strong> — todos os usuários admin</li>
+          </ul>
+        </div>
+
+        <div class="doc-card">
+          <h4><i class="fas fa-clock" style="color:#10b981;margin-right:6px"></i> Lembretes Financeiros (agendados)</h4>
+          <p>Na sub-aba <strong>Financeiro</strong>, além dos eventos em tempo real (Nova conta, Conta vencida), há dois lembretes diários enviados automaticamente às <strong>08:00</strong>:</p>
+          <ul style="margin:8px 0 0 14px">
+            <li><strong>Lembrar contas do dia</strong> — lista as contas que vencem hoje e estão pendentes.</li>
+            <li><strong>Lembrar contas dos próximos 7 dias</strong> — lista as contas que vencem nos próximos 7 dias e estão pendentes.</li>
+          </ul>
+          <p style="margin-top:8px">O e-mail não é enviado se não houver contas pendentes para o período.</p>
+        </div>
+
+        <div class="doc-info">
+          <i class="fas fa-info-circle" style="color:var(--cor-destaque);margin-right:6px"></i>
+          O toggle global de e-mail precisa estar <strong>ativo</strong> (salvo na aba Configuração) para que qualquer notificação seja enviada.
+        </div>
+      </section>
+
+      <!-- LOGS -->
+      <section class="doc-secao" id="logs">
+        <h2><i class="fas fa-clipboard-list"></i> Logs de Atividade <span class="nivel-badge nivel-admin">Admin</span></h2>
+        <p>Acessível em <strong>Configurações → Logs</strong>. Registra e exibe todas as ações realizadas em <strong>todos os módulos</strong> do portal.</p>
+
+        <div class="doc-card">
+          <h4><i class="fas fa-layer-group" style="color:#4e9af1;margin-right:6px"></i> Módulos cobertos</h4>
+          <p>Portal (Login/Logout), Chamados, Financeiro, Patrimônio, Agenda de Tarefas e Contatos. Cada ação é registrada com usuário, data/hora, tipo de ação, sistema e detalhes.</p>
+        </div>
+
+        <div class="doc-card">
+          <h4><i class="fas fa-filter" style="color:#8b5cf6;margin-right:6px"></i> Filtros disponíveis</h4>
+          <ul style="margin:8px 0 0 14px">
+            <li><strong>Usuário</strong> — busca parcial pelo login</li>
+            <li><strong>Buscar nos detalhes</strong> — busca livre no texto do evento</li>
+            <li><strong>Ação</strong> — Login, Logout, Criação, Edição, Exclusão</li>
+            <li><strong>Sistema</strong> — Portal, Chamados, Financeiro, Patrimônio, Ag. Tarefas, Contatos</li>
+            <li><strong>Data inicial / Data final</strong> — intervalo de datas</li>
+          </ul>
+        </div>
+
+        <div class="doc-card">
+          <h4><i class="fas fa-palette" style="color:#10b981;margin-right:6px"></i> Visual</h4>
+          <p>Cada linha exibe badges coloridos para <strong>tipo de ação</strong> (verde = Criação, roxo = Edição, vermelho = Exclusão, etc.) e para o <strong>sistema</strong> de origem. Paginação automática com <strong>100 registros por página</strong> e contador total de resultados.</p>
+        </div>
+      </section>
+
+      <!-- MANUTENÇÃO -->
+      <section class="doc-secao" id="manutencao">
+        <h2><i class="fas fa-tools"></i> Manutenção <span class="nivel-badge nivel-admin">Admin</span></h2>
+        <p>Acessível em <strong>Configurações → Manutenção</strong>. Oferece 4 funcionalidades para gestão do banco de dados:</p>
+
+        <div class="doc-card">
+          <h4><i class="fas fa-download" style="color:#4e9af1;margin-right:6px"></i> Backup do Banco</h4>
+          <p>Exporta todas as tabelas do banco em um único arquivo <strong>.json</strong>. O download inicia automaticamente. Use para guardar uma cópia antes de alterações importantes.</p>
+        </div>
+
+        <div class="doc-card">
+          <h4><i class="fas fa-upload" style="color:#7c3aed;margin-right:6px"></i> Restaurar Banco</h4>
+          <p>Selecione um arquivo de backup <strong>.json</strong> gerado por esta ferramenta e clique em <em>Restaurar Agora</em>. Todos os dados atuais são substituídos pelos dados do arquivo. Requer dupla confirmação.</p>
+        </div>
+
+        <div class="doc-card">
+          <h4><i class="fas fa-broom" style="color:#10b981;margin-right:6px"></i> Limpeza de Dados por Sistema</h4>
+          <p>Remove os dados operacionais de um sistema específico sem apagar configurações ou usuários. Ao clicar em um botão de sistema, um modal permite escolher entre:</p>
+          <ul style="margin:8px 0 0 12px">
+            <li><strong>Todos os usuários</strong> — remove todos os dados do sistema selecionado</li>
+            <li><strong>Usuário específico</strong> — remove apenas os dados pertencentes a um usuário escolhido</li>
+          </ul>
+          <p style="margin-top:8px">Sistemas disponíveis: <em>Chamados, Agenda Tarefas, Agenda Financeira, Logs de Atividade, Tudo</em>.</p>
+        </div>
+
+        <div class="doc-card">
+          <h4><i class="fas fa-exchange-alt" style="color:#3b82f6;margin-right:6px"></i> Transferência de Agendas</h4>
+          <p>Transfere a propriedade das agendas (Tarefas e/ou Financeiro) de um usuário para outro. Útil quando um colaborador sai da empresa e suas agendas precisam ser reatribuídas. Selecione <em>De</em> (usuário origem), <em>Para</em> (usuário destino), os sistemas a transferir e confirme.</p>
+        </div>
+
+        <div class="doc-card">
+          <h4><i class="fas fa-power-off" style="color:#e94560;margin-right:6px"></i> Reset Completo do Portal</h4>
+          <p>Remove <strong>todos os dados operacionais</strong> do portal (chamados, tarefas, financeiro, usuários não-admin, logs). São preservados:</p>
+          <ul style="margin:8px 0 0 12px">
+            <li>Usuário <strong>admin</strong> (login: admin / senha: admin)</li>
+            <li>Sistemas e Serviços cadastrados</li>
+            <li>Configurações (Telegram, SMTP, segurança, etc.)</li>
+          </ul>
+          <p style="margin-top:8px">Requer <strong>duas confirmações</strong> consecutivas. Irreversível.</p>
+        </div>
+
+        <div class="doc-warn">
+          <i class="fas fa-exclamation-triangle" style="color:#f59e0b;margin-right:6px"></i>
+          Sempre gere um <strong>Backup</strong> antes de executar qualquer operação de limpeza ou reset.
+        </div>
+      </section>
+
+      <!-- USUÁRIOS -->
+      <section class="doc-secao" id="usuarios">
+        <h2><i class="fas fa-users"></i> Gerenciar Usuários <span class="nivel-badge nivel-admin">Admin</span></h2>
+        <p>Para criar um novo usuário local:</p>
+        <div class="passo"><div class="passo-num">1</div><div class="passo-txt">Acesse <strong>Configurações → Usuários Locais</strong>.</div></div>
+        <div class="passo"><div class="passo-num">2</div><div class="passo-txt">Clique em <strong>Novo Usuário</strong>, preencha nome, login e senha.</div></div>
+        <div class="passo"><div class="passo-num">3</div><div class="passo-txt">Defina o nível de acesso (<strong>usuário</strong> ou <strong>admin</strong>) e salve.</div></div>
+        <p>Para adicionar um usuário de domínio, use a aba <strong>Usuários de Domínio</strong> e pesquise pelo login de rede.</p>
+      </section>
+
+      <!-- NÍVEIS -->
+      <section class="doc-secao" id="niveis">
+        <h2><i class="fas fa-shield-alt"></i> Níveis de Acesso</h2>
+        <div class="doc-card">
+          <h4><span class="nivel-badge nivel-admin" style="margin-right:8px">Admin</span> Administrador</h4>
+          <p>Acesso completo: gerencia usuários, sistemas, serviços, configurações e logs.</p>
+        </div>
+        <div class="doc-card">
+          <h4><span class="nivel-badge nivel-user" style="margin-right:8px">Usuário</span> Usuário comum</h4>
+          <p>Acesso às ferramentas do portal (Agenda de Tarefas, Agenda Financeira, etc.) sem acesso às configurações.</p>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <script src="/js/menu.js"></script>
+</body>
+</html>

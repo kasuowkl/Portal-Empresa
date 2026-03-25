@@ -1,0 +1,1327 @@
+<!--
+  FRAGMENTO: public/fragmentos/email.html
+  VERSÃO:    4.0.0
+  DATA:      2026-03-10
+-->
+<style>
+  /* ══ Sub-abas ══════════════════════════════════════════════ */
+  .email-abas {
+    display: flex; gap: 4px;
+    border-bottom: 1px solid var(--cor-borda);
+    margin-bottom: 24px; flex-wrap: wrap;
+  }
+  .email-aba-btn {
+    display: flex; align-items: center; gap: 6px;
+    padding: 8px 14px; background: transparent; border: none;
+    border-bottom: 2px solid transparent; margin-bottom: -1px;
+    color: var(--cor-texto-fraco); font-size: 0.83rem; font-weight: 500;
+    cursor: pointer; transition: color .2s, border-color .2s; white-space: nowrap;
+  }
+  .email-aba-btn:hover { color: var(--cor-texto); }
+  .email-aba-btn.ativa { color: var(--cor-destaque); border-color: var(--cor-destaque); }
+  .email-painel { display: none; }
+  .email-painel.ativo { display: block; }
+
+  /* ══ Configuração SMTP — layout melhorado ══════════════════ */
+  .smtp-secao-titulo {
+    font-size: .73rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .6px; color: var(--cor-texto-fraco);
+    margin: 20px 0 10px; padding-bottom: 6px;
+    border-bottom: 1px solid var(--cor-borda);
+    display: flex; align-items: center; gap: 6px;
+  }
+  .smtp-secao-titulo:first-child { margin-top: 0; }
+  .smtp-linha {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 11px 0; border-bottom: 1px solid rgba(255,255,255,.05); gap: 16px;
+  }
+  .smtp-linha:last-child { border-bottom: none; }
+  .smtp-info { flex: 1; }
+  .smtp-info strong { display: block; font-size: .88rem; color: var(--cor-texto); }
+  .smtp-info small  { font-size: .76rem; color: var(--cor-texto-fraco); }
+  .smtp-ctrl { flex-shrink: 0; display: flex; align-items: center; gap: 8px; }
+  .smtp-ctrl input[type="text"],
+  .smtp-ctrl input[type="number"],
+  .smtp-ctrl input[type="password"],
+  .smtp-ctrl input[type="email"] {
+    width: 220px; padding: 8px 12px;
+    background: var(--cor-fundo-3); border: 1px solid var(--cor-borda);
+    border-radius: 6px; color: var(--cor-texto); font-size: .88rem; outline: none;
+  }
+  .smtp-ctrl input:focus { border-color: var(--cor-destaque); }
+  .smtp-ctrl input[type="number"] { width: 90px; }
+  /* Badge de estado do toggle */
+  .smtp-estado {
+    font-size: .72rem; padding: 2px 8px; border-radius: 10px;
+    background: var(--cor-fundo-3); border: 1px solid var(--cor-borda);
+    color: var(--cor-texto-fraco); transition: all .2s;
+  }
+  .smtp-estado.on { background: rgba(78,154,241,.15); border-color: var(--cor-destaque); color: var(--cor-destaque); }
+  /* Toggle (reusa classe global mas garante tamanho) */
+  .smtp-toggle-wrap .toggle { width: 48px; height: 26px; }
+  .smtp-toggle-wrap .toggle-slider::before { width: 20px; height: 20px; top: 3px; left: 3px; }
+  .smtp-toggle-wrap .toggle input:checked + .toggle-slider::before { transform: translateX(22px); }
+
+  /* ══ Notificações — seções e chips ═════════════════════════ */
+  .email-notif-secao {
+    background: var(--cor-fundo); border: 1px solid var(--cor-borda);
+    border-radius: 8px; overflow: hidden; margin-bottom: 4px;
+  }
+  .email-notif-secao-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 16px; background: var(--cor-fundo-3);
+    font-size: .8rem; font-weight: 700; color: var(--cor-texto-fraco);
+    text-transform: uppercase; letter-spacing: .5px;
+  }
+  .email-notif-item {
+    display: flex; align-items: flex-start; gap: 12px;
+    padding: 11px 16px; border-top: 1px solid var(--cor-borda);
+    transition: background .15s;
+  }
+  .email-notif-item:hover { background: rgba(78,154,241,.04); }
+  .email-notif-item input[type="checkbox"] {
+    width: 16px; height: 16px; flex-shrink: 0; margin-top: 3px;
+    accent-color: var(--cor-destaque); cursor: pointer;
+  }
+  .email-notif-item-info { flex: 1; }
+  .email-notif-item-info strong { display: block; font-size: .87rem; color: var(--cor-texto); }
+  .email-notif-item-info > small { font-size: .75rem; color: var(--cor-texto-fraco); }
+  .email-sel-todos {
+    background: none; border: none; color: var(--cor-destaque);
+    font-size: .74rem; cursor: pointer; padding: 0; font-weight: 500;
+  }
+  .email-sel-todos:hover { text-decoration: underline; }
+
+  /* Chips */
+  .email-dest-chips { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 7px; }
+  .email-dest-chip {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 3px 9px; border-radius: 12px;
+    background: var(--cor-fundo-3); border: 1px solid var(--cor-borda);
+    font-size: .72rem; color: var(--cor-texto-fraco);
+    cursor: pointer; transition: all .15s; user-select: none;
+  }
+  .email-dest-chip i { font-size: .63rem; }
+  .email-dest-chip:hover { border-color: var(--cor-destaque); color: var(--cor-texto); }
+  .email-dest-chip.ativo {
+    background: rgba(78,154,241,.15); border-color: var(--cor-destaque);
+    color: var(--cor-destaque); font-weight: 600;
+  }
+
+  /* Legenda e rodapé */
+  .email-legenda {
+    font-size: .73rem; color: var(--cor-texto-fraco);
+    margin-bottom: 14px; padding: 8px 12px;
+    background: var(--cor-fundo-3); border-radius: 6px;
+    border-left: 3px solid var(--cor-destaque); line-height: 1.6;
+  }
+  .email-notif-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; gap: 12px; }
+  .email-notif-header-info strong { display: block; font-size: .92rem; color: var(--cor-texto); }
+  .email-notif-header-info small  { font-size: .78rem; color: var(--cor-texto-fraco); }
+  .smtp-estado { font-size: .75rem; font-weight: 600; color: var(--cor-texto-fraco); white-space: nowrap; }
+  .smtp-estado.on { color: #10b981; }
+  .email-notif-rodape {
+    display: flex; align-items: center; justify-content: flex-end;
+    padding-top: 16px; margin-top: 16px;
+    border-top: 1px solid var(--cor-borda); gap: 10px;
+  }
+</style>
+
+<div class="barra-acoes">
+  <h3><i class="fas fa-envelope"></i> Email (SMTP)</h3>
+</div>
+
+<!-- Sub-abas -->
+<div class="email-abas">
+  <button class="email-aba-btn ativa" data-painel="configuracao"><i class="fas fa-server"></i> Configuração</button>
+  <button class="email-aba-btn" data-painel="portal"><i class="fas fa-home"></i> Portal</button>
+  <button class="email-aba-btn" data-painel="chamados"><i class="fas fa-ticket-alt"></i> Chamados</button>
+  <button class="email-aba-btn" data-painel="patrimonio"><i class="fas fa-boxes"></i> Patrimônio</button>
+  <button class="email-aba-btn" data-painel="agenda"><i class="fas fa-tasks"></i> Ag. Tarefas</button>
+  <button class="email-aba-btn" data-painel="financeiro"><i class="fas fa-wallet"></i> Financeiro</button>
+  <button class="email-aba-btn" data-painel="contatos"><i class="fas fa-address-book"></i> Contatos</button>
+  <button class="email-aba-btn" data-painel="aprovacoes"><i class="fas fa-file-signature"></i> Aprovações</button>
+</div>
+
+<!-- ══════════════════════════════════════
+     CONFIGURAÇÃO SMTP
+══════════════════════════════════════ -->
+<div class="email-painel ativo" id="email-painel-configuracao">
+
+  <div id="alerta-email" class="alerta" style="margin-bottom:16px"></div>
+
+  <!-- Bloco de ativação geral -->
+  <div style="display:flex;align-items:center;justify-content:space-between;
+              padding:14px 16px;background:var(--cor-fundo-3);border:1px solid var(--cor-borda);
+              border-radius:8px;margin-bottom:20px">
+    <div>
+      <strong style="font-size:.92rem;color:var(--cor-texto)">
+        <i class="fas fa-bell" style="color:var(--cor-destaque);margin-right:6px"></i>
+        Habilitar notificações por email
+      </strong>
+      <div style="font-size:.76rem;color:var(--cor-texto-fraco);margin-top:2px">
+        Ativa o envio de todos os alertas configurados abaixo via SMTP
+      </div>
+    </div>
+    <div class="smtp-ctrl smtp-toggle-wrap" style="gap:10px">
+      <span class="smtp-estado" id="estado-email-ativo">Desativado</span>
+      <label class="toggle">
+        <input type="checkbox" id="email-ativo"
+               onchange="smtpEstado('email-ativo','estado-email-ativo')">
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+  </div>
+
+  <!-- Servidor -->
+  <div class="smtp-secao-titulo"><i class="fas fa-server"></i> Servidor</div>
+
+  <div class="smtp-linha">
+    <div class="smtp-info"><strong>Host SMTP</strong><small>Endereço do servidor de email</small></div>
+    <div class="smtp-ctrl"><input type="text" id="email-host" placeholder="smtp.gmail.com"></div>
+  </div>
+
+  <div class="smtp-linha">
+    <div class="smtp-info"><strong>Porta</strong><small>Porta SMTP (ex: 465 SSL · 587 TLS · 25)</small></div>
+    <div class="smtp-ctrl"><input type="number" id="email-porta" placeholder="465"></div>
+  </div>
+
+  <div class="smtp-linha">
+    <div class="smtp-info"><strong>Usar SSL/TLS</strong><small>Habilitar conexão segura (recomendado)</small></div>
+    <div class="smtp-ctrl smtp-toggle-wrap" style="gap:10px">
+      <span class="smtp-estado" id="estado-email-ssl">Desativado</span>
+      <label class="toggle">
+        <input type="checkbox" id="email-ssl"
+               onchange="smtpEstado('email-ssl','estado-email-ssl')">
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+  </div>
+
+  <!-- Autenticação -->
+  <div class="smtp-secao-titulo"><i class="fas fa-key"></i> Autenticação</div>
+
+  <div class="smtp-linha">
+    <div class="smtp-info"><strong>Usuário</strong><small>Email ou login de autenticação SMTP</small></div>
+    <div class="smtp-ctrl"><input type="text" id="email-usuario" placeholder="portal@empresa.com.br"></div>
+  </div>
+
+  <div class="smtp-linha">
+    <div class="smtp-info"><strong>Senha</strong><small>Senha do servidor SMTP ou app password</small></div>
+    <div class="smtp-ctrl">
+      <input type="password" id="email-senha" placeholder="••••••••" style="width:220px">
+      <button class="btn btn-sm" onclick="smtpVerSenha()" style="background:var(--cor-fundo-3);border:1px solid var(--cor-borda);color:var(--cor-texto);padding:8px 10px" title="Mostrar/ocultar senha">
+        <i class="fas fa-eye" id="email-senha-icone"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- Envio -->
+  <div class="smtp-secao-titulo"><i class="fas fa-paper-plane"></i> Envio</div>
+
+  <div class="smtp-linha">
+    <div class="smtp-info"><strong>Email remetente</strong><small>Endereço exibido como "De:" para o destinatário</small></div>
+    <div class="smtp-ctrl"><input type="text" id="email-remetente" placeholder='Portal WKL &lt;portal@empresa.com.br&gt;'></div>
+  </div>
+
+  <div class="smtp-linha">
+    <div class="smtp-info">
+      <strong>Email padrão (destino)</strong>
+      <small>Usado quando nenhum destinatário específico for encontrado</small>
+    </div>
+    <div class="smtp-ctrl"><input type="email" id="email-destinatario" placeholder="ti@empresa.com.br"></div>
+  </div>
+
+  <!-- Comportamento -->
+  <div class="smtp-secao-titulo"><i class="fas fa-sliders-h"></i> Comportamento</div>
+
+  <div class="smtp-linha">
+    <div class="smtp-info"><strong>Notificar ao ocorrer erros internos</strong><small>Envia email quando ocorrer uma falha no sistema</small></div>
+    <div class="smtp-ctrl smtp-toggle-wrap" style="gap:10px">
+      <span class="smtp-estado" id="estado-email-notif-erro">Desativado</span>
+      <label class="toggle">
+        <input type="checkbox" id="email-notif-erro"
+               onchange="smtpEstado('email-notif-erro','estado-email-notif-erro')">
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+  </div>
+
+  <div style="display:flex;gap:10px;margin-top:24px;flex-wrap:wrap">
+    <button class="btn btn-primario btn-sm" onclick="salvarEmail()" style="width:auto">
+      <i class="fas fa-save"></i> Salvar configurações
+    </button>
+    <button class="btn btn-sm" onclick="testarEmail()" style="width:auto;background:var(--cor-fundo-3);border:1px solid var(--cor-borda);color:var(--cor-texto)">
+      <i class="fas fa-paper-plane"></i> Enviar email de teste
+    </button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     PORTAL
+══════════════════════════════════════ -->
+<div class="email-painel" id="email-painel-portal">
+  <div class="email-notif-header">
+    <div class="email-notif-header-info">
+      <strong><i class="fas fa-home" style="color:var(--cor-destaque);margin-right:6px"></i>Notificações — Portal</strong>
+      <small>Ative os eventos e selecione os destinatários clicando nos chips</small>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;flex-shrink:0">
+      <span class="smtp-estado on" id="estado-notif-portal-ativo">Ativado</span>
+      <label class="toggle smtp-toggle-wrap" title="Ativar/desativar notificações do Portal">
+        <input type="checkbox" id="notif-portal-ativo" data-chave="portal.ativo" checked
+               onchange="smtpEstado('notif-portal-ativo','estado-notif-portal-ativo')">
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+  </div>
+  <div class="email-legenda">
+    <i class="fas fa-info-circle" style="color:var(--cor-destaque)"></i>
+    Clique nos <b>chips</b> para ativar/desativar destinatários de cada evento.
+    <b>Email padrão</b> usa o endereço configurado na aba Configuração.
+  </div>
+
+  <div class="email-notif-secao">
+    <div class="email-notif-secao-header">Acesso <button class="email-sel-todos">Selecionar todos</button></div>
+    <div class="email-notif-item">
+      <input type="checkbox" id="en-portal-login" data-chave="portal.login">
+      <div class="email-notif-item-info">
+        <strong>Login realizado</strong><small>Enviado quando um usuário fizer login com sucesso</small>
+        <div class="email-dest-chips">
+          <span class="email-dest-chip ativo" data-dest="portal.login" data-tipo="email_padrao"><i class="fas fa-envelope"></i> Email padrão</span>
+          <span class="email-dest-chip" data-dest="portal.login" data-tipo="admins"><i class="fas fa-shield-alt"></i> Administradores</span>
+        </div>
+      </div>
+    </div>
+    <div class="email-notif-item">
+      <input type="checkbox" id="en-portal-login_falha" data-chave="portal.login_falha">
+      <div class="email-notif-item-info">
+        <strong>Login com falha</strong><small>Enviado quando a senha informada estiver errada</small>
+        <div class="email-dest-chips">
+          <span class="email-dest-chip ativo" data-dest="portal.login_falha" data-tipo="email_padrao"><i class="fas fa-envelope"></i> Email padrão</span>
+          <span class="email-dest-chip" data-dest="portal.login_falha" data-tipo="admins"><i class="fas fa-shield-alt"></i> Administradores</span>
+        </div>
+      </div>
+    </div>
+    <div class="email-notif-item">
+      <input type="checkbox" id="en-portal-usuario_bloqueado" data-chave="portal.usuario_bloqueado">
+      <div class="email-notif-item-info">
+        <strong>Usuário bloqueado tentou acessar</strong><small>Enviado quando um usuário bloqueado tenta fazer login</small>
+        <div class="email-dest-chips">
+          <span class="email-dest-chip ativo" data-dest="portal.usuario_bloqueado" data-tipo="email_padrao"><i class="fas fa-envelope"></i> Email padrão</span>
+          <span class="email-dest-chip" data-dest="portal.usuario_bloqueado" data-tipo="admins"><i class="fas fa-shield-alt"></i> Administradores</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="email-notif-secao">
+    <div class="email-notif-secao-header">Gestão de Usuários <button class="email-sel-todos">Selecionar todos</button></div>
+    <div class="email-notif-item">
+      <input type="checkbox" id="en-portal-usuario_criado" data-chave="portal.usuario_criado">
+      <div class="email-notif-item-info">
+        <strong>Novo usuário criado</strong><small>Enviado quando um novo usuário for cadastrado no portal</small>
+        <div class="email-dest-chips">
+          <span class="email-dest-chip ativo" data-dest="portal.usuario_criado" data-tipo="email_padrao"><i class="fas fa-envelope"></i> Email padrão</span>
+          <span class="email-dest-chip" data-dest="portal.usuario_criado" data-tipo="admins"><i class="fas fa-shield-alt"></i> Administradores</span>
+          <span class="email-dest-chip" data-dest="portal.usuario_criado" data-tipo="novo_usuario"><i class="fas fa-user"></i> Novo usuário</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="email-notif-rodape">
+    <span id="email-notif-msg-portal" style="font-size:.82rem;color:var(--cor-texto-fraco)"></span>
+    <button class="btn btn-primario btn-sm" onclick="emailNotifSalvar('portal')" style="width:auto"><i class="fas fa-save"></i> Salvar</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     CHAMADOS
+══════════════════════════════════════ -->
+<div class="email-painel" id="email-painel-chamados">
+  <div class="email-notif-header">
+    <div class="email-notif-header-info">
+      <strong><i class="fas fa-ticket-alt" style="color:var(--cor-destaque);margin-right:6px"></i>Notificações — Chamados</strong>
+      <small>Ative os eventos e selecione os destinatários clicando nos chips</small>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;flex-shrink:0">
+      <span class="smtp-estado on" id="estado-notif-chamados-ativo">Ativado</span>
+      <label class="toggle smtp-toggle-wrap" title="Ativar/desativar notificações de Chamados">
+        <input type="checkbox" id="notif-chamados-ativo" data-chave="chamados.ativo" checked
+               onchange="smtpEstado('notif-chamados-ativo','estado-notif-chamados-ativo')">
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+  </div>
+  <div class="email-legenda">
+    <i class="fas fa-info-circle" style="color:var(--cor-destaque)"></i>
+    <b>Técnicos do setor</b> = técnicos do departamento solicitado ·
+    <b>Gestores do setor</b> = gestores/supervisores do departamento ·
+    <b>Solicitante</b> = quem abriu o chamado ·
+    <b>Aprovador</b> = pessoa solicitada para aprovação ·
+    <b>Técnico responsável</b> = técnico atribuído ao chamado
+  </div>
+
+  <!-- Aprovação -->
+  <div class="email-notif-secao">
+    <div class="email-notif-secao-header">Aprovação <button class="email-sel-todos">Selecionar todos</button></div>
+    <div class="email-notif-item">
+      <input type="checkbox" id="en-chamados-aprovacao_solicitada" data-chave="chamados.aprovacao_solicitada">
+      <div class="email-notif-item-info">
+        <strong>Aprovação solicitada</strong><small>Enviado para o aprovador quando um chamado aguarda a sua aprovação</small>
+        <div class="email-dest-chips">
+          <span class="email-dest-chip ativo" data-dest="chamados.aprovacao_solicitada" data-tipo="aprovador"><i class="fas fa-user-check"></i> Aprovador</span>
+          <span class="email-dest-chip" data-dest="chamados.aprovacao_solicitada" data-tipo="gestores_setor"><i class="fas fa-user-tie"></i> Gestores do setor</span>
+          <span class="email-dest-chip" data-dest="chamados.aprovacao_solicitada" data-tipo="email_padrao"><i class="fas fa-envelope"></i> Email padrão</span>
+          <span class="email-dest-chip" data-dest="chamados.aprovacao_solicitada" data-tipo="admins"><i class="fas fa-shield-alt"></i> Administradores</span>
+        </div>
+      </div>
+    </div>
+    <div class="email-notif-item">
+      <input type="checkbox" id="en-chamados-aprovacao_concluida" data-chave="chamados.aprovacao_concluida">
+      <div class="email-notif-item-info">
+        <strong>Aprovação concluída (aprovado ou rejeitado)</strong><small>Enviado ao solicitante e ao técnico após o aprovador decidir</small>
+        <div class="email-dest-chips">
+          <span class="email-dest-chip ativo" data-dest="chamados.aprovacao_concluida" data-tipo="solicitante"><i class="fas fa-user"></i> Criador</span>
+          <span class="email-dest-chip ativo" data-dest="chamados.aprovacao_concluida" data-tipo="tecnico_responsavel"><i class="fas fa-user-cog"></i> Técnico responsável</span>
+          <span class="email-dest-chip" data-dest="chamados.aprovacao_concluida" data-tipo="gestores_setor"><i class="fas fa-user-tie"></i> Gestores do setor</span>
+          <span class="email-dest-chip" data-dest="chamados.aprovacao_concluida" data-tipo="email_padrao"><i class="fas fa-envelope"></i> Email padrão</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Ciclo de vida -->
+  <div class="email-notif-secao">
+    <div class="email-notif-secao-header">Ciclo de vida <button class="email-sel-todos">Selecionar todos</button></div>
+    <div class="email-notif-item">
+      <input type="checkbox" id="en-chamados-novo" data-chave="chamados.novo">
+      <div class="email-notif-item-info">
+        <strong>Novo chamado aberto</strong><small>Enviado quando um usuário abrir um novo chamado</small>
+        <div class="email-dest-chips">
+          <span class="email-dest-chip ativo" data-dest="chamados.novo" data-tipo="tecnicos_setor"><i class="fas fa-users-cog"></i> Técnicos do setor</span>
+          <span class="email-dest-chip ativo" data-dest="chamados.novo" data-tipo="gestores_setor"><i class="fas fa-user-tie"></i> Gestores do setor</span>
+          <span class="email-dest-chip" data-dest="chamados.novo" data-tipo="email_padrao"><i class="fas fa-envelope"></i> Email padrão</span>
+          <span class="email-dest-chip" data-dest="chamados.novo" data-tipo="admins"><i class="fas fa-shield-alt"></i> Administradores</span>
+        </div>
+      </div>
+    </div>
+    <div class="email-notif-item">
+      <input type="checkbox" id="en-chamados-atribuido" data-chave="chamados.atribuido">
+      <div class="email-notif-item-info">
+        <strong>Chamado atribuído a um técnico</strong><small>Enviado quando um técnico for designado para o chamado</small>
+        <div class="email-dest-chips">
+          <span class="email-dest-chip ativo" data-dest="chamados.atribuido" data-tipo="tecnico_responsavel"><i class="fas fa-user-cog"></i> Técnico responsável</span>
+          <span class="email-dest-chip" data-dest="chamados.atribuido" data-tipo="gestores_setor"><i class="fas fa-user-tie"></i> Gestores do setor</span>
+          <span class="email-dest-chip" data-dest="chamados.atribuido" data-tipo="solicitante"><i class="fas fa-user"></i> Criador</span>
+          <span class="email-dest-chip" data-dest="chamados.atribuido" data-tipo="email_padrao"><i class="fas fa-envelope"></i> Email padrão</span>
+        </div>
+      </div>
+    </div>
+    <div class="email-notif-item">
+      <input type="checkbox" id="en-chamados-transferido" data-chave="chamados.transferido">
+      <div class="email-notif-item-info">
+        <strong>Chamado transferido</strong><small>Enviado quando o chamado for transferido para outro técnico ou setor</small>
+        <div class="email-dest-chips">
+          <span class="email-dest-chip ativo" data-dest="chamados.transferido" data-tipo="tecnico_responsavel"><i class="fas fa-user-cog"></i> Técnico responsável</span>
+          <span class="email-dest-chip" data-dest="chamados.transferido" data-tipo="gestores_setor"><i class="fas fa-user-tie"></i> Gestores do setor</span>
+          <span class="email-dest-chip ativo" data-dest="chamados.transferido" data-tipo="solicitante"><i class="fas fa-user"></i> Criador</span>
+          <span class="email-dest-chip" data-dest="chamados.transferido" data-tipo="email_padrao"><i class="fas fa-envelope"></i> Email padrão</span>
+        </div>
+      </div>
+    </div>
+    <div class="email-notif-item">
+      <input type="checkbox" id="en-chamados-vinculado" data-chave="chamados.vinculado">
+      <div class="email-notif-item-info">
+        <strong>Chamado vinculado</strong><small>Enviado quando o chamado for vinculado a outro chamado</small>
+        <div class="email-dest-chips">
+          <span class="email-dest-chip ativo" data-dest="chamados.vinculado" data-tipo="solicitante"><i class="fas fa-user"></i> Criador</span>
+          <span class="email-dest-chip" data-dest="chamados.vinculado" data-tipo="tecnico_responsavel"><i class="fas fa-user-cog"></i> Técnico responsável</span>
+          <span class="email-dest-chip" data-dest="chamados.vinculado" data-tipo="email_padrao"><i class="fas fa-envelope"></i> Email padrão</span>
+        </div>
+      </div>
+    </div>
+    <div class="email-notif-item">
+      <input type="checkbox" id="en-chamados-status_alterado" data-chave="chamados.status_alterado">
+      <div class="email-notif-item-info">
+        <strong>Status alterado</strong><small>Enviado quando o status de um chamado mudar</small>
+        <div class="email-dest-chips">
+          <span class="email-dest-chip ativo" data-dest="chamados.status_alterado" data-tipo="solicitante"><i class="fas fa-user"></i> Criador</span>
+          <span class="email-dest-chip" data-dest="chamados.status_alterado" data-tipo="tecnico_responsavel"><i class="fas fa-user-cog"></i> Técnico responsável</span>
+          <span class="email-dest-chip" data-dest="chamados.status_alterado" data-tipo="gestores_setor"><i class="fas fa-user-tie"></i> Gestores do setor</span>
+          <span class="email-dest-chip" data-dest="chamados.status_alterado" data-tipo="email_padrao"><i class="fas fa-envelope"></i> Email padrão</span>
+        </div>
+      </div>
+    </div>
+    <div class="email-notif-item">
+      <input type="checkbox" id="en-chamados-nova_mensagem" data-chave="chamados.nova_mensagem">
+      <div class="email-notif-item-info">
+        <strong>Nova mensagem no chamado</strong><small>Enviado quando uma mensagem for adicionada ao chamado</small>
+        <div class="email-dest-chips">
+          <span class="email-dest-chip ativo" data-dest="chamados.nova_mensagem" data-tipo="solicitante"><i class="fas fa-user"></i> Criador</span>
+          <span class="email-dest-chip ativo" data-dest="chamados.nova_mensagem" data-tipo="tecnico_responsavel"><i class="fas fa-user-cog"></i> Técnico responsável</span>
+          <span class="email-dest-chip" data-dest="chamados.nova_mensagem" data-tipo="email_padrao"><i class="fas fa-envelope"></i> Email padrão</span>
+        </div>
+      </div>
+    </div>
+    <div class="email-notif-item">
+      <input type="checkbox" id="en-chamados-reaberto" data-chave="chamados.reaberto">
+      <div class="email-notif-item-info">
+        <strong>Chamado reaberto</strong><small>Enviado quando um chamado concluído for reaberto</small>
+        <div class="email-dest-chips">
+          <span class="email-dest-chip ativo" data-dest="chamados.reaberto" data-tipo="tecnico_responsavel"><i class="fas fa-user-cog"></i> Técnico responsável</span>
+          <span class="email-dest-chip ativo" data-dest="chamados.reaberto" data-tipo="tecnicos_setor"><i class="fas fa-users-cog"></i> Técnicos do setor</span>
+          <span class="email-dest-chip" data-dest="chamados.reaberto" data-tipo="gestores_setor"><i class="fas fa-user-tie"></i> Gestores do setor</span>
+          <span class="email-dest-chip" data-dest="chamados.reaberto" data-tipo="email_padrao"><i class="fas fa-envelope"></i> Email padrão</span>
+        </div>
+      </div>
+    </div>
+    <div class="email-notif-item">
+      <input type="checkbox" id="en-chamados-concluido" data-chave="chamados.concluido">
+      <div class="email-notif-item-info">
+        <strong>Chamado concluído</strong><small>Enviado quando um chamado for finalizado</small>
+        <div class="email-dest-chips">
+          <span class="email-dest-chip ativo" data-dest="chamados.concluido" data-tipo="solicitante"><i class="fas fa-user"></i> Criador</span>
+          <span class="email-dest-chip" data-dest="chamados.concluido" data-tipo="email_padrao"><i class="fas fa-envelope"></i> Email padrão</span>
+        </div>
+      </div>
+    </div>
+    <div class="email-notif-item">
+      <input type="checkbox" id="en-chamados-cancelado" data-chave="chamados.cancelado">
+      <div class="email-notif-item-info">
+        <strong>Chamado cancelado</strong><small>Enviado quando um chamado for cancelado</small>
+        <div class="email-dest-chips">
+          <span class="email-dest-chip ativo" data-dest="chamados.cancelado" data-tipo="solicitante"><i class="fas fa-user"></i> Criador</span>
+          <span class="email-dest-chip" data-dest="chamados.cancelado" data-tipo="tecnico_responsavel"><i class="fas fa-user-cog"></i> Técnico responsável</span>
+          <span class="email-dest-chip" data-dest="chamados.cancelado" data-tipo="gestores_setor"><i class="fas fa-user-tie"></i> Gestores do setor</span>
+          <span class="email-dest-chip" data-dest="chamados.cancelado" data-tipo="email_padrao"><i class="fas fa-envelope"></i> Email padrão</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="email-notif-rodape">
+    <span id="email-notif-msg-chamados" style="font-size:.82rem;color:var(--cor-texto-fraco)"></span>
+    <button class="btn btn-primario btn-sm" onclick="emailNotifSalvar('chamados')" style="width:auto"><i class="fas fa-save"></i> Salvar</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     PATRIMÔNIO
+══════════════════════════════════════ -->
+<div class="email-painel" id="email-painel-patrimonio">
+  <div class="email-notif-header">
+    <div class="email-notif-header-info">
+      <strong><i class="fas fa-boxes" style="color:var(--cor-destaque);margin-right:6px"></i>Notificações — Patrimônio</strong>
+      <small>Ative os eventos e selecione os destinatários clicando nos chips</small>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;flex-shrink:0">
+      <span class="smtp-estado on" id="estado-notif-patrimonio-ativo">Ativado</span>
+      <label class="toggle smtp-toggle-wrap" title="Ativar/desativar notificações de Patrimônio">
+        <input type="checkbox" id="notif-patrimonio-ativo" data-chave="patrimonio.ativo" checked
+               onchange="smtpEstado('notif-patrimonio-ativo','estado-notif-patrimonio-ativo')">
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+  </div>
+  <div class="email-legenda">
+    <i class="fas fa-info-circle" style="color:var(--cor-destaque)"></i>
+    <b>Responsável atual</b> = responsável pelo bem antes da ação ·
+    <b>Novo responsável</b> = responsável após a transferência
+  </div>
+
+  <div class="email-notif-secao">
+    <div class="email-notif-secao-header">Movimentações <button class="email-sel-todos">Selecionar todos</button></div>
+    <div class="email-notif-item">
+      <input type="checkbox" id="en-patrimonio-cadastro" data-chave="patrimonio.cadastro">
+      <div class="email-notif-item-info">
+        <strong>Bem cadastrado</strong><small>Enviado quando um novo bem for registrado</small>
+        <div class="email-dest-chips">
+          <span class="email-dest-chip ativo" data-dest="patrimonio.cadastro" data-tipo="email_padrao"><i class="fas fa-envelope"></i> Email padrão</span>
+          <span class="email-dest-chip" data-dest="patrimonio.cadastro" data-tipo="admins"><i class="fas fa-shield-alt"></i> Administradores</span>
+        </div>
+      </div>
+    </div>
+    <div class="email-notif-item">
+      <input type="checkbox" id="en-patrimonio-transferencia" data-chave="patrimonio.transferencia">
+      <div class="email-notif-item-info">
+        <strong>Transferência de bem</strong><small>Enviado quando um bem mudar de responsável ou setor</small>
+        <div class="email-dest-chips">
+          <span class="email-dest-chip ativo" data-dest="patrimonio.transferencia" data-tipo="responsavel_atual"><i class="fas fa-user-minus"></i> Responsável atual</span>
+          <span class="email-dest-chip ativo" data-dest="patrimonio.transferencia" data-tipo="novo_responsavel"><i class="fas fa-user-plus"></i> Novo responsável</span>
+          <span class="email-dest-chip" data-dest="patrimonio.transferencia" data-tipo="email_padrao"><i class="fas fa-envelope"></i> Email padrão</span>
+        </div>
+      </div>
+    </div>
+    <div class="email-notif-item">
+      <input type="checkbox" id="en-patrimonio-avaria" data-chave="patrimonio.avaria">
+      <div class="email-notif-item-info">
+        <strong>Avaria ou sinistro</strong><small>Enviado quando uma avaria ou sinistro for registrado</small>
+        <div class="email-dest-chips">
+          <span class="email-dest-chip ativo" data-dest="patrimonio.avaria" data-tipo="email_padrao"><i class="fas fa-envelope"></i> Email padrão</span>
+          <span class="email-dest-chip" data-dest="patrimonio.avaria" data-tipo="responsavel_atual"><i class="fas fa-user"></i> Responsável</span>
+          <span class="email-dest-chip" data-dest="patrimonio.avaria" data-tipo="admins"><i class="fas fa-shield-alt"></i> Administradores</span>
+        </div>
+      </div>
+    </div>
+    <div class="email-notif-item">
+      <input type="checkbox" id="en-patrimonio-descarte" data-chave="patrimonio.descarte">
+      <div class="email-notif-item-info">
+        <strong>Bem descartado</strong><small>Enviado quando um bem for descartado do patrimônio</small>
+        <div class="email-dest-chips">
+          <span class="email-dest-chip ativo" data-dest="patrimonio.descarte" data-tipo="email_padrao"><i class="fas fa-envelope"></i> Email padrão</span>
+          <span class="email-dest-chip" data-dest="patrimonio.descarte" data-tipo="admins"><i class="fas fa-shield-alt"></i> Administradores</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="email-notif-rodape">
+    <span id="email-notif-msg-patrimonio" style="font-size:.82rem;color:var(--cor-texto-fraco)"></span>
+    <button class="btn btn-primario btn-sm" onclick="emailNotifSalvar('patrimonio')" style="width:auto"><i class="fas fa-save"></i> Salvar</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     AG. TAREFAS
+══════════════════════════════════════ -->
+<div class="email-painel" id="email-painel-agenda">
+  <div class="email-notif-header">
+    <div class="email-notif-header-info">
+      <strong><i class="fas fa-tasks" style="color:var(--cor-destaque);margin-right:6px"></i>Notificações — Agenda de Tarefas</strong>
+      <small>Ative os eventos e selecione os destinatários clicando nos chips</small>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;flex-shrink:0">
+      <span class="smtp-estado on" id="estado-notif-agenda-ativo">Ativado</span>
+      <label class="toggle smtp-toggle-wrap" title="Ativar/desativar notificações de Ag. Tarefas">
+        <input type="checkbox" id="notif-agenda-ativo" data-chave="agenda.ativo" checked
+               onchange="smtpEstado('notif-agenda-ativo','estado-notif-agenda-ativo')">
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+  </div>
+  <div class="email-legenda">
+    <i class="fas fa-info-circle" style="color:var(--cor-destaque)"></i>
+    <b>Atribuído para</b> = usuário responsável pela tarefa ·
+    <b>Criado por</b> = usuário que criou a tarefa
+  </div>
+
+  <div class="email-notif-secao">
+    <div class="email-notif-secao-header">Tarefas <button class="email-sel-todos">Selecionar todos</button></div>
+    <div class="email-notif-item">
+      <input type="checkbox" id="en-agenda-tarefa_criada" data-chave="agenda.tarefa_criada">
+      <div class="email-notif-item-info">
+        <strong>Nova tarefa criada</strong><small>Enviado quando uma nova tarefa for adicionada</small>
+        <div class="email-dest-chips">
+          <span class="email-dest-chip ativo" data-dest="agenda.tarefa_criada" data-tipo="criado_por_usuario"><i class="fas fa-user-edit"></i> Criado por</span>
+          <span class="email-dest-chip ativo" data-dest="agenda.tarefa_criada" data-tipo="atribuido"><i class="fas fa-user-tag"></i> Atribuído para</span>
+          <span class="email-dest-chip" data-dest="agenda.tarefa_criada" data-tipo="gestores_setor"><i class="fas fa-users"></i> Gestores</span>
+          <span class="email-dest-chip" data-dest="agenda.tarefa_criada" data-tipo="admins"><i class="fas fa-shield-alt"></i> Administradores</span>
+          <span class="email-dest-chip" data-dest="agenda.tarefa_criada" data-tipo="email_padrao"><i class="fas fa-envelope"></i> Email padrão</span>
+        </div>
+      </div>
+    </div>
+    <div class="email-notif-item">
+      <input type="checkbox" id="en-agenda-tarefa_concluida" data-chave="agenda.tarefa_concluida">
+      <div class="email-notif-item-info">
+        <strong>Tarefa concluída</strong><small>Enviado quando uma tarefa for marcada como concluída</small>
+        <div class="email-dest-chips">
+          <span class="email-dest-chip ativo" data-dest="agenda.tarefa_concluida" data-tipo="criado_por_usuario"><i class="fas fa-user-edit"></i> Criado por</span>
+          <span class="email-dest-chip ativo" data-dest="agenda.tarefa_concluida" data-tipo="atribuido"><i class="fas fa-user-tag"></i> Atribuído para</span>
+          <span class="email-dest-chip" data-dest="agenda.tarefa_concluida" data-tipo="gestores_setor"><i class="fas fa-users"></i> Gestores</span>
+          <span class="email-dest-chip" data-dest="agenda.tarefa_concluida" data-tipo="admins"><i class="fas fa-shield-alt"></i> Administradores</span>
+          <span class="email-dest-chip" data-dest="agenda.tarefa_concluida" data-tipo="email_padrao"><i class="fas fa-envelope"></i> Email padrão</span>
+        </div>
+      </div>
+    </div>
+    <div class="email-notif-item">
+      <input type="checkbox" id="en-agenda-passo_atribuido" data-chave="agenda.passo_atribuido">
+      <div class="email-notif-item-info">
+        <strong>Passo atribuído</strong><small>Enviado quando um passo da tarefa for atribuído a um colaborador</small>
+        <div class="email-dest-chips">
+          <span class="email-dest-chip ativo" data-dest="agenda.passo_atribuido" data-tipo="criado_por_usuario"><i class="fas fa-user-edit"></i> Criado por</span>
+          <span class="email-dest-chip ativo" data-dest="agenda.passo_atribuido" data-tipo="atribuido"><i class="fas fa-user-tag"></i> Atribuído para</span>
+          <span class="email-dest-chip" data-dest="agenda.passo_atribuido" data-tipo="gestores_setor"><i class="fas fa-users"></i> Gestores</span>
+          <span class="email-dest-chip" data-dest="agenda.passo_atribuido" data-tipo="admins"><i class="fas fa-shield-alt"></i> Administradores</span>
+          <span class="email-dest-chip" data-dest="agenda.passo_atribuido" data-tipo="email_padrao"><i class="fas fa-envelope"></i> Email padrão</span>
+        </div>
+      </div>
+    </div>
+    <div class="email-notif-item">
+      <input type="checkbox" id="en-agenda-tarefa_editada" data-chave="agenda.tarefa_editada">
+      <div class="email-notif-item-info">
+        <strong>Tarefa editada</strong><small>Enviado quando uma tarefa existente for atualizada</small>
+        <div class="email-dest-chips">
+          <span class="email-dest-chip ativo" data-dest="agenda.tarefa_editada" data-tipo="criado_por_usuario"><i class="fas fa-user-edit"></i> Criado por</span>
+          <span class="email-dest-chip ativo" data-dest="agenda.tarefa_editada" data-tipo="atribuido"><i class="fas fa-user-tag"></i> Atribuído para</span>
+          <span class="email-dest-chip" data-dest="agenda.tarefa_editada" data-tipo="gestores_setor"><i class="fas fa-users"></i> Gestores</span>
+          <span class="email-dest-chip" data-dest="agenda.tarefa_editada" data-tipo="admins"><i class="fas fa-shield-alt"></i> Administradores</span>
+          <span class="email-dest-chip" data-dest="agenda.tarefa_editada" data-tipo="email_padrao"><i class="fas fa-envelope"></i> Email padrão</span>
+        </div>
+      </div>
+    </div>
+    <div class="email-notif-item">
+      <input type="checkbox" id="en-agenda-passo_concluido" data-chave="agenda.passo_concluido">
+      <div class="email-notif-item-info">
+        <strong>Passo concluído</strong><small>Enviado quando um passo for marcado como concluído</small>
+        <div class="email-dest-chips">
+          <span class="email-dest-chip ativo" data-dest="agenda.passo_concluido" data-tipo="criado_por_usuario"><i class="fas fa-user-edit"></i> Criado por</span>
+          <span class="email-dest-chip ativo" data-dest="agenda.passo_concluido" data-tipo="atribuido"><i class="fas fa-user-tag"></i> Atribuído para</span>
+          <span class="email-dest-chip" data-dest="agenda.passo_concluido" data-tipo="gestores_setor"><i class="fas fa-users"></i> Gestores</span>
+          <span class="email-dest-chip" data-dest="agenda.passo_concluido" data-tipo="admins"><i class="fas fa-shield-alt"></i> Administradores</span>
+          <span class="email-dest-chip" data-dest="agenda.passo_concluido" data-tipo="email_padrao"><i class="fas fa-envelope"></i> Email padrão</span>
+        </div>
+      </div>
+    </div>
+    <div class="email-notif-item">
+      <input type="checkbox" id="en-agenda-membro_adicionado" data-chave="agenda.membro_adicionado">
+      <div class="email-notif-item-info">
+        <strong>Membro adicionado</strong><small>Enviado ao usuário quando ele for adicionado a uma lista</small>
+        <div class="email-dest-chips">
+          <span class="email-dest-chip ativo" data-dest="agenda.membro_adicionado" data-tipo="atribuido"><i class="fas fa-user-tag"></i> Atribuído para</span>
+          <span class="email-dest-chip" data-dest="agenda.membro_adicionado" data-tipo="criado_por_usuario"><i class="fas fa-user-edit"></i> Criado por</span>
+          <span class="email-dest-chip" data-dest="agenda.membro_adicionado" data-tipo="gestores_setor"><i class="fas fa-users"></i> Gestores</span>
+          <span class="email-dest-chip" data-dest="agenda.membro_adicionado" data-tipo="admins"><i class="fas fa-shield-alt"></i> Administradores</span>
+          <span class="email-dest-chip" data-dest="agenda.membro_adicionado" data-tipo="email_padrao"><i class="fas fa-envelope"></i> Email padrão</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="email-notif-rodape">
+    <span id="email-notif-msg-agenda" style="font-size:.82rem;color:var(--cor-texto-fraco)"></span>
+    <button class="btn btn-primario btn-sm" onclick="emailNotifSalvar('agenda')" style="width:auto"><i class="fas fa-save"></i> Salvar</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     FINANCEIRO
+══════════════════════════════════════ -->
+<div class="email-painel" id="email-painel-financeiro">
+  <div class="email-notif-header">
+    <div class="email-notif-header-info">
+      <strong><i class="fas fa-wallet" style="color:var(--cor-destaque);margin-right:6px"></i>Notificações — Financeiro</strong>
+      <small>Ative os eventos e selecione os destinatários clicando nos chips</small>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;flex-shrink:0">
+      <span class="smtp-estado on" id="estado-notif-financeiro-ativo">Ativado</span>
+      <label class="toggle smtp-toggle-wrap" title="Ativar/desativar notificações de Financeiro">
+        <input type="checkbox" id="notif-financeiro-ativo" data-chave="financeiro.ativo" checked
+               onchange="smtpEstado('notif-financeiro-ativo','estado-notif-financeiro-ativo')">
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+  </div>
+  <div class="email-legenda">
+    <i class="fas fa-info-circle" style="color:var(--cor-destaque)"></i>
+    <b>Criado por</b> = usuário que registrou a conta ·
+    <b>Usuário logado</b> = usuário ativo no momento do evento
+  </div>
+
+  <div class="email-notif-secao">
+    <div class="email-notif-secao-header">Contas <button class="email-sel-todos">Selecionar todos</button></div>
+    <div class="email-notif-item">
+      <input type="checkbox" id="en-financeiro-nova_conta" data-chave="financeiro.nova_conta">
+      <div class="email-notif-item-info">
+        <strong>Nova conta cadastrada</strong><small>Enviado quando uma nova conta for registrada na agenda financeira</small>
+        <div class="email-dest-chips">
+          <span class="email-dest-chip ativo" data-dest="financeiro.nova_conta" data-tipo="criado_por_usuario"><i class="fas fa-user-edit"></i> Criado por</span>
+          <span class="email-dest-chip ativo" data-dest="financeiro.nova_conta" data-tipo="email_padrao"><i class="fas fa-envelope"></i> Email padrão</span>
+          <span class="email-dest-chip" data-dest="financeiro.nova_conta" data-tipo="admins"><i class="fas fa-shield-alt"></i> Administradores</span>
+        </div>
+      </div>
+    </div>
+    <div class="email-notif-item">
+      <input type="checkbox" id="en-financeiro-lancamento" data-chave="financeiro.lancamento">
+      <div class="email-notif-item-info">
+        <strong>Lançamento registrado</strong><small>Enviado quando uma conta for marcada como lançada (pagamento em processamento)</small>
+        <div class="email-dest-chips">
+          <span class="email-dest-chip ativo" data-dest="financeiro.lancamento" data-tipo="criado_por_usuario"><i class="fas fa-user-edit"></i> Criado por</span>
+          <span class="email-dest-chip ativo" data-dest="financeiro.lancamento" data-tipo="email_padrao"><i class="fas fa-envelope"></i> Email padrão</span>
+          <span class="email-dest-chip" data-dest="financeiro.lancamento" data-tipo="admins"><i class="fas fa-shield-alt"></i> Administradores</span>
+        </div>
+      </div>
+    </div>
+    <div class="email-notif-item">
+      <input type="checkbox" id="en-financeiro-conta_paga" data-chave="financeiro.conta_paga">
+      <div class="email-notif-item-info">
+        <strong>Conta quitada</strong><small>Enviado quando uma conta for marcada como paga</small>
+        <div class="email-dest-chips">
+          <span class="email-dest-chip ativo" data-dest="financeiro.conta_paga" data-tipo="criado_por_usuario"><i class="fas fa-user-edit"></i> Criado por</span>
+          <span class="email-dest-chip ativo" data-dest="financeiro.conta_paga" data-tipo="email_padrao"><i class="fas fa-envelope"></i> Email padrão</span>
+          <span class="email-dest-chip" data-dest="financeiro.conta_paga" data-tipo="admins"><i class="fas fa-shield-alt"></i> Administradores</span>
+        </div>
+      </div>
+    </div>
+    <div class="email-notif-item">
+      <input type="checkbox" id="en-financeiro-conta_vencida" data-chave="financeiro.conta_vencida">
+      <div class="email-notif-item-info">
+        <strong>Conta vencida (ao registrar)</strong><small>Enviado imediatamente quando uma conta for cadastrada/editada já vencida</small>
+        <div class="email-dest-chips">
+          <span class="email-dest-chip ativo" data-dest="financeiro.conta_vencida" data-tipo="criado_por_usuario"><i class="fas fa-user-edit"></i> Criado por</span>
+          <span class="email-dest-chip ativo" data-dest="financeiro.conta_vencida" data-tipo="email_padrao"><i class="fas fa-envelope"></i> Email padrão</span>
+          <span class="email-dest-chip" data-dest="financeiro.conta_vencida" data-tipo="admins"><i class="fas fa-shield-alt"></i> Administradores</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="email-notif-secao">
+    <div class="email-notif-secao-header">Lembretes agendados (07:00 diário) <button class="email-sel-todos">Selecionar todos</button></div>
+    <div class="email-notif-item">
+      <input type="checkbox" id="en-financeiro-conta_vencida_diario" data-chave="financeiro.conta_vencida_diario">
+      <div class="email-notif-item-info">
+        <strong>Contas em atraso (diário)</strong><small>Enviado diariamente às 07:00 com todas as contas já vencidas e ainda não pagas</small>
+        <div class="email-dest-chips">
+          <span class="email-dest-chip ativo" data-dest="financeiro.conta_vencida_diario" data-tipo="email_padrao"><i class="fas fa-envelope"></i> Email padrão</span>
+          <span class="email-dest-chip" data-dest="financeiro.conta_vencida_diario" data-tipo="admins"><i class="fas fa-shield-alt"></i> Administradores</span>
+        </div>
+      </div>
+    </div>
+    <div class="email-notif-item">
+      <input type="checkbox" id="en-financeiro-lembrete_hoje" data-chave="financeiro.lembrete_hoje">
+      <div class="email-notif-item-info">
+        <strong>Lembrar contas do dia</strong><small>Enviado diariamente às 07:00 com as contas que vencem hoje e ainda não foram pagas</small>
+        <div class="email-dest-chips">
+          <span class="email-dest-chip ativo" data-dest="financeiro.lembrete_hoje" data-tipo="criado_por_usuario"><i class="fas fa-user-edit"></i> Criado por</span>
+          <span class="email-dest-chip ativo" data-dest="financeiro.lembrete_hoje" data-tipo="email_padrao"><i class="fas fa-envelope"></i> Email padrão</span>
+          <span class="email-dest-chip" data-dest="financeiro.lembrete_hoje" data-tipo="admins"><i class="fas fa-shield-alt"></i> Administradores</span>
+        </div>
+      </div>
+    </div>
+    <div class="email-notif-item">
+      <input type="checkbox" id="en-financeiro-lembrete_7dias" data-chave="financeiro.lembrete_7dias">
+      <div class="email-notif-item-info">
+        <strong>Lembrar contas dos próximos 7 dias</strong><small>Enviado diariamente às 07:00 com as contas que vencem nos próximos 7 dias e ainda não foram pagas</small>
+        <div class="email-dest-chips">
+          <span class="email-dest-chip ativo" data-dest="financeiro.lembrete_7dias" data-tipo="criado_por_usuario"><i class="fas fa-user-edit"></i> Criado por</span>
+          <span class="email-dest-chip ativo" data-dest="financeiro.lembrete_7dias" data-tipo="email_padrao"><i class="fas fa-envelope"></i> Email padrão</span>
+          <span class="email-dest-chip" data-dest="financeiro.lembrete_7dias" data-tipo="admins"><i class="fas fa-shield-alt"></i> Administradores</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="email-notif-secao">
+    <div class="email-notif-secao-header">Lembretes de Lançamento <button class="email-sel-todos">Selecionar todos</button></div>
+    <div class="email-notif-item">
+      <input type="checkbox" id="en-financeiro-lembrete_lancamento" data-chave="financeiro.lembrete_lancamento">
+      <div class="email-notif-item-info">
+        <strong>Lembrete para lançar conta</strong><small>Enviado N dias antes do vencimento para lembrar de registrar o lançamento</small>
+        <div class="email-dest-chips">
+          <span class="email-dest-chip ativo" data-dest="financeiro.lembrete_lancamento" data-tipo="criado_por_usuario"><i class="fas fa-user-edit"></i> Criado por</span>
+          <span class="email-dest-chip ativo" data-dest="financeiro.lembrete_lancamento" data-tipo="email_padrao"><i class="fas fa-envelope"></i> Email padrão</span>
+          <span class="email-dest-chip" data-dest="financeiro.lembrete_lancamento" data-tipo="admins"><i class="fas fa-shield-alt"></i> Administradores</span>
+        </div>
+      </div>
+    </div>
+    <div class="email-notif-item" style="background:var(--cor-fundo-3)">
+      <div class="email-notif-item-info" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+        <span style="font-size:0.83rem;color:var(--cor-texto-fraco)">
+          <i class="fas fa-clock" style="margin-right:4px"></i>Enviar lembrete
+        </span>
+        <div style="display:flex;align-items:center;gap:6px">
+          <input type="number" id="fin-dias-lembrete" min="1" max="60" value="3"
+            style="width:60px;padding:4px 8px;border-radius:5px;border:1px solid var(--cor-borda);
+                   background:var(--cor-fundo-2);color:var(--cor-texto);font-size:0.83rem;outline:none">
+          <span style="font-size:0.83rem;color:var(--cor-texto-fraco)">dias antes do vencimento</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="email-notif-rodape">
+    <span id="email-notif-msg-financeiro" style="font-size:.82rem;color:var(--cor-texto-fraco)"></span>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <button class="btn btn-sm" id="btn-testar-financeiro" onclick="testarNotifFinanceiro()"
+        style="width:auto;background:var(--cor-fundo-3);border:1px solid var(--cor-borda);color:var(--cor-texto)"
+        title="Envia emails com dados fictícios para o Email padrão (teste de configuração SMTP)">
+        <i class="fas fa-flask"></i> Testar (dados fictícios)
+      </button>
+      <button class="btn btn-sm" id="btn-reenviar-financeiro" onclick="reenviarLembretesFinanceiro()"
+        style="width:auto;background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.4);color:#f59e0b"
+        title="Dispara os lembretes reais agora — envia para os destinatários reais com dados reais do banco">
+        <i class="fas fa-redo"></i> Reenviar lembretes agora
+      </button>
+      <button class="btn btn-primario btn-sm" onclick="emailNotifSalvar('financeiro')" style="width:auto">
+        <i class="fas fa-save"></i> Salvar
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     CONTATOS
+══════════════════════════════════════ -->
+<div class="email-painel" id="email-painel-contatos">
+  <div class="email-notif-header">
+    <div class="email-notif-header-info">
+      <strong><i class="fas fa-address-book" style="color:var(--cor-destaque);margin-right:6px"></i>Notificações — Contatos</strong>
+      <small>Ative os eventos e selecione os destinatários clicando nos chips</small>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;flex-shrink:0">
+      <span class="smtp-estado on" id="estado-notif-contatos-ativo">Ativado</span>
+      <label class="toggle smtp-toggle-wrap" title="Ativar/desativar notificações de Contatos">
+        <input type="checkbox" id="notif-contatos-ativo" data-chave="contatos.ativo" checked
+               onchange="smtpEstado('notif-contatos-ativo','estado-notif-contatos-ativo')">
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+  </div>
+
+  <div class="email-notif-secao">
+    <div class="email-notif-secao-header">Contatos <button class="email-sel-todos">Selecionar todos</button></div>
+    <div class="email-notif-item">
+      <input type="checkbox" id="en-contatos-novo_contato" data-chave="contatos.novo_contato">
+      <div class="email-notif-item-info">
+        <strong>Novo contato adicionado</strong><small>Enviado quando um novo contato for cadastrado em qualquer lista</small>
+        <div class="email-dest-chips">
+          <span class="email-dest-chip ativo" data-dest="contatos.novo_contato" data-tipo="criado_por_usuario"><i class="fas fa-user-edit"></i> Criado por</span>
+          <span class="email-dest-chip" data-dest="contatos.novo_contato" data-tipo="email_padrao"><i class="fas fa-envelope"></i> Email padrão</span>
+          <span class="email-dest-chip" data-dest="contatos.novo_contato" data-tipo="admins"><i class="fas fa-shield-alt"></i> Administradores</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="email-notif-rodape">
+    <span id="email-notif-msg-contatos" style="font-size:.82rem;color:var(--cor-texto-fraco)"></span>
+    <button class="btn btn-primario btn-sm" onclick="emailNotifSalvar('contatos')" style="width:auto"><i class="fas fa-save"></i> Salvar</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     APROVAÇÕES
+══════════════════════════════════════ -->
+<div class="email-painel" id="email-painel-aprovacoes">
+  <div class="email-notif-header">
+    <div class="email-notif-header-info">
+      <strong><i class="fas fa-file-signature" style="color:var(--cor-destaque);margin-right:6px"></i>Notificações — Aprovações</strong>
+      <small>Ative os eventos e selecione os destinatários clicando nos chips</small>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;flex-shrink:0">
+      <span class="smtp-estado on" id="estado-notif-aprovacoes-ativo">Ativado</span>
+      <label class="toggle smtp-toggle-wrap" title="Ativar/desativar notificações de Aprovações">
+        <input type="checkbox" id="notif-aprovacoes-ativo" data-chave="aprovacoes.ativo" checked
+               onchange="smtpEstado('notif-aprovacoes-ativo','estado-notif-aprovacoes-ativo')">
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+  </div>
+  <div class="email-legenda">
+    <i class="fas fa-info-circle" style="color:var(--cor-destaque)"></i>
+    <b>Criador</b> = quem criou a solicitação de aprovação ·
+    <b>Aprovadores</b> = usuários selecionados para aprovar a solicitação ·
+    <b>Observador</b> = usuários cadastrados como observadores ·
+    <b>Email padrão</b> = endereço configurado na aba Configuração
+  </div>
+
+  <!-- Ciclo da solicitação -->
+  <div class="email-notif-secao">
+    <div class="email-notif-secao-header">Ciclo da Solicitação <button class="email-sel-todos">Selecionar todos</button></div>
+
+    <div class="email-notif-item">
+      <input type="checkbox" id="en-aprovacoes-nova_solicitacao" data-chave="aprovacoes.nova_solicitacao">
+      <div class="email-notif-item-info">
+        <strong>Nova solicitação criada</strong>
+        <small>Enviado quando uma nova solicitação for submetida</small>
+        <div class="email-dest-chips">
+          <span class="email-dest-chip ativo" data-dest="aprovacoes.nova_solicitacao" data-tipo="aprovadores"><i class="fas fa-user-check"></i> Aprovadores</span>
+          <span class="email-dest-chip" data-dest="aprovacoes.nova_solicitacao" data-tipo="solicitante"><i class="fas fa-user"></i> Criador</span>
+          <span class="email-dest-chip" data-dest="aprovacoes.nova_solicitacao" data-tipo="observador"><i class="fas fa-eye"></i> Observador</span>
+          <span class="email-dest-chip" data-dest="aprovacoes.nova_solicitacao" data-tipo="email_padrao"><i class="fas fa-envelope"></i> Email padrão</span>
+          <span class="email-dest-chip" data-dest="aprovacoes.nova_solicitacao" data-tipo="admins"><i class="fas fa-shield-alt"></i> Administradores</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="email-notif-item">
+      <input type="checkbox" id="en-aprovacoes-aprovada" data-chave="aprovacoes.aprovada">
+      <div class="email-notif-item-info">
+        <strong>Solicitação aprovada</strong>
+        <small>Enviado quando todos os aprovadores concluírem com aprovação</small>
+        <div class="email-dest-chips">
+          <span class="email-dest-chip ativo" data-dest="aprovacoes.aprovada" data-tipo="solicitante"><i class="fas fa-user"></i> Criador</span>
+          <span class="email-dest-chip" data-dest="aprovacoes.aprovada" data-tipo="aprovadores"><i class="fas fa-user-check"></i> Aprovadores</span>
+          <span class="email-dest-chip" data-dest="aprovacoes.aprovada" data-tipo="observador"><i class="fas fa-eye"></i> Observador</span>
+          <span class="email-dest-chip" data-dest="aprovacoes.aprovada" data-tipo="email_padrao"><i class="fas fa-envelope"></i> Email padrão</span>
+          <span class="email-dest-chip" data-dest="aprovacoes.aprovada" data-tipo="admins"><i class="fas fa-shield-alt"></i> Administradores</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="email-notif-item">
+      <input type="checkbox" id="en-aprovacoes-reprovada" data-chave="aprovacoes.reprovada">
+      <div class="email-notif-item-info">
+        <strong>Solicitação reprovada</strong>
+        <small>Enviado quando um aprovador rejeitar a solicitação</small>
+        <div class="email-dest-chips">
+          <span class="email-dest-chip ativo" data-dest="aprovacoes.reprovada" data-tipo="solicitante"><i class="fas fa-user"></i> Criador</span>
+          <span class="email-dest-chip" data-dest="aprovacoes.reprovada" data-tipo="aprovadores"><i class="fas fa-user-check"></i> Aprovadores</span>
+          <span class="email-dest-chip" data-dest="aprovacoes.reprovada" data-tipo="observador"><i class="fas fa-eye"></i> Observador</span>
+          <span class="email-dest-chip" data-dest="aprovacoes.reprovada" data-tipo="email_padrao"><i class="fas fa-envelope"></i> Email padrão</span>
+          <span class="email-dest-chip" data-dest="aprovacoes.reprovada" data-tipo="admins"><i class="fas fa-shield-alt"></i> Administradores</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="email-notif-item">
+      <input type="checkbox" id="en-aprovacoes-cancelada" data-chave="aprovacoes.cancelada">
+      <div class="email-notif-item-info">
+        <strong>Solicitação cancelada</strong>
+        <small>Enviado quando o solicitante cancelar a solicitação</small>
+        <div class="email-dest-chips">
+          <span class="email-dest-chip ativo" data-dest="aprovacoes.cancelada" data-tipo="aprovadores"><i class="fas fa-user-check"></i> Aprovadores</span>
+          <span class="email-dest-chip" data-dest="aprovacoes.cancelada" data-tipo="solicitante"><i class="fas fa-user"></i> Criador</span>
+          <span class="email-dest-chip" data-dest="aprovacoes.cancelada" data-tipo="observador"><i class="fas fa-eye"></i> Observador</span>
+          <span class="email-dest-chip" data-dest="aprovacoes.cancelada" data-tipo="email_padrao"><i class="fas fa-envelope"></i> Email padrão</span>
+          <span class="email-dest-chip" data-dest="aprovacoes.cancelada" data-tipo="admins"><i class="fas fa-shield-alt"></i> Administradores</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="email-notif-item">
+      <input type="checkbox" id="en-aprovacoes-editada" data-chave="aprovacoes.editada">
+      <div class="email-notif-item-info">
+        <strong>Solicitação editada pelo solicitante</strong>
+        <small>Enviado quando o solicitante alterar título, objetivo ou lista de aprovadores</small>
+        <div class="email-dest-chips">
+          <span class="email-dest-chip ativo" data-dest="aprovacoes.editada" data-tipo="aprovadores"><i class="fas fa-user-check"></i> Aprovadores</span>
+          <span class="email-dest-chip" data-dest="aprovacoes.editada" data-tipo="solicitante"><i class="fas fa-user"></i> Criador</span>
+          <span class="email-dest-chip" data-dest="aprovacoes.editada" data-tipo="observador"><i class="fas fa-eye"></i> Observador</span>
+          <span class="email-dest-chip" data-dest="aprovacoes.editada" data-tipo="email_padrao"><i class="fas fa-envelope"></i> Email padrão</span>
+          <span class="email-dest-chip" data-dest="aprovacoes.editada" data-tipo="admins"><i class="fas fa-shield-alt"></i> Administradores</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Lembretes -->
+  <div class="email-notif-secao">
+    <div class="email-notif-secao-header">Lembretes <button class="email-sel-todos">Selecionar todos</button></div>
+
+    <div class="email-notif-item">
+      <input type="checkbox" id="en-aprovacoes-lembrete_pendente" data-chave="aprovacoes.lembrete_pendente">
+      <div class="email-notif-item-info">
+        <strong>Lembrete de aprovação pendente</strong>
+        <small>Enviado diariamente às 08:00 quando houver solicitações aguardando decisão do aprovador</small>
+        <div class="email-dest-chips">
+          <span class="email-dest-chip ativo" data-dest="aprovacoes.lembrete_pendente" data-tipo="aprovadores"><i class="fas fa-user-check"></i> Aprovadores</span>
+          <span class="email-dest-chip" data-dest="aprovacoes.lembrete_pendente" data-tipo="solicitante"><i class="fas fa-user"></i> Criador</span>
+          <span class="email-dest-chip" data-dest="aprovacoes.lembrete_pendente" data-tipo="observador"><i class="fas fa-eye"></i> Observador</span>
+          <span class="email-dest-chip" data-dest="aprovacoes.lembrete_pendente" data-tipo="email_padrao"><i class="fas fa-envelope"></i> Email padrão</span>
+          <span class="email-dest-chip" data-dest="aprovacoes.lembrete_pendente" data-tipo="admins"><i class="fas fa-shield-alt"></i> Administradores</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="email-notif-rodape">
+    <span id="email-notif-msg-aprovacoes" style="font-size:.82rem;color:var(--cor-texto-fraco)"></span>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <button class="btn btn-sm" id="btn-testar-aprovacoes" onclick="testarNotifAprovacoes()"
+        style="width:auto;background:var(--cor-fundo-3);border:1px solid var(--cor-borda);color:var(--cor-texto)">
+        <i class="fas fa-flask"></i> Testar notificações
+      </button>
+      <button class="btn btn-primario btn-sm" onclick="emailNotifSalvar('aprovacoes')" style="width:auto">
+        <i class="fas fa-save"></i> Salvar
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+
+  // ── Sub-abas ─────────────────────────────────────────────────────────
+  document.querySelectorAll('.email-aba-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      document.querySelectorAll('.email-aba-btn').forEach(function (b) { b.classList.remove('ativa'); });
+      document.querySelectorAll('.email-painel').forEach(function (p) { p.classList.remove('ativo'); });
+      btn.classList.add('ativa');
+      var p = document.getElementById('email-painel-' + btn.dataset.painel);
+      if (p) p.classList.add('ativo');
+    });
+  });
+
+  // ── Chips de destinatário ────────────────────────────────────────────
+  document.querySelectorAll('.email-dest-chip').forEach(function (chip) {
+    chip.addEventListener('click', function () { chip.classList.toggle('ativo'); });
+  });
+
+  // ── Selecionar todos por seção ───────────────────────────────────────
+  document.querySelectorAll('.email-sel-todos').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var secao  = btn.closest('.email-notif-secao');
+      var checks = secao.querySelectorAll('input[type="checkbox"]');
+      var todos  = Array.from(checks).every(function (c) { return c.checked; });
+      checks.forEach(function (c) { c.checked = !todos; });
+      btn.textContent = todos ? 'Selecionar todos' : 'Desmarcar todos';
+    });
+  });
+
+  // ── Badge de estado dos toggles ──────────────────────────────────────
+  window.smtpEstado = function (inputId, badgeId) {
+    var cb  = document.getElementById(inputId);
+    var bdg = document.getElementById(badgeId);
+    if (!cb || !bdg) return;
+    bdg.textContent = cb.checked ? 'Ativado' : 'Desativado';
+    bdg.classList.toggle('on', cb.checked);
+  };
+
+  // ── Mostrar/ocultar senha ────────────────────────────────────────────
+  window.smtpVerSenha = function () {
+    var inp = document.getElementById('email-senha');
+    var ico = document.getElementById('email-senha-icone');
+    if (inp.type === 'password') {
+      inp.type = 'text'; ico.className = 'fas fa-eye-slash';
+    } else {
+      inp.type = 'password'; ico.className = 'fas fa-eye';
+    }
+  };
+
+  // ── Carregar SMTP ────────────────────────────────────────────────────
+  async function carregarEmail() {
+    try {
+      var resp = await fetch('/api/configuracoes/email');
+      if (!resp.ok) return;
+      var { config } = await resp.json();
+
+      var setCheck = function (id, val, defVal) {
+        var el = document.getElementById(id); if (!el) return;
+        el.checked = defVal ? val !== 'false' : val === 'true';
+        smtpEstado(id, 'estado-' + id);
+      };
+
+      setCheck('email-ativo',      config['email_ativo'],      false);
+      setCheck('email-ssl',        config['email_ssl'],        true);
+      setCheck('email-notif-erro', config['email_notif_erro'], true);
+
+      var setVal = function (id, val) { var el = document.getElementById(id); if (el) el.value = val || ''; };
+      setVal('email-host',         config['email_host']);
+      setVal('email-porta',        config['email_porta']        || '465');
+      setVal('email-usuario',      config['email_usuario']);
+      setVal('email-senha',        config['email_senha']);
+      setVal('email-remetente',    config['email_remetente']);
+      setVal('email-destinatario', config['email_destinatario']);
+    } catch (e) {}
+  }
+
+  // ── Carregar notificações + destinatários ────────────────────────────
+  async function carregarNotificacoes() {
+    try {
+      var r = await fetch('/api/notificacoes');
+      if (!r.ok) return;
+      var data = await r.json();
+      if (!data.sucesso) return;
+
+      data.notificacoes.forEach(function (item) {
+        var el = document.querySelector('[data-chave="' + item.chave + '"]');
+        if (el) el.checked = item.ativo;
+
+        // Sincroniza badge do toggle por sistema
+        if (item.chave.endsWith('.ativo')) {
+          var sistema = item.chave.replace('.ativo', '');
+          smtpEstado('notif-' + sistema + '-ativo', 'estado-notif-' + sistema + '-ativo');
+        }
+
+        if (item.dest && item.dest.length > 0) {
+          document.querySelectorAll('.email-dest-chip[data-dest="' + item.chave + '"]')
+            .forEach(function (chip) { chip.classList.remove('ativo'); });
+          item.dest.forEach(function (tipo) {
+            var chip = document.querySelector(
+              '.email-dest-chip[data-dest="' + item.chave + '"][data-tipo="' + tipo + '"]'
+            );
+            if (chip) chip.classList.add('ativo');
+          });
+        }
+      });
+    } catch (e) { console.error('Erro ao carregar notificações:', e); }
+
+    // Carregar dias_lembrete do financeiro
+    try {
+      var rc = await fetch('/api/financeiro/config');
+      if (rc.ok) {
+        var dc = await rc.json();
+        var dias = dc.config && dc.config['financeiro.dias_lembrete'];
+        if (dias) {
+          var inp = document.getElementById('fin-dias-lembrete');
+          if (inp) inp.value = dias;
+        }
+      }
+    } catch (e) { /* silencioso */ }
+  }
+
+  // ── Salvar SMTP ──────────────────────────────────────────────────────
+  window.salvarEmail = async function () {
+    var get = function (id) { return document.getElementById(id); };
+    var emailAtivo = get('email-ativo').checked;
+    var configuracoes = {
+      email_ativo:        String(emailAtivo),
+      email_host:         get('email-host').value.trim(),
+      email_porta:        get('email-porta').value.trim(),
+      email_ssl:          String(get('email-ssl').checked),
+      email_usuario:      get('email-usuario').value.trim(),
+      email_senha:        get('email-senha').value,
+      email_remetente:    get('email-remetente').value.trim(),
+      email_destinatario: get('email-destinatario').value.trim(),
+      email_notif_erro:   String(get('email-notif-erro').checked)
+    };
+    try {
+      var resp  = await fetch('/api/configuracoes', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ grupo: 'email', configuracoes })
+      });
+      var dados = await resp.json();
+      // Sincroniza notif.email_ativo com o estado do toggle
+      await fetch('/api/notificacoes', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ emailAtivo: emailAtivo, notificacoes: [] })
+      });
+      mostrarAlerta(dados.mensagem || dados.erro, resp.ok ? 'sucesso' : 'erro');
+    } catch (e) { mostrarAlerta('Erro de comunicação.', 'erro'); }
+  };
+
+  // ── Salvar notificações de um painel ─────────────────────────────────
+  window.emailNotifSalvar = async function (sistema) {
+    var msgEl  = document.getElementById('email-notif-msg-' + sistema);
+    var painel = document.getElementById('email-painel-' + sistema);
+    var notificacoes = [];
+
+    painel.querySelectorAll('[data-chave]').forEach(function (el) {
+      var chave = el.dataset.chave;
+      var dest  = Array.from(
+        document.querySelectorAll('.email-dest-chip.ativo[data-dest="' + chave + '"]')
+      ).map(function (chip) { return chip.dataset.tipo; });
+      notificacoes.push({ chave: chave, ativo: el.checked, dest: dest });
+    });
+
+    try {
+      var r = await fetch('/api/notificacoes', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ notificacoes })
+      });
+      var data = await r.json();
+
+      // Se financeiro, salvar também dias_lembrete
+      if (sistema === 'financeiro') {
+        var dias = parseInt((document.getElementById('fin-dias-lembrete') || {}).value);
+        if (!isNaN(dias) && dias >= 1) {
+          try {
+            await fetch('/api/financeiro/config', {
+              method: 'POST', headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ dias_lembrete: dias })
+            });
+          } catch (e) { /* silencioso */ }
+        }
+      }
+
+      if (msgEl) {
+        msgEl.style.color = data.sucesso ? '#4caf50' : '#f44336';
+        msgEl.textContent = data.sucesso ? '\u2713 Salvo!' : (data.erro || 'Erro ao salvar.');
+        setTimeout(function () { msgEl.textContent = ''; }, 3000);
+      }
+    } catch (e) {
+      if (msgEl) { msgEl.style.color = '#f44336'; msgEl.textContent = 'Erro de conexão.'; }
+    }
+  };
+
+  // ── Testar notificações de aprovações ────────────────────────────────
+  window.testarNotifAprovacoes = function () {
+    var dest = (document.getElementById('email-destinatario') || {}).value || '';
+    if (!dest.trim()) {
+      mostrarAlerta('Preencha o campo "Email padrão (destino)" na aba Configuração antes de testar.', 'erro');
+      return;
+    }
+    var btn = document.getElementById('btn-testar-aprovacoes');
+    if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando…'; }
+    mostrarAlerta('Enviando notificações de teste para ' + dest.trim() + '…', 'sucesso');
+
+    fetch('/api/email/testar-aprovacoes', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ destino: dest.trim() })
+    })
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        mostrarAlerta(d.mensagem || d.erro, d.sucesso ? 'sucesso' : 'erro');
+      })
+      .catch(function () { mostrarAlerta('Erro ao enviar notificações de teste.', 'erro'); })
+      .finally(function () {
+        if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-flask"></i> Testar notificações'; }
+      });
+  };
+
+  // ── Testar notificações financeiro ───────────────────────────────────
+  window.testarNotifFinanceiro = function () {
+    var dest = (document.getElementById('email-destinatario') || {}).value || '';
+    if (!dest.trim()) {
+      mostrarAlerta('Preencha o campo "Email padrão (destino)" na aba Configuração antes de testar.', 'erro');
+      return;
+    }
+    var btn = document.getElementById('btn-testar-financeiro');
+    if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando…'; }
+    mostrarAlerta('Enviando notificações de teste para ' + dest.trim() + '…', 'sucesso');
+
+    fetch('/api/email/testar-financeiro', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ destino: dest.trim() })
+    })
+      .then(function (r) { return r.json(); })
+      .then(function (d) { mostrarAlerta(d.mensagem || d.erro, d.sucesso ? 'sucesso' : 'erro'); })
+      .catch(function () { mostrarAlerta('Erro ao enviar notificações de teste.', 'erro'); })
+      .finally(function () {
+        if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-paper-plane"></i> Testar e-mails Financeiro'; }
+      });
+  };
+
+  // ── Reenviar lembretes financeiros reais ─────────────────────────────
+  window.reenviarLembretesFinanceiro = function () {
+    var btn = document.getElementById('btn-reenviar-financeiro');
+    if (!confirm('Isso irá disparar os 4 lembretes financeiros AGORA para os destinatários reais.\n\nContinuar?')) return;
+    if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando…'; }
+    mostrarAlerta('Disparando lembretes para destinatários reais…', 'sucesso');
+
+    fetch('/api/email/reenviar-financeiro', { method: 'POST', headers: { 'Content-Type': 'application/json' } })
+      .then(function (r) { return r.json(); })
+      .then(function (d) { mostrarAlerta(d.mensagem || d.erro, d.sucesso ? 'sucesso' : 'erro'); })
+      .catch(function () { mostrarAlerta('Erro ao reenviar lembretes.', 'erro'); })
+      .finally(function () {
+        if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-redo"></i> Reenviar lembretes agora'; }
+      });
+  };
+
+  // ── Testar email ─────────────────────────────────────────────────────
+  window.testarEmail = function () {
+    var dest = (document.getElementById('email-destinatario') || {}).value || '';
+    if (!dest.trim()) {
+      mostrarAlerta('Preencha o campo "Email padrão (destino)" antes de testar.', 'erro');
+      return;
+    }
+    mostrarAlerta('Enviando email de teste para ' + dest.trim() + '...', 'sucesso');
+    fetch('/api/email/testar', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ destino: dest.trim() })
+    })
+      .then(function (r) { return r.json(); })
+      .then(function (d) { mostrarAlerta(d.mensagem || d.erro, d.sucesso ? 'sucesso' : 'erro'); })
+      .catch(function () { mostrarAlerta('Erro ao testar.', 'erro'); });
+  };
+
+  function mostrarAlerta(msg, classe) {
+    var el = document.getElementById('alerta-email');
+    if (!el) return;
+    el.className = 'alerta alerta-' + classe + ' visivel';
+    el.textContent = msg;
+    setTimeout(function () { el.classList.remove('visivel'); }, 5000);
+  }
+
+  carregarEmail();
+  carregarNotificacoes();
+})();
+</script>

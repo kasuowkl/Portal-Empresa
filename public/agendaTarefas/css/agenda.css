@@ -1,0 +1,834 @@
+/**
+ * ARQUIVO: public/agendaTarefas/css/agenda.css
+ * VERSÃO:  1.0.0
+ * DATA:    2026-03-03
+ * DESCRIÇÃO: Estilos da Agenda de Tarefas — herdada das variáveis do Portal
+ */
+
+/* ============================================================
+   LAYOUT PRINCIPAL — sidebar + conteúdo
+   ============================================================ */
+.agenda-layout {
+  display:    flex;
+  height:     calc(100vh - var(--altura-menu));
+  overflow:   hidden;
+}
+
+/* ── Sidebar ────────────────────────────────────────────────── */
+.agenda-sidebar {
+  width:          260px;
+  min-width:      260px;
+  background:     var(--cor-fundo-2);
+  border-right:   1px solid var(--cor-borda);
+  display:        flex;
+  flex-direction: column;
+  overflow-y:     auto;
+  padding:        16px 0;
+}
+
+.sidebar-titulo {
+  font-size:     0.75rem;
+  font-weight:   700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color:         var(--cor-texto-fraco);
+  padding:       0 16px 8px;
+}
+
+.lista-item {
+  display:     flex;
+  align-items: center;
+  gap:         10px;
+  padding:     10px 16px;
+  cursor:      pointer;
+  border-radius: 6px;
+  margin:      0 8px;
+  transition:  background 0.15s;
+  font-size:   0.9rem;
+  color:       var(--cor-texto);
+}
+
+.lista-item:hover {
+  background: rgba(78, 154, 241, 0.08);
+}
+
+.lista-item.ativa {
+  background: rgba(78, 154, 241, 0.15);
+  color:      var(--cor-destaque);
+}
+
+.lista-item.ativa .lista-cor {
+  outline: 2px solid var(--cor-destaque);
+  outline-offset: 1px;
+}
+
+.lista-cor {
+  width:         10px;
+  height:        10px;
+  border-radius: 50%;
+  flex-shrink:   0;
+}
+
+.lista-nome-wrap {
+  flex:           1;
+  display:        flex;
+  flex-direction: column;
+  overflow:       hidden;
+  gap:            1px;
+}
+
+.lista-nome {
+  overflow:    hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.lista-dono {
+  font-size:  0.72rem;
+  color:      var(--cor-texto-fraco);
+  white-space: nowrap;
+  overflow:   hidden;
+  text-overflow: ellipsis;
+}
+
+.sidebar-separador {
+  height:     1px;
+  background: var(--cor-borda);
+  margin:     10px 16px;
+}
+
+.sidebar-acao {
+  display:     flex;
+  align-items: center;
+  gap:         8px;
+  padding:     10px 16px;
+  cursor:      pointer;
+  color:       var(--cor-texto-fraco);
+  font-size:   0.88rem;
+  transition:  color 0.15s;
+  border-radius: 6px;
+  margin:      0 8px;
+}
+
+.sidebar-acao:hover {
+  color:      var(--cor-destaque);
+  background: rgba(78, 154, 241, 0.08);
+}
+
+/* ── Conteúdo principal ─────────────────────────────────────── */
+.agenda-conteudo {
+  flex:       1;
+  overflow-y: auto;
+  padding:    24px;
+  display:    flex;
+  flex-direction: column;
+}
+
+/* Tela de boas-vindas (nenhuma lista selecionada) */
+.agenda-vazia {
+  flex:            1;
+  display:         flex;
+  flex-direction:  column;
+  align-items:     center;
+  justify-content: center;
+  gap:             16px;
+  color:           var(--cor-texto-fraco);
+  text-align:      center;
+}
+
+.agenda-vazia i {
+  font-size: 3rem;
+  opacity:   0.4;
+}
+
+.agenda-vazia h3 {
+  font-size: 1.1rem;
+  opacity:   0.7;
+}
+
+/* ── Cabeçalho da lista selecionada ─────────────────────────── */
+.lista-header {
+  display:     flex;
+  align-items: center;
+  gap:         12px;
+  margin-bottom: 20px;
+  flex-wrap:   wrap;
+}
+
+.lista-header-cor {
+  width:         14px;
+  height:        14px;
+  border-radius: 50%;
+  flex-shrink:   0;
+}
+
+.lista-header-nome {
+  font-size:  1.3rem;
+  font-weight: 700;
+  flex:       1;
+}
+
+.lista-header-nome-wrap {
+  flex:           1;
+  display:        flex;
+  flex-direction: column;
+  gap:            2px;
+}
+
+.lista-header-dono {
+  font-size:  0.78rem;
+  color:      var(--cor-texto-fraco);
+  font-weight: 400;
+}
+
+.lista-header-acoes {
+  display:     flex;
+  align-items: center;
+  gap:         8px;
+}
+
+/* ── Barra de ferramentas (abas + filtros + botão) ──────────── */
+.toolbar {
+  display:     flex;
+  align-items: center;
+  gap:         12px;
+  margin-bottom: 20px;
+  flex-wrap:   wrap;
+}
+
+/* abas lista / kanban */
+.view-tabs {
+  display:       flex;
+  background:    var(--cor-fundo-2);
+  border:        1px solid var(--cor-borda);
+  border-radius: 6px;
+  overflow:      hidden;
+}
+
+.view-tab {
+  padding:    8px 18px;
+  cursor:     pointer;
+  font-size:  0.88rem;
+  color:      var(--cor-texto-fraco);
+  background: transparent;
+  border:     none;
+  transition: background 0.15s, color 0.15s;
+}
+
+.view-tab.ativa {
+  background: var(--cor-fundo-3);
+  color:      var(--cor-destaque);
+}
+
+/* filtros inline */
+.filtros {
+  display:     flex;
+  align-items: center;
+  gap:         8px;
+  flex:        1;
+  flex-wrap:   wrap;
+}
+
+.filtro-select {
+  padding:       7px 10px;
+  background:    var(--cor-fundo-2);
+  border:        1px solid var(--cor-borda);
+  border-radius: 6px;
+  color:         var(--cor-texto);
+  font-size:     0.85rem;
+  cursor:        pointer;
+  outline:       none;
+}
+
+.filtro-select:focus {
+  border-color: var(--cor-destaque);
+}
+
+/* ============================================================
+   VISTA LISTA — tabela de tarefas
+   ============================================================ */
+.tabela-wrapper {
+  overflow-x: auto;
+}
+
+.tabela {
+  width:           100%;
+  border-collapse: collapse;
+  font-size:       0.9rem;
+}
+
+.tabela th {
+  padding:     10px 12px;
+  text-align:  left;
+  background:  var(--cor-fundo-2);
+  color:       var(--cor-texto-fraco);
+  font-weight: 600;
+  font-size:   0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid var(--cor-borda);
+}
+
+.tabela td {
+  padding:       10px 12px;
+  border-bottom: 1px solid rgba(30, 58, 95, 0.5);
+  vertical-align: middle;
+}
+
+.tabela tr:last-child td {
+  border-bottom: none;
+}
+
+.tabela tr:hover td {
+  background: rgba(78, 154, 241, 0.04);
+}
+
+.tabela tr.concluida td {
+  opacity: 0.55;
+}
+
+.tabela tr.concluida .tarefa-titulo {
+  text-decoration: line-through;
+}
+
+/* coluna de ações */
+.col-acoes {
+  width:      100px;
+  text-align: right;
+}
+
+/* ── Título da tarefa (com ícone de checkbox) ───────────────── */
+.tarefa-titulo-wrap {
+  display:     flex;
+  align-items: center;
+  gap:         8px;
+}
+
+.checkbox-status {
+  width:        18px;
+  height:       18px;
+  border:       2px solid var(--cor-borda);
+  border-radius: 4px;
+  display:      flex;
+  align-items:  center;
+  justify-content: center;
+  cursor:       pointer;
+  flex-shrink:  0;
+  transition:   border-color 0.15s, background 0.15s;
+  color:        #fff;
+  font-size:    0.7rem;
+}
+
+.checkbox-status.checked {
+  background:   var(--cor-sucesso);
+  border-color: var(--cor-sucesso);
+}
+
+/* ============================================================
+   BADGES — prioridade, status, categoria
+   ============================================================ */
+.badge {
+  display:       inline-block;
+  padding:       3px 9px;
+  border-radius: 20px;
+  font-size:     0.75rem;
+  font-weight:   600;
+  white-space:   nowrap;
+}
+
+.badge-alta    { background: rgba(244, 67, 54, 0.2);  color: #ef9a9a; }
+.badge-media   { background: rgba(255, 152, 0, 0.2);  color: #ffcc80; }
+.badge-baixa   { background: rgba(76, 175, 80, 0.2);  color: #a5d6a7; }
+
+.badge-a_fazer       { background: rgba(158, 158, 158, 0.15); color: #bdbdbd; }
+.badge-em_andamento  { background: rgba(78, 154, 241, 0.2);   color: #90caf9; }
+.badge-concluida     { background: rgba(76, 175, 80, 0.2);    color: #a5d6a7; }
+
+/* prazo vencido */
+.prazo-vencido {
+  color: var(--cor-erro);
+  font-weight: 600;
+}
+
+/* ============================================================
+   BOTÕES DE AÇÃO (ícone)
+   ============================================================ */
+.btn-icone {
+  background:    none;
+  border:        none;
+  cursor:        pointer;
+  padding:       5px 7px;
+  border-radius: 5px;
+  color:         var(--cor-texto-fraco);
+  font-size:     0.85rem;
+  transition:    color 0.15s, background 0.15s;
+}
+
+.btn-icone:hover          { background: rgba(78, 154, 241, 0.12); color: var(--cor-destaque); }
+.btn-icone.excluir:hover  { background: rgba(244, 67, 54, 0.12);  color: var(--cor-erro); }
+
+.btn-sm {
+  padding:   8px 14px;
+  font-size: 0.85rem;
+}
+
+/* ============================================================
+   VISTA KANBAN
+   ============================================================ */
+.kanban-board {
+  display:  flex;
+  gap:      20px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+  flex:     1;
+}
+
+.kanban-col {
+  min-width:     280px;
+  max-width:     320px;
+  display:       flex;
+  flex-direction: column;
+  background:    var(--cor-fundo-2);
+  border:        1px solid var(--cor-borda);
+  border-radius: var(--raio);
+  flex-shrink:   0;
+}
+
+.kanban-col-header {
+  display:       flex;
+  align-items:   center;
+  justify-content: space-between;
+  padding:       14px 16px 10px;
+  border-bottom: 1px solid var(--cor-borda);
+}
+
+.kanban-col-titulo {
+  font-weight: 700;
+  font-size:   0.9rem;
+  display:     flex;
+  align-items: center;
+  gap:         8px;
+}
+
+.kanban-col-count {
+  background:    var(--cor-fundo-3);
+  color:         var(--cor-texto-fraco);
+  font-size:     0.75rem;
+  font-weight:   700;
+  padding:       2px 8px;
+  border-radius: 20px;
+}
+
+.kanban-cards {
+  flex:       1;
+  overflow-y: auto;
+  padding:    10px 10px;
+  display:    flex;
+  flex-direction: column;
+  gap:        10px;
+  min-height: 120px;
+}
+
+.kanban-card {
+  background:    var(--cor-fundo);
+  border:        1px solid var(--cor-borda);
+  border-radius: 8px;
+  padding:       12px 14px;
+  cursor:        pointer;
+  transition:    border-color 0.15s, box-shadow 0.15s;
+}
+
+.kanban-card:hover {
+  border-color: var(--cor-destaque);
+  box-shadow:   0 2px 12px rgba(78, 154, 241, 0.12);
+}
+
+.kanban-card.concluida {
+  opacity: 0.55;
+}
+
+.kanban-card-titulo {
+  font-weight: 600;
+  font-size:   0.9rem;
+  margin-bottom: 8px;
+  line-height: 1.4;
+}
+
+.kanban-card.concluida .kanban-card-titulo {
+  text-decoration: line-through;
+}
+
+.kanban-card-meta {
+  display:     flex;
+  align-items: center;
+  gap:         8px;
+  flex-wrap:   wrap;
+}
+
+.kanban-card-prazo {
+  font-size:   0.77rem;
+  color:       var(--cor-texto-fraco);
+  display:     flex;
+  align-items: center;
+  gap:         4px;
+}
+
+.kanban-card-prazo.vencido { color: var(--cor-erro); }
+
+.kanban-vazio {
+  text-align:  center;
+  color:       var(--cor-texto-fraco);
+  font-size:   0.82rem;
+  padding:     20px 0;
+  opacity:     0.6;
+}
+
+/* ============================================================
+   MODAIS
+   ============================================================ */
+.modal-overlay {
+  position:   fixed;
+  inset:      0;
+  background: rgba(0, 0, 0, 0.65);
+  display:    none;
+  align-items:     center;
+  justify-content: center;
+  z-index:    1000;
+}
+
+.modal-overlay.visivel {
+  display: flex;
+}
+
+.modal {
+  background:    var(--cor-fundo-2);
+  border:        1px solid var(--cor-borda);
+  border-radius: var(--raio);
+  width:         100%;
+  max-width:     520px;
+  max-height:    90vh;
+  display:       flex;
+  flex-direction: column;
+  box-shadow:    0 8px 40px rgba(0, 0, 0, 0.5);
+  position:      relative;
+}
+
+/* ── Gear / sub-modal de categorias inline ── */
+.label-with-gear {
+  display:         flex;
+  justify-content: space-between;
+  align-items:     center;
+  margin-bottom:   6px;
+}
+.label-with-gear label { margin-bottom: 0; }
+
+.btn-gear {
+  cursor:     pointer;
+  font-size:  13px;
+  color:      var(--cor-destaque);
+  opacity:    0.7;
+  transition: opacity 0.15s;
+  background: none;
+  border:     none;
+  padding:    0;
+  line-height: 1;
+}
+.btn-gear:hover { opacity: 1; }
+
+.sub-modal-cat {
+  position:   absolute;
+  top:        50%;
+  left:       50%;
+  transform:  translate(-50%, -50%);
+  background: var(--cor-fundo-2);
+  width:      290px;
+  border:     1px solid var(--cor-borda);
+  border-radius: 10px;
+  padding:    18px;
+  z-index:    1100;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.65);
+  display:    none;
+}
+.sub-modal-cat h4 {
+  font-size:     12px;
+  font-weight:   700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color:         var(--cor-texto-fraco);
+  margin-bottom: 12px;
+}
+.sub-cat-item {
+  display:         flex;
+  justify-content: space-between;
+  align-items:     center;
+  background:      var(--cor-fundo-3);
+  padding:         6px 10px;
+  border-radius:   6px;
+  margin-bottom:   4px;
+  font-size:       12px;
+  color:           var(--cor-texto);
+}
+.sub-cat-item .btn-del {
+  background: none;
+  border:     none;
+  cursor:     pointer;
+  color:      #ef4444;
+  font-size:  14px;
+  line-height: 1;
+  opacity:    0.6;
+  padding:    0 2px;
+}
+.sub-cat-item .btn-del:hover { opacity: 1; }
+
+.modal.modal-lg {
+  max-width: 700px;
+}
+
+.modal-header {
+  display:       flex;
+  align-items:   center;
+  justify-content: space-between;
+  padding:       18px 22px 14px;
+  border-bottom: 1px solid var(--cor-borda);
+  flex-shrink:   0;
+}
+
+.modal-titulo {
+  display:     flex;
+  align-items: center;
+  gap:         10px;
+  font-size:   1rem;
+  font-weight: 700;
+  color:       var(--cor-destaque);
+}
+
+.modal-fechar {
+  background: none;
+  border:     none;
+  cursor:     pointer;
+  color:      var(--cor-texto-fraco);
+  font-size:  1.1rem;
+  transition: color 0.15s;
+  padding:    4px 6px;
+}
+
+.modal-fechar:hover { color: var(--cor-texto); }
+
+.modal-corpo {
+  padding:   20px 22px;
+  overflow-y: auto;
+  flex:      1;
+}
+
+.modal-rodape {
+  display:         flex;
+  align-items:     center;
+  justify-content: flex-end;
+  gap:             10px;
+  padding:         14px 22px;
+  border-top:      1px solid var(--cor-borda);
+  flex-shrink:     0;
+}
+
+/* ── Campos de formulário dentro do modal ───────────────────── */
+.form-grupo {
+  margin-bottom: 16px;
+}
+
+.form-grupo label {
+  display:       block;
+  margin-bottom: 6px;
+  font-size:     0.85rem;
+  color:         var(--cor-texto-fraco);
+  font-weight:   500;
+}
+
+.form-grupo input,
+.form-grupo textarea,
+.form-grupo select {
+  width:         100%;
+  padding:       10px 12px;
+  background:    var(--cor-fundo-3);
+  border:        1px solid var(--cor-borda);
+  border-radius: 6px;
+  color:         var(--cor-texto);
+  font-size:     0.9rem;
+  outline:       none;
+  transition:    border-color 0.2s;
+  font-family:   inherit;
+}
+
+.form-grupo input:focus,
+.form-grupo textarea:focus,
+.form-grupo select:focus {
+  border-color: var(--cor-destaque);
+}
+
+.form-grupo input::placeholder,
+.form-grupo textarea::placeholder {
+  color: var(--cor-texto-fraco);
+}
+
+.form-grupo textarea {
+  resize:     vertical;
+  min-height: 80px;
+}
+
+.form-linha {
+  display: grid;
+  gap:     12px;
+}
+
+.form-linha-2 { grid-template-columns: 1fr 1fr; }
+.form-linha-3 { grid-template-columns: 1fr 1fr 1fr; }
+
+/* ── Seletor de cor ─────────────────────────────────────────── */
+.cor-picker-wrap {
+  display:     flex;
+  align-items: center;
+  gap:         10px;
+}
+
+.cor-picker-wrap input[type="color"] {
+  width:         42px;
+  height:        38px;
+  padding:       2px 3px;
+  cursor:        pointer;
+  border-radius: 6px;
+}
+
+/* ── Tabela de membros ──────────────────────────────────────── */
+.membros-lista {
+  list-style: none;
+  display:    flex;
+  flex-direction: column;
+  gap:        8px;
+  margin:     12px 0;
+}
+
+.membro-item {
+  display:       flex;
+  align-items:   center;
+  gap:           10px;
+  padding:       10px 12px;
+  background:    var(--cor-fundo);
+  border:        1px solid var(--cor-borda);
+  border-radius: 6px;
+}
+
+.membro-nome {
+  flex:      1;
+  font-size: 0.9rem;
+}
+
+.membro-permissao {
+  padding:       5px 9px;
+  background:    var(--cor-fundo-2);
+  border:        1px solid var(--cor-borda);
+  border-radius: 5px;
+  color:         var(--cor-texto);
+  font-size:     0.82rem;
+  cursor:        pointer;
+}
+
+/* ── Adicionar membro ───────────────────────────────────────── */
+.add-membro-form {
+  display:  flex;
+  gap:      8px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+
+.add-membro-form select,
+.add-membro-form input {
+  flex:          1;
+  min-width:     140px;
+  padding:       9px 11px;
+  background:    var(--cor-fundo-3);
+  border:        1px solid var(--cor-borda);
+  border-radius: 6px;
+  color:         var(--cor-texto);
+  font-size:     0.88rem;
+  outline:       none;
+}
+
+.add-membro-form select:focus,
+.add-membro-form input:focus {
+  border-color: var(--cor-destaque);
+}
+
+/* ============================================================
+   TOAST / ALERTA FLUTUANTE
+   ============================================================ */
+.toast {
+  position:   fixed;
+  bottom:     28px;
+  right:      28px;
+  background: var(--cor-fundo-2);
+  border:     1px solid var(--cor-borda);
+  border-radius: 8px;
+  padding:    12px 20px;
+  font-size:  0.9rem;
+  box-shadow: var(--sombra);
+  z-index:    2000;
+  display:    none;
+  align-items: center;
+  gap:        10px;
+  max-width:  360px;
+  animation:  fadeInUp 0.25s ease;
+}
+
+.toast.visivel     { display: flex; }
+.toast.toast-ok    { border-color: var(--cor-sucesso); color: #a5d6a7; }
+.toast.toast-erro  { border-color: var(--cor-erro);    color: #ef9a9a; }
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ============================================================
+   ESTADO "SEM DADOS"
+   ============================================================ */
+.sem-dados {
+  text-align:  center;
+  padding:     40px 20px;
+  color:       var(--cor-texto-fraco);
+  font-size:   0.9rem;
+  display:     flex;
+  flex-direction: column;
+  align-items: center;
+  gap:         12px;
+}
+
+.sem-dados i { font-size: 2rem; opacity: 0.4; }
+
+/* ============================================================
+   RESPONSIVO
+   ============================================================ */
+@media (max-width: 768px) {
+  .agenda-sidebar {
+    width:     200px;
+    min-width: 200px;
+  }
+
+  .kanban-board {
+    flex-direction: column;
+  }
+
+  .kanban-col {
+    max-width: 100%;
+    min-width: unset;
+  }
+
+  .form-linha-2,
+  .form-linha-3 {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 560px) {
+  .agenda-sidebar {
+    display: none;
+  }
+}

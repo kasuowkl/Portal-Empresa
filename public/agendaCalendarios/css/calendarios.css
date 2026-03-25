@@ -1,0 +1,527 @@
+/**
+ * ARQUIVO: public/agendaCalendarios/css/calendarios.css
+ * VERSÃO: 1.0.0
+ * DESCRIÇÃO: Estilos do módulo Agenda de Calendários
+ */
+
+/* ── Layout Principal ── */
+.cal-layout {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  height: calc(100vh - var(--altura-menu));
+  background: var(--cor-fundo);
+  overflow: hidden;
+}
+
+.cal-sidebar {
+  background: var(--cor-fundo-2);
+  border-right: 1px solid var(--cor-borda);
+  overflow-y: auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.cal-main {
+  display: flex;
+  flex-direction: column;
+  background: var(--cor-fundo);
+  overflow: hidden;
+}
+
+/* ── Botão Nova Agenda ── */
+.btn-nova-agenda {
+  background: var(--cor-destaque);
+  border: none;
+  color: white;
+  padding: 10px 14px;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  width: 100%;
+  transition: opacity 0.2s;
+}
+
+.btn-nova-agenda:hover {
+  opacity: 0.9;
+}
+
+/* ── Seções da Sidebar ── */
+.sidebar-secao {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sidebar-titulo {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--cor-texto-fraco);
+  text-transform: uppercase;
+  padding: 0 8px;
+  margin-top: 8px;
+}
+
+.sidebar-titulo:first-child {
+  margin-top: 0;
+}
+
+/* ── Item de Calendário ── */
+.cal-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s;
+  font-size: 0.9rem;
+  color: var(--cor-texto);
+}
+
+.cal-item:hover {
+  background: var(--cor-fundo-3);
+}
+
+.cal-item input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  accent-color: var(--cor-destaque);
+}
+
+.cal-item-nome {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cal-item-cor {
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+.cal-item .btn-menu {
+  background: none;
+  border: none;
+  color: var(--cor-texto-fraco);
+  cursor: pointer;
+  padding: 4px;
+  font-size: 0.9rem;
+  opacity: 0;
+  transition: opacity 0.2s, color 0.2s;
+}
+
+.cal-item:hover .btn-menu {
+  opacity: 1;
+}
+
+.cal-item .btn-menu:hover {
+  color: var(--cor-destaque);
+}
+
+/* ── Google Calendar Status ── */
+.google-status {
+  border-top: 1px solid var(--cor-borda);
+  padding-top: 12px;
+  margin-top: 12px;
+}
+
+.google-status-box {
+  background: var(--cor-fundo-3);
+  border: 1px solid var(--cor-borda);
+  border-radius: 6px;
+  padding: 10px;
+  font-size: 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.google-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.google-indicator-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--cor-erro);
+}
+
+.google-indicator-dot.conectado {
+  background: var(--cor-sucesso);
+}
+
+.google-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.btn-google-action {
+  background: var(--cor-fundo);
+  border: 1px solid var(--cor-destaque);
+  color: var(--cor-destaque);
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-google-action:hover {
+  background: var(--cor-destaque);
+  color: white;
+}
+
+/* ── Toolbar Principal ── */
+.cal-toolbar {
+  background: var(--cor-fundo-2);
+  border-bottom: 1px solid var(--cor-borda);
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.cal-toolbar-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.cal-nav-btn {
+  background: none;
+  border: 1px solid var(--cor-borda);
+  color: var(--cor-texto);
+  width: 32px;
+  height: 32px;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.cal-nav-btn:hover {
+  background: var(--cor-fundo-3);
+  border-color: var(--cor-destaque);
+}
+
+.cal-period {
+  font-weight: 600;
+  font-size: 1.1rem;
+  min-width: 200px;
+  text-align: center;
+}
+
+.cal-views {
+  display: flex;
+  gap: 6px;
+}
+
+.cal-view-btn {
+  background: none;
+  border: 1px solid var(--cor-borda);
+  color: var(--cor-texto);
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.cal-view-btn.ativo {
+  background: var(--cor-destaque);
+  color: white;
+  border-color: var(--cor-destaque);
+}
+
+.cal-view-btn:hover:not(.ativo) {
+  background: var(--cor-fundo-3);
+  border-color: var(--cor-destaque);
+}
+
+/* ── Contenedor FullCalendar ── */
+#fullcalendar {
+  flex: 1;
+  overflow: auto;
+  background: var(--cor-fundo);
+}
+
+/* ── Override FullCalendar ── */
+.fc {
+  background: var(--cor-fundo);
+  color: var(--cor-texto);
+  font-family: inherit;
+}
+
+.fc .fc-button-primary {
+  background-color: var(--cor-destaque);
+  border-color: var(--cor-destaque);
+}
+
+.fc .fc-button-primary:hover {
+  background-color: var(--cor-destaque);
+  opacity: 0.9;
+}
+
+.fc .fc-button-primary.fc-button-active {
+  background-color: var(--cor-destaque);
+  border-color: var(--cor-destaque);
+}
+
+.fc .fc-col-header {
+  background: var(--cor-fundo-2);
+  border-color: var(--cor-borda);
+}
+
+.fc .fc-col-header-cell {
+  color: var(--cor-texto);
+  border-color: var(--cor-borda);
+  background: var(--cor-fundo-2);
+}
+
+.fc .fc-daygrid-day {
+  background: var(--cor-fundo);
+  border-color: var(--cor-borda);
+}
+
+.fc .fc-daygrid-day:hover {
+  background: var(--cor-fundo-3);
+}
+
+.fc .fc-daygrid-day-number {
+  color: var(--cor-texto);
+  padding: 4px;
+}
+
+.fc .fc-daygrid-day.fc-day-other {
+  background: var(--cor-fundo-2);
+}
+
+.fc .fc-event {
+  background: var(--cor-destaque);
+  border-color: var(--cor-destaque);
+  color: white;
+}
+
+.fc .fc-event-title {
+  font-weight: 500;
+}
+
+.fc .fc-daygrid-day-frame {
+  position: relative;
+}
+
+.fc-daygrid-day-number {
+  color: var(--cor-texto);
+}
+
+/* ── Modais ── */
+.modal-cal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-cal.ativo {
+  display: flex;
+}
+
+.modal-cal-content {
+  background: var(--cor-fundo-2);
+  border: 1px solid var(--cor-borda);
+  border-radius: 10px;
+  padding: 24px;
+  max-width: 500px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: var(--sombra);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 1.3rem;
+  color: var(--cor-texto);
+}
+
+.btn-fechar {
+  background: none;
+  border: none;
+  color: var(--cor-texto-fraco);
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s;
+}
+
+.btn-fechar:hover {
+  color: var(--cor-texto);
+}
+
+/* ── Formulários ── */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.form-group label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--cor-texto);
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+  background: var(--cor-fundo);
+  border: 1px solid var(--cor-borda);
+  color: var(--cor-texto);
+  padding: 8px 10px;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 0.9rem;
+  transition: border-color 0.2s;
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: var(--cor-destaque);
+  box-shadow: 0 0 0 3px rgba(78, 154, 241, 0.1);
+}
+
+.form-group textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+/* ── Buttons ── */
+.btn-group {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.btn-primary,
+.btn-secondary {
+  flex: 1;
+  padding: 10px 14px;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.btn-primary {
+  background: var(--cor-destaque);
+  color: white;
+}
+
+.btn-primary:hover {
+  opacity: 0.9;
+}
+
+.btn-secondary {
+  background: var(--cor-fundo);
+  color: var(--cor-destaque);
+  border: 1px solid var(--cor-destaque);
+}
+
+.btn-secondary:hover {
+  background: var(--cor-fundo-3);
+}
+
+/* ── Toast ── */
+.toast {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: var(--cor-sucesso);
+  color: white;
+  padding: 12px 16px;
+  border-radius: 6px;
+  z-index: 2000;
+  animation: slideIn 0.3s ease;
+}
+
+.toast.erro {
+  background: var(--cor-erro);
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(400px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* ── Menu de Contexto ── */
+.menu-contexto {
+  background: var(--cor-fundo-2);
+  border: 1px solid var(--cor-borda);
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  padding: 4px 0;
+  min-width: 150px;
+}
+
+.menu-contexto button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 14px;
+  border: none;
+  background: none;
+  color: var(--cor-texto);
+  font-size: 0.85rem;
+  cursor: pointer;
+  text-align: left;
+}
+
+.menu-contexto button:hover {
+  background: var(--cor-fundo-3);
+}
+
+.menu-contexto button .fa-trash {
+  color: #ef4444;
+}

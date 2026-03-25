@@ -1,0 +1,70 @@
+<!--
+  ARQUIVO: public/componentes/menu.html
+  VERSÃO:  1.0.0
+  DATA:    2026-03-02
+  DESCRIÇÃO: Menu compartilhado — carregado dinamicamente em todas as páginas
+
+  HISTÓRICO:
+  1.0.0 - 2026-03-02 - Versão inicial
+-->
+
+<nav class="menu-principal">
+
+  <!-- Logo / Nome do sistema -->
+  <a href="/portal" class="menu-logo" title="Ir para Início" style="text-decoration:none;color:inherit;cursor:pointer;">
+    <span class="menu-logo-icone">&#9776;</span>
+    <span class="menu-logo-texto">Portal WKL</span>
+  </a>
+
+  <!-- Botões de navegação -->
+  <div class="menu-nav">
+    <a href="/portal" class="menu-btn" title="Início">
+      <i class="fas fa-home"></i>
+      <span>Início</span>
+    </a>
+
+    <a href="#sistemas" class="menu-btn" title="Sistemas" onclick="abrirSistemas(event)">
+      <i class="fas fa-th-large"></i>
+      <span>Sistemas</span>
+    </a>
+
+    <a href="#servicos" class="menu-btn" title="Serviços" onclick="abrirServicos(event)">
+      <i class="fas fa-cogs"></i>
+      <span>Serviços</span>
+    </a>
+
+    <a href="/chamados" class="menu-btn" title="Chamados" target="_blank" rel="noopener noreferrer">
+      <i class="fas fa-headset"></i>
+      <span>Chamados</span>
+    </a>
+
+    <a href="/ajuda/Ajuda.html" class="menu-btn" title="Ajuda">
+      <i class="fas fa-question-circle"></i>
+      <span>Ajuda</span>
+    </a>
+  </div>
+
+  <!-- Área do usuário logado (lado direito) -->
+  <div class="menu-usuario">
+
+    <!-- Nome do usuário -->
+    <span class="menu-usuario-nome" id="menu-nome-usuario">
+      <i class="fas fa-user-circle"></i>
+      <span id="menu-texto-usuario">Carregando...</span>
+    </span>
+
+    <!-- Botão Configurações (visível só para admin) -->
+    <a href="/configuracoes" class="menu-btn menu-btn-config" id="menu-btn-config" title="Configurações" style="display:none;">
+      <i class="fas fa-sliders-h"></i>
+      <span>Configurações</span>
+    </a>
+
+    <!-- Botão Sair -->
+    <a href="/logout" class="menu-btn menu-btn-sair" title="Sair">
+      <i class="fas fa-sign-out-alt"></i>
+      <span>Sair</span>
+    </a>
+
+  </div>
+
+</nav>

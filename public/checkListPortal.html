@@ -1,0 +1,1074 @@
+<!DOCTYPE html>
+<!--
+  ARQUIVO: public/checkListPortal.html
+  VERSÃO:  1.0.0
+  DATA:    2026-03-13
+  DESCRIÇÃO: Checklist de Testes — Portal WKL
+-->
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Checklist de Testes — Portal WKL</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --cor-fundo:      #0f1117;
+      --cor-fundo-2:    #1a1d27;
+      --cor-fundo-3:    #22263a;
+      --cor-borda:      #2e3250;
+      --cor-texto:      #e2e8f0;
+      --cor-texto-fraco:#8892a4;
+      --cor-destaque:   #4e9af1;
+      --verde:  #10b981;
+      --vermelho:#ef4444;
+      --laranja: #f59e0b;
+      --roxo:    #8b5cf6;
+      --teal:    #78d6c8;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: var(--cor-fundo);
+      color: var(--cor-texto);
+      min-height: 100vh;
+    }
+
+    /* ── HEADER ── */
+    .cl-header {
+      background: var(--cor-fundo-2);
+      border-bottom: 1px solid var(--cor-borda);
+      padding: 18px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .cl-header-left { display: flex; align-items: center; gap: 14px; }
+    .cl-header-left i { color: var(--cor-destaque); font-size: 22px; }
+    .cl-header h1 { font-size: 20px; font-weight: 700; }
+    .cl-header p  { font-size: 12px; color: var(--cor-texto-fraco); margin-top: 2px; }
+    .cl-header-right { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+
+    /* contador global */
+    .cl-global-progress {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      font-size: 13px;
+    }
+    .cl-gp-item { display: flex; align-items: center; gap: 6px; }
+    .cl-gp-item i { font-size: 14px; }
+    .cl-gp-num { font-weight: 700; font-size: 15px; }
+
+    /* botões header */
+    .btn-cl {
+      padding: 7px 14px; border-radius: 6px; font-size: 12px; font-weight: 600;
+      cursor: pointer; border: none; display: flex; align-items: center; gap: 6px;
+      transition: opacity .15s;
+    }
+    .btn-cl:hover { opacity: .8; }
+    .btn-limpar  { background: var(--cor-fundo-3); color: var(--cor-texto-fraco); border: 1px solid var(--cor-borda); }
+    .btn-export  { background: var(--cor-destaque); color: #fff; }
+
+    /* ── TABS ── */
+    .cl-tabs {
+      display: flex;
+      overflow-x: auto;
+      background: var(--cor-fundo-2);
+      border-bottom: 1px solid var(--cor-borda);
+      padding: 0 16px;
+      gap: 2px;
+    }
+    .cl-tab {
+      padding: 12px 18px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--cor-texto-fraco);
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      transition: all .15s;
+      user-select: none;
+    }
+    .cl-tab:hover { color: var(--cor-texto); }
+    .cl-tab.ativo { color: var(--cor-destaque); border-bottom-color: var(--cor-destaque); }
+    .cl-tab-badge {
+      font-size: 10px;
+      padding: 1px 6px;
+      border-radius: 10px;
+      background: var(--cor-fundo-3);
+      color: var(--cor-texto-fraco);
+      font-weight: 700;
+    }
+    .cl-tab.ativo .cl-tab-badge { background: rgba(78,154,241,.15); color: var(--cor-destaque); }
+
+    /* ── PAINEL ── */
+    .cl-body { max-width: 960px; margin: 0 auto; padding: 28px 24px 60px; }
+    .cl-panel { display: none; }
+    .cl-panel.ativo { display: block; }
+
+    /* barra de progresso da aba */
+    .cl-progress-bar-wrap {
+      background: var(--cor-fundo-3);
+      border-radius: 20px;
+      height: 6px;
+      margin-bottom: 24px;
+      overflow: hidden;
+    }
+    .cl-progress-bar {
+      height: 100%;
+      border-radius: 20px;
+      background: linear-gradient(90deg, var(--verde), var(--cor-destaque));
+      transition: width .3s;
+    }
+    .cl-progress-info {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: var(--cor-texto-fraco);
+      margin-bottom: 6px;
+    }
+
+    /* ── GRUPO DE TESTES ── */
+    .cl-grupo {
+      margin-bottom: 28px;
+    }
+    .cl-grupo-titulo {
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: .8px;
+      text-transform: uppercase;
+      color: var(--cor-texto-fraco);
+      padding: 8px 0;
+      margin-bottom: 8px;
+      border-bottom: 1px solid var(--cor-borda);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .cl-grupo-titulo i { font-size: 13px; }
+
+    /* ── ITEM DE TESTE ── */
+    .cl-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 10px 14px;
+      border-radius: 8px;
+      background: var(--cor-fundo-2);
+      border: 1px solid var(--cor-borda);
+      margin-bottom: 6px;
+      transition: border-color .15s, background .15s;
+      cursor: pointer;
+    }
+    .cl-item:hover { border-color: #3e4570; }
+    .cl-item.ok    { border-color: rgba(16,185,129,.35); background: rgba(16,185,129,.04); }
+    .cl-item.falha { border-color: rgba(239,68,68,.35);  background: rgba(239,68,68,.04); }
+    .cl-item.na    { border-color: rgba(139,92,246,.25); background: rgba(139,92,246,.04); opacity: .7; }
+
+    .cl-check-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      flex-shrink: 0;
+      padding-top: 1px;
+    }
+    .cl-radio {
+      width: 16px; height: 16px; border-radius: 50%;
+      border: 2px solid var(--cor-borda);
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 9px;
+      transition: all .12s;
+      flex-shrink: 0;
+    }
+    .cl-radio.r-ok    { border-color: var(--verde);    background: rgba(16,185,129,.15); color: var(--verde); }
+    .cl-radio.r-falha { border-color: var(--vermelho); background: rgba(239,68,68,.15);  color: var(--vermelho); }
+    .cl-radio.r-na    { border-color: var(--roxo);     background: rgba(139,92,246,.15); color: var(--roxo); font-size: 8px; }
+
+    .cl-item-corpo { flex: 1; min-width: 0; }
+    .cl-item-titulo {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--cor-texto);
+      margin-bottom: 3px;
+    }
+    .cl-item.ok    .cl-item-titulo { color: var(--verde);    text-decoration: line-through; opacity: .7; }
+    .cl-item.falha .cl-item-titulo { color: var(--vermelho); }
+    .cl-item.na    .cl-item-titulo { text-decoration: line-through; }
+
+    .cl-item-desc {
+      font-size: 12px;
+      color: var(--cor-texto-fraco);
+      line-height: 1.5;
+    }
+    .cl-item-obs {
+      margin-top: 6px;
+    }
+    .cl-item-obs input {
+      width: 100%;
+      background: var(--cor-fundo-3);
+      border: 1px solid var(--cor-borda);
+      border-radius: 5px;
+      padding: 5px 10px;
+      font-size: 12px;
+      color: var(--cor-texto);
+      outline: none;
+    }
+    .cl-item-obs input::placeholder { color: var(--cor-texto-fraco); }
+    .cl-item-obs input:focus { border-color: var(--cor-destaque); }
+
+    .cl-item-acoes {
+      display: flex;
+      gap: 4px;
+      flex-shrink: 0;
+      padding-top: 1px;
+    }
+    .cl-btn-status {
+      width: 26px; height: 26px; border-radius: 6px; border: none; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; font-size: 11px;
+      transition: opacity .12s;
+    }
+    .cl-btn-status:hover { opacity: .75; }
+    .btn-ok    { background: rgba(16,185,129,.15);  color: var(--verde); }
+    .btn-falha { background: rgba(239,68,68,.15);   color: var(--vermelho); }
+    .btn-na    { background: rgba(139,92,246,.15);  color: var(--roxo); }
+
+    /* legenda */
+    .cl-legenda {
+      display: flex; gap: 16px; flex-wrap: wrap;
+      margin-bottom: 20px; font-size: 12px; color: var(--cor-texto-fraco);
+    }
+    .cl-leg-item { display: flex; align-items: center; gap: 6px; }
+
+    /* resumo da aba */
+    .cl-resumo {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+    .cl-resumo-card {
+      background: var(--cor-fundo-2);
+      border: 1px solid var(--cor-borda);
+      border-radius: 8px;
+      padding: 12px 14px;
+      text-align: center;
+    }
+    .cl-resumo-card span { font-size: 10px; color: var(--cor-texto-fraco); display: block; margin-bottom: 4px; }
+    .cl-resumo-card h4 { font-size: 18px; font-weight: 700; }
+
+    @media (max-width: 600px) {
+      .cl-resumo { grid-template-columns: repeat(2, 1fr); }
+      .cl-tabs { padding: 0 8px; }
+      .cl-tab  { padding: 10px 12px; font-size: 12px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!--  HEADER                                                    -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="cl-header">
+  <div class="cl-header-left">
+    <i class="fas fa-clipboard-check"></i>
+    <div>
+      <h1>Checklist de Testes — Portal WKL</h1>
+      <p>Teste funcional completo · Versão 1.0.0 · Mar/2026</p>
+    </div>
+  </div>
+  <div class="cl-header-right">
+    <div class="cl-global-progress" id="global-progress"></div>
+    <button class="btn-cl btn-export" onclick="exportarRelatorio()">
+      <i class="fas fa-file-export"></i> Exportar Relatório
+    </button>
+    <button class="btn-cl btn-limpar" onclick="limparTudo()">
+      <i class="fas fa-undo"></i> Limpar Tudo
+    </button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!--  TABS                                                      -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="cl-tabs" id="tabs">
+  <div class="cl-tab ativo" onclick="mudarAba('portal')"      data-aba="portal">
+    <i class="fas fa-home"></i> Portal <span class="cl-tab-badge" id="badge-portal">0</span>
+  </div>
+  <div class="cl-tab" onclick="mudarAba('auth')"              data-aba="auth">
+    <i class="fas fa-sign-in-alt"></i> Login <span class="cl-tab-badge" id="badge-auth">0</span>
+  </div>
+  <div class="cl-tab" onclick="mudarAba('chamados')"          data-aba="chamados">
+    <i class="fas fa-headset"></i> Chamados <span class="cl-tab-badge" id="badge-chamados">0</span>
+  </div>
+  <div class="cl-tab" onclick="mudarAba('financeiro')"        data-aba="financeiro">
+    <i class="fas fa-wallet"></i> Financeiro <span class="cl-tab-badge" id="badge-financeiro">0</span>
+  </div>
+  <div class="cl-tab" onclick="mudarAba('agenda')"            data-aba="agenda">
+    <i class="fas fa-tasks"></i> Ag. Tarefas <span class="cl-tab-badge" id="badge-agenda">0</span>
+  </div>
+  <div class="cl-tab" onclick="mudarAba('contatos')"          data-aba="contatos">
+    <i class="fas fa-address-book"></i> Contatos <span class="cl-tab-badge" id="badge-contatos">0</span>
+  </div>
+  <div class="cl-tab" onclick="mudarAba('patrimonio')"        data-aba="patrimonio">
+    <i class="fas fa-box-open"></i> Patrimônio <span class="cl-tab-badge" id="badge-patrimonio">0</span>
+  </div>
+  <div class="cl-tab" onclick="mudarAba('configuracoes')"     data-aba="configuracoes">
+    <i class="fas fa-sliders-h"></i> Configurações <span class="cl-tab-badge" id="badge-configuracoes">0</span>
+  </div>
+  <div class="cl-tab" onclick="mudarAba('email')"             data-aba="email">
+    <i class="fas fa-envelope"></i> E-mail <span class="cl-tab-badge" id="badge-email">0</span>
+  </div>
+  <div class="cl-tab" onclick="mudarAba('logs')"              data-aba="logs">
+    <i class="fas fa-history"></i> Logs <span class="cl-tab-badge" id="badge-logs">0</span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!--  CONTEÚDO                                                  -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="cl-body">
+
+  <!-- ─────────────────── PORTAL ─────────────────── -->
+  <div class="cl-panel ativo" id="panel-portal">
+    <div class="cl-legenda">
+      <div class="cl-leg-item"><span style="color:var(--verde)"><i class="fas fa-check-circle"></i></span> OK — passou</div>
+      <div class="cl-leg-item"><span style="color:var(--vermelho)"><i class="fas fa-times-circle"></i></span> Falha — com erro</div>
+      <div class="cl-leg-item"><span style="color:var(--roxo)"><i class="fas fa-minus-circle"></i></span> N/A — não aplicável</div>
+    </div>
+    <div class="cl-resumo" id="resumo-portal"></div>
+    <div class="cl-progress-info" id="pi-portal"><span></span><span></span></div>
+    <div class="cl-progress-bar-wrap"><div class="cl-progress-bar" id="pb-portal" style="width:0%"></div></div>
+
+    <div class="cl-grupo">
+      <div class="cl-grupo-titulo"><i class="fas fa-home" style="color:var(--cor-destaque)"></i> Página Inicial</div>
+      <div class="cl-item" id="portal-1" onclick="ciclarStatus('portal-1')">
+        <div class="cl-item-corpo">
+          <div class="cl-item-titulo">Tela inicial carrega corretamente</div>
+          <div class="cl-item-desc">Acessar /portal e verificar se cards de Sistemas e Serviços aparecem</div>
+        </div>
+        <div class="cl-item-acoes">
+          <button class="cl-btn-status btn-ok"    onclick="setStatus('portal-1','ok',   event)"><i class="fas fa-check"></i></button>
+          <button class="cl-btn-status btn-falha" onclick="setStatus('portal-1','falha',event)"><i class="fas fa-times"></i></button>
+          <button class="cl-btn-status btn-na"    onclick="setStatus('portal-1','na',   event)"><i class="fas fa-minus"></i></button>
+        </div>
+      </div>
+      <div class="cl-item" id="portal-2" onclick="ciclarStatus('portal-2')">
+        <div class="cl-item-corpo">
+          <div class="cl-item-titulo">Cards de sistemas clicáveis abrem na mesma guia</div>
+          <div class="cl-item-desc">Clicar em cada card de sistema na tela inicial e confirmar que abre na mesma guia</div>
+        </div>
+        <div class="cl-item-acoes">
+          <button class="cl-btn-status btn-ok"    onclick="setStatus('portal-2','ok',   event)"><i class="fas fa-check"></i></button>
+          <button class="cl-btn-status btn-falha" onclick="setStatus('portal-2','falha',event)"><i class="fas fa-times"></i></button>
+          <button class="cl-btn-status btn-na"    onclick="setStatus('portal-2','na',   event)"><i class="fas fa-minus"></i></button>
+        </div>
+      </div>
+      <div class="cl-item" id="portal-3" onclick="ciclarStatus('portal-3')">
+        <div class="cl-item-corpo">
+          <div class="cl-item-titulo">Serviços externos abrem em nova guia</div>
+          <div class="cl-item-desc">Serviços com URL externa (ex: Speed Test, Monitor) abrem em nova guia</div>
+        </div>
+        <div class="cl-item-acoes">
+          <button class="cl-btn-status btn-ok"    onclick="setStatus('portal-3','ok',   event)"><i class="fas fa-check"></i></button>
+          <button class="cl-btn-status btn-falha" onclick="setStatus('portal-3','falha',event)"><i class="fas fa-times"></i></button>
+          <button class="cl-btn-status btn-na"    onclick="setStatus('portal-3','na',   event)"><i class="fas fa-minus"></i></button>
+        </div>
+      </div>
+    </div>
+
+    <div class="cl-grupo">
+      <div class="cl-grupo-titulo"><i class="fas fa-bars" style="color:var(--cor-destaque)"></i> Menu</div>
+      <div class="cl-item" id="portal-4" onclick="ciclarStatus('portal-4')">
+        <div class="cl-item-corpo">
+          <div class="cl-item-titulo">Menu Sistemas abre painel flutuante</div>
+          <div class="cl-item-desc">Clicar em "Sistemas" no menu e verificar se abre painel com a lista de sistemas</div>
+        </div>
+        <div class="cl-item-acoes">
+          <button class="cl-btn-status btn-ok"    onclick="setStatus('portal-4','ok',   event)"><i class="fas fa-check"></i></button>
+          <button class="cl-btn-status btn-falha" onclick="setStatus('portal-4','falha',event)"><i class="fas fa-times"></i></button>
+          <button class="cl-btn-status btn-na"    onclick="setStatus('portal-4','na',   event)"><i class="fas fa-minus"></i></button>
+        </div>
+      </div>
+      <div class="cl-item" id="portal-5" onclick="ciclarStatus('portal-5')">
+        <div class="cl-item-corpo">
+          <div class="cl-item-titulo">Itens do painel Sistemas abrem em nova guia</div>
+          <div class="cl-item-desc">Clicar em um sistema pelo painel do menu e confirmar que abre em nova guia</div>
+        </div>
+        <div class="cl-item-acoes">
+          <button class="cl-btn-status btn-ok"    onclick="setStatus('portal-5','ok',   event)"><i class="fas fa-check"></i></button>
+          <button class="cl-btn-status btn-falha" onclick="setStatus('portal-5','falha',event)"><i class="fas fa-times"></i></button>
+          <button class="cl-btn-status btn-na"    onclick="setStatus('portal-5','na',   event)"><i class="fas fa-minus"></i></button>
+        </div>
+      </div>
+      <div class="cl-item" id="portal-6" onclick="ciclarStatus('portal-6')">
+        <div class="cl-item-corpo">
+          <div class="cl-item-titulo">Menu Chamados abre em nova guia</div>
+          <div class="cl-item-desc">Clicar em "Chamados" no menu e confirmar que abre /chamados em nova guia</div>
+        </div>
+        <div class="cl-item-acoes">
+          <button class="cl-btn-status btn-ok"    onclick="setStatus('portal-6','ok',   event)"><i class="fas fa-check"></i></button>
+          <button class="cl-btn-status btn-falha" onclick="setStatus('portal-6','falha',event)"><i class="fas fa-times"></i></button>
+          <button class="cl-btn-status btn-na"    onclick="setStatus('portal-6','na',   event)"><i class="fas fa-minus"></i></button>
+        </div>
+      </div>
+      <div class="cl-item" id="portal-7" onclick="ciclarStatus('portal-7')">
+        <div class="cl-item-corpo">
+          <div class="cl-item-titulo">Nome do usuário exibido no menu</div>
+          <div class="cl-item-desc">Verificar se o nome do usuário logado aparece no canto direito do menu</div>
+        </div>
+        <div class="cl-item-acoes">
+          <button class="cl-btn-status btn-ok"    onclick="setStatus('portal-7','ok',   event)"><i class="fas fa-check"></i></button>
+          <button class="cl-btn-status btn-falha" onclick="setStatus('portal-7','falha',event)"><i class="fas fa-times"></i></button>
+          <button class="cl-btn-status btn-na"    onclick="setStatus('portal-7','na',   event)"><i class="fas fa-minus"></i></button>
+        </div>
+      </div>
+      <div class="cl-item" id="portal-8" onclick="ciclarStatus('portal-8')">
+        <div class="cl-item-corpo">
+          <div class="cl-item-titulo">Botão Configurações visível apenas para admin</div>
+          <div class="cl-item-desc">Logar como usuário não-admin e verificar que o botão Configurações não aparece</div>
+        </div>
+        <div class="cl-item-acoes">
+          <button class="cl-btn-status btn-ok"    onclick="setStatus('portal-8','ok',   event)"><i class="fas fa-check"></i></button>
+          <button class="cl-btn-status btn-falha" onclick="setStatus('portal-8','falha',event)"><i class="fas fa-times"></i></button>
+          <button class="cl-btn-status btn-na"    onclick="setStatus('portal-8','na',   event)"><i class="fas fa-minus"></i></button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─────────────────── LOGIN / AUTH ─────────────────── -->
+  <div class="cl-panel" id="panel-auth">
+    <div class="cl-resumo" id="resumo-auth"></div>
+    <div class="cl-progress-info" id="pi-auth"><span></span><span></span></div>
+    <div class="cl-progress-bar-wrap"><div class="cl-progress-bar" id="pb-auth" style="width:0%"></div></div>
+
+    <div class="cl-grupo">
+      <div class="cl-grupo-titulo"><i class="fas fa-sign-in-alt" style="color:var(--cor-destaque)"></i> Autenticação</div>
+      <div class="cl-item" id="auth-1" onclick="ciclarStatus('auth-1')">
+        <div class="cl-item-corpo">
+          <div class="cl-item-titulo">Login com credenciais válidas</div>
+          <div class="cl-item-desc">Informar usuário e senha corretos e verificar redirecionamento para /portal</div>
+        </div>
+        <div class="cl-item-acoes">
+          <button class="cl-btn-status btn-ok"    onclick="setStatus('auth-1','ok',   event)"><i class="fas fa-check"></i></button>
+          <button class="cl-btn-status btn-falha" onclick="setStatus('auth-1','falha',event)"><i class="fas fa-times"></i></button>
+          <button class="cl-btn-status btn-na"    onclick="setStatus('auth-1','na',   event)"><i class="fas fa-minus"></i></button>
+        </div>
+      </div>
+      <div class="cl-item" id="auth-2" onclick="ciclarStatus('auth-2')">
+        <div class="cl-item-corpo">
+          <div class="cl-item-titulo">Login com senha incorreta exibe erro</div>
+          <div class="cl-item-desc">Informar senha errada e verificar mensagem de erro sem exposição de detalhes</div>
+        </div>
+        <div class="cl-item-acoes">
+          <button class="cl-btn-status btn-ok"    onclick="setStatus('auth-2','ok',   event)"><i class="fas fa-check"></i></button>
+          <button class="cl-btn-status btn-falha" onclick="setStatus('auth-2','falha',event)"><i class="fas fa-times"></i></button>
+          <button class="cl-btn-status btn-na"    onclick="setStatus('auth-2','na',   event)"><i class="fas fa-minus"></i></button>
+        </div>
+      </div>
+      <div class="cl-item" id="auth-3" onclick="ciclarStatus('auth-3')">
+        <div class="cl-item-corpo">
+          <div class="cl-item-titulo">Sessão expirada redireciona para login</div>
+          <div class="cl-item-desc">Aguardar expiração da sessão ou limpar cookie e tentar acessar página protegida</div>
+        </div>
+        <div class="cl-item-acoes">
+          <button class="cl-btn-status btn-ok"    onclick="setStatus('auth-3','ok',   event)"><i class="fas fa-check"></i></button>
+          <button class="cl-btn-status btn-falha" onclick="setStatus('auth-3','falha',event)"><i class="fas fa-times"></i></button>
+          <button class="cl-btn-status btn-na"    onclick="setStatus('auth-3','na',   event)"><i class="fas fa-minus"></i></button>
+        </div>
+      </div>
+      <div class="cl-item" id="auth-4" onclick="ciclarStatus('auth-4')">
+        <div class="cl-item-corpo">
+          <div class="cl-item-titulo">Logout encerra a sessão corretamente</div>
+          <div class="cl-item-desc">Clicar em Sair e tentar voltar pelo botão Back do navegador — deve redirecionar para login</div>
+        </div>
+        <div class="cl-item-acoes">
+          <button class="cl-btn-status btn-ok"    onclick="setStatus('auth-4','ok',   event)"><i class="fas fa-check"></i></button>
+          <button class="cl-btn-status btn-falha" onclick="setStatus('auth-4','falha',event)"><i class="fas fa-times"></i></button>
+          <button class="cl-btn-status btn-na"    onclick="setStatus('auth-4','na',   event)"><i class="fas fa-minus"></i></button>
+        </div>
+      </div>
+      <div class="cl-item" id="auth-5" onclick="ciclarStatus('auth-5')">
+        <div class="cl-item-corpo">
+          <div class="cl-item-titulo">Login registra log de atividade</div>
+          <div class="cl-item-desc">Após login, verificar em Configurações → Logs se o evento LOGIN foi registrado</div>
+        </div>
+        <div class="cl-item-acoes">
+          <button class="cl-btn-status btn-ok"    onclick="setStatus('auth-5','ok',   event)"><i class="fas fa-check"></i></button>
+          <button class="cl-btn-status btn-falha" onclick="setStatus('auth-5','falha',event)"><i class="fas fa-times"></i></button>
+          <button class="cl-btn-status btn-na"    onclick="setStatus('auth-5','na',   event)"><i class="fas fa-minus"></i></button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─────────────────── CHAMADOS ─────────────────── -->
+  <div class="cl-panel" id="panel-chamados">
+    <div class="cl-resumo" id="resumo-chamados"></div>
+    <div class="cl-progress-info" id="pi-chamados"><span></span><span></span></div>
+    <div class="cl-progress-bar-wrap"><div class="cl-progress-bar" id="pb-chamados" style="width:0%"></div></div>
+
+    <div class="cl-grupo">
+      <div class="cl-grupo-titulo"><i class="fas fa-plus-circle" style="color:#ef4444"></i> Abertura de Chamado</div>
+      <div class="cl-item" id="ch-1" onclick="ciclarStatus('ch-1')">
+        <div class="cl-item-corpo"><div class="cl-item-titulo">Criar chamado com todos os campos preenchidos</div><div class="cl-item-desc">Preencher assunto, setor, descrição e enviar — verificar protocolo gerado</div></div>
+        <div class="cl-item-acoes"><button class="cl-btn-status btn-ok" onclick="setStatus('ch-1','ok',event)"><i class="fas fa-check"></i></button><button class="cl-btn-status btn-falha" onclick="setStatus('ch-1','falha',event)"><i class="fas fa-times"></i></button><button class="cl-btn-status btn-na" onclick="setStatus('ch-1','na',event)"><i class="fas fa-minus"></i></button></div>
+      </div>
+      <div class="cl-item" id="ch-2" onclick="ciclarStatus('ch-2')">
+        <div class="cl-item-corpo"><div class="cl-item-titulo">Criar chamado sem assunto exibe validação</div><div class="cl-item-desc">Tentar enviar sem preencher o campo Assunto</div></div>
+        <div class="cl-item-acoes"><button class="cl-btn-status btn-ok" onclick="setStatus('ch-2','ok',event)"><i class="fas fa-check"></i></button><button class="cl-btn-status btn-falha" onclick="setStatus('ch-2','falha',event)"><i class="fas fa-times"></i></button><button class="cl-btn-status btn-na" onclick="setStatus('ch-2','na',event)"><i class="fas fa-minus"></i></button></div>
+      </div>
+      <div class="cl-item" id="ch-3" onclick="ciclarStatus('ch-3')">
+        <div class="cl-item-corpo"><div class="cl-item-titulo">E-mail de novo chamado disparado</div><div class="cl-item-desc">Criar chamado e verificar se o e-mail automático (chamados.novo) foi enviado</div></div>
+        <div class="cl-item-acoes"><button class="cl-btn-status btn-ok" onclick="setStatus('ch-3','ok',event)"><i class="fas fa-check"></i></button><button class="cl-btn-status btn-falha" onclick="setStatus('ch-3','falha',event)"><i class="fas fa-times"></i></button><button class="cl-btn-status btn-na" onclick="setStatus('ch-3','na',event)"><i class="fas fa-minus"></i></button></div>
+      </div>
+    </div>
+
+    <div class="cl-grupo">
+      <div class="cl-grupo-titulo"><i class="fas fa-exchange-alt" style="color:#ef4444"></i> Fluxo de Status</div>
+      <div class="cl-item" id="ch-4" onclick="ciclarStatus('ch-4')">
+        <div class="cl-item-corpo"><div class="cl-item-titulo">Aceitar chamado (Aberto → Em Atendimento)</div><div class="cl-item-desc">Como técnico, aceitar um chamado aberto e verificar mudança de status</div></div>
+        <div class="cl-item-acoes"><button class="cl-btn-status btn-ok" onclick="setStatus('ch-4','ok',event)"><i class="fas fa-check"></i></button><button class="cl-btn-status btn-falha" onclick="setStatus('ch-4','falha',event)"><i class="fas fa-times"></i></button><button class="cl-btn-status btn-na" onclick="setStatus('ch-4','na',event)"><i class="fas fa-minus"></i></button></div>
+      </div>
+      <div class="cl-item" id="ch-5" onclick="ciclarStatus('ch-5')">
+        <div class="cl-item-corpo"><div class="cl-item-titulo">Finalizar chamado (Em Atendimento → Finalizado)</div><div class="cl-item-desc">Finalizar chamado em atendimento e confirmar status Finalizado</div></div>
+        <div class="cl-item-acoes"><button class="cl-btn-status btn-ok" onclick="setStatus('ch-5','ok',event)"><i class="fas fa-check"></i></button><button class="cl-btn-status btn-falha" onclick="setStatus('ch-5','falha',event)"><i class="fas fa-times"></i></button><button class="cl-btn-status btn-na" onclick="setStatus('ch-5','na',event)"><i class="fas fa-minus"></i></button></div>
+      </div>
+      <div class="cl-item" id="ch-6" onclick="ciclarStatus('ch-6')">
+        <div class="cl-item-corpo"><div class="cl-item-titulo">Reabrir chamado finalizado</div><div class="cl-item-desc">Como solicitante, reabrir um chamado finalizado e verificar retorno ao status anterior</div></div>
+        <div class="cl-item-acoes"><button class="cl-btn-status btn-ok" onclick="setStatus('ch-6','ok',event)"><i class="fas fa-check"></i></button><button class="cl-btn-status btn-falha" onclick="setStatus('ch-6','falha',event)"><i class="fas fa-times"></i></button><button class="cl-btn-status btn-na" onclick="setStatus('ch-6','na',event)"><i class="fas fa-minus"></i></button></div>
+      </div>
+      <div class="cl-item" id="ch-7" onclick="ciclarStatus('ch-7')">
+        <div class="cl-item-corpo"><div class="cl-item-titulo">Transferir chamado para outro setor</div><div class="cl-item-desc">Transferir e verificar se o setor foi alterado e e-mail enviado</div></div>
+        <div class="cl-item-acoes"><button class="cl-btn-status btn-ok" onclick="setStatus('ch-7','ok',event)"><i class="fas fa-check"></i></button><button class="cl-btn-status btn-falha" onclick="setStatus('ch-7','falha',event)"><i class="fas fa-times"></i></button><button class="cl-btn-status btn-na" onclick="setStatus('ch-7','na',event)"><i class="fas fa-minus"></i></button></div>
+      </div>
+    </div>
+
+    <div class="cl-grupo">
+      <div class="cl-grupo-titulo"><i class="fas fa-tools" style="color:#ef4444"></i> Ações Avançadas</div>
+      <div class="cl-item" id="ch-8" onclick="ciclarStatus('ch-8')">
+        <div class="cl-item-corpo"><div class="cl-item-titulo">Solicitar aprovação do gestor</div><div class="cl-item-desc">Como técnico, solicitar aprovação e verificar e-mail enviado ao gestor</div></div>
+        <div class="cl-item-acoes"><button class="cl-btn-status btn-ok" onclick="setStatus('ch-8','ok',event)"><i class="fas fa-check"></i></button><button class="cl-btn-status btn-falha" onclick="setStatus('ch-8','falha',event)"><i class="fas fa-times"></i></button><button class="cl-btn-status btn-na" onclick="setStatus('ch-8','na',event)"><i class="fas fa-minus"></i></button></div>
+      </div>
+      <div class="cl-item" id="ch-9" onclick="ciclarStatus('ch-9')">
+        <div class="cl-item-corpo"><div class="cl-item-titulo">Criar chamado vinculado</div><div class="cl-item-desc">Criar chamado filho vinculado a um pai e verificar bloqueio automático do pai</div></div>
+        <div class="cl-item-acoes"><button class="cl-btn-status btn-ok" onclick="setStatus('ch-9','ok',event)"><i class="fas fa-check"></i></button><button class="cl-btn-status btn-falha" onclick="setStatus('ch-9','falha',event)"><i class="fas fa-times"></i></button><button class="cl-btn-status btn-na" onclick="setStatus('ch-9','na',event)"><i class="fas fa-minus"></i></button></div>
+      </div>
+      <div class="cl-item" id="ch-10" onclick="ciclarStatus('ch-10')">
+        <div class="cl-item-corpo"><div class="cl-item-titulo">Excluir chamado (soft delete — admin)</div><div class="cl-item-desc">Como admin, excluir chamado e verificar que aparece nos relatórios com filtro "Incluir excluídos"</div></div>
+        <div class="cl-item-acoes"><button class="cl-btn-status btn-ok" onclick="setStatus('ch-10','ok',event)"><i class="fas fa-check"></i></button><button class="cl-btn-status btn-falha" onclick="setStatus('ch-10','falha',event)"><i class="fas fa-times"></i></button><button class="cl-btn-status btn-na" onclick="setStatus('ch-10','na',event)"><i class="fas fa-minus"></i></button></div>
+      </div>
+      <div class="cl-item" id="ch-11" onclick="ciclarStatus('ch-11')">
+        <div class="cl-item-corpo"><div class="cl-item-titulo">Técnico não consegue agir em chamado de outro setor</div><div class="cl-item-desc">Como técnico, tentar aceitar/finalizar chamado de setor diferente do seu</div></div>
+        <div class="cl-item-acoes"><button class="cl-btn-status btn-ok" onclick="setStatus('ch-11','ok',event)"><i class="fas fa-check"></i></button><button class="cl-btn-status btn-falha" onclick="setStatus('ch-11','falha',event)"><i class="fas fa-times"></i></button><button class="cl-btn-status btn-na" onclick="setStatus('ch-11','na',event)"><i class="fas fa-minus"></i></button></div>
+      </div>
+    </div>
+
+    <div class="cl-grupo">
+      <div class="cl-grupo-titulo"><i class="fas fa-chart-bar" style="color:#ef4444"></i> Relatórios</div>
+      <div class="cl-item" id="ch-12" onclick="ciclarStatus('ch-12')">
+        <div class="cl-item-corpo"><div class="cl-item-titulo">Relatório Resumido exibe cards e gráficos</div><div class="cl-item-desc">Acessar Relatórios, selecionar tipo Resumido e verificar cards de totais e gráficos</div></div>
+        <div class="cl-item-acoes"><button class="cl-btn-status btn-ok" onclick="setStatus('ch-12','ok',event)"><i class="fas fa-check"></i></button><button class="cl-btn-status btn-falha" onclick="setStatus('ch-12','falha',event)"><i class="fas fa-times"></i></button><button class="cl-btn-status btn-na" onclick="setStatus('ch-12','na',event)"><i class="fas fa-minus"></i></button></div>
+      </div>
+      <div class="cl-item" id="ch-13" onclick="ciclarStatus('ch-13')">
+        <div class="cl-item-corpo"><div class="cl-item-titulo">Exportação CSV do relatório detalhado</div><div class="cl-item-desc">No relatório Detalhado, clicar em Exportar CSV e verificar arquivo gerado</div></div>
+        <div class="cl-item-acoes"><button class="cl-btn-status btn-ok" onclick="setStatus('ch-13','ok',event)"><i class="fas fa-check"></i></button><button class="cl-btn-status btn-falha" onclick="setStatus('ch-13','falha',event)"><i class="fas fa-times"></i></button><button class="cl-btn-status btn-na" onclick="setStatus('ch-13','na',event)"><i class="fas fa-minus"></i></button></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─────────────────── FINANCEIRO ─────────────────── -->
+  <div class="cl-panel" id="panel-financeiro">
+    <div class="cl-resumo" id="resumo-financeiro"></div>
+    <div class="cl-progress-info" id="pi-financeiro"><span></span><span></span></div>
+    <div class="cl-progress-bar-wrap"><div class="cl-progress-bar" id="pb-financeiro" style="width:0%"></div></div>
+
+    <div class="cl-grupo">
+      <div class="cl-grupo-titulo"><i class="fas fa-folder-plus" style="color:#10b981"></i> Agendas</div>
+      <div class="cl-item" id="fin-1" onclick="ciclarStatus('fin-1')">
+        <div class="cl-item-corpo"><div class="cl-item-titulo">Criar nova agenda financeira</div><div class="cl-item-desc">Clicar em + Nova Agenda, preencher nome e cor, salvar e verificar seleção automática</div></div>
+        <div class="cl-item-acoes"><button class="cl-btn-status btn-ok" onclick="setStatus('fin-1','ok',event)"><i class="fas fa-check"></i></button><button class="cl-btn-status btn-falha" onclick="setStatus('fin-1','falha',event)"><i class="fas fa-times"></i></button><button class="cl-btn-status btn-na" onclick="setStatus('fin-1','na',event)"><i class="fas fa-minus"></i></button></div>
+      </div>
+      <div class="cl-item" id="fin-2" onclick="ciclarStatus('fin-2')">
+        <div class="cl-item-corpo"><div class="cl-item-titulo">Editar agenda (nome e cor)</div><div class="cl-item-desc">Clicar no ícone de lápis da agenda e alterar nome/cor</div></div>
+        <div class="cl-item-acoes"><button class="cl-btn-status btn-ok" onclick="setStatus('fin-2','ok',event)"><i class="fas fa-check"></i></button><button class="cl-btn-status btn-falha" onclick="setStatus('fin-2','falha',event)"><i class="fas fa-times"></i></button><button class="cl-btn-status btn-na" onclick="setStatus('fin-2','na',event)"><i class="fas fa-minus"></i></button></div>
+      </div>
+      <div class="cl-item" id="fin-3" onclick="ciclarStatus('fin-3')">
+        <div class="cl-item-corpo"><div class="cl-item-titulo">Excluir agenda remove todos os lançamentos</div><div class="cl-item-desc">Excluir agenda com lançamentos e verificar que não restou nenhum lançamento órfão</div></div>
+        <div class="cl-item-acoes"><button class="cl-btn-status btn-ok" onclick="setStatus('fin-3','ok',event)"><i class="fas fa-check"></i></button><button class="cl-btn-status btn-falha" onclick="setStatus('fin-3','falha',event)"><i class="fas fa-times"></i></button><button class="cl-btn-status btn-na" onclick="setStatus('fin-3','na',event)"><i class="fas fa-minus"></i></button></div>
+      </div>
+    </div>
+
+    <div class="cl-grupo">
+      <div class="cl-grupo-titulo"><i class="fas fa-file-invoice-dollar" style="color:#10b981"></i> Lançamentos</div>
+      <div class="cl-item" id="fin-4" onclick="ciclarStatus('fin-4')">
+        <div class="cl-item-corpo"><div class="cl-item-titulo">Criar lançamento único</div><div class="cl-item-desc">Adicionar conta com descrição, valor, data, categoria e empresa</div></div>
+        <div class="cl-item-acoes"><button class="cl-btn-status btn-ok" onclick="setStatus('fin-4','ok',event)"><i class="fas fa-check"></i></button><button class="cl-btn-status btn-falha" onclick="setStatus('fin-4','falha',event)"><i class="fas fa-times"></i></button><button class="cl-btn-status btn-na" onclick="setStatus('fin-4','na',event)"><i class="fas fa-minus"></i></button></div>
+      </div>
+      <div class="cl-item" id="fin-5" onclick="ciclarStatus('fin-5')">
+        <div class="cl-item-corpo"><div class="cl-item-titulo">Criar lançamento recorrente mensal (12x)</div><div class="cl-item-desc">Ativar recorrência, definir 12 parcelas e verificar se foram criadas corretamente</div></div>
+        <div class="cl-item-acoes"><button class="cl-btn-status btn-ok" onclick="setStatus('fin-5','ok',event)"><i class="fas fa-check"></i></button><button class="cl-btn-status btn-falha" onclick="setStatus('fin-5','falha',event)"><i class="fas fa-times"></i></button><button class="cl-btn-status btn-na" onclick="setStatus('fin-5','na',event)"><i class="fas fa-minus"></i></button></div>
+      </div>
+      <div class="cl-item" id="fin-6" onclick="ciclarStatus('fin-6')">
+        <div class="cl-item-corpo"><div class="cl-item-titulo">Marcar conta como paga</div><div class="cl-item-desc">Clicar em Pagar e verificar badge PAGO e atualização dos cards de resumo</div></div>
+        <div class="cl-item-acoes"><button class="cl-btn-status btn-ok" onclick="setStatus('fin-6','ok',event)"><i class="fas fa-check"></i></button><button class="cl-btn-status btn-falha" onclick="setStatus('fin-6','falha',event)"><i class="fas fa-times"></i></button><button class="cl-btn-status btn-na" onclick="setStatus('fin-6','na',event)"><i class="fas fa-minus"></i></button></div>
+      </div>
+      <div class="cl-item" id="fin-7" onclick="ciclarStatus('fin-7')">
+        <div class="cl-item-corpo"><div class="cl-item-titulo">Excluir grupo recorrente inteiro</div><div class="cl-item-desc">Usar botão Excluir Grupo na parcela 1 e verificar remoção de todas as parcelas</div></div>
+        <div class="cl-item-acoes"><button class="cl-btn-status btn-ok" onclick="setStatus('fin-7','ok',event)"><i class="fas fa-check"></i></button><button class="cl-btn-status btn-falha" onclick="setStatus('fin-7','falha',event)"><i class="fas fa-times"></i></button><button class="cl-btn-status btn-na" onclick="setStatus('fin-7','na',event)"><i class="fas fa-minus"></i></button></div>
+      </div>
+    </div>
+
+    <div class="cl-grupo">
+      <div class="cl-grupo-titulo"><i class="fas fa-bell" style="color:#10b981"></i> Lembretes Automáticos (08:00)</div>
+      <div class="cl-item" id="fin-8" onclick="ciclarStatus('fin-8')">
+        <div class="cl-item-corpo"><div class="cl-item-titulo">Lembrete do dia dispara às 08:00</div><div class="cl-item-desc">Com contas pendentes para hoje, verificar se o e-mail de lembrete_hoje foi enviado às 08:00</div></div>
+        <div class="cl-item-acoes"><button class="cl-btn-status btn-ok" onclick="setStatus('fin-8','ok',event)"><i class="fas fa-check"></i></button><button class="cl-btn-status btn-falha" onclick="setStatus('fin-8','falha',event)"><i class="fas fa-times"></i></button><button class="cl-btn-status btn-na" onclick="setStatus('fin-8','na',event)"><i class="fas fa-minus"></i></button></div>
+      </div>
+      <div class="cl-item" id="fin-9" onclick="ciclarStatus('fin-9')">
+        <div class="cl-item-corpo"><div class="cl-item-titulo">Lembrete 7 dias dispara às 08:00</div><div class="cl-item-desc">Com contas nos próximos 7 dias, verificar e-mail de lembrete_7dias às 08:00</div></div>
+        <div class="cl-item-acoes"><button class="cl-btn-status btn-ok" onclick="setStatus('fin-9','ok',event)"><i class="fas fa-check"></i></button><button class="cl-btn-status btn-falha" onclick="setStatus('fin-9','falha',event)"><i class="fas fa-times"></i></button><button class="cl-btn-status btn-na" onclick="setStatus('fin-9','na',event)"><i class="fas fa-minus"></i></button></div>
+      </div>
+      <div class="cl-item" id="fin-10" onclick="ciclarStatus('fin-10')">
+        <div class="cl-item-corpo"><div class="cl-item-titulo">Sem contas pendentes: nenhum e-mail enviado</div><div class="cl-item-desc">Sem contas para o período, confirmar que o e-mail de lembrete NÃO é disparado</div></div>
+        <div class="cl-item-acoes"><button class="cl-btn-status btn-ok" onclick="setStatus('fin-10','ok',event)"><i class="fas fa-check"></i></button><button class="cl-btn-status btn-falha" onclick="setStatus('fin-10','falha',event)"><i class="fas fa-times"></i></button><button class="cl-btn-status btn-na" onclick="setStatus('fin-10','na',event)"><i class="fas fa-minus"></i></button></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─────────────────── AGENDA TAREFAS ─────────────────── -->
+  <div class="cl-panel" id="panel-agenda">
+    <div class="cl-resumo" id="resumo-agenda"></div>
+    <div class="cl-progress-info" id="pi-agenda"><span></span><span></span></div>
+    <div class="cl-progress-bar-wrap"><div class="cl-progress-bar" id="pb-agenda" style="width:0%"></div></div>
+
+    <div class="cl-grupo">
+      <div class="cl-grupo-titulo"><i class="fas fa-list" style="color:#8b5cf6"></i> Listas</div>
+      <div class="cl-item" id="ag-1" onclick="ciclarStatus('ag-1')">
+        <div class="cl-item-corpo"><div class="cl-item-titulo">Criar nova lista de tarefas</div><div class="cl-item-desc">Clicar em + Nova Lista, informar nome e verificar criação com seleção automática</div></div>
+        <div class="cl-item-acoes"><button class="cl-btn-status btn-ok" onclick="setStatus('ag-1','ok',event)"><i class="fas fa-check"></i></button><button class="cl-btn-status btn-falha" onclick="setStatus('ag-1','falha',event)"><i class="fas fa-times"></i></button><button class="cl-btn-status btn-na" onclick="setStatus('ag-1','na',event)"><i class="fas fa-minus"></i></button></div>
+      </div>
+      <div class="cl-item" id="ag-2" onclick="ciclarStatus('ag-2')">
+        <div class="cl-item-corpo"><div class="cl-item-titulo">Compartilhar lista com outro usuário</div><div class="cl-item-desc">Clicar em Membros, adicionar usuário com permissão Leitura e verificar lista na sidebar do outro</div></div>
+        <div class="cl-item-acoes"><button class="cl-btn-status btn-ok" onclick="setStatus('ag-2','ok',event)"><i class="fas fa-check"></i></button><button class="cl-btn-status btn-falha" onclick="setStatus('ag-2','falha',event)"><i class="fas fa-times"></i></button><button class="cl-btn-status btn-na" onclick="setStatus('ag-2','na',event)"><i class="fas fa-minus"></i></button></div>
+      </div>
+    </div>
+
+    <div class="cl-grupo">
+      <div class="cl-grupo-titulo"><i class="fas fa-check-square" style="color:#8b5cf6"></i> Tarefas</div>
+      <div class="cl-item" id="ag-3" onclick="ciclarStatus('ag-3')">
+        <div class="cl-item-corpo"><div class="cl-item-titulo">Criar tarefa com título e prazo</div><div class="cl-item-desc">Adicionar nova tarefa com título, prazo e categoria</div></div>
+        <div class="cl-item-acoes"><button class="cl-btn-status btn-ok" onclick="setStatus('ag-3','ok',event)"><i class="fas fa-check"></i></button><button class="cl-btn-status btn-falha" onclick="setStatus('ag-3','falha',event)"><i class="fas fa-times"></i></button><button class="cl-btn-status btn-na" onclick="setStatus('ag-3','na',event)"><i class="fas fa-minus"></i></button></div>
+      </div>
+      <div class="cl-item" id="ag-4" onclick="ciclarStatus('ag-4')">
+        <div class="cl-item-corpo"><div class="cl-item-titulo">Marcar tarefa como concluída gera log</div><div class="cl-item-desc">Concluir tarefa e verificar log em Configurações → Logs (Sistema: Ag. Tarefas)</div></div>
+        <div class="cl-item-acoes"><button class="cl-btn-status btn-ok" onclick="setStatus('ag-4','ok',event)"><i class="fas fa-check"></i></button><button class="cl-btn-status btn-falha" onclick="setStatus('ag-4','falha',event)"><i class="fas fa-times"></i></button><button class="cl-btn-status btn-na" onclick="setStatus('ag-4','na',event)"><i class="fas fa-minus"></i></button></div>
+      </div>
+      <div class="cl-item" id="ag-5" onclick="ciclarStatus('ag-5')">
+        <div class="cl-item-corpo"><div class="cl-item-titulo">Usuário com permissão Leitura não cria tarefas</div><div class="cl-item-desc">Com permissão de leitura na lista compartilhada, verificar que + Nova Tarefa está bloqueado</div></div>
+        <div class="cl-item-acoes"><button class="cl-btn-status btn-ok" onclick="setStatus('ag-5','ok',event)"><i class="fas fa-check"></i></button><button class="cl-btn-status btn-falha" onclick="setStatus('ag-5','falha',event)"><i class="fas fa-times"></i></button><button class="cl-btn-status btn-na" onclick="setStatus('ag-5','na',event)"><i class="fas fa-minus"></i></button></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─────────────────── CONTATOS ─────────────────── -->
+  <div class="cl-panel" id="panel-contatos">
+    <div class="cl-resumo" id="resumo-contatos"></div>
+    <div class="cl-progress-info" id="pi-contatos"><span></span><span></span></div>
+    <div class="cl-progress-bar-wrap"><div class="cl-progress-bar" id="pb-contatos" style="width:0%"></div></div>
+
+    <div class="cl-grupo">
+      <div class="cl-grupo-titulo"><i class="fas fa-folder" style="color:#78d6c8"></i> Listas de Contatos</div>
+      <div class="cl-item" id="ct-1" onclick="ciclarStatus('ct-1')">
+        <div class="cl-item-corpo"><div class="cl-item-titulo">Criar nova lista de contatos</div><div class="cl-item-desc">Clicar em + Nova Lista, informar nome e verificar criação</div></div>
+        <div class="cl-item-acoes"><button class="cl-btn-status btn-ok" onclick="setStatus('ct-1','ok',event)"><i class="fas fa-check"></i></button><button class="cl-btn-status btn-falha" onclick="setStatus('ct-1','falha',event)"><i class="fas fa-times"></i></button><button class="cl-btn-status btn-na" onclick="setStatus('ct-1','na',event)"><i class="fas fa-minus"></i></button></div>
+      </div>
+      <div class="cl-item" id="ct-2" onclick="ciclarStatus('ct-2')">
+        <div class="cl-item-corpo"><div class="cl-item-titulo">Excluir lista remove todos os contatos</div><div class="cl-item-desc">Excluir lista com contatos e confirmar remoção completa</div></div>
+        <div class="cl-item-acoes"><button class="cl-btn-status btn-ok" onclick="setStatus('ct-2','ok',event)"><i class="fas fa-check"></i></button><button class="cl-btn-status btn-falha" onclick="setStatus('ct-2','falha',event)"><i class="fas fa-times"></i></button><button class="cl-btn-status btn-na" onclick="setStatus('ct-2','na',event)"><i class="fas fa-minus"></i></button></div>
+      </div>
+    </div>
+
+    <div class="cl-grupo">
+      <div class="cl-grupo-titulo"><i class="fas fa-user-plus" style="color:#78d6c8"></i> Contatos</div>
+      <div class="cl-item" id="ct-3" onclick="ciclarStatus('ct-3')">
+        <div class="cl-item-corpo"><div class="cl-item-titulo">Criar contato com todos os campos</div><div class="cl-item-desc">Preencher nome, empresa, cargo, telefone, e-mail e observações</div></div>
+        <div class="cl-item-acoes"><button class="cl-btn-status btn-ok" onclick="setStatus('ct-3','ok',event)"><i class="fas fa-check"></i></button><button class="cl-btn-status btn-falha" onclick="setStatus('ct-3','falha',event)"><i class="fas fa-times"></i></button><button class="cl-btn-status btn-na" onclick="setStatus('ct-3','na',event)"><i class="fas fa-minus"></i></button></div>
+      </div>
+      <div class="cl-item" id="ct-4" onclick="ciclarStatus('ct-4')">
+        <div class="cl-item-corpo"><div class="cl-item-titulo">Criar contato apenas com nome (campo obrigatório)</div><div class="cl-item-desc">Preencher somente o nome e salvar — deve funcionar normalmente</div></div>
+        <div class="cl-item-acoes"><button class="cl-btn-status btn-ok" onclick="setStatus('ct-4','ok',event)"><i class="fas fa-check"></i></button><button class="cl-btn-status btn-falha" onclick="setStatus('ct-4','falha',event)"><i class="fas fa-times"></i></button><button class="cl-btn-status btn-na" onclick="setStatus('ct-4','na',event)"><i class="fas fa-minus"></i></button></div>
+      </div>
+      <div class="cl-item" id="ct-5" onclick="ciclarStatus('ct-5')">
+        <div class="cl-item-corpo"><div class="cl-item-titulo">Editar contato existente</div><div class="cl-item-desc">Clicar no lápis, alterar algum campo e salvar — verificar atualização</div></div>
+        <div class="cl-item-acoes"><button class="cl-btn-status btn-ok" onclick="setStatus('ct-5','ok',event)"><i class="fas fa-check"></i></button><button class="cl-btn-status btn-falha" onclick="setStatus('ct-5','falha',event)"><i class="fas fa-times"></i></button><button class="cl-btn-status btn-na" onclick="setStatus('ct-5','na',event)"><i class="fas fa-minus"></i></button></div>
+      </div>
+      <div class="cl-item" id="ct-6" onclick="ciclarStatus('ct-6')">
+        <div class="cl-item-corpo"><div class="cl-item-titulo">Busca em tempo real filtra corretamente</div><div class="cl-item-desc">Digitar nome ou empresa no campo de busca e verificar filtragem instantânea</div></div>
+        <div class="cl-item-acoes"><button class="cl-btn-status btn-ok" onclick="setStatus('ct-6','ok',event)"><i class="fas fa-check"></i></button><button class="cl-btn-status btn-falha" onclick="setStatus('ct-6','falha',event)"><i class="fas fa-times"></i></button><button class="cl-btn-status btn-na" onclick="setStatus('ct-6','na',event)"><i class="fas fa-minus"></i></button></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─────────────────── PATRIMÔNIO ─────────────────── -->
+  <div class="cl-panel" id="panel-patrimonio">
+    <div class="cl-resumo" id="resumo-patrimonio"></div>
+    <div class="cl-progress-info" id="pi-patrimonio"><span></span><span></span></div>
+    <div class="cl-progress-bar-wrap"><div class="cl-progress-bar" id="pb-patrimonio" style="width:0%"></div></div>
+
+    <div class="cl-grupo">
+      <div class="cl-grupo-titulo"><i class="fas fa-plus" style="color:#f59e0b"></i> Cadastro</div>
+      <div class="cl-item" id="pat-1" onclick="ciclarStatus('pat-1')">
+        <div class="cl-item-corpo"><div class="cl-item-titulo">Cadastrar novo bem patrimonial</div><div class="cl-item-desc">Preencher código, descrição, categoria, unidade, responsável e valor — salvar</div></div>
+        <div class="cl-item-acoes"><button class="cl-btn-status btn-ok" onclick="setStatus('pat-1','ok',event)"><i class="fas fa-check"></i></button><button class="cl-btn-status btn-falha" onclick="setStatus('pat-1','falha',event)"><i class="fas fa-times"></i></button><button class="cl-btn-status btn-na" onclick="setStatus('pat-1','na',event)"><i class="fas fa-minus"></i></button></div>
+      </div>
+      <div class="cl-item" id="pat-2" onclick="ciclarStatus('pat-2')">
+        <div class="cl-item-corpo"><div class="cl-item-titulo">Editar bem cadastrado</div><div class="cl-item-desc">Alterar descrição e responsável do bem e confirmar atualização</div></div>
+        <div class="cl-item-acoes"><button class="cl-btn-status btn-ok" onclick="setStatus('pat-2','ok',event)"><i class="fas fa-check"></i></button><button class="cl-btn-status btn-falha" onclick="setStatus('pat-2','falha',event)"><i class="fas fa-times"></i></button><button class="cl-btn-status btn-na" onclick="setStatus('pat-2','na',event)"><i class="fas fa-minus"></i></button></div>
+      </div>
+      <div class="cl-item" id="pat-3" onclick="ciclarStatus('pat-3')">
+        <div class="cl-item-corpo"><div class="cl-item-titulo">Controle de acesso: usuário sem permissão recebe bloqueio</div><div class="cl-item-desc">Logar como usuário sem permissão de Patrimônio e verificar mensagem de acesso negado</div></div>
+        <div class="cl-item-acoes"><button class="cl-btn-status btn-ok" onclick="setStatus('pat-3','ok',event)"><i class="fas fa-check"></i></button><button class="cl-btn-status btn-falha" onclick="setStatus('pat-3','falha',event)"><i class="fas fa-times"></i></button><button class="cl-btn-status btn-na" onclick="setStatus('pat-3','na',event)"><i class="fas fa-minus"></i></button></div>
+      </div>
+    </div>
+
+    <div class="cl-grupo">
+      <div class="cl-grupo-titulo"><i class="fas fa-clipboard-list" style="color:#f59e0b"></i> Ocorrências</div>
+      <div class="cl-item" id="pat-4" onclick="ciclarStatus('pat-4')">
+        <div class="cl-item-corpo"><div class="cl-item-titulo">Registrar ocorrência de manutenção</div><div class="cl-item-desc">Registrar evento de Manutenção e verificar sugestão automática de status "Em Manutenção"</div></div>
+        <div class="cl-item-acoes"><button class="cl-btn-status btn-ok" onclick="setStatus('pat-4','ok',event)"><i class="fas fa-check"></i></button><button class="cl-btn-status btn-falha" onclick="setStatus('pat-4','falha',event)"><i class="fas fa-times"></i></button><button class="cl-btn-status btn-na" onclick="setStatus('pat-4','na',event)"><i class="fas fa-minus"></i></button></div>
+      </div>
+      <div class="cl-item" id="pat-5" onclick="ciclarStatus('pat-5')">
+        <div class="cl-item-corpo"><div class="cl-item-titulo">Gerar Termo de Entrega</div><div class="cl-item-desc">Registrar evento Entrega e verificar geração do PDF/termo formal</div></div>
+        <div class="cl-item-acoes"><button class="cl-btn-status btn-ok" onclick="setStatus('pat-5','ok',event)"><i class="fas fa-check"></i></button><button class="cl-btn-status btn-falha" onclick="setStatus('pat-5','falha',event)"><i class="fas fa-times"></i></button><button class="cl-btn-status btn-na" onclick="setStatus('pat-5','na',event)"><i class="fas fa-minus"></i></button></div>
+      </div>
+      <div class="cl-item" id="pat-6" onclick="ciclarStatus('pat-6')">
+        <div class="cl-item-corpo"><div class="cl-item-titulo">Filtros da listagem funcionam</div><div class="cl-item-desc">Filtrar por status, categoria e unidade e verificar resultados corretos</div></div>
+        <div class="cl-item-acoes"><button class="cl-btn-status btn-ok" onclick="setStatus('pat-6','ok',event)"><i class="fas fa-check"></i></button><button class="cl-btn-status btn-falha" onclick="setStatus('pat-6','falha',event)"><i class="fas fa-times"></i></button><button class="cl-btn-status btn-na" onclick="setStatus('pat-6','na',event)"><i class="fas fa-minus"></i></button></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─────────────────── CONFIGURAÇÕES ─────────────────── -->
+  <div class="cl-panel" id="panel-configuracoes">
+    <div class="cl-resumo" id="resumo-configuracoes"></div>
+    <div class="cl-progress-info" id="pi-configuracoes"><span></span><span></span></div>
+    <div class="cl-progress-bar-wrap"><div class="cl-progress-bar" id="pb-configuracoes" style="width:0%"></div></div>
+
+    <div class="cl-grupo">
+      <div class="cl-grupo-titulo"><i class="fas fa-users" style="color:var(--cor-destaque)"></i> Usuários</div>
+      <div class="cl-item" id="cfg-1" onclick="ciclarStatus('cfg-1')">
+        <div class="cl-item-corpo"><div class="cl-item-titulo">Criar novo usuário</div><div class="cl-item-desc">Preencher login, nome, senha e perfil — verificar criação e acesso</div></div>
+        <div class="cl-item-acoes"><button class="cl-btn-status btn-ok" onclick="setStatus('cfg-1','ok',event)"><i class="fas fa-check"></i></button><button class="cl-btn-status btn-falha" onclick="setStatus('cfg-1','falha',event)"><i class="fas fa-times"></i></button><button class="cl-btn-status btn-na" onclick="setStatus('cfg-1','na',event)"><i class="fas fa-minus"></i></button></div>
+      </div>
+      <div class="cl-item" id="cfg-2" onclick="ciclarStatus('cfg-2')">
+        <div class="cl-item-corpo"><div class="cl-item-titulo">Alterar senha de usuário</div><div class="cl-item-desc">Alterar senha de outro usuário e verificar login com a nova senha</div></div>
+        <div class="cl-item-acoes"><button class="cl-btn-status btn-ok" onclick="setStatus('cfg-2','ok',event)"><i class="fas fa-check"></i></button><button class="cl-btn-status btn-falha" onclick="setStatus('cfg-2','falha',event)"><i class="fas fa-times"></i></button><button class="cl-btn-status btn-na" onclick="setStatus('cfg-2','na',event)"><i class="fas fa-minus"></i></button></div>
+      </div>
+    </div>
+
+    <div class="cl-grupo">
+      <div class="cl-grupo-titulo"><i class="fas fa-database" style="color:var(--cor-destaque)"></i> Manutenção</div>
+      <div class="cl-item" id="cfg-3" onclick="ciclarStatus('cfg-3')">
+        <div class="cl-item-corpo"><div class="cl-item-titulo">Backup do banco em JSON</div><div class="cl-item-desc">Executar backup e verificar download do arquivo JSON gerado</div></div>
+        <div class="cl-item-acoes"><button class="cl-btn-status btn-ok" onclick="setStatus('cfg-3','ok',event)"><i class="fas fa-check"></i></button><button class="cl-btn-status btn-falha" onclick="setStatus('cfg-3','falha',event)"><i class="fas fa-times"></i></button><button class="cl-btn-status btn-na" onclick="setStatus('cfg-3','na',event)"><i class="fas fa-minus"></i></button></div>
+      </div>
+      <div class="cl-item" id="cfg-4" onclick="ciclarStatus('cfg-4')">
+        <div class="cl-item-corpo"><div class="cl-item-titulo">Limpeza de dados por sistema</div><div class="cl-item-desc">Usar filtro de sistema (ex: Patrimônio), executar limpeza e confirmar que outros sistemas não foram afetados</div></div>
+        <div class="cl-item-acoes"><button class="cl-btn-status btn-ok" onclick="setStatus('cfg-4','ok',event)"><i class="fas fa-check"></i></button><button class="cl-btn-status btn-falha" onclick="setStatus('cfg-4','falha',event)"><i class="fas fa-times"></i></button><button class="cl-btn-status btn-na" onclick="setStatus('cfg-4','na',event)"><i class="fas fa-minus"></i></button></div>
+      </div>
+      <div class="cl-item" id="cfg-5" onclick="ciclarStatus('cfg-5')">
+        <div class="cl-item-corpo"><div class="cl-item-titulo">Transferência de agenda entre usuários</div><div class="cl-item-desc">Transferir agenda financeira de um usuário para outro e verificar visibilidade</div></div>
+        <div class="cl-item-acoes"><button class="cl-btn-status btn-ok" onclick="setStatus('cfg-5','ok',event)"><i class="fas fa-check"></i></button><button class="cl-btn-status btn-falha" onclick="setStatus('cfg-5','falha',event)"><i class="fas fa-times"></i></button><button class="cl-btn-status btn-na" onclick="setStatus('cfg-5','na',event)"><i class="fas fa-minus"></i></button></div>
+      </div>
+    </div>
+
+    <div class="cl-grupo">
+      <div class="cl-grupo-titulo"><i class="fas fa-concierge-bell" style="color:var(--cor-destaque)"></i> Serviços</div>
+      <div class="cl-item" id="cfg-6" onclick="ciclarStatus('cfg-6')">
+        <div class="cl-item-corpo"><div class="cl-item-titulo">Criar novo serviço na aba Serviços</div><div class="cl-item-desc">Cadastrar serviço com nome, URL e ícone — verificar exibição na página inicial</div></div>
+        <div class="cl-item-acoes"><button class="cl-btn-status btn-ok" onclick="setStatus('cfg-6','ok',event)"><i class="fas fa-check"></i></button><button class="cl-btn-status btn-falha" onclick="setStatus('cfg-6','falha',event)"><i class="fas fa-times"></i></button><button class="cl-btn-status btn-na" onclick="setStatus('cfg-6','na',event)"><i class="fas fa-minus"></i></button></div>
+      </div>
+      <div class="cl-item" id="cfg-7" onclick="ciclarStatus('cfg-7')">
+        <div class="cl-item-corpo"><div class="cl-item-titulo">Ativar/desativar serviço</div><div class="cl-item-desc">Desativar um serviço e confirmar que ele some da página inicial</div></div>
+        <div class="cl-item-acoes"><button class="cl-btn-status btn-ok" onclick="setStatus('cfg-7','ok',event)"><i class="fas fa-check"></i></button><button class="cl-btn-status btn-falha" onclick="setStatus('cfg-7','falha',event)"><i class="fas fa-times"></i></button><button class="cl-btn-status btn-na" onclick="setStatus('cfg-7','na',event)"><i class="fas fa-minus"></i></button></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─────────────────── E-MAIL ─────────────────── -->
+  <div class="cl-panel" id="panel-email">
+    <div class="cl-resumo" id="resumo-email"></div>
+    <div class="cl-progress-info" id="pi-email"><span></span><span></span></div>
+    <div class="cl-progress-bar-wrap"><div class="cl-progress-bar" id="pb-email" style="width:0%"></div></div>
+
+    <div class="cl-grupo">
+      <div class="cl-grupo-titulo"><i class="fas fa-server" style="color:var(--cor-destaque)"></i> Configuração SMTP</div>
+      <div class="cl-item" id="em-1" onclick="ciclarStatus('em-1')">
+        <div class="cl-item-corpo"><div class="cl-item-titulo">Salvar configurações SMTP</div><div class="cl-item-desc">Preencher host, porta, usuário, senha e e-mail padrão — salvar com sucesso</div></div>
+        <div class="cl-item-acoes"><button class="cl-btn-status btn-ok" onclick="setStatus('em-1','ok',event)"><i class="fas fa-check"></i></button><button class="cl-btn-status btn-falha" onclick="setStatus('em-1','falha',event)"><i class="fas fa-times"></i></button><button class="cl-btn-status btn-na" onclick="setStatus('em-1','na',event)"><i class="fas fa-minus"></i></button></div>
+      </div>
+      <div class="cl-item" id="em-2" onclick="ciclarStatus('em-2')">
+        <div class="cl-item-corpo"><div class="cl-item-titulo">Teste de envio SMTP bem-sucedido</div><div class="cl-item-desc">Clicar em "Testar E-mail" e verificar recebimento no e-mail configurado</div></div>
+        <div class="cl-item-acoes"><button class="cl-btn-status btn-ok" onclick="setStatus('em-2','ok',event)"><i class="fas fa-check"></i></button><button class="cl-btn-status btn-falha" onclick="setStatus('em-2','falha',event)"><i class="fas fa-times"></i></button><button class="cl-btn-status btn-na" onclick="setStatus('em-2','na',event)"><i class="fas fa-minus"></i></button></div>
+      </div>
+    </div>
+
+    <div class="cl-grupo">
+      <div class="cl-grupo-titulo"><i class="fas fa-toggle-on" style="color:var(--cor-destaque)"></i> Notificações por Módulo</div>
+      <div class="cl-item" id="em-3" onclick="ciclarStatus('em-3')">
+        <div class="cl-item-corpo"><div class="cl-item-titulo">Ativar/desativar evento por chip</div><div class="cl-item-desc">Clicar em chip de evento (ex: chamados.novo) para ativar/desativar — verificar persistência após recarregar</div></div>
+        <div class="cl-item-acoes"><button class="cl-btn-status btn-ok" onclick="setStatus('em-3','ok',event)"><i class="fas fa-check"></i></button><button class="cl-btn-status btn-falha" onclick="setStatus('em-3','falha',event)"><i class="fas fa-times"></i></button><button class="cl-btn-status btn-na" onclick="setStatus('em-3','na',event)"><i class="fas fa-minus"></i></button></div>
+      </div>
+      <div class="cl-item" id="em-4" onclick="ciclarStatus('em-4')">
+        <div class="cl-item-corpo"><div class="cl-item-titulo">Chip "Criado por" envia e-mail ao autor</div><div class="cl-item-desc">Com chip "Criado por" ativo, criar chamado e verificar e-mail recebido pelo autor</div></div>
+        <div class="cl-item-acoes"><button class="cl-btn-status btn-ok" onclick="setStatus('em-4','ok',event)"><i class="fas fa-check"></i></button><button class="cl-btn-status btn-falha" onclick="setStatus('em-4','falha',event)"><i class="fas fa-times"></i></button><button class="cl-btn-status btn-na" onclick="setStatus('em-4','na',event)"><i class="fas fa-minus"></i></button></div>
+      </div>
+      <div class="cl-item" id="em-5" onclick="ciclarStatus('em-5')">
+        <div class="cl-item-corpo"><div class="cl-item-titulo">Chip "Administradores" envia e-mail a todos os admins</div><div class="cl-item-desc">Com chip "Administradores" ativo, disparar evento e verificar e-mails recebidos por todos os admins</div></div>
+        <div class="cl-item-acoes"><button class="cl-btn-status btn-ok" onclick="setStatus('em-5','ok',event)"><i class="fas fa-check"></i></button><button class="cl-btn-status btn-falha" onclick="setStatus('em-5','falha',event)"><i class="fas fa-times"></i></button><button class="cl-btn-status btn-na" onclick="setStatus('em-5','na',event)"><i class="fas fa-minus"></i></button></div>
+      </div>
+      <div class="cl-item" id="em-6" onclick="ciclarStatus('em-6')">
+        <div class="cl-item-corpo"><div class="cl-item-titulo">Evento desativado não envia e-mail</div><div class="cl-item-desc">Desativar um evento e disparar a ação correspondente — nenhum e-mail deve ser enviado</div></div>
+        <div class="cl-item-acoes"><button class="cl-btn-status btn-ok" onclick="setStatus('em-6','ok',event)"><i class="fas fa-check"></i></button><button class="cl-btn-status btn-falha" onclick="setStatus('em-6','falha',event)"><i class="fas fa-times"></i></button><button class="cl-btn-status btn-na" onclick="setStatus('em-6','na',event)"><i class="fas fa-minus"></i></button></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─────────────────── LOGS ─────────────────── -->
+  <div class="cl-panel" id="panel-logs">
+    <div class="cl-resumo" id="resumo-logs"></div>
+    <div class="cl-progress-info" id="pi-logs"><span></span><span></span></div>
+    <div class="cl-progress-bar-wrap"><div class="cl-progress-bar" id="pb-logs" style="width:0%"></div></div>
+
+    <div class="cl-grupo">
+      <div class="cl-grupo-titulo"><i class="fas fa-search" style="color:var(--cor-destaque)"></i> Filtros e Busca</div>
+      <div class="cl-item" id="log-1" onclick="ciclarStatus('log-1')">
+        <div class="cl-item-corpo"><div class="cl-item-titulo">Filtro por sistema exibe apenas logs do módulo</div><div class="cl-item-desc">Selecionar "Chamados" no filtro Sistema e verificar que só aparecem logs de chamados</div></div>
+        <div class="cl-item-acoes"><button class="cl-btn-status btn-ok" onclick="setStatus('log-1','ok',event)"><i class="fas fa-check"></i></button><button class="cl-btn-status btn-falha" onclick="setStatus('log-1','falha',event)"><i class="fas fa-times"></i></button><button class="cl-btn-status btn-na" onclick="setStatus('log-1','na',event)"><i class="fas fa-minus"></i></button></div>
+      </div>
+      <div class="cl-item" id="log-2" onclick="ciclarStatus('log-2')">
+        <div class="cl-item-corpo"><div class="cl-item-titulo">Busca por texto livre filtra nos detalhes</div><div class="cl-item-desc">Digitar parte de um protocolo ou nome no campo texto e verificar filtro nos detalhes</div></div>
+        <div class="cl-item-acoes"><button class="cl-btn-status btn-ok" onclick="setStatus('log-2','ok',event)"><i class="fas fa-check"></i></button><button class="cl-btn-status btn-falha" onclick="setStatus('log-2','falha',event)"><i class="fas fa-times"></i></button><button class="cl-btn-status btn-na" onclick="setStatus('log-2','na',event)"><i class="fas fa-minus"></i></button></div>
+      </div>
+      <div class="cl-item" id="log-3" onclick="ciclarStatus('log-3')">
+        <div class="cl-item-corpo"><div class="cl-item-titulo">Filtro de data De/Até funciona</div><div class="cl-item-desc">Definir intervalo de datas e verificar que só aparecem logs dentro do período</div></div>
+        <div class="cl-item-acoes"><button class="cl-btn-status btn-ok" onclick="setStatus('log-3','ok',event)"><i class="fas fa-check"></i></button><button class="cl-btn-status btn-falha" onclick="setStatus('log-3','falha',event)"><i class="fas fa-times"></i></button><button class="cl-btn-status btn-na" onclick="setStatus('log-3','na',event)"><i class="fas fa-minus"></i></button></div>
+      </div>
+      <div class="cl-item" id="log-4" onclick="ciclarStatus('log-4')">
+        <div class="cl-item-corpo"><div class="cl-item-titulo">Paginação navega corretamente</div><div class="cl-item-desc">Com mais de 100 logs, clicar em Próxima e verificar carregamento da próxima página</div></div>
+        <div class="cl-item-acoes"><button class="cl-btn-status btn-ok" onclick="setStatus('log-4','ok',event)"><i class="fas fa-check"></i></button><button class="cl-btn-status btn-falha" onclick="setStatus('log-4','falha',event)"><i class="fas fa-times"></i></button><button class="cl-btn-status btn-na" onclick="setStatus('log-4','na',event)"><i class="fas fa-minus"></i></button></div>
+      </div>
+      <div class="cl-item" id="log-5" onclick="ciclarStatus('log-5')">
+        <div class="cl-item-corpo"><div class="cl-item-titulo">Badges coloridos por ação e sistema</div><div class="cl-item-desc">Verificar se os badges de ação (LOGIN=verde, CRIACAO=azul, EXCLUSAO=vermelho) e sistema estão corretos</div></div>
+        <div class="cl-item-acoes"><button class="cl-btn-status btn-ok" onclick="setStatus('log-5','ok',event)"><i class="fas fa-check"></i></button><button class="cl-btn-status btn-falha" onclick="setStatus('log-5','falha',event)"><i class="fas fa-times"></i></button><button class="cl-btn-status btn-na" onclick="setStatus('log-5','na',event)"><i class="fas fa-minus"></i></button></div>
+      </div>
+    </div>
+
+    <div class="cl-grupo">
+      <div class="cl-grupo-titulo"><i class="fas fa-check-double" style="color:var(--cor-destaque)"></i> Cobertura de Sistemas</div>
+      <div class="cl-item" id="log-6" onclick="ciclarStatus('log-6')">
+        <div class="cl-item-corpo"><div class="cl-item-titulo">Ações de Chamados geram logs</div><div class="cl-item-desc">Criar/finalizar chamado e verificar registros em Logs com Sistema=chamados</div></div>
+        <div class="cl-item-acoes"><button class="cl-btn-status btn-ok" onclick="setStatus('log-6','ok',event)"><i class="fas fa-check"></i></button><button class="cl-btn-status btn-falha" onclick="setStatus('log-6','falha',event)"><i class="fas fa-times"></i></button><button class="cl-btn-status btn-na" onclick="setStatus('log-6','na',event)"><i class="fas fa-minus"></i></button></div>
+      </div>
+      <div class="cl-item" id="log-7" onclick="ciclarStatus('log-7')">
+        <div class="cl-item-corpo"><div class="cl-item-titulo">Ações de Financeiro geram logs</div><div class="cl-item-desc">Criar conta financeira e verificar log com Sistema=financeiro</div></div>
+        <div class="cl-item-acoes"><button class="cl-btn-status btn-ok" onclick="setStatus('log-7','ok',event)"><i class="fas fa-check"></i></button><button class="cl-btn-status btn-falha" onclick="setStatus('log-7','falha',event)"><i class="fas fa-times"></i></button><button class="cl-btn-status btn-na" onclick="setStatus('log-7','na',event)"><i class="fas fa-minus"></i></button></div>
+      </div>
+      <div class="cl-item" id="log-8" onclick="ciclarStatus('log-8')">
+        <div class="cl-item-corpo"><div class="cl-item-titulo">Ações de Patrimônio geram logs</div><div class="cl-item-desc">Cadastrar bem e verificar log com Sistema=patrimônio</div></div>
+        <div class="cl-item-acoes"><button class="cl-btn-status btn-ok" onclick="setStatus('log-8','ok',event)"><i class="fas fa-check"></i></button><button class="cl-btn-status btn-falha" onclick="setStatus('log-8','falha',event)"><i class="fas fa-times"></i></button><button class="cl-btn-status btn-na" onclick="setStatus('log-8','na',event)"><i class="fas fa-minus"></i></button></div>
+      </div>
+      <div class="cl-item" id="log-9" onclick="ciclarStatus('log-9')">
+        <div class="cl-item-corpo"><div class="cl-item-titulo">Ações de Agenda e Contatos geram logs</div><div class="cl-item-desc">Criar tarefa e contato e verificar logs correspondentes nos respectivos sistemas</div></div>
+        <div class="cl-item-acoes"><button class="cl-btn-status btn-ok" onclick="setStatus('log-9','ok',event)"><i class="fas fa-check"></i></button><button class="cl-btn-status btn-falha" onclick="setStatus('log-9','falha',event)"><i class="fas fa-times"></i></button><button class="cl-btn-status btn-na" onclick="setStatus('log-9','na',event)"><i class="fas fa-minus"></i></button></div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /cl-body -->
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!--  SCRIPT                                                    -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<script>
+// ── estado
+const estado = JSON.parse(localStorage.getItem('cl-portal-estado') || '{}');
+
+// ── troca de aba
+function mudarAba(aba) {
+  document.querySelectorAll('.cl-tab').forEach(t => t.classList.remove('ativo'));
+  document.querySelectorAll('.cl-panel').forEach(p => p.classList.remove('ativo'));
+  document.querySelector(`[data-aba="${aba}"]`).classList.add('ativo');
+  document.getElementById(`panel-${aba}`).classList.add('ativo');
+  atualizarProgresso(aba);
+}
+
+// ── cicla status ao clicar no card (pendente → ok → falha → na → pendente)
+function ciclarStatus(id) {
+  const atual = estado[id] || 'pendente';
+  const ciclo = { pendente: 'ok', ok: 'falha', falha: 'na', na: 'pendente' };
+  setStatus(id, ciclo[atual]);
+}
+
+// ── define status manualmente pelos botões
+function setStatus(id, status, evento) {
+  if (evento) { evento.stopPropagation(); evento.preventDefault(); }
+
+  // toggle: clicar no mesmo status remove
+  if (estado[id] === status) {
+    delete estado[id];
+  } else {
+    estado[id] = status;
+  }
+
+  salvarEAtualizar(id);
+}
+
+function salvarEAtualizar(id) {
+  localStorage.setItem('cl-portal-estado', JSON.stringify(estado));
+  aplicarVisual(id);
+  // atualiza progresso da aba atual
+  const abaAtiva = document.querySelector('.cl-tab.ativo')?.dataset.aba;
+  if (abaAtiva) atualizarProgresso(abaAtiva);
+  atualizarGlobal();
+}
+
+// ── aplica visual ao item
+function aplicarVisual(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const s = estado[id] || 'pendente';
+  el.classList.remove('ok', 'falha', 'na');
+  if (s !== 'pendente') el.classList.add(s);
+}
+
+// ── atualiza barra de progresso da aba
+function atualizarProgresso(aba) {
+  const panel = document.getElementById(`panel-${aba}`);
+  if (!panel) return;
+
+  const itens = panel.querySelectorAll('.cl-item');
+  let ok = 0, falha = 0, na = 0;
+  itens.forEach(i => {
+    const s = estado[i.id] || 'pendente';
+    if (s === 'ok')    ok++;
+    else if (s === 'falha') falha++;
+    else if (s === 'na')    na++;
+  });
+
+  const total    = itens.length;
+  const testados = ok + falha + na;
+  const pct      = total > 0 ? Math.round((ok / total) * 100) : 0;
+
+  const pb = document.getElementById(`pb-${aba}`);
+  if (pb) pb.style.width = pct + '%';
+
+  const pi = document.getElementById(`pi-${aba}`);
+  if (pi) {
+    pi.children[0].textContent = `${testados} de ${total} testados`;
+    pi.children[1].textContent = `${pct}% OK`;
+  }
+
+  // resumo cards
+  const resumo = document.getElementById(`resumo-${aba}`);
+  if (resumo) {
+    resumo.innerHTML = `
+      <div class="cl-resumo-card"><span>TOTAL</span><h4>${total}</h4></div>
+      <div class="cl-resumo-card"><span>OK</span><h4 style="color:var(--verde)">${ok}</h4></div>
+      <div class="cl-resumo-card"><span>FALHA</span><h4 style="color:var(--vermelho)">${falha}</h4></div>
+      <div class="cl-resumo-card"><span>PENDENTE</span><h4 style="color:var(--laranja)">${total - testados}</h4></div>
+    `;
+  }
+
+  // badge da aba
+  const badge = document.getElementById(`badge-${aba}`);
+  if (badge) badge.textContent = `${ok}/${total}`;
+}
+
+// ── contador global no header
+function atualizarGlobal() {
+  const todos = document.querySelectorAll('.cl-item');
+  let ok = 0, falha = 0, total = todos.length;
+  todos.forEach(i => {
+    const s = estado[i.id] || 'pendente';
+    if (s === 'ok')    ok++;
+    if (s === 'falha') falha++;
+  });
+  const pendente = total - ok - falha - Object.values(estado).filter(v => v === 'na').length;
+  document.getElementById('global-progress').innerHTML = `
+    <div class="cl-gp-item"><i class="fas fa-list" style="color:var(--cor-texto-fraco)"></i> <span class="cl-gp-num">${total}</span> testes</div>
+    <div class="cl-gp-item"><i class="fas fa-check-circle" style="color:var(--verde)"></i> <span class="cl-gp-num" style="color:var(--verde)">${ok}</span> OK</div>
+    <div class="cl-gp-item"><i class="fas fa-times-circle" style="color:var(--vermelho)"></i> <span class="cl-gp-num" style="color:var(--vermelho)">${falha}</span> Falha</div>
+    <div class="cl-gp-item"><i class="fas fa-clock" style="color:var(--laranja)"></i> <span class="cl-gp-num" style="color:var(--laranja)">${pendente}</span> Pendente</div>
+  `;
+}
+
+// ── limpar tudo
+function limparTudo() {
+  if (!confirm('Limpar todos os resultados de teste?')) return;
+  Object.keys(estado).forEach(k => delete estado[k]);
+  localStorage.removeItem('cl-portal-estado');
+  document.querySelectorAll('.cl-item').forEach(el => el.classList.remove('ok', 'falha', 'na'));
+  ['portal','auth','chamados','financeiro','agenda','contatos','patrimonio','configuracoes','email','logs']
+    .forEach(aba => atualizarProgresso(aba));
+  atualizarGlobal();
+}
+
+// ── exportar relatório
+function exportarRelatorio() {
+  const abas = ['portal','auth','chamados','financeiro','agenda','contatos','patrimonio','configuracoes','email','logs'];
+  const nomes = {
+    portal:'Portal', auth:'Login', chamados:'Chamados', financeiro:'Financeiro',
+    agenda:'Ag. Tarefas', contatos:'Contatos', patrimonio:'Patrimônio',
+    configuracoes:'Configurações', email:'E-mail', logs:'Logs'
+  };
+
+  let linhas = [
+    `CHECKLIST DE TESTES — Portal WKL`,
+    `Data: ${new Date().toLocaleString('pt-BR')}`,
+    ``,
+    `ABA;ID;TESTE;STATUS`
+  ];
+
+  abas.forEach(aba => {
+    const panel = document.getElementById(`panel-${aba}`);
+    if (!panel) return;
+    panel.querySelectorAll('.cl-item').forEach(el => {
+      const titulo = el.querySelector('.cl-item-titulo')?.textContent || '';
+      const s = estado[el.id] || 'PENDENTE';
+      linhas.push(`${nomes[aba]};${el.id};"${titulo}";${s.toUpperCase()}`);
+    });
+  });
+
+  const blob = new Blob([linhas.join('\n')], { type: 'text/csv;charset=utf-8;' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = `checklist_portal_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ── inicialização
+(function init() {
+  // restaura estado salvo
+  document.querySelectorAll('.cl-item').forEach(el => {
+    if (estado[el.id]) aplicarVisual(el.id);
+  });
+  // atualiza progressos de todas as abas
+  ['portal','auth','chamados','financeiro','agenda','contatos','patrimonio','configuracoes','email','logs']
+    .forEach(aba => atualizarProgresso(aba));
+  atualizarGlobal();
+})();
+</script>
+
+</body>
+</html>

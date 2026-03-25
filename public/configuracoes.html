@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<!--
+  ARQUIVO: public/configuracoes.html
+  VERSÃO:  1.1.0
+  DATA:    2026-03-03
+  DESCRIÇÃO: Página de Configurações do Portal — abas com carregamento dinâmico
+
+  HISTÓRICO:
+  1.1.0 - 2026-03-03 - Versão inicial
+-->
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portal WKL — Configurações</title>
+
+  <!-- Ícones Font Awesome (via CDN) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <!-- Estilos -->
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/menu.css">
+  <link rel="stylesheet" href="/css/configuracoes.css">
+</head>
+<body>
+
+  <!-- Menu compartilhado -->
+  <div id="menu-container"></div>
+
+  <!-- Conteúdo principal -->
+  <div class="container">
+
+    <div class="pagina-titulo">
+      <i class="fas fa-cog"></i> Configurações
+    </div>
+    <div class="pagina-subtitulo" style="margin-bottom: 24px;">
+      Gerencie usuários, sistemas e configurações do portal
+    </div>
+
+    <div class="card">
+
+      <!-- Abas de navegação -->
+      <div class="abas-container">
+
+        <button class="aba-btn ativa" data-aba="usuarios-locais">
+          <i class="fas fa-users"></i>
+          <span>Usuários Locais</span>
+        </button>
+
+        <button class="aba-btn" data-aba="usuarios-dominio">
+          <i class="fas fa-network-wired"></i>
+          <span>Domínio (AD)</span>
+        </button>
+
+        <button class="aba-btn" data-aba="sistemas">
+          <i class="fas fa-th-large"></i>
+          <span>Sistemas</span>
+        </button>
+
+        <button class="aba-btn" data-aba="servicos">
+          <i class="fas fa-cogs"></i>
+          <span>Serviços</span>
+        </button>
+
+        <button class="aba-btn" data-aba="telegram">
+          <i class="fab fa-telegram-plane"></i>
+          <span>Telegram</span>
+        </button>
+
+        <button class="aba-btn" data-aba="email">
+          <i class="fas fa-envelope"></i>
+          <span>Email (SMTP)</span>
+        </button>
+
+        <button class="aba-btn" data-aba="seguranca">
+          <i class="fas fa-shield-alt"></i>
+          <span>Segurança</span>
+        </button>
+
+        <button class="aba-btn" data-aba="logs">
+          <i class="fas fa-clipboard-list"></i>
+          <span>Logs</span>
+        </button>
+
+        <button class="aba-btn" data-aba="popup">
+          <i class="fas fa-bell-slash"></i>
+          <span>Popup (In-App)</span>
+        </button>
+
+        <button class="aba-btn" data-aba="manutencao">
+          <i class="fas fa-tools"></i>
+          <span>Manutencao</span>
+        </button>
+
+      </div>
+
+      <!-- Painéis de conteúdo das abas -->
+      <div id="aba-usuarios-locais"  class="aba-conteudo ativa"></div>
+      <div id="aba-usuarios-dominio" class="aba-conteudo"></div>
+      <div id="aba-sistemas"         class="aba-conteudo"></div>
+      <div id="aba-servicos"         class="aba-conteudo"></div>
+      <div id="aba-telegram"         class="aba-conteudo"></div>
+      <div id="aba-email"            class="aba-conteudo"></div>
+      <div id="aba-seguranca"        class="aba-conteudo"></div>
+      <div id="aba-logs"             class="aba-conteudo"></div>
+      <div id="aba-popup"            class="aba-conteudo"></div>
+      <div id="aba-manutencao"       class="aba-conteudo"></div>
+
+    </div>
+
+    <!-- Rodapé -->
+    <div class="rodape">
+      Portal WKL &copy; 2026 &mdash; Sistemas e Serviços
+    </div>
+
+  </div>
+
+  <!-- Menu compartilhado -->
+  <script src="/js/menu.js"></script>
+
+  <script>
+    // --------------------------------------------------------
+    // CONTROLE DE ABAS
+    // --------------------------------------------------------
+
+    // Conjunto de abas já carregadas (evita fetch repetido)
+    const abasCarregadas = new Set();
+
+    // Carrega a primeira aba ao abrir a página
+    document.addEventListener('DOMContentLoaded', function () {
+      carregarAba('usuarios-locais');
+    });
+
+    // Clique nos botões de aba
+    document.querySelectorAll('.aba-btn').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        const aba = btn.dataset.aba;
+        ativarAba(aba);
+      });
+    });
+
+    // Ativa a aba visualmente e carrega seu conteúdo (se necessário)
+    function ativarAba(aba) {
+      // Desativa todos os botões e painéis
+      document.querySelectorAll('.aba-btn').forEach(function (b) {
+        b.classList.remove('ativa');
+      });
+      document.querySelectorAll('.aba-conteudo').forEach(function (p) {
+        p.classList.remove('ativa');
+      });
+
+      // Ativa o botão e o painel escolhidos
+      const btnAtivo = document.querySelector(`.aba-btn[data-aba="${aba}"]`);
+      const painelAtivo = document.getElementById(`aba-${aba}`);
+
+      if (btnAtivo)   btnAtivo.classList.add('ativa');
+      if (painelAtivo) painelAtivo.classList.add('ativa');
+
+      // Carrega o conteúdo da aba (lazy loading)
+      carregarAba(aba);
+    }
+
+    // Busca o fragmento HTML da rota e injeta no painel
+    async function carregarAba(aba) {
+      // Não carrega novamente se já foi carregada
+      if (abasCarregadas.has(aba)) return;
+
+      const painel = document.getElementById(`aba-${aba}`);
+      if (!painel) return;
+
+      // Mostra spinner enquanto carrega
+      painel.innerHTML = `
+        <div class="aba-carregando">
+          <i class="fas fa-spinner fa-spin"></i> Carregando...
+        </div>`;
+
+      try {
+        const resposta = await fetch(`/conf/${aba}`);
+
+        // Sessão expirada
+        if (resposta.status === 401) {
+          window.location.href = '/login.html';
+          return;
+        }
+
+        // Sem permissão (não é admin)
+        if (resposta.status === 403) {
+          painel.innerHTML = `
+            <div class="sem-dados">
+              <i class="fas fa-lock"></i>
+              Acesso restrito a administradores.
+            </div>`;
+          return;
+        }
+
+        if (!resposta.ok) {
+          throw new Error(`Erro HTTP ${resposta.status}`);
+        }
+
+        const html = await resposta.text();
+        painel.innerHTML = html;
+
+        // Marca como carregada
+        abasCarregadas.add(aba);
+
+        // Executa scripts retornados pelo fragmento (se houver)
+        painel.querySelectorAll('script').forEach(function (scriptAntigo) {
+          const scriptNovo = document.createElement('script');
+          if (scriptAntigo.src) {
+            scriptNovo.src = scriptAntigo.src;
+          } else {
+            scriptNovo.textContent = scriptAntigo.textContent;
+          }
+          document.body.appendChild(scriptNovo);
+          scriptAntigo.remove();
+        });
+
+      } catch (erro) {
+        painel.innerHTML = `
+          <div class="sem-dados">
+            <i class="fas fa-exclamation-triangle"></i>
+            Erro ao carregar. Tente novamente.
+          </div>`;
+        console.error(`Erro ao carregar aba "${aba}":`, erro);
+      }
+    }
+  </script>
+
+</body>
+</html>

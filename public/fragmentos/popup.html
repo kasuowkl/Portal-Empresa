@@ -1,0 +1,386 @@
+<!--
+  FRAGMENTO: public/fragmentos/popup.html
+  VERSÃO:    1.1.0
+  DATA:      2026-03-17
+  DESCRIÇÃO: Aba de configurações do sistema de notificações popup — Portal WKL
+             Lê e escreve diretamente nas chaves de localStorage usadas por sistemas.js
+-->
+
+<style>
+  /* ── Estrutura geral ── */
+  .pconf-titulo {
+    font-size: 0.95rem; font-weight: 700; color: var(--cor-texto);
+    display: flex; align-items: center; gap: 8px; margin-bottom: 4px;
+  }
+  .pconf-desc { font-size: 0.8rem; color: var(--cor-texto-fraco); margin-bottom: 22px; }
+
+  /* ── Seção ── */
+  .pconf-secao {
+    background: var(--cor-fundo); border: 1px solid var(--cor-borda);
+    border-radius: 10px; overflow: hidden; margin-bottom: 14px;
+  }
+  .pconf-secao-header {
+    display: flex; align-items: center; padding: 10px 16px;
+    background: var(--cor-fundo-3); font-size: 0.72rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.6px; color: var(--cor-texto-fraco);
+    gap: 7px;
+  }
+
+  /* ── Item de sistema com toggle ── */
+  .pconf-item {
+    display: flex; align-items: center; gap: 14px;
+    padding: 13px 16px; border-top: 1px solid var(--cor-borda);
+    transition: background 0.15s;
+  }
+  .pconf-item:hover { background: rgba(78,154,241,0.03); }
+  .pconf-item-icon {
+    width: 34px; height: 34px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.95rem; flex-shrink: 0;
+  }
+  .pconf-item-info { flex: 1; min-width: 0; }
+  .pconf-item-info strong { display: block; font-size: 0.87rem; color: var(--cor-texto); }
+  .pconf-item-info small  { font-size: 0.74rem; color: var(--cor-texto-fraco); }
+
+  /* ── Toggle switch ── */
+  .pconf-toggle {
+    position: relative; display: inline-block;
+    width: 42px; height: 24px; flex-shrink: 0;
+  }
+  .pconf-toggle input { opacity: 0; width: 0; height: 0; }
+  .pconf-toggle-slider {
+    position: absolute; cursor: pointer; inset: 0;
+    background: var(--cor-fundo-3); border: 1px solid var(--cor-borda);
+    border-radius: 24px; transition: 0.3s;
+  }
+  .pconf-toggle-slider::before {
+    content: ''; position: absolute;
+    width: 18px; height: 18px; left: 2px; bottom: 2px;
+    background: #64748b; border-radius: 50%; transition: 0.3s;
+  }
+  .pconf-toggle input:checked + .pconf-toggle-slider {
+    background: rgba(59,130,246,0.25); border-color: #3b82f6;
+  }
+  .pconf-toggle input:checked + .pconf-toggle-slider::before {
+    transform: translateX(18px); background: #3b82f6;
+  }
+
+  /* ── Intervalo de polling ── */
+  .pconf-poll {
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    padding: 13px 16px; border-top: 1px solid var(--cor-borda);
+  }
+  .pconf-poll label { font-size: 0.83rem; color: var(--cor-texto-fraco); }
+  .pconf-poll input[type="number"] {
+    width: 72px; padding: 6px 10px; background: var(--cor-fundo-3);
+    border: 1px solid var(--cor-borda); border-radius: 6px;
+    color: var(--cor-texto); font-size: 0.85rem; outline: none;
+  }
+  .pconf-poll input:focus { border-color: var(--cor-destaque); }
+  .pconf-poll .btn-salvar-poll {
+    padding: 6px 14px; background: var(--cor-destaque); color: #fff;
+    border: none; border-radius: 6px; cursor: pointer; font-size: 0.82rem; font-weight: 700;
+    transition: 0.2s;
+  }
+  .pconf-poll .btn-salvar-poll:hover { filter: brightness(1.15); }
+
+  /* ── Rodapé info ── */
+  .pconf-footer {
+    margin-top: 14px; padding: 12px 14px;
+    background: var(--cor-fundo); border: 1px solid var(--cor-borda);
+    border-radius: 8px; font-size: 0.75rem; color: var(--cor-texto-fraco);
+    display: flex; align-items: flex-start; gap: 8px;
+  }
+  .pconf-footer i { margin-top: 2px; flex-shrink: 0; }
+</style>
+
+<!-- Cabeçalho -->
+<div class="pconf-titulo">
+  <i class="fas fa-bell" style="color:var(--cor-destaque)"></i>
+  Notificações Popup (In-App)
+</div>
+<div class="pconf-desc">
+  Ative ou desative as notificações popup de cada sistema.
+  As alterações aplicam-se ao seu usuário neste navegador.
+</div>
+
+<!-- Sistemas monitorados -->
+<div class="pconf-secao">
+  <div class="pconf-secao-header">
+    <i class="fas fa-check-square"></i> Aprovações
+  </div>
+
+  <!-- Aprovações pendentes -->
+  <div class="pconf-item">
+    <div class="pconf-item-icon" style="background:rgba(99,102,241,.15);color:#6366f1">
+      <i class="fas fa-check-square"></i>
+    </div>
+    <div class="pconf-item-info">
+      <strong>Aprovações Pendentes</strong>
+      <small>Solicitações aguardando sua decisão como aprovador</small>
+    </div>
+    <label class="pconf-toggle">
+      <input type="checkbox" id="pconf-aprovacoes" onchange="pconfSalvarToggle('aprovacoes', this.checked)">
+      <span class="pconf-toggle-slider"></span>
+    </label>
+  </div>
+
+  <!-- Aprovações resultado -->
+  <div class="pconf-item">
+    <div class="pconf-item-icon" style="background:rgba(16,185,129,.15);color:#10b981">
+      <i class="fas fa-check-double"></i>
+    </div>
+    <div class="pconf-item-info">
+      <strong>Aprovações — Resultado</strong>
+      <small>Suas aprovações criadas que foram aprovadas ou reprovadas</small>
+    </div>
+    <label class="pconf-toggle">
+      <input type="checkbox" id="pconf-aprovacoes_resultado" onchange="pconfSalvarToggle('aprovacoes_resultado', this.checked)">
+      <span class="pconf-toggle-slider"></span>
+    </label>
+  </div>
+</div>
+
+<!-- Chamados -->
+<div class="pconf-secao">
+  <div class="pconf-secao-header">
+    <i class="fas fa-ticket-alt"></i> Chamados
+  </div>
+
+  <!-- Chamados respondidos -->
+  <div class="pconf-item">
+    <div class="pconf-item-icon" style="background:rgba(245,158,11,.15);color:#f59e0b">
+      <i class="fas fa-reply"></i>
+    </div>
+    <div class="pconf-item-info">
+      <strong>Chamados Respondidos</strong>
+      <small>Seus chamados que receberam resposta do técnico</small>
+    </div>
+    <label class="pconf-toggle">
+      <input type="checkbox" id="pconf-chamados_respondidos" onchange="pconfSalvarToggle('chamados_respondidos', this.checked)">
+      <span class="pconf-toggle-slider"></span>
+    </label>
+  </div>
+
+  <!-- Chamados em atendimento -->
+  <div class="pconf-item">
+    <div class="pconf-item-icon" style="background:rgba(59,130,246,.15);color:#3b82f6">
+      <i class="fas fa-tools"></i>
+    </div>
+    <div class="pconf-item-info">
+      <strong>Chamados Em Atendimento</strong>
+      <small>Seus chamados que estão sendo atendidos pelo técnico</small>
+    </div>
+    <label class="pconf-toggle">
+      <input type="checkbox" id="pconf-chamados_em_atendimento" onchange="pconfSalvarToggle('chamados_em_atendimento', this.checked)">
+      <span class="pconf-toggle-slider"></span>
+    </label>
+  </div>
+
+  <!-- Chamados finalizados -->
+  <div class="pconf-item">
+    <div class="pconf-item-icon" style="background:rgba(16,185,129,.15);color:#10b981">
+      <i class="fas fa-check-circle"></i>
+    </div>
+    <div class="pconf-item-info">
+      <strong>Chamados Finalizados</strong>
+      <small>Seus chamados concluídos nos últimos 7 dias</small>
+    </div>
+    <label class="pconf-toggle">
+      <input type="checkbox" id="pconf-chamados_finalizados" onchange="pconfSalvarToggle('chamados_finalizados', this.checked)">
+      <span class="pconf-toggle-slider"></span>
+    </label>
+  </div>
+
+  <!-- Chamados atribuídos a mim (técnico) -->
+  <div class="pconf-item">
+    <div class="pconf-item-icon" style="background:rgba(6,182,212,.15);color:#06b6d4">
+      <i class="fas fa-user-cog"></i>
+    </div>
+    <div class="pconf-item-info">
+      <strong>Chamados Atribuídos a Mim</strong>
+      <small>Chamados onde você é o técnico responsável</small>
+    </div>
+    <label class="pconf-toggle">
+      <input type="checkbox" id="pconf-chamados_atribuidos" onchange="pconfSalvarToggle('chamados_atribuidos', this.checked)">
+      <span class="pconf-toggle-slider"></span>
+    </label>
+  </div>
+
+  <!-- Chamados sem atendedor -->
+  <div class="pconf-item">
+    <div class="pconf-item-icon" style="background:rgba(239,68,68,.15);color:#ef4444">
+      <i class="fas fa-exclamation-circle"></i>
+    </div>
+    <div class="pconf-item-info">
+      <strong>Chamados Sem Atendedor</strong>
+      <small>Chamados abertos sem técnico atribuído (visível para admin/gestor)</small>
+    </div>
+    <label class="pconf-toggle">
+      <input type="checkbox" id="pconf-chamados_sem_atendedor" onchange="pconfSalvarToggle('chamados_sem_atendedor', this.checked)">
+      <span class="pconf-toggle-slider"></span>
+    </label>
+  </div>
+</div>
+
+<!-- Agenda Financeira -->
+<div class="pconf-secao">
+  <div class="pconf-secao-header">
+    <i class="fas fa-wallet"></i> Agenda Financeira
+  </div>
+
+  <!-- Contas a lançar -->
+  <div class="pconf-item">
+    <div class="pconf-item-icon" style="background:rgba(249,115,22,.15);color:#f97316">
+      <i class="fas fa-file-invoice-dollar"></i>
+    </div>
+    <div class="pconf-item-info">
+      <strong>Contas a Lançar</strong>
+      <small>Contas pendentes (sem lançamento) que vencem em breve</small>
+    </div>
+    <label class="pconf-toggle">
+      <input type="checkbox" id="pconf-financeiro_a_lancar" onchange="pconfSalvarToggle('financeiro_a_lancar', this.checked)">
+      <span class="pconf-toggle-slider"></span>
+    </label>
+  </div>
+
+  <!-- Contas lançadas vencendo -->
+  <div class="pconf-item">
+    <div class="pconf-item-icon" style="background:rgba(245,158,11,.15);color:#f59e0b">
+      <i class="fas fa-calendar-times"></i>
+    </div>
+    <div class="pconf-item-info">
+      <strong>Contas Lançadas Vencendo</strong>
+      <small>Contas já lançadas que vencem nos próximos dias</small>
+    </div>
+    <label class="pconf-toggle">
+      <input type="checkbox" id="pconf-financeiro_vencendo" onchange="pconfSalvarToggle('financeiro_vencendo', this.checked)">
+      <span class="pconf-toggle-slider"></span>
+    </label>
+  </div>
+
+  <!-- Contas vencidas -->
+  <div class="pconf-item">
+    <div class="pconf-item-icon" style="background:rgba(239,68,68,.15);color:#ef4444">
+      <i class="fas fa-exclamation-triangle"></i>
+    </div>
+    <div class="pconf-item-info">
+      <strong>Contas Vencidas</strong>
+      <small>Contas pendentes ou lançadas com data de vencimento ultrapassada</small>
+    </div>
+    <label class="pconf-toggle">
+      <input type="checkbox" id="pconf-financeiro_vencidas" onchange="pconfSalvarToggle('financeiro_vencidas', this.checked)">
+      <span class="pconf-toggle-slider"></span>
+    </label>
+  </div>
+</div>
+
+<!-- Intervalo de verificação -->
+<div class="pconf-secao">
+  <div class="pconf-secao-header">
+    <i class="fas fa-sync-alt"></i> Intervalo de Verificação
+  </div>
+  <div class="pconf-poll">
+    <label for="pconf-poll-secs">Verificar a cada</label>
+    <input type="number" id="pconf-poll-secs" min="10" max="300" value="30">
+    <label>segundos (mín. 10, máx. 300)</label>
+    <button class="btn-salvar-poll" onclick="pconfSalvarPoll()">
+      <i class="fas fa-save"></i> Salvar
+    </button>
+    <span id="pconf-msg" style="font-size:0.8rem"></span>
+  </div>
+</div>
+
+<!-- Rodapé informativo -->
+<div class="pconf-footer">
+  <i class="fas fa-info-circle" style="color:var(--cor-destaque)"></i>
+  <span>
+    As preferências são salvas neste navegador vinculadas ao seu usuário.
+    Cada usuário gerencia suas próprias configurações de popup.<br>
+    O sino <i class="fas fa-bell"></i> aparece automaticamente no menu em todas as páginas do portal.
+  </span>
+</div>
+
+<script>
+(function () {
+  var _login = null;
+
+  function prefsKey() { return 'portal_notif_prefs_' + (_login || '_'); }
+  function pollKey()  { return 'portal_notif_poll_secs'; }
+
+  function getPrefs() {
+    try { return JSON.parse(localStorage.getItem(prefsKey())) || {}; } catch { return {}; }
+  }
+  function savePrefs(p) {
+    try { localStorage.setItem(prefsKey(), JSON.stringify(p)); } catch {}
+  }
+
+  // ── Carregar estado atual nos toggles ──────────────────
+  function carregarEstado() {
+    var prefs = getPrefs();
+    ['aprovacoes', 'aprovacoes_resultado', 'chamados_respondidos', 'chamados_em_atendimento', 'chamados_finalizados', 'chamados_atribuidos', 'chamados_sem_atendedor', 'financeiro_a_lancar', 'financeiro_vencendo', 'financeiro_vencidas'].forEach(function (key) {
+      var el = document.getElementById('pconf-' + key);
+      if (el) el.checked = prefs[key] !== false; // padrão: ON
+    });
+
+    var pollSaved = localStorage.getItem(pollKey());
+    var pollEl = document.getElementById('pconf-poll-secs');
+    if (pollEl && pollSaved) pollEl.value = pollSaved;
+  }
+
+  // ── Salvar toggle de sistema ───────────────────────────
+  window.pconfSalvarToggle = function (key, ativo) {
+    var prefs = getPrefs();
+    prefs[key] = ativo;
+    savePrefs(prefs);
+    mostrarMsg(ativo ? '✓ Notificações de ' + nomeSistema(key) + ' ativadas' : '✓ Notificações de ' + nomeSistema(key) + ' desativadas', ativo ? '#10b981' : '#94a3b8');
+  };
+
+  // ── Salvar intervalo de polling ────────────────────────
+  window.pconfSalvarPoll = function () {
+    var el = document.getElementById('pconf-poll-secs');
+    var v  = parseInt(el ? el.value : 30);
+    if (isNaN(v) || v < 10)  { v = 10;  if (el) el.value = 10;  }
+    if (v > 300) { v = 300; if (el) el.value = 300; }
+    localStorage.setItem(pollKey(), String(v));
+    mostrarMsg('✓ Intervalo salvo — recarregue a página para aplicar', '#3b82f6');
+  };
+
+  function nomeSistema(key) {
+    var m = {
+      aprovacoes:             'Aprovações Pendentes',
+      aprovacoes_resultado:   'Aprovações — Resultado',
+      chamados_respondidos:   'Chamados Respondidos',
+      chamados_em_atendimento:'Chamados Em Atendimento',
+      chamados_finalizados:   'Chamados Finalizados',
+      chamados_atribuidos:    'Chamados Atribuídos a Mim',
+      chamados_sem_atendedor: 'Chamados Sem Atendedor',
+      financeiro_a_lancar:    'Contas a Lançar',
+      financeiro_vencendo:    'Contas Lançadas Vencendo',
+      financeiro_vencidas:    'Contas Vencidas'
+    };
+    return m[key] || key;
+  }
+
+  function mostrarMsg(texto, cor) {
+    var msg = document.getElementById('pconf-msg');
+    if (!msg) return;
+    msg.style.color = cor || '#94a3b8';
+    msg.textContent = texto;
+    setTimeout(function () { msg.textContent = ''; }, 3500);
+  }
+
+  // ── Init: aguarda window.usuarioLogado ─────────────────
+  function init(n) {
+    if (window.usuarioLogado) {
+      _login = window.usuarioLogado.usuario || window.usuarioLogado.login || null;
+      carregarEstado();
+    } else if (n < 20) {
+      setTimeout(function () { init(n + 1); }, 200);
+    } else {
+      carregarEstado(); // carrega mesmo sem login (usa chave '_')
+    }
+  }
+  init(0);
+})();
+</script>

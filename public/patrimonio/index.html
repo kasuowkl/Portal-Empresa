@@ -1,0 +1,1698 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Patrimônio — Portal WKL</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/menu.css">
+  <style>
+    /* ── Layout ──────────────────────────────────────────── */
+    .pat-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 32px 24px 60px;
+    }
+    .pat-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .pat-header h1 {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--cor-texto);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .pat-header h1 i { color: #f59e0b; }
+
+    /* ── Botões ──────────────────────────────────────────── */
+    .btn { padding: 8px 16px; border: none; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: opacity .15s; }
+    .btn:hover { opacity: .85; }
+    .btn-primary  { background: var(--cor-destaque); color: #fff; }
+    .btn-success  { background: #10b981; color: #fff; }
+    .btn-danger   { background: #ef4444; color: #fff; }
+    .btn-neutral  { background: var(--cor-fundo-3); color: var(--cor-texto); border: 1px solid var(--cor-borda); }
+    .btn-sm       { padding: 5px 10px; font-size: 12px; }
+
+    /* ── Filtros ─────────────────────────────────────────── */
+    .pat-filtros {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 18px;
+    }
+    .pat-filtros input,
+    .pat-filtros select {
+      padding: 7px 12px;
+      background: var(--cor-fundo-3);
+      border: 1px solid var(--cor-destaque);
+      border-radius: 6px;
+      color: var(--cor-texto);
+      font-size: 13px;
+    }
+    .pat-filtros input:focus,
+    .pat-filtros select:focus { outline: none; border-color: var(--cor-destaque); box-shadow: 0 0 0 2px rgba(78,154,241,.2); }
+    .pat-filtros input { flex: 1; min-width: 200px; }
+
+    /* ── Tabela ──────────────────────────────────────────── */
+    .pat-table-wrap { overflow-x: auto; }
+    .pat-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    .pat-table th {
+      background: var(--cor-fundo-3);
+      color: var(--cor-texto);
+      font-weight: 600;
+      text-transform: uppercase;
+      font-size: 11px;
+      letter-spacing: .5px;
+      padding: 10px 12px;
+      text-align: left;
+      cursor: pointer;
+      user-select: none;
+      white-space: nowrap;
+    }
+    .pat-table th:hover { color: var(--cor-texto); }
+    .pat-table th.no-sort { cursor: default; }
+    .pat-table td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--cor-borda);
+      color: var(--cor-texto);
+      vertical-align: middle;
+    }
+    .pat-table tr:hover td { background: var(--cor-fundo-2); }
+    .sem-dados {
+      text-align: center;
+      padding: 48px 24px;
+      color: var(--cor-texto-fraco);
+      font-size: 14px;
+    }
+    .sem-dados i { font-size: 32px; margin-bottom: 12px; display: block; }
+
+    /* ── Badges ──────────────────────────────────────────── */
+    .badge {
+      display: inline-block;
+      padding: 3px 9px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+    .badge-ativo      { background: rgba(16,185,129,.15); color: #10b981; }
+    .badge-manutencao { background: rgba(245,158,11,.15);  color: #f59e0b; }
+    .badge-disponivel { background: rgba(78,154,241,.15);  color: #4e9af1; }
+    .badge-baixado    { background: rgba(239,68,68,.15);   color: #ef4444; }
+
+    .badge-novo       { background: rgba(16,185,129,.15); color: #10b981; }
+    .badge-bom        { background: rgba(78,154,241,.15);  color: #4e9af1; }
+    .badge-regular    { background: rgba(245,158,11,.15);  color: #f59e0b; }
+    .badge-danificado { background: rgba(239,68,68,.15);   color: #ef4444; }
+
+    /* ── Formulário ──────────────────────────────────────── */
+    #vista-form { display: none; }
+    .form-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .form-header h2 {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--cor-texto);
+    }
+    .fieldset-pat {
+      background: var(--cor-fundo-2);
+      border: 1px solid var(--cor-borda);
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+    .fieldset-legend {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      color: var(--cor-destaque);
+      margin-bottom: 14px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--cor-borda);
+    }
+    .form-row { display: flex; flex-wrap: wrap; gap: 14px; margin-bottom: 12px; }
+    .form-row:last-child { margin-bottom: 0; }
+    .form-group { flex: 1; min-width: 180px; display: flex; flex-direction: column; gap: 5px; }
+    .form-group.flex2 { flex: 2; }
+    .form-group.flex3 { flex: 3; }
+    .form-group label { font-size: 12px; font-weight: 600; color: var(--cor-texto-fraco); }
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      padding: 8px 10px;
+      background: var(--cor-fundo-3);
+      border: 1px solid var(--cor-borda);
+      border-radius: 6px;
+      color: var(--cor-texto);
+      font-size: 13px;
+    }
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: var(--cor-destaque);
+    }
+    .form-group select option { background: var(--cor-fundo-3); }
+
+    /* ── Botão engrenagem (gerenciar selects) ────────────── */
+    .btn-gear {
+      background: none;
+      border: none;
+      color: var(--cor-texto-fraco);
+      cursor: pointer;
+      font-size: 12px;
+      padding: 2px 4px;
+      border-radius: 4px;
+      line-height: 1;
+      transition: color .2s;
+    }
+    .btn-gear:hover { color: var(--cor-destaque); }
+
+    /* ── Popover gerenciar ───────────────────────────────── */
+    .gerenciar-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.5);
+      z-index: 3000;
+      align-items: center;
+      justify-content: center;
+    }
+    .gerenciar-overlay.visivel { display: flex; }
+    .gerenciar-box {
+      background: var(--cor-fundo-2);
+      border: 1px solid var(--cor-borda);
+      border-radius: 10px;
+      padding: 20px;
+      width: 340px;
+      max-width: 95vw;
+    }
+    .gerenciar-box h4 { margin: 0 0 14px; font-size: 14px; color: var(--cor-texto); }
+    .gerenciar-lista { list-style: none; padding: 0; margin: 0 0 12px; max-height: 220px; overflow-y: auto; }
+    .gerenciar-lista li {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 8px;
+      border-radius: 5px;
+      font-size: 13px;
+      color: var(--cor-texto);
+    }
+    .gerenciar-lista li:hover { background: var(--cor-fundo-3); }
+    .gerenciar-lista li button {
+      background: none;
+      border: none;
+      color: var(--cor-texto-fraco);
+      cursor: pointer;
+      font-size: 12px;
+      padding: 2px 5px;
+      border-radius: 3px;
+    }
+    .gerenciar-lista li button:hover { color: #ef4444; }
+    .gerenciar-add { display: flex; gap: 6px; }
+    .gerenciar-add input {
+      flex: 1;
+      padding: 7px 10px;
+      background: var(--cor-fundo-3);
+      border: 1px solid var(--cor-borda);
+      border-radius: 6px;
+      color: var(--cor-texto);
+      font-size: 13px;
+    }
+    .gerenciar-add input:focus { outline: none; border-color: var(--cor-destaque); }
+
+    /* ── Fotos ───────────────────────────────────────────── */
+    .photo-box {
+      border: 2px dashed var(--cor-borda);
+      background: var(--cor-fundo-3);
+      padding: 16px;
+      text-align: center;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+      color: var(--cor-texto-fraco);
+      transition: border-color .2s;
+    }
+    .photo-box:hover { border-color: var(--cor-destaque); }
+    .photo-preview { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; justify-content: center; }
+    .photo-preview img { width: 72px; height: 72px; object-fit: cover; border-radius: 4px; border: 1px solid var(--cor-borda); cursor: pointer; }
+
+    /* ── Histórico interno ───────────────────────────────── */
+    #hist-section { display: none; }
+    .hist-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    .hist-header h3 { font-size: 15px; font-weight: 600; color: var(--cor-texto); }
+    .hist-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+    .hist-table th {
+      background: var(--cor-fundo-3);
+      color: var(--cor-texto-fraco);
+      padding: 8px 10px;
+      text-align: left;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: .3px;
+    }
+    .hist-table td {
+      padding: 8px 10px;
+      border-bottom: 1px solid var(--cor-borda);
+      color: var(--cor-texto);
+    }
+
+    /* ── Botões de formulário ────────────────────────────── */
+    .form-actions {
+      display: flex;
+      gap: 10px;
+      padding-top: 20px;
+      border-top: 1px solid var(--cor-borda);
+      margin-top: 20px;
+    }
+    .form-actions .btn-success { flex: 1; justify-content: center; font-size: 14px; padding: 10px; }
+
+    /* ── Modal ───────────────────────────────────────────── */
+    .pat-modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.55);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+    }
+    .pat-modal-overlay.visivel { display: flex; }
+    .pat-modal {
+      background: var(--cor-fundo-2);
+      border: 1px solid var(--cor-borda);
+      border-radius: 10px;
+      padding: 24px;
+      width: 520px;
+      max-width: 95vw;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    .pat-modal h3 { font-size: 16px; font-weight: 700; color: var(--cor-texto); margin-bottom: 18px; }
+    .modal-update-area {
+      background: var(--cor-fundo-3);
+      border: 1px solid var(--cor-borda);
+      border-radius: 6px;
+      padding: 14px;
+      margin-bottom: 14px;
+    }
+    .modal-update-title {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      color: var(--cor-destaque);
+      margin-bottom: 10px;
+    }
+    .modal-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px; }
+
+    /* ── Loading ─────────────────────────────────────────── */
+    .spin { animation: spin .8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+<div id="menu-container"></div>
+
+<div class="pat-container">
+
+  <!-- ── CABEÇALHO ──────────────────────────────────────── -->
+  <div class="pat-header">
+    <h1><i class="fas fa-box-open"></i> Gestão de Patrimônio</h1>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-neutral btn-sm" id="btn-acesso" onclick="abrirGerenciarAcesso()" style="display:none" title="Gerenciar Acesso">
+        <i class="fas fa-users-cog"></i> Acesso
+      </button>
+      <button class="btn btn-primary" id="btn-novo" onclick="abrirNovo()" style="display:none">
+        <i class="fas fa-plus"></i> Novo Bem
+      </button>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════ -->
+  <!-- VISTA: LISTA                                          -->
+  <!-- ══════════════════════════════════════════════════════ -->
+  <div id="vista-lista">
+
+    <!-- Filtros -->
+    <div class="pat-filtros">
+      <input type="text" id="filtro-q" placeholder="Pesquisar código, descrição, marca..." oninput="debounceCarregar()">
+      <select id="filtro-status" onchange="carregarLista()">
+        <option value="todos">Todos os status</option>
+        <option value="Ativo">Ativo</option>
+        <option value="Disponível">Disponível</option>
+        <option value="Manutenção">Em Manutenção</option>
+        <option value="Baixado">Baixado</option>
+      </select>
+      <select id="filtro-categoria" onchange="carregarLista()">
+        <option value="todos">Todas as categorias</option>
+      </select>
+      <button class="btn btn-neutral btn-sm" onclick="limparFiltros()">
+        <i class="fas fa-times"></i> Limpar
+      </button>
+    </div>
+
+    <!-- Tabela -->
+    <div class="pat-table-wrap">
+      <table class="pat-table" id="tabela-bens">
+        <thead>
+          <tr>
+            <th onclick="ordenar('codigo')">Código <span id="ord-codigo"></span></th>
+            <th onclick="ordenar('descricao')">Descrição <span id="ord-descricao"></span></th>
+            <th onclick="ordenar('loc_tipo')">Localização <span id="ord-loc_tipo"></span></th>
+            <th onclick="ordenar('status')">Status <span id="ord-status"></span></th>
+            <th onclick="ordenar('estado')">Estado <span id="ord-estado"></span></th>
+            <th onclick="ordenar('valor')">Valor <span id="ord-valor"></span></th>
+            <th class="no-sort">Ações</th>
+          </tr>
+        </thead>
+        <tbody id="tbody-bens">
+          <tr><td colspan="7" class="sem-dados"><i class="fas fa-spinner spin"></i> Carregando...</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p id="total-bens" style="font-size:12px;color:var(--cor-texto-fraco);text-align:right;margin-top:8px"></p>
+
+  </div><!-- /vista-lista -->
+
+  <!-- ══════════════════════════════════════════════════════ -->
+  <!-- VISTA: FORMULÁRIO                                     -->
+  <!-- ══════════════════════════════════════════════════════ -->
+  <div id="vista-form">
+
+    <div class="form-header">
+      <button class="btn btn-neutral btn-sm" onclick="voltarLista()">
+        <i class="fas fa-arrow-left"></i> Voltar
+      </button>
+      <h2 id="form-titulo">Novo Bem</h2>
+    </div>
+
+    <form id="form-pat" onsubmit="return false">
+      <input type="hidden" id="f-id">
+
+      <!-- 1. Identificação -->
+      <div class="fieldset-pat">
+        <div class="fieldset-legend"><i class="fas fa-tag"></i> 1. Identificação do Bem</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Código / Plaqueta *</label>
+            <input type="text" id="f-codigo" placeholder="Ex: PAT-00123" required>
+          </div>
+          <div class="form-group flex3">
+            <label>Descrição Completa *</label>
+            <input type="text" id="f-descricao" placeholder="Ex: Notebook Dell Latitude i5" required>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label style="display:flex;align-items:center;gap:6px">
+              Categoria
+              <button type="button" class="btn-gear" onclick="abrirGerenciar('categorias')" title="Gerenciar categorias">
+                <i class="fas fa-cog"></i>
+              </button>
+            </label>
+            <select id="f-categoria">
+              <option value="">Selecione...</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Marca / Modelo</label>
+            <input type="text" id="f-marca">
+          </div>
+          <div class="form-group">
+            <label>Número de Série</label>
+            <input type="text" id="f-num_serie">
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. Financeiro -->
+      <div class="fieldset-pat">
+        <div class="fieldset-legend"><i class="fas fa-file-invoice-dollar"></i> 2. Dados Financeiros</div>
+        <div class="form-row">
+          <div class="form-group flex2">
+            <label>Fornecedor</label>
+            <input type="text" id="f-fornecedor">
+          </div>
+          <div class="form-group">
+            <label>Nota Fiscal</label>
+            <input type="text" id="f-nota_fiscal">
+          </div>
+          <div class="form-group">
+            <label>Data Compra</label>
+            <input type="date" id="f-data_compra">
+          </div>
+          <div class="form-group">
+            <label>Valor (R$)</label>
+            <input type="number" id="f-valor" step="0.01" min="0">
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. Localização -->
+      <div class="fieldset-pat">
+        <div class="fieldset-legend"><i class="fas fa-map-marker-alt"></i> 3. Localização Atual</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label style="display:flex;align-items:center;gap:6px">
+              Unidade / Tipo *
+              <button type="button" class="btn-gear" onclick="abrirGerenciar('unidades')" title="Gerenciar unidades">
+                <i class="fas fa-cog"></i>
+              </button>
+            </label>
+            <select id="f-loc_tipo">
+              <option value="">Selecione...</option>
+            </select>
+          </div>
+          <div class="form-group flex2">
+            <label>Detalhe (Sala, Setor, Endereço)</label>
+            <input type="text" id="f-loc_detalhe" placeholder="Ex: Sala 104 - 1º Andar">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Observação de Localização</label>
+            <textarea id="f-loc_obs" rows="2" placeholder="Ex: Acesso restrito..."></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4. Estado e Fotos -->
+      <div class="fieldset-pat">
+        <div class="fieldset-legend"><i class="fas fa-clipboard-check"></i> 4. Estado e Imagens</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Estado de Conservação</label>
+            <select id="f-estado">
+              <option value="Novo">Novo</option>
+              <option value="Bom" selected>Bom</option>
+              <option value="Regular">Regular</option>
+              <option value="Danificado">Danificado</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Status do Bem</label>
+            <select id="f-status">
+              <option value="Ativo" selected>Ativo</option>
+              <option value="Disponível">Disponível</option>
+              <option value="Manutenção">Em Manutenção</option>
+              <option value="Baixado">Baixado / Descarte</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Fotos</label>
+            <div class="photo-box" onclick="document.getElementById('f-fotos').click()">
+              <input type="file" id="f-fotos" multiple accept="image/*" hidden onchange="previewFotos(event)">
+              <i class="fas fa-camera"></i> Clique para anexar fotos
+              <div class="photo-preview" id="preview-fotos"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 5. Histórico (somente edição) -->
+      <div id="hist-section" class="fieldset-pat">
+        <div class="hist-header">
+          <div class="fieldset-legend" style="margin:0;border:none;padding:0"><i class="fas fa-history"></i> Histórico de Eventos</div>
+          <button type="button" class="btn btn-neutral btn-sm" onclick="abrirModalHist()">
+            <i class="fas fa-plus"></i> Registrar Ocorrência
+          </button>
+        </div>
+        <table class="hist-table" id="hist-table">
+          <thead>
+            <tr>
+              <th>Data</th>
+              <th>Tipo</th>
+              <th>De → Para</th>
+              <th>Detalhes</th>
+              <th>Registrado por</th>
+              <th class="no-sort">Termo</th>
+            </tr>
+          </thead>
+          <tbody id="hist-tbody"></tbody>
+        </table>
+      </div>
+
+      <!-- Ações -->
+      <div class="form-actions">
+        <button type="button" class="btn btn-neutral" onclick="voltarLista()">← Voltar</button>
+        <button type="button" class="btn btn-success" id="btn-salvar-form" onclick="salvar()">
+          <i class="fas fa-save"></i> Salvar Cadastro
+        </button>
+      </div>
+    </form>
+
+  </div><!-- /vista-form -->
+
+</div><!-- /pat-container -->
+
+<!-- Datalist de usuários (compartilhado por todos os inputs de responsável) -->
+<datalist id="usuarios-datalist"></datalist>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- MODAL: GERENCIAR ACESSO                                   -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="pat-modal-overlay" id="modal-acesso-overlay">
+  <div class="pat-modal" style="width:520px">
+    <h3><i class="fas fa-users-cog" style="color:var(--cor-destaque)"></i> Gerenciar Acesso ao Patrimônio</h3>
+    <p style="font-size:13px;color:var(--cor-texto-fraco);margin-bottom:16px">
+      Defina quem pode <strong style="color:var(--cor-texto)">visualizar</strong> ou <strong style="color:var(--cor-texto)">editar</strong> este módulo.
+      Administradores sempre têm acesso total.
+    </p>
+
+    <!-- Lista de permissões -->
+    <div style="margin-bottom:16px">
+      <table style="width:100%;border-collapse:collapse;font-size:13px" id="acesso-tabela">
+        <thead>
+          <tr>
+            <th style="text-align:left;padding:6px 8px;color:var(--cor-texto-fraco);font-size:11px;text-transform:uppercase;border-bottom:1px solid var(--cor-borda)">Usuário</th>
+            <th style="text-align:left;padding:6px 8px;color:var(--cor-texto-fraco);font-size:11px;text-transform:uppercase;border-bottom:1px solid var(--cor-borda)">Nível</th>
+            <th style="padding:6px 8px;border-bottom:1px solid var(--cor-borda)"></th>
+          </tr>
+        </thead>
+        <tbody id="acesso-tbody">
+          <tr><td colspan="3" style="text-align:center;padding:16px;color:var(--cor-texto-fraco)"><i class="fas fa-spinner fa-spin"></i></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Adicionar permissão -->
+    <div style="background:var(--cor-fundo-3);border:1px solid var(--cor-borda);border-radius:8px;padding:14px;margin-bottom:16px">
+      <div style="font-size:12px;font-weight:600;color:var(--cor-texto-fraco);margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px">Adicionar / Alterar Usuário</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <input type="text" id="acesso-novo-usuario" list="usuarios-datalist" placeholder="Usuário ou nome..." style="flex:2;min-width:180px;padding:8px 10px;background:var(--cor-fundo-2);border:1px solid var(--cor-borda);border-radius:6px;color:var(--cor-texto);font-size:13px">
+        <select id="acesso-novo-nivel" style="flex:1;min-width:120px;padding:8px 10px;background:var(--cor-fundo-2);border:1px solid var(--cor-borda);border-radius:6px;color:var(--cor-texto);font-size:13px">
+          <option value="visualizar">Visualizar</option>
+          <option value="editar">Editar</option>
+        </select>
+        <button class="btn btn-success btn-sm" onclick="salvarPermissao()"><i class="fas fa-plus"></i> Adicionar</button>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <div style="font-size:12px;color:var(--cor-texto-fraco)">
+        <i class="fas fa-info-circle"></i> Usuários sem permissão não conseguem acessar o módulo.
+      </div>
+      <button class="btn btn-neutral" onclick="fecharModalAcesso()">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- MODAL: HISTÓRICO DE EVENTO                                -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="pat-modal-overlay" id="modal-hist-overlay">
+  <div class="pat-modal" style="width:600px">
+    <h3><i class="fas fa-plus-circle" style="color:var(--cor-destaque)"></i> Registrar Nova Ocorrência</h3>
+
+    <!-- Tipo + Data -->
+    <div class="form-row">
+      <div class="form-group" style="flex:2">
+        <label>Tipo de Evento</label>
+        <select id="mod-tipo" onchange="atualizarCamposModal(this.value)">
+          <option value="Armazenado">Armazenado</option>
+          <option value="Disponibilizado">Disponibilizado (Entrega)</option>
+          <option value="Transferido">Transferido</option>
+          <option value="Devolvido">Devolvido</option>
+          <option value="Empréstimo">Empréstimo</option>
+          <option value="Manutenção">Manutenção</option>
+          <option value="Ocorrência">Ocorrência</option>
+          <option value="Avaria">Avaria</option>
+          <option value="Sinistro">Sinistro</option>
+          <option value="Descarte">Descarte</option>
+          <option value="Outros">Outros</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Data</label>
+        <input type="date" id="mod-data">
+      </div>
+    </div>
+
+    <!-- SEÇÃO: Responsável Para (Disponibilizado, Transferido, Empréstimo, Manutenção) -->
+    <div id="mod-sec-para" class="modal-update-area" style="display:none">
+      <div class="modal-update-title" id="mod-sec-para-title">Destinatário</div>
+      <div class="form-row">
+        <div class="form-group" style="flex:2">
+          <label id="mod-label-resp-para">Responsável Recebedor *</label>
+          <input type="text" id="mod-resp-para" list="usuarios-datalist" placeholder="Digite o nome ou selecione..." autocomplete="off">
+        </div>
+        <div class="form-group">
+          <label>Setor / Departamento</label>
+          <input type="text" id="mod-setor-destino" placeholder="Ex: TI, Contabilidade...">
+        </div>
+      </div>
+    </div>
+
+    <!-- SEÇÃO: Responsável De (Transferido, Devolvido) -->
+    <div id="mod-sec-de" class="modal-update-area" style="display:none">
+      <div class="modal-update-title">Origem</div>
+      <div class="form-group">
+        <label id="mod-label-resp-de">Responsável Atual (De)</label>
+        <input type="text" id="mod-resp-de" list="usuarios-datalist" placeholder="Digite o nome ou selecione..." autocomplete="off">
+      </div>
+    </div>
+
+    <!-- SEÇÃO: Dano (Avaria, Sinistro) -->
+    <div id="mod-sec-dano" class="modal-update-area" style="display:none">
+      <div class="modal-update-title">Informações do Dano</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Grau da Ocorrência</label>
+          <select id="mod-grau">
+            <option value="Leve">Leve</option>
+            <option value="Moderado">Moderado</option>
+            <option value="Grave">Grave</option>
+            <option value="Perda Total">Perda Total</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Novo Estado do Bem</label>
+          <select id="mod-novo-estado">
+            <option value="">— Manter —</option>
+            <option value="Regular">Regular</option>
+            <option value="Danificado">Danificado</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- SEÇÃO: Localização (Armazenado, Transferido) -->
+    <div id="mod-sec-local" class="modal-update-area" style="display:none">
+      <div class="modal-update-title">Nova Localização</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Unidade</label>
+          <select id="mod-nova-loc-tipo">
+            <option value="">— Manter —</option>
+            <option value="Matriz">Matriz</option>
+            <option value="Filial">Filial</option>
+            <option value="Obra">Obra</option>
+            <option value="Armazem">Armazém</option>
+            <option value="Externo">Externo / Home Office</option>
+          </select>
+        </div>
+        <div class="form-group" style="flex:2">
+          <label>Detalhe (Sala / Setor)</label>
+          <input type="text" id="mod-nova-loc-detalhe" placeholder="Ex: Almoxarifado — Prateleira 3">
+        </div>
+      </div>
+    </div>
+
+    <!-- SEÇÃO: Status -->
+    <div class="modal-update-area">
+      <div class="modal-update-title">Atualizar Status do Bem (Opcional)</div>
+      <div class="form-group">
+        <select id="mod-novo-status">
+          <option value="">— Manter status atual —</option>
+          <option value="Ativo">Ativo</option>
+          <option value="Disponível">Disponível</option>
+          <option value="Manutenção">Em Manutenção</option>
+          <option value="Baixado">Baixado / Descarte</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Responsável pelo registro + Detalhes -->
+    <div class="form-row">
+      <div class="form-group">
+        <label>Registrado por</label>
+        <input type="text" id="mod-resp" readonly style="opacity:.7;cursor:default;background:var(--cor-fundo-3)">
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Detalhes / Observações</label>
+      <textarea id="mod-obs" rows="2" placeholder="Descreva o motivo, condições, observações..."></textarea>
+    </div>
+
+    <div class="modal-footer">
+      <label id="mod-imprimir-label" style="display:none;align-items:center;gap:6px;font-size:13px;color:var(--cor-texto-fraco);cursor:pointer;margin-right:auto">
+        <input type="checkbox" id="mod-imprimir" checked style="cursor:pointer">
+        Abrir termo após salvar
+      </label>
+      <button class="btn btn-neutral" onclick="fecharModalHist()">Cancelar</button>
+      <button class="btn btn-success" onclick="salvarHist()">
+        <i class="fas fa-save"></i> Salvar Ocorrência
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- MODAL: VISUALIZAR FOTO                                    -->
+<!-- ══════════════════════════════════════════════════════════ -->
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- POPOVER: GERENCIAR SELECTS (Categorias / Unidades)        -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="gerenciar-overlay" id="gerenciar-overlay" onclick="fecharGerenciar()">
+  <div class="gerenciar-box" onclick="event.stopPropagation()">
+    <h4 id="gerenciar-titulo"><i class="fas fa-list"></i> Gerenciar</h4>
+    <ul class="gerenciar-lista" id="gerenciar-lista"></ul>
+    <div class="gerenciar-add">
+      <input type="text" id="gerenciar-novo" placeholder="Nova opção..." onkeydown="if(event.key==='Enter')adicionarOpcao()">
+      <button class="btn btn-success btn-sm" onclick="adicionarOpcao()"><i class="fas fa-plus"></i></button>
+    </div>
+    <div style="margin-top:12px;text-align:right">
+      <button class="btn btn-neutral btn-sm" onclick="fecharGerenciar()">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<div class="pat-modal-overlay" id="modal-foto-overlay" onclick="fecharModalFoto()">
+  <div style="max-width:90vw;max-height:90vh" onclick="event.stopPropagation()">
+    <img id="modal-foto-img" src="" style="max-width:90vw;max-height:85vh;border-radius:8px;display:block">
+    <button class="btn btn-neutral" style="margin-top:8px;width:100%;justify-content:center" onclick="fecharModalFoto()">Fechar</button>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// ESTADO GLOBAL
+// ============================================================
+let bensList    = [];
+let bemEditId   = null;
+let bemAtual    = null;  // dados completos do bem em edição
+let fotosBase64 = [];
+let debTimer;
+let sortCol = 'criado_em';
+let sortDir = 'desc';
+let patNivel = null;   // 'visualizar' | 'editar' | null
+let patAdmin = false;
+
+// ============================================================
+// INICIALIZAÇÃO
+// ============================================================
+document.addEventListener('DOMContentLoaded', async () => {
+  document.getElementById('mod-data').valueAsDate = new Date();
+
+  // Carrega nível de acesso do usuário logado
+  await carregarMeuAcesso();
+
+  carregarLista();
+  carregarUsuarios();
+  carregarCategorias();
+  carregarUnidades();
+
+  // Fechar modais ao clicar fora
+  document.getElementById('modal-hist-overlay').addEventListener('click', function (e) {
+    if (e.target === this) fecharModalHist();
+  });
+  document.getElementById('modal-acesso-overlay').addEventListener('click', function (e) {
+    if (e.target === this) fecharModalAcesso();
+  });
+});
+
+// ============================================================
+// CARREGAR USUÁRIOS PARA DATALIST
+// ============================================================
+// ============================================================
+// CARREGAR CATEGORIAS E UNIDADES (selects dinâmicos)
+// ============================================================
+async function carregarCategorias(valorAtual) {
+  try {
+    const r = await fetch('/api/patrimonio/categorias');
+    const d = await r.json();
+    if (!d.sucesso) return;
+    const opts = d.categorias.map(c =>
+      `<option value="${esc(c.nome)}" ${c.nome === valorAtual ? 'selected' : ''}>${esc(c.nome)}</option>`
+    ).join('');
+    document.getElementById('f-categoria').innerHTML    = '<option value="">Selecione...</option>' + opts;
+    document.getElementById('filtro-categoria').innerHTML = '<option value="todos">Todas as categorias</option>' + opts;
+  } catch (_) {}
+}
+
+async function carregarUnidades(valorAtual) {
+  try {
+    const r = await fetch('/api/patrimonio/unidades');
+    const d = await r.json();
+    if (!d.sucesso) return;
+    const opts = d.unidades.map(u =>
+      `<option value="${esc(u.nome)}" ${u.nome === valorAtual ? 'selected' : ''}>${esc(u.nome)}</option>`
+    ).join('');
+    document.getElementById('f-loc_tipo').innerHTML = '<option value="">Selecione...</option>' + opts;
+  } catch (_) {}
+}
+
+// ============================================================
+// CONTROLE DE ACESSO
+// ============================================================
+async function carregarMeuAcesso() {
+  try {
+    const r = await fetch('/api/patrimonio/meu-acesso');
+    if (r.status === 401) { window.location.href = '/login.html'; return; }
+    if (r.status === 403) {
+      // Sem acesso nenhum — mostra mensagem e bloqueia tudo
+      document.getElementById('vista-lista').innerHTML =
+        '<div style="text-align:center;padding:60px;color:var(--cor-texto-fraco)">' +
+        '<i class="fas fa-lock" style="font-size:40px;margin-bottom:16px;display:block"></i>' +
+        '<strong style="font-size:16px;color:var(--cor-texto)">Acesso Restrito</strong>' +
+        '<p style="margin-top:8px">Você não tem permissão para acessar o módulo de Patrimônio.<br>Solicite acesso ao administrador do sistema.</p>' +
+        '</div>';
+      return;
+    }
+    const d = await r.json();
+    patNivel = d.nivel;
+    patAdmin = d.admin || false;
+
+    // Mostra botão Novo Bem apenas para quem pode editar
+    if (patNivel === 'editar') {
+      document.getElementById('btn-novo').style.display = '';
+    }
+    // Mostra botão de gestão de acesso apenas para admin
+    if (patAdmin) {
+      document.getElementById('btn-acesso').style.display = '';
+    }
+  } catch (e) {
+    console.error('Erro ao verificar acesso:', e);
+  }
+}
+
+// ============================================================
+// MODAL GERENCIAR ACESSO (admin)
+// ============================================================
+async function abrirGerenciarAcesso() {
+  await renderAcessoTabela();
+  document.getElementById('modal-acesso-overlay').classList.add('visivel');
+}
+
+function fecharModalAcesso() {
+  document.getElementById('modal-acesso-overlay').classList.remove('visivel');
+}
+
+async function renderAcessoTabela() {
+  const tbody = document.getElementById('acesso-tbody');
+  tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;padding:16px;color:var(--cor-texto-fraco)"><i class="fas fa-spinner fa-spin"></i></td></tr>';
+  try {
+    const r = await fetch('/api/patrimonio/permissoes');
+    const d = await r.json();
+    if (!d.sucesso) { tbody.innerHTML = '<tr><td colspan="3" style="color:#ef4444;padding:12px">Erro ao carregar.</td></tr>'; return; }
+    if (!d.permissoes.length) {
+      tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;padding:16px;color:var(--cor-texto-fraco)">Nenhuma permissão cadastrada.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = d.permissoes.map(p => `
+      <tr>
+        <td style="padding:8px 8px;border-bottom:1px solid var(--cor-borda);color:var(--cor-texto)">${esc(p.usuario)}</td>
+        <td style="padding:8px 8px;border-bottom:1px solid var(--cor-borda)">
+          <span style="font-size:11px;padding:2px 8px;border-radius:20px;font-weight:600;
+            ${p.nivel === 'editar'
+              ? 'background:rgba(16,185,129,0.15);color:#10b981'
+              : 'background:rgba(78,154,241,0.15);color:#4e9af1'}">
+            ${p.nivel === 'editar' ? 'Editar' : 'Visualizar'}
+          </span>
+        </td>
+        <td style="padding:8px 8px;border-bottom:1px solid var(--cor-borda);text-align:right">
+          <button onclick="removerPermissao('${esc(p.usuario)}')" style="background:none;border:none;color:var(--cor-texto-fraco);cursor:pointer;font-size:12px;padding:2px 6px;border-radius:3px" title="Remover acesso">
+            <i class="fas fa-times"></i>
+          </button>
+        </td>
+      </tr>
+    `).join('');
+  } catch (_) {
+    tbody.innerHTML = '<tr><td colspan="3" style="color:#ef4444;padding:12px">Erro ao carregar.</td></tr>';
+  }
+}
+
+async function salvarPermissao() {
+  const usuario = document.getElementById('acesso-novo-usuario').value.trim();
+  const nivel   = document.getElementById('acesso-novo-nivel').value;
+  if (!usuario) { alert('Informe o usuário.'); return; }
+  try {
+    const r = await fetch('/api/patrimonio/permissoes', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ usuario, nivel })
+    });
+    const d = await r.json();
+    if (!d.sucesso) { alert(d.erro); return; }
+    document.getElementById('acesso-novo-usuario').value = '';
+    await renderAcessoTabela();
+  } catch (_) { alert('Erro ao salvar.'); }
+}
+
+async function removerPermissao(usuario) {
+  if (!confirm(`Remover acesso de "${usuario}"?`)) return;
+  try {
+    const r = await fetch('/api/patrimonio/permissoes/' + encodeURIComponent(usuario), { method: 'DELETE' });
+    const d = await r.json();
+    if (!d.sucesso) { alert(d.erro); return; }
+    await renderAcessoTabela();
+  } catch (_) { alert('Erro ao remover.'); }
+}
+
+// ============================================================
+// GERENCIAR SELECTS (popover ⚙️)
+// ============================================================
+let gerenciarTipo = null; // 'categorias' | 'unidades'
+
+async function abrirGerenciar(tipo) {
+  gerenciarTipo = tipo;
+  const titulos = { categorias: 'Gerenciar Categorias', unidades: 'Gerenciar Unidades' };
+  document.getElementById('gerenciar-titulo').innerHTML = `<i class="fas fa-list"></i> ${titulos[tipo]}`;
+  document.getElementById('gerenciar-novo').value = '';
+  await renderGerenciarLista();
+  document.getElementById('gerenciar-overlay').classList.add('visivel');
+  document.getElementById('gerenciar-novo').focus();
+}
+
+async function renderGerenciarLista() {
+  const lista = document.getElementById('gerenciar-lista');
+  lista.innerHTML = '<li style="color:var(--cor-texto-fraco)"><i class="fas fa-spinner fa-spin"></i> Carregando...</li>';
+  try {
+    const r = await fetch(`/api/patrimonio/${gerenciarTipo}`);
+    const d = await r.json();
+    const itens = gerenciarTipo === 'categorias' ? d.categorias : d.unidades;
+    if (!itens.length) {
+      lista.innerHTML = '<li style="color:var(--cor-texto-fraco)">Nenhum item cadastrado.</li>';
+      return;
+    }
+    lista.innerHTML = itens.map(it =>
+      `<li>
+        <span>${esc(it.nome)}</span>
+        <button onclick="excluirOpcao(${it.id})" title="Remover"><i class="fas fa-times"></i></button>
+      </li>`
+    ).join('');
+  } catch (_) {
+    lista.innerHTML = '<li style="color:#ef4444">Erro ao carregar.</li>';
+  }
+}
+
+async function adicionarOpcao() {
+  const input = document.getElementById('gerenciar-novo');
+  const nome = input.value.trim();
+  if (!nome) return;
+  try {
+    const r = await fetch(`/api/patrimonio/${gerenciarTipo}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nome })
+    });
+    const d = await r.json();
+    if (!d.sucesso) { alert(d.erro); return; }
+    input.value = '';
+    await renderGerenciarLista();
+    // Recarrega os selects do formulário mantendo valor atual
+    if (gerenciarTipo === 'categorias') await carregarCategorias(document.getElementById('f-categoria').value);
+    else await carregarUnidades(document.getElementById('f-loc_tipo').value);
+  } catch (_) { alert('Erro ao adicionar.'); }
+}
+
+async function excluirOpcao(id) {
+  if (!confirm('Remover este item?')) return;
+  try {
+    const r = await fetch(`/api/patrimonio/${gerenciarTipo}/${id}`, { method: 'DELETE' });
+    const d = await r.json();
+    if (!d.sucesso) { alert(d.erro); return; }
+    await renderGerenciarLista();
+    if (gerenciarTipo === 'categorias') await carregarCategorias(document.getElementById('f-categoria').value);
+    else await carregarUnidades(document.getElementById('f-loc_tipo').value);
+  } catch (_) { alert('Erro ao remover.'); }
+}
+
+function fecharGerenciar() {
+  document.getElementById('gerenciar-overlay').classList.remove('visivel');
+  gerenciarTipo = null;
+}
+
+async function carregarUsuarios() {
+  try {
+    const r = await fetch('/api/patrimonio/usuarios');
+    if (!r.ok) return;
+    const d = await r.json();
+    if (!d.sucesso) return;
+
+    const dl = document.getElementById('usuarios-datalist');
+    dl.innerHTML = d.usuarios.map(u =>
+      `<option value="${esc(u.nome)}">${esc(u.nome)} (${esc(u.login)})</option>`
+    ).join('');
+  } catch (_) {}
+}
+
+// ============================================================
+// LISTA
+// ============================================================
+function debounceCarregar() {
+  clearTimeout(debTimer);
+  debTimer = setTimeout(carregarLista, 350);
+}
+
+async function carregarLista() {
+  const tbody = document.getElementById('tbody-bens');
+  tbody.innerHTML = '<tr><td colspan="7" class="sem-dados"><i class="fas fa-spinner spin"></i> Carregando...</td></tr>';
+
+  const q   = document.getElementById('filtro-q').value.trim();
+  const st  = document.getElementById('filtro-status').value;
+  const cat = document.getElementById('filtro-categoria').value;
+
+  const params = new URLSearchParams();
+  if (q)   params.set('q', q);
+  if (st  !== 'todos') params.set('status', st);
+  if (cat !== 'todos') params.set('categoria', cat);
+
+  try {
+    const r = await fetch('/api/patrimonio/bens?' + params);
+    if (r.status === 401) { window.location.href = '/login.html'; return; }
+    const d = await r.json();
+    if (!d.sucesso) { showErr(tbody, d.erro); return; }
+
+    bensList = d.bens;
+    renderTabela();
+  } catch (e) {
+    showErr(tbody, 'Erro de conexão.');
+  }
+}
+
+function showErr(tbody, msg) {
+  tbody.innerHTML = `<tr><td colspan="7" class="sem-dados"><i class="fas fa-exclamation-triangle"></i><br>${msg}</td></tr>`;
+}
+
+function renderTabela() {
+  const tbody = document.getElementById('tbody-bens');
+  document.getElementById('total-bens').textContent = `${bensList.length} item(s) encontrado(s)`;
+
+  if (!bensList.length) {
+    tbody.innerHTML = '<tr><td colspan="7" class="sem-dados"><i class="fas fa-box-open"></i><br>Nenhum bem cadastrado.</td></tr>';
+    return;
+  }
+
+  // Ordena localmente após busca
+  const lista = [...bensList].sort((a, b) => {
+    let va = a[sortCol] ?? '', vb = b[sortCol] ?? '';
+    if (typeof va === 'string') va = va.toLowerCase();
+    if (typeof vb === 'string') vb = vb.toLowerCase();
+    if (va < vb) return sortDir === 'asc' ? -1 : 1;
+    if (va > vb) return sortDir === 'asc' ? 1  : -1;
+    return 0;
+  });
+
+  tbody.innerHTML = lista.map(b => `
+    <tr>
+      <td><strong>${esc(b.codigo)}</strong></td>
+      <td>
+        ${esc(b.descricao)}
+        ${b.marca ? `<br><small style="color:var(--cor-texto-fraco)">${esc(b.marca)}</small>` : ''}
+      </td>
+      <td>${b.loc_tipo ? esc(b.loc_tipo) + (b.loc_detalhe ? ' — ' + esc(b.loc_detalhe) : '') : '—'}</td>
+      <td>${badgeStatus(b.status)}</td>
+      <td>${badgeEstado(b.estado)}</td>
+      <td>${b.valor != null ? 'R$ ' + parseFloat(b.valor).toLocaleString('pt-BR', {minimumFractionDigits:2}) : '—'}</td>
+      <td style="white-space:nowrap">
+        <button class="btn btn-neutral btn-sm" onclick="abrirEdicao(${b.id})" title="${patNivel === 'editar' ? 'Editar' : 'Visualizar'}">
+          <i class="fas fa-${patNivel === 'editar' ? 'edit' : 'eye'}"></i>
+        </button>
+        ${patNivel === 'editar' ? `
+        <button class="btn btn-sm" onclick="registroRapido(${b.id})" title="Novo Registro / Ocorrência" style="margin-left:4px;background:#f59e0b;color:#fff">
+          <i class="fas fa-plus-circle"></i>
+        </button>
+        <button class="btn btn-danger btn-sm" onclick="excluir(${b.id}, '${esc(b.codigo)}')" title="Excluir" style="margin-left:4px">
+          <i class="fas fa-trash"></i>
+        </button>` : ''}
+      </td>
+    </tr>
+  `).join('');
+
+  // Atualiza ícones de ordenação
+  document.querySelectorAll('[id^="ord-"]').forEach(el => el.textContent = '');
+  const elOrd = document.getElementById('ord-' + sortCol);
+  if (elOrd) elOrd.textContent = sortDir === 'asc' ? ' ▲' : ' ▼';
+}
+
+function ordenar(col) {
+  if (sortCol === col) sortDir = sortDir === 'asc' ? 'desc' : 'asc';
+  else { sortCol = col; sortDir = 'asc'; }
+  renderTabela();
+}
+
+function limparFiltros() {
+  document.getElementById('filtro-q').value          = '';
+  document.getElementById('filtro-status').value     = 'todos';
+  document.getElementById('filtro-categoria').value  = 'todos';
+  carregarLista();
+}
+
+// ============================================================
+// FORMULÁRIO — NOVO
+// ============================================================
+function abrirNovo() {
+  bemEditId = null;
+  fotosBase64 = [];
+  document.getElementById('form-pat').reset();
+  document.getElementById('f-id').value = '';
+  document.getElementById('f-codigo').readOnly = false;
+  document.getElementById('preview-fotos').innerHTML = '';
+  document.getElementById('hist-section').style.display = 'none';
+  document.getElementById('form-titulo').textContent = 'Novo Bem';
+  document.getElementById('btn-salvar-form').style.display = patNivel === 'editar' ? '' : 'none';
+  mostrarVista('form');
+}
+
+// ============================================================
+// FORMULÁRIO — EDITAR
+// ============================================================
+async function abrirEdicao(id) {
+  try {
+    const r = await fetch('/api/patrimonio/bens/' + id);
+    if (r.status === 401) { window.location.href = '/login.html'; return; }
+    const d = await r.json();
+    if (!d.sucesso) { alert('Erro: ' + d.erro); return; }
+
+    const b = d.bem;
+    bemEditId = b.id;
+    bemAtual  = b;
+
+    document.getElementById('f-id').value          = b.id;
+    document.getElementById('f-codigo').value      = b.codigo;
+    document.getElementById('f-codigo').readOnly   = true;
+    document.getElementById('f-descricao').value   = b.descricao;
+    await carregarCategorias(b.categoria || '');
+    await carregarUnidades(b.loc_tipo || '');
+    document.getElementById('f-marca').value       = b.marca       || '';
+    document.getElementById('f-num_serie').value   = b.num_serie   || '';
+    document.getElementById('f-fornecedor').value  = b.fornecedor  || '';
+    document.getElementById('f-nota_fiscal').value = b.nota_fiscal || '';
+    document.getElementById('f-data_compra').value = b.data_compra ? b.data_compra.substring(0, 10) : '';
+    document.getElementById('f-valor').value       = b.valor       || '';
+    document.getElementById('f-loc_detalhe').value = b.loc_detalhe || '';
+    document.getElementById('f-loc_obs').value     = b.loc_obs     || '';
+    document.getElementById('f-estado').value      = b.estado      || 'Bom';
+    document.getElementById('f-status').value      = b.status      || 'Ativo';
+
+    // Fotos
+    fotosBase64 = b.fotos ? JSON.parse(b.fotos) : [];
+    renderFotos();
+
+    // Histórico
+    renderHistorico(d.historico);
+    document.getElementById('hist-section').style.display = 'block';
+    document.getElementById('form-titulo').textContent =
+      (patNivel === 'editar' ? 'Editar Bem — ' : 'Visualizar Bem — ') + b.codigo;
+    document.getElementById('btn-salvar-form').style.display = patNivel === 'editar' ? '' : 'none';
+
+    // Bloqueia todos os campos se for só visualização
+    const inputs = document.querySelectorAll('#form-pat input, #form-pat select, #form-pat textarea');
+    inputs.forEach(el => { el.disabled = patNivel !== 'editar'; });
+
+    mostrarVista('form');
+    window.scrollTo(0, 0);
+  } catch (e) {
+    alert('Erro ao carregar bem.');
+  }
+}
+
+// ============================================================
+// SALVAR
+// ============================================================
+async function salvar() {
+  const codigo    = document.getElementById('f-codigo').value.trim();
+  const descricao = document.getElementById('f-descricao').value.trim();
+  if (!codigo || !descricao) { alert('Código e Descrição são obrigatórios.'); return; }
+
+  const payload = {
+    codigo,
+    descricao,
+    categoria:    document.getElementById('f-categoria').value    || null,
+    marca:        document.getElementById('f-marca').value.trim() || null,
+    num_serie:    document.getElementById('f-num_serie').value.trim() || null,
+    fornecedor:   document.getElementById('f-fornecedor').value.trim() || null,
+    nota_fiscal:  document.getElementById('f-nota_fiscal').value.trim() || null,
+    data_compra:  document.getElementById('f-data_compra').value  || null,
+    valor:        document.getElementById('f-valor').value        || null,
+    loc_tipo:     document.getElementById('f-loc_tipo').value     || null,
+    loc_detalhe:  document.getElementById('f-loc_detalhe').value.trim() || null,
+    loc_obs:      document.getElementById('f-loc_obs').value.trim() || null,
+    estado:       document.getElementById('f-estado').value,
+    status:       document.getElementById('f-status').value,
+    fotos:        fotosBase64.length ? fotosBase64 : null
+  };
+
+  try {
+    let r;
+    if (bemEditId) {
+      r = await fetch('/api/patrimonio/bens/' + bemEditId, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+    } else {
+      r = await fetch('/api/patrimonio/bens', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+    }
+
+    const d = await r.json();
+    if (!d.sucesso) { alert('Erro: ' + d.erro); return; }
+
+    voltarLista();
+    carregarLista();
+  } catch (e) {
+    alert('Erro ao salvar.');
+  }
+}
+
+// ============================================================
+// EXCLUIR
+// ============================================================
+async function excluir(id, codigo) {
+  if (!confirm(`Excluir o bem "${codigo}" e todo o seu histórico?\n\nEsta ação não pode ser desfeita.`)) return;
+
+  try {
+    const r = await fetch('/api/patrimonio/bens/' + id, { method: 'DELETE' });
+    const d = await r.json();
+    if (!d.sucesso) { alert('Erro: ' + d.erro); return; }
+    carregarLista();
+  } catch (e) {
+    alert('Erro ao excluir.');
+  }
+}
+
+// ============================================================
+// REGISTRO RÁPIDO (abre modal de ocorrência direto da lista)
+// ============================================================
+async function registroRapido(id) {
+  try {
+    const r = await fetch('/api/patrimonio/bens/' + id);
+    if (r.status === 401) { window.location.href = '/login.html'; return; }
+    const d = await r.json();
+    if (!d.sucesso) { alert('Erro: ' + d.erro); return; }
+
+    bemEditId = d.bem.id;
+    bemAtual  = d.bem;
+
+    abrirModalHist();
+  } catch (e) {
+    alert('Erro ao carregar bem.');
+  }
+}
+
+// ============================================================
+// FOTOS
+// ============================================================
+function previewFotos(event) {
+  fotosBase64 = [];
+  const files = Array.from(event.target.files);
+  const promises = files.map(f => new Promise(resolve => {
+    const reader = new FileReader();
+    reader.onload = e => { fotosBase64.push(e.target.result); resolve(); };
+    reader.readAsDataURL(f);
+  }));
+  Promise.all(promises).then(renderFotos);
+}
+
+function renderFotos() {
+  const c = document.getElementById('preview-fotos');
+  c.innerHTML = fotosBase64.map((src, i) =>
+    `<img src="${src}" onclick="abrirFoto('${src}')" title="Clique para ampliar">`
+  ).join('');
+}
+
+function abrirFoto(src) {
+  document.getElementById('modal-foto-img').src = src;
+  document.getElementById('modal-foto-overlay').classList.add('visivel');
+}
+function fecharModalFoto() {
+  document.getElementById('modal-foto-overlay').classList.remove('visivel');
+}
+
+// ============================================================
+// HISTÓRICO
+// ============================================================
+function renderHistorico(hist) {
+  const tbody = document.getElementById('hist-tbody');
+  if (!hist || !hist.length) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--cor-texto-fraco);padding:16px">Nenhum evento registrado.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = hist.map(h => {
+    const data = h.data_evt ? h.data_evt.substring(0, 10) : '—';
+    const dataFmt = data !== '—' ? new Date(data + 'T12:00:00').toLocaleDateString('pt-BR') : '—';
+    const dePara = h.responsavel_de || h.responsavel_para
+      ? `<small>${h.responsavel_de ? esc(h.responsavel_de) + ' →' : '→'} ${esc(h.responsavel_para || '')}</small>`
+      : '—';
+    const termoBtn = h.numero_termo
+      ? `<button class="btn btn-neutral btn-sm" onclick='gerarTermo(${JSON.stringify(h)})' title="Gerar Termo ${esc(h.numero_termo)}">
+           <i class="fas fa-file-alt"></i>
+         </button>`
+      : '';
+    return `
+      <tr>
+        <td style="white-space:nowrap">${dataFmt}</td>
+        <td>${badgeHist(h.tipo)}</td>
+        <td>${dePara}${h.setor_destino ? `<br><small style="color:var(--cor-texto-fraco)">${esc(h.setor_destino)}</small>` : ''}</td>
+        <td>${esc(h.detalhe || '—')}</td>
+        <td>${esc(h.resp || '—')}</td>
+        <td>${termoBtn}</td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function abrirModalHist() {
+  if (!bemEditId) { alert('Salve o bem antes de registrar ocorrências.'); return; }
+  document.getElementById('mod-data').valueAsDate = new Date();
+  document.getElementById('mod-tipo').value             = 'Disponibilizado';
+  document.getElementById('mod-resp-para').value        = '';
+  document.getElementById('mod-setor-destino').value    = '';
+  document.getElementById('mod-resp-de').value          = '';
+  document.getElementById('mod-grau').value             = 'Leve';
+  document.getElementById('mod-novo-estado').value      = '';
+  document.getElementById('mod-novo-status').value      = '';
+  document.getElementById('mod-nova-loc-tipo').value    = '';
+  document.getElementById('mod-nova-loc-detalhe').value = '';
+  document.getElementById('mod-resp').value             = (window.usuarioLogado?.nome || window.usuarioLogado?.usuario || '');
+  document.getElementById('mod-obs').value              = '';
+  atualizarCamposModal('Disponibilizado');
+  document.getElementById('modal-hist-overlay').classList.add('visivel');
+}
+
+// ============================================================
+// CAMPOS DINÂMICOS DO MODAL POR TIPO
+// ============================================================
+function atualizarCamposModal(tipo) {
+  const showPara  = ['Disponibilizado','Transferido','Empréstimo','Manutenção'].includes(tipo);
+  const showDe    = ['Transferido','Devolvido'].includes(tipo);
+  const showDano  = ['Avaria','Sinistro'].includes(tipo);
+  const showLocal = ['Armazenado','Transferido','Devolvido'].includes(tipo);
+
+  document.getElementById('mod-sec-para').style.display  = showPara  ? '' : 'none';
+  document.getElementById('mod-sec-de').style.display    = showDe    ? '' : 'none';
+  document.getElementById('mod-sec-dano').style.display  = showDano  ? '' : 'none';
+  document.getElementById('mod-sec-local').style.display = showLocal ? '' : 'none';
+
+  // Mostra checkbox "Abrir termo após salvar" só para tipos que geram termo
+  const gerarTermo = ['Disponibilizado','Transferido','Devolvido','Empréstimo','Avaria','Sinistro','Descarte','Manutenção'].includes(tipo);
+  document.getElementById('mod-imprimir-label').style.display = gerarTermo ? 'flex' : 'none';
+
+  // Personaliza labels conforme tipo
+  const labels = {
+    'Disponibilizado': { title: 'Destinatário', label: 'Responsável Recebedor *' },
+    'Transferido':     { title: 'Transferência Para', label: 'Novo Responsável *' },
+    'Empréstimo':      { title: 'Tomador do Empréstimo', label: 'Responsável pelo Empréstimo *' },
+    'Manutenção':      { title: 'Prestador de Serviço', label: 'Prestador / Técnico *' }
+  };
+  if (labels[tipo]) {
+    document.getElementById('mod-sec-para-title').textContent = labels[tipo].title;
+    document.getElementById('mod-label-resp-para').textContent = labels[tipo].label;
+  }
+
+  // Status sugerido automático
+  const statusSugerido = {
+    'Disponibilizado': 'Ativo',
+    'Transferido':     'Ativo',
+    'Devolvido':       'Disponível',
+    'Empréstimo':      'Ativo',
+    'Manutenção':      'Manutenção',
+    'Descarte':        'Baixado'
+  };
+  if (statusSugerido[tipo]) {
+    document.getElementById('mod-novo-status').value = statusSugerido[tipo];
+  } else {
+    document.getElementById('mod-novo-status').value = '';
+  }
+}
+
+function fecharModalHist() {
+  document.getElementById('modal-hist-overlay').classList.remove('visivel');
+}
+
+async function salvarHist() {
+  const resp = document.getElementById('mod-resp').value.trim();
+  if (!resp) { alert('Informe quem está registrando o evento.'); return; }
+
+  const tipo          = document.getElementById('mod-tipo').value;
+  const responsavel_para = document.getElementById('mod-resp-para').value.trim() || null;
+  const setor_destino    = document.getElementById('mod-setor-destino').value.trim() || null;
+  const responsavel_de   = document.getElementById('mod-resp-de').value.trim() || null;
+  const novo_estado      = document.getElementById('mod-novo-estado').value || null;
+  const grau             = document.getElementById('mod-grau').value || null;
+
+  // Tipos com responsável obrigatório
+  const tiposComPara = ['Disponibilizado','Transferido','Empréstimo','Manutenção'];
+  if (tiposComPara.includes(tipo) && !responsavel_para) {
+    alert('Informe o responsável recebedor para este tipo de evento.');
+    return;
+  }
+
+  // Monta detalhe composto se avaria/sinistro
+  let detalhe = document.getElementById('mod-obs').value.trim() || null;
+  if (grau && ['Avaria','Sinistro'].includes(tipo)) {
+    detalhe = (detalhe ? detalhe + ' | ' : '') + 'Grau: ' + grau;
+  }
+
+  const payload = {
+    data_evt:         document.getElementById('mod-data').value,
+    tipo,
+    detalhe,
+    resp,
+    responsavel_de,
+    responsavel_para,
+    setor_destino,
+    novo_estado,
+    novo_status:      document.getElementById('mod-novo-status').value     || null,
+    nova_loc_tipo:    document.getElementById('mod-nova-loc-tipo').value   || null,
+    nova_loc_detalhe: document.getElementById('mod-nova-loc-detalhe').value.trim() || null
+  };
+
+  try {
+    const r = await fetch(`/api/patrimonio/bens/${bemEditId}/historico`, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(payload)
+    });
+    const d = await r.json();
+    if (!d.sucesso) { alert('Erro: ' + d.erro); return; }
+
+    const imprimirAposSalvar = document.getElementById('mod-imprimir').checked;
+
+    fecharModalHist();
+
+    // Recarrega bem e histórico
+    const re = await fetch('/api/patrimonio/bens/' + bemEditId);
+    const de = await re.json();
+    if (de.sucesso) {
+      bemAtual = de.bem;
+
+      // Se estiver no formulário de edição, atualiza campos visuais
+      const noFormulario = document.getElementById('vista-form').style.display === 'block';
+      if (noFormulario) {
+        renderHistorico(de.historico);
+        if (payload.novo_status)      document.getElementById('f-status').value      = payload.novo_status;
+        if (payload.nova_loc_tipo)    document.getElementById('f-loc_tipo').value    = payload.nova_loc_tipo;
+        if (payload.nova_loc_detalhe) document.getElementById('f-loc_detalhe').value = payload.nova_loc_detalhe;
+      } else {
+        // Veio do registro rápido na lista — atualiza a tabela
+        carregarLista();
+      }
+
+      // Abre o termo automaticamente se gerado e checkbox marcado
+      if (d.numero_termo && imprimirAposSalvar) {
+        // Monta objeto hist para gerarTermo com os dados do formulário + retorno do servidor
+        const histParaTermo = {
+          id:               d.histId,
+          numero_termo:     d.numero_termo,
+          tipo:             payload.tipo,
+          data_evt:         payload.data_evt,
+          detalhe:          payload.detalhe,
+          resp:             payload.resp,
+          responsavel_de:   payload.responsavel_de,
+          responsavel_para: payload.responsavel_para,
+          setor_destino:    payload.setor_destino,
+          novo_estado:      payload.novo_estado,
+          registrado_por:   window.usuarioLogado?.usuario || ''
+        };
+        gerarTermo(histParaTermo);
+      }
+    }
+  } catch (e) {
+    alert('Erro ao salvar ocorrência.');
+  }
+}
+
+// ============================================================
+// NAVEGAÇÃO ENTRE VISTAS
+// ============================================================
+function mostrarVista(v) {
+  document.getElementById('vista-lista').style.display = v === 'lista' ? 'block' : 'none';
+  document.getElementById('vista-form').style.display  = v === 'form'  ? 'block' : 'none';
+}
+
+function voltarLista() {
+  bemEditId   = null;
+  fotosBase64 = [];
+  document.getElementById('form-pat').reset();
+  document.getElementById('f-codigo').readOnly = false;
+  document.getElementById('preview-fotos').innerHTML = '';
+  document.getElementById('hist-section').style.display = 'none';
+  mostrarVista('lista');
+}
+
+// ============================================================
+// GERAR TERMO IMPRIMÍVEL
+// ============================================================
+function gerarTermo(hist) {
+  const b = bemAtual || {};
+  const data = hist.data_evt ? hist.data_evt.substring(0,10) : '';
+  const dataFmt = data ? new Date(data + 'T12:00:00').toLocaleDateString('pt-BR') : '—';
+  const hoje = new Date().toLocaleDateString('pt-BR');
+
+  const titulos = {
+    'Disponibilizado': 'TERMO DE ENTREGA DE EQUIPAMENTO',
+    'Transferido':     'TERMO DE TRANSFERÊNCIA DE EQUIPAMENTO',
+    'Devolvido':       'TERMO DE DEVOLUÇÃO DE EQUIPAMENTO',
+    'Empréstimo':      'TERMO DE EMPRÉSTIMO DE EQUIPAMENTO',
+    'Manutenção':      'TERMO DE ENVIO PARA MANUTENÇÃO',
+    'Avaria':          'TERMO DE REGISTRO DE AVARIA',
+    'Sinistro':        'REGISTRO DE SINISTRO',
+    'Descarte':        'TERMO DE DESCARTE / BAIXA DE PATRIMÔNIO',
+    'Ocorrência':      'REGISTRO DE OCORRÊNCIA'
+  };
+  const titulo = titulos[hist.tipo] || `TERMO DE ${String(hist.tipo).toUpperCase()}`;
+
+  const html = `<!DOCTYPE html><html lang="pt-br"><head><meta charset="UTF-8">
+<title>${titulo} — ${hist.numero_termo || ''}</title>
+<style>
+  body { font-family: Arial, sans-serif; margin: 30px 40px; color: #222; font-size: 13px; }
+  h1 { font-size: 15px; text-align: center; text-transform: uppercase; border-bottom: 2px solid #333; padding-bottom: 8px; margin-bottom: 6px; }
+  .subtitulo { text-align: center; font-size: 12px; color: #555; margin-bottom: 20px; }
+  .secao { margin-bottom: 18px; }
+  .secao-titulo { font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: .5px; background: #f0f0f0; padding: 4px 8px; border-left: 3px solid #333; margin-bottom: 8px; }
+  table { width: 100%; border-collapse: collapse; margin-bottom: 6px; }
+  td { padding: 5px 8px; border: 1px solid #ccc; font-size: 12px; }
+  td.label { background: #f5f5f5; font-weight: bold; width: 35%; }
+  .assinaturas { display: flex; justify-content: space-around; margin-top: 40px; }
+  .assinatura-box { text-align: center; width: 40%; }
+  .linha-assinatura { border-top: 1px solid #333; margin-bottom: 6px; }
+  .rodape { margin-top: 30px; font-size: 10px; color: #777; text-align: center; border-top: 1px solid #ccc; padding-top: 8px; }
+  @media print { button { display: none; } }
+</style></head><body>
+
+<div style="text-align:center;margin-bottom:4px">
+  <strong style="font-size:14px">PORTAL WKL — GESTÃO DE PATRIMÔNIO</strong>
+</div>
+<h1>${titulo}</h1>
+<div class="subtitulo">Nº do Termo: <strong>${hist.numero_termo || 'S/N'}</strong> &nbsp;|&nbsp; Emitido em: ${hoje}</div>
+
+<div class="secao">
+  <div class="secao-titulo">Dados do Equipamento</div>
+  <table>
+    <tr><td class="label">Código / Plaqueta</td><td>${esc(b.codigo || '—')}</td><td class="label">Categoria</td><td>${esc(b.categoria || '—')}</td></tr>
+    <tr><td class="label">Descrição</td><td colspan="3">${esc(b.descricao || '—')}</td></tr>
+    <tr><td class="label">Marca / Modelo</td><td>${esc(b.marca || '—')}</td><td class="label">Nº de Série</td><td>${esc(b.num_serie || '—')}</td></tr>
+    <tr><td class="label">Estado</td><td>${esc(hist.novo_estado || b.estado || '—')}</td><td class="label">Status</td><td>${esc(b.status || '—')}</td></tr>
+    <tr><td class="label">Localização Atual</td><td colspan="3">${esc((b.loc_tipo || '') + (b.loc_detalhe ? ' — ' + b.loc_detalhe : '') || '—')}</td></tr>
+  </table>
+</div>
+
+${(hist.responsavel_de || hist.responsavel_para) ? `
+<div class="secao">
+  <div class="secao-titulo">Movimentação de Responsabilidade</div>
+  <table>
+    ${hist.responsavel_de ? `<tr><td class="label">De (Responsável Anterior)</td><td>${esc(hist.responsavel_de)}</td></tr>` : ''}
+    ${hist.responsavel_para ? `<tr><td class="label">Para (Novo Responsável)</td><td>${esc(hist.responsavel_para)}</td></tr>` : ''}
+    ${hist.setor_destino ? `<tr><td class="label">Setor / Departamento</td><td>${esc(hist.setor_destino)}</td></tr>` : ''}
+  </table>
+</div>` : ''}
+
+<div class="secao">
+  <div class="secao-titulo">Detalhes do Evento</div>
+  <table>
+    <tr><td class="label">Tipo</td><td>${esc(hist.tipo)}</td><td class="label">Data</td><td>${dataFmt}</td></tr>
+    <tr><td class="label">Registrado por</td><td>${esc(hist.resp || '—')}</td><td class="label">Usuário Sistema</td><td>${esc(hist.registrado_por || '—')}</td></tr>
+    <tr><td class="label">Observações</td><td colspan="3">${esc(hist.detalhe || '—')}</td></tr>
+  </table>
+</div>
+
+<div class="assinaturas">
+  <div class="assinatura-box">
+    <div class="linha-assinatura"></div>
+    <div>${esc(hist.responsavel_de || 'Responsável Entregador')}</div>
+    <div style="font-size:11px;color:#555">Assinatura / CPF</div>
+  </div>
+  <div class="assinatura-box">
+    <div class="linha-assinatura"></div>
+    <div>${esc(hist.responsavel_para || hist.resp || 'Responsável Recebedor')}</div>
+    <div style="font-size:11px;color:#555">Assinatura / CPF</div>
+  </div>
+</div>
+
+<div class="rodape">
+  Documento gerado automaticamente pelo Portal WKL em ${hoje} | Nº ${hist.numero_termo || 'S/N'}
+</div>
+
+<br>
+<div style="text-align:center">
+  <button onclick="window.print()" style="padding:8px 20px;background:#0056b3;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:13px">
+    🖨️ Imprimir / Salvar PDF
+  </button>
+</div>
+
+<script>function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}<\/script>
+</body></html>`;
+
+  const w = window.open('', '_blank');
+  w.document.write(html);
+  w.document.close();
+}
+
+// ============================================================
+// UTILITÁRIOS
+// ============================================================
+function esc(s) {
+  if (s == null) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function badgeStatus(s) {
+  const map = {
+    'Ativo':      'badge-ativo',
+    'Disponível': 'badge-disponivel',
+    'Manutenção': 'badge-manutencao',
+    'Baixado':    'badge-baixado'
+  };
+  return `<span class="badge ${map[s] || 'badge-disponivel'}">${esc(s)}</span>`;
+}
+
+function badgeEstado(e) {
+  const map = { 'Novo':'badge-novo', 'Bom':'badge-bom', 'Regular':'badge-regular', 'Danificado':'badge-danificado' };
+  return `<span class="badge ${map[e] || 'badge-bom'}">${esc(e)}</span>`;
+}
+
+function badgeHist(tipo) {
+  const map = {
+    'Cadastro Inicial': 'badge-ativo',
+    'Movimentação':     'badge-disponivel',
+    'Devolução':        'badge-bom',
+    'Manutenção':       'badge-manutencao',
+    'Empréstimo':       'badge-bom',
+    'Baixa':            'badge-baixado'
+  };
+  return `<span class="badge ${map[tipo] || ''}">${esc(tipo)}</span>`;
+}
+</script>
+
+<script src="/js/menu.js"></script>
+</body>
+</html>

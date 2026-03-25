@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔌 INTEGRAÇÃO AD - Chamados</title>
+    <style>
+        :root {
+            --bg: #0f172a; --card: #1e293b; --text: #f1f5f9; --border: #334155;
+            --primary: #3b82f6; --ad: #ff9d00; --success: #10b981; --danger: #ef4444;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { background: var(--bg); color: var(--text); min-height: 100vh; padding: 0; }
+        .content-wrapper { padding: 20px; max-width: 1100px; margin: 0 auto; }
+        .card { background: var(--card); padding: 25px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 20px; }
+        h2 { color: var(--ad); margin-bottom: 20px; display: flex; align-items: center; gap: 10px; font-size: 1.1rem; text-transform: uppercase; }
+        .page-title { color: var(--text); font-size: 1.3rem; font-weight: 900; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+        .page-title a { color: var(--primary); font-size: 0.75rem; font-weight: 700; text-decoration: none; margin-left: auto; }
+        .page-title a:hover { text-decoration: underline; }
+        .grid-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        label { font-size: 0.7rem; font-weight: 800; opacity: 0.6; text-transform: uppercase; margin-bottom: 5px; display: block; }
+        input { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--border); background: #0f172a; color: white; font-size: 0.9rem; margin-bottom: 15px; }
+        input:focus { outline: none; border-color: var(--primary); }
+        .btn { padding: 12px 20px; border: none; border-radius: 8px; font-weight: 900; cursor: pointer; text-transform: uppercase; color: white; transition: 0.3s; font-size: 0.75rem; }
+        .btn:hover { opacity: 0.85; }
+        .btn-success { background: var(--success); }
+        .btn-ad { background: var(--ad); color: #0f172a; }
+        .btn-primary { background: var(--primary); }
+        .btn-danger { background: var(--danger); }
+        .hidden { display: none !important; }
+        .preview-container { margin-top: 20px; max-height: 400px; overflow-y: auto; border: 1px solid var(--border); border-radius: 8px; background: #0b1120; }
+        table { width: 100%; border-collapse: collapse; }
+        th { position: sticky; top: 0; background: #1e293b; color: var(--primary); padding: 12px; text-align: left; font-size: 0.7rem; border-bottom: 2px solid var(--border); }
+        td { padding: 10px 12px; border-bottom: 1px solid var(--border); font-size: 0.8rem; color: #cbd5e1; }
+        tr:hover td { background: rgba(59, 130, 246, 0.05); }
+        #console-log { margin-top: 10px; padding: 15px; background: #000; border-radius: 10px; text-align: left; font-family: 'Courier New', monospace; font-size: 0.75rem; height: 250px; overflow-y: auto; color: #22c55e; border: 1px solid #334155; box-shadow: inset 0 2px 10px rgba(0,0,0,0.5); }
+        .log-entry { margin-bottom: 4px; border-bottom: 1px solid rgba(34, 197, 94, 0.1); padding-bottom: 2px; }
+        .log-err { color: #f87171; }
+        .log-info { color: #60a5fa; }
+        .filter-bar { display: flex; gap: 10px; margin: 15px 0; align-items: center; }
+        .filter-bar input { margin-bottom: 0; flex: 1; padding: 8px 12px; }
+        .count-badge { background: var(--primary); color: white; padding: 4px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 800; }
+    </style>
+</head>
+<body>
+    <div id="menu-container"></div>
+    <div class="content-wrapper">
+
+        <div class="page-title">
+            🔌 Integração Active Directory
+            <a href="/chamados/configuracoes">← Voltar às Configurações</a>
+        </div>
+
+        <div class="card">
+            <h2>🔑 Servidor AD (LDAP)</h2>
+            <div class="grid-inputs">
+                <div class="input-group">
+                    <label>IP / Hostname do Servidor AD</label>
+                    <input type="text" id="ad-servidor" placeholder="192.168.0.10">
+                </div>
+                <div class="input-group">
+                    <label>Porta</label>
+                    <input type="number" id="ad-porta" value="389">
+                </div>
+                <div class="input-group" style="grid-column: span 2;">
+                    <label>Base DN</label>
+                    <input type="text" id="ad-basedn" placeholder="DC=empresa,DC=local">
+                </div>
+                <div class="input-group" style="grid-column: span 2;">
+                    <label>Domínio</label>
+                    <input type="text" id="ad-dominio" placeholder="empresa.local">
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>👤 Service Account</h2>
+            <div class="grid-inputs">
+                <div class="input-group">
+                    <label>Usuário de Serviço</label>
+                    <input type="text" id="ad-usuario-svc" placeholder="svc.chamados">
+                </div>
+                <div class="input-group">
+                    <label>Senha</label>
+                    <input type="password" id="ad-senha-svc">
+                </div>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button onclick="salvarConfigAD()" class="btn btn-success" style="flex: 1;">💾 SALVAR CONFIGURAÇÃO</button>
+                <button onclick="testarConexaoAD()" class="btn btn-ad" style="flex: 1;">⚡ TESTAR CONEXÃO</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>🔄 Sincronização Massiva</h2>
+            <button id="btn-fetch" onclick="buscarUsuariosParaPreview()" class="btn btn-primary" style="width: 100%;">🔍 BUSCAR USUÁRIOS NO AD</button>
+
+            <div id="wrapper-preview" class="hidden">
+                <div class="filter-bar">
+                    <input type="text" id="filtro-preview" placeholder="Filtrar por nome, login ou setor..." oninput="filtrarPreview()">
+                    <span id="count-preview" class="count-badge">0</span>
+                    <button onclick="toggleTodos(true)" style="background:none; border:none; color:var(--primary); cursor:pointer; font-size:0.7rem; white-space:nowrap;">[ MARCAR TODOS ]</button>
+                    <button onclick="toggleTodos(false)" style="background:none; border:none; color:var(--danger); cursor:pointer; font-size:0.7rem; white-space:nowrap;">[ DESMARCAR TODOS ]</button>
+                </div>
+                <div class="preview-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width:40px;">Sel.</th>
+                                <th>Login</th>
+                                <th>Nome</th>
+                                <th>Setor / Departamento</th>
+                                <th>E-mail</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-preview"></tbody>
+                    </table>
+                </div>
+                <button onclick="confirmarImportacao()" class="btn btn-success" style="width: 100%; margin-top: 20px;">✅ IMPORTAR SELECIONADOS E SINCRONIZAR SETORES</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>📜 Rastreabilidade</h2>
+            <div id="console-log">Aguardando comando...</div>
+            <div style="margin-top:10px; display:flex; gap:10px;">
+                <button onclick="verificarServidor()" class="btn" style="background:#334155; padding:5px 10px; font-size:0.6rem;">CHECK SERVIDOR</button>
+                <button onclick="document.getElementById('console-log').innerHTML=''" class="btn" style="background:#334155; padding:5px 10px; font-size:0.6rem;">LIMPAR CONSOLE</button>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="/js/menu.js"></script>
+    <script>
+        let encontradosGlobal = [];
+        let encontradosFiltrados = [];
+
+        // ── Console de log ──────────────────────────────────────────────
+        function log(msg, type = 'success') {
+            const c = document.getElementById('console-log');
+            const cls = type === 'error' ? 'log-err' : (type === 'info' ? 'log-info' : '');
+            c.innerHTML += `<div class="log-entry ${cls}">[${new Date().toLocaleTimeString()}] > ${msg}</div>`;
+            c.scrollTop = c.scrollHeight;
+        }
+
+        // ── Verificar servidor ──────────────────────────────────────────
+        async function verificarServidor() {
+            log("Verificando servidor...", "info");
+            try {
+                const res = await fetch('/api/chamados/meu-perfil');
+                if (res.ok) {
+                    const data = await res.json();
+                    log(`SERVIDOR ONLINE ✅ — Usuário: ${data.nome || data.login} (${data.cargo})`, "success");
+                } else {
+                    log("Servidor respondeu com erro: " + res.status, "error");
+                }
+            } catch (e) { log("Erro: Servidor não respondeu. " + e.message, "error"); }
+        }
+
+        // ── Carregar configuração do AD ─────────────────────────────────
+        async function carregarConfigAD() {
+            try {
+                const res = await fetch('/api/configuracoes/ad');
+                if (!res.ok) { log("Não foi possível carregar config AD.", "error"); return; }
+                const data = await res.json();
+                const cfg = data.config || {};
+                if (cfg.ad_servidor) {
+                    document.getElementById('ad-servidor').value = cfg.ad_servidor || '';
+                    document.getElementById('ad-porta').value    = cfg.ad_porta    || '389';
+                    document.getElementById('ad-basedn').value   = cfg.ad_basedn   || '';
+                    document.getElementById('ad-dominio').value  = cfg.ad_dominio  || '';
+                    document.getElementById('ad-usuario-svc').value = cfg.ad_usuario_svc || '';
+                    document.getElementById('ad-senha-svc').value   = cfg.ad_senha_svc   || '';
+                    log("Configurações do AD carregadas.", "info");
+                } else {
+                    log("Nenhuma configuração AD encontrada. Preencha os campos acima.", "info");
+                }
+            } catch (e) { log("Erro ao carregar configurações: " + e.message, "error"); }
+        }
+
+        // ── Salvar configuração do AD ───────────────────────────────────
+        async function salvarConfigAD() {
+            const configuracoes = {
+                ad_servidor:    document.getElementById('ad-servidor').value.trim(),
+                ad_porta:       document.getElementById('ad-porta').value.trim(),
+                ad_basedn:      document.getElementById('ad-basedn').value.trim(),
+                ad_dominio:     document.getElementById('ad-dominio').value.trim(),
+                ad_usuario_svc: document.getElementById('ad-usuario-svc').value.trim(),
+                ad_senha_svc:   document.getElementById('ad-senha-svc').value.trim()
+            };
+
+            if (!configuracoes.ad_servidor || !configuracoes.ad_basedn) {
+                return alert("Preencha ao menos o Servidor e o Base DN.");
+            }
+
+            log("Salvando configurações do AD...", "info");
+            try {
+                const res = await fetch('/api/configuracoes', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ grupo: 'ad', configuracoes })
+                });
+                const data = await res.json();
+                if (data.sucesso) {
+                    log("Configuração salva com sucesso. ✅", "success");
+                    alert("Configuração salva!");
+                } else {
+                    log("Erro ao salvar: " + (data.erro || 'resposta inválida'), "error");
+                }
+            } catch (e) { log("Erro ao salvar: " + e.message, "error"); }
+        }
+
+        // ── Testar conexão com o AD ─────────────────────────────────────
+        async function testarConexaoAD() {
+            log("--- INICIANDO TESTE DE CONEXÃO AD ---", "info");
+            log("Enviando requisição para o servidor...", "info");
+            try {
+                const res = await fetch('/api/ad/testar', { method: 'POST', headers: { 'Content-Type': 'application/json' } });
+                const data = await res.json();
+                if (data.sucesso) {
+                    log("AUTENTICAÇÃO CONCLUÍDA! ✅ " + (data.mensagem || ''), "success");
+                } else {
+                    log("FALHA: " + (data.erro || 'Erro desconhecido'), "error");
+                }
+            } catch (e) { log("Erro crítico: O servidor não respondeu. " + e.message, "error"); }
+        }
+
+        // ── Buscar usuários para preview ────────────────────────────────
+        async function buscarUsuariosParaPreview() {
+            log("--- INICIANDO BUSCA DE USUÁRIOS NO AD ---", "info");
+            log("Etapa 1: Conectando ao servidor...", "info");
+            document.getElementById('btn-fetch').disabled = true;
+            document.getElementById('btn-fetch').textContent = '⏳ Buscando...';
+
+            try {
+                const res = await fetch('/api/ad/buscar');
+                log("Etapa 2: Recebendo dados do servidor...", "info");
+
+                if (!res.ok) {
+                    const err = await res.json();
+                    log("Erro: " + (err.erro || res.statusText), "error");
+                    return;
+                }
+
+                const data = await res.json();
+                if (data.sucesso && data.usuarios) {
+                    encontradosGlobal = data.usuarios;
+                    encontradosFiltrados = [...encontradosGlobal];
+                    renderizarPreview(encontradosFiltrados);
+                    document.getElementById('wrapper-preview').classList.remove('hidden');
+                    log(`Etapa 3: ${encontradosGlobal.length} usuário(s) encontrado(s) no AD.`, "success");
+                } else {
+                    log("Erro ao buscar usuários: " + (data.erro || 'resposta inválida'), "error");
+                }
+            } catch (e) {
+                log("Erro crítico: " + e.message, "error");
+            } finally {
+                document.getElementById('btn-fetch').disabled = false;
+                document.getElementById('btn-fetch').textContent = '🔍 BUSCAR USUÁRIOS NO AD';
+            }
+        }
+
+        function renderizarPreview(lista) {
+            document.getElementById('count-preview').textContent = lista.length;
+            document.getElementById('tbody-preview').innerHTML = lista.map((u, i) => {
+                const idx = encontradosGlobal.indexOf(u);
+                return `<tr>
+                    <td><input type="checkbox" class="user-sel" data-index="${idx}" checked></td>
+                    <td>${u.login || ''}</td>
+                    <td>${u.nome || ''}</td>
+                    <td>${u.departamento || '<span style="opacity:0.4">—</span>'}</td>
+                    <td>${u.email || '<span style="opacity:0.4">—</span>'}</td>
+                </tr>`;
+            }).join('');
+        }
+
+        function filtrarPreview() {
+            const termo = document.getElementById('filtro-preview').value.toLowerCase();
+            if (!termo) {
+                encontradosFiltrados = [...encontradosGlobal];
+            } else {
+                encontradosFiltrados = encontradosGlobal.filter(u =>
+                    (u.login || '').toLowerCase().includes(termo) ||
+                    (u.nome || '').toLowerCase().includes(termo) ||
+                    (u.departamento || '').toLowerCase().includes(termo)
+                );
+            }
+            renderizarPreview(encontradosFiltrados);
+        }
+
+        function toggleTodos(val) {
+            document.querySelectorAll('.user-sel').forEach(cb => cb.checked = val);
+        }
+
+        // ── Confirmar importação em lote ────────────────────────────────
+        async function confirmarImportacao() {
+            const selecionados = Array.from(document.querySelectorAll('.user-sel:checked'))
+                .map(cb => encontradosGlobal[parseInt(cb.getAttribute('data-index'))]);
+
+            if (selecionados.length === 0) return alert("Selecione ao menos um usuário!");
+
+            if (!confirm(`Importar ${selecionados.length} usuário(s) para o portal e sincronizar setores dos chamados?`)) return;
+
+            log(`--- INICIANDO IMPORTAÇÃO EM LOTE ---`, "info");
+            log(`Etapa 1: Preparando ${selecionados.length} registro(s)...`, "info");
+
+            // Etapa 2: Importar usuários para o portal (usuarios_dominio)
+            try {
+                const resLote = await fetch('/api/ad/usuarios/lote', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ usuarios: selecionados, nivel: 'usuario' })
+                });
+                const dataLote = await resLote.json();
+                if (dataLote.sucesso) {
+                    log(`Etapa 2: ${dataLote.mensagem}`, "success");
+                } else {
+                    log("Etapa 2 — Erro: " + (dataLote.erro || 'resposta inválida'), "error");
+                    return;
+                }
+            } catch (e) {
+                log("Erro crítico na importação: " + e.message, "error");
+                return;
+            }
+
+            // Etapa 3: Sincronizar setores dos chamados com departamentos do AD
+            log("Etapa 3: Sincronizando setores dos chamados com departamentos do AD...", "info");
+            try {
+                const resSync = await fetch('/api/chamados/sincronizar-setores-dominio', { method: 'POST' });
+                const dataSync = await resSync.json();
+                if (dataSync.ok) {
+                    log(`Etapa 3: ${dataSync.total} departamento(s) processado(s), ${dataSync.criados} setor(es) criado(s) nos chamados. ✅`, "success");
+                } else {
+                    log("Etapa 3 — Aviso: " + (dataSync.erro || 'falha na sincronização'), "error");
+                }
+            } catch (e) {
+                log("Aviso: Falha ao sincronizar setores. " + e.message, "error");
+            }
+
+            log("--- IMPORTAÇÃO CONCLUÍDA ✅ ---", "success");
+            alert(`Importação concluída!\n${selecionados.length} usuário(s) processado(s).\nSetores dos chamados sincronizados.`);
+        }
+
+        // ── Init ────────────────────────────────────────────────────────
+        window.onload = async () => {
+            // Redirecionar se não for admin
+            try {
+                const res = await fetch('/api/chamados/meu-perfil');
+                if (!res.ok) { window.location.href = '/login.html'; return; }
+                const me = await res.json();
+                if (me.cargo !== 'ADMIN') { window.location.href = '/chamados'; return; }
+            } catch (e) { window.location.href = '/login.html'; return; }
+
+            await carregarConfigAD();
+        };
+    </script>
+</body>
+</html>

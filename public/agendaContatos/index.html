@@ -1,0 +1,1491 @@
+<!DOCTYPE html>
+<!--
+  ARQUIVO: public/agendaContatos/index.html
+  VERSÃO:  1.0.0
+  DATA:    2026-03-09
+  DESCRIÇÃO: Agenda de Contatos — módulo integrado ao Portal WKL
+-->
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portal WKL — Agenda de Contatos</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/menu.css">
+  <link rel="stylesheet" href="/agendaContatos/css/contatos.css">
+  <style>
+    body { padding-top: var(--altura-menu); overflow: hidden; }
+  </style>
+</head>
+<body>
+
+<div id="menu-container"></div>
+
+<!-- ══════════════════════════════════════════════════════════
+     LAYOUT PRINCIPAL
+══════════════════════════════════════════════════════════ -->
+<div class="cont-layout">
+
+  <!-- ── Sidebar ── -->
+  <aside class="cont-sidebar" id="cont-sidebar">
+    <div id="cont-titulo-empresa" class="cont-sidebar-titulo" style="display:none">
+      <i class="fas fa-building" style="margin-right:5px;font-size:0.78rem"></i>Empresa
+    </div>
+    <div id="cont-listas-empresa"></div>
+    <div id="cont-sep-empresa" class="cont-sidebar-sep" style="display:none"></div>
+
+    <div class="cont-sidebar-titulo" id="cont-titulo-minha">Minhas Listas</div>
+    <div id="cont-listas-minha"></div>
+
+    <div id="cont-sep-compartilhada" class="cont-sidebar-sep" style="display:none"></div>
+    <div id="cont-titulo-compartilhada" class="cont-sidebar-titulo" style="display:none; margin-top:4px">Compartilhadas</div>
+    <div id="cont-listas-compartilhada"></div>
+
+    <div class="cont-sidebar-sep"></div>
+    <div class="cont-sidebar-footer">
+      <button class="cont-btn-nova-lista" onclick="abrirModalLista()">
+        <i class="fas fa-plus"></i> Nova Lista
+      </button>
+    </div>
+  </aside>
+
+  <!-- ── Conteúdo principal ── -->
+  <main class="cont-main" id="cont-main">
+
+    <!-- Boas-vindas (sem lista selecionada) -->
+    <div class="cont-boas-vindas" id="cont-boas-vindas">
+      <i class="fas fa-address-book"></i>
+      <h2>Agenda de Contatos</h2>
+      <p>Selecione uma lista na barra lateral ou crie uma nova para começar a organizar seus contatos.</p>
+      <button class="btn btn-primario" onclick="abrirModalLista()">
+        <i class="fas fa-plus"></i> Nova Lista
+      </button>
+    </div>
+
+    <!-- Área da lista selecionada (oculta inicialmente) -->
+    <div id="cont-area-lista" style="display:none; flex-direction:column; height:100%">
+
+      <!-- Cabeçalho da lista -->
+      <div class="cont-topbar">
+        <span class="cont-cor-dot" id="cont-dot-cor"></span>
+        <div class="cont-topbar-titulo">
+          <i id="cont-icone-lista"></i>
+          <span id="cont-nome-lista">—</span>
+        </div>
+        <div class="cont-topbar-acoes">
+          <button class="cont-btn-icone" onclick="exportarContatos()" title="Exportar CSV">
+            <i class="fas fa-file-export"></i>
+          </button>
+          <button class="cont-btn-icone" onclick="exportarVCard()" title="Exportar vCard (.vcf)">
+            <i class="fas fa-id-card"></i>
+          </button>
+          <button class="cont-btn-icone" id="btn-importar" onclick="abrirModalImportar()" title="Importar CSV / vCard">
+            <i class="fas fa-file-import"></i>
+          </button>
+          <button class="cont-btn-icone" id="btn-copiar-contatos" onclick="abrirModalCopiar()" title="Copiar contatos de outra lista" style="display:none">
+            <i class="fas fa-copy"></i>
+          </button>
+          <button class="cont-btn-icone" id="btn-membros-lista" onclick="abrirModalMembros()" title="Compartilhar lista">
+            <i class="fas fa-user-friends"></i>
+          </button>
+          <button class="cont-btn-icone" id="btn-editar-lista" onclick="abrirModalLista(listaAtual)" title="Editar lista">
+            <i class="fas fa-edit"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Barra de ferramentas -->
+      <div class="cont-toolbar">
+        <div class="cont-search-wrap">
+          <i class="fas fa-search"></i>
+          <input type="text" id="cont-busca" placeholder="Buscar contato..." oninput="debBusca()">
+        </div>
+        <button class="btn btn-primario btn-sm" id="btn-novo-contato" onclick="abrirModalContato()" style="width:auto">
+          <i class="fas fa-user-plus"></i> Novo Contato
+        </button>
+      </div>
+
+      <!-- Filtros rápidos -->
+      <div class="cont-filtros">
+        <button class="cont-filtro-btn ativo" id="filtro-todos" onclick="setFiltro('todos')">
+          <i class="fas fa-users"></i> Todos
+        </button>
+        <button class="cont-filtro-btn fav" id="filtro-fav" onclick="setFiltro('favoritos')">
+          <i class="fas fa-star"></i> Favoritos
+        </button>
+        <span style="flex:1"></span>
+        <span id="cont-total-label" style="font-size:0.78rem; color:var(--cor-texto-fraco)"></span>
+      </div>
+
+      <!-- Grid de contatos -->
+      <div class="cont-lista-area" id="cont-lista-area">
+        <div class="cont-empty" id="cont-empty" style="display:none">
+          <i class="fas fa-user-slash"></i>
+          <p>Nenhum contato encontrado.</p>
+          <button class="btn btn-primario btn-sm" onclick="abrirModalContato()">
+            <i class="fas fa-user-plus"></i> Adicionar Contato
+          </button>
+        </div>
+        <div class="cont-grid" id="cont-grid"></div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     MODAL — CRIAR / EDITAR LISTA
+══════════════════════════════════════════════════════════ -->
+<div class="cont-modal-lista-overlay" id="mod-lista-overlay">
+  <div class="cont-modal-lista">
+    <h3 id="mod-lista-titulo">Nova Lista</h3>
+
+    <div style="margin-bottom:14px">
+      <label class="cont-form-label">Nome da Lista *</label>
+      <input type="text" class="cont-form-input" id="mod-lista-nome" placeholder="Ex: Fornecedores, Clientes...">
+    </div>
+    <div style="margin-bottom:14px">
+      <label class="cont-form-label">Descrição</label>
+      <input type="text" class="cont-form-input" id="mod-lista-desc" placeholder="Descrição opcional">
+    </div>
+    <div style="margin-bottom:14px">
+      <label class="cont-form-label">Cor</label>
+      <div class="cont-cor-picker" id="cont-cor-picker"></div>
+    </div>
+    <div style="margin-bottom:20px">
+      <label class="cont-form-label">Ícone</label>
+      <div class="cont-icone-picker" id="cont-icone-picker"></div>
+    </div>
+
+    <label style="display:flex;align-items:center;gap:10px;margin-bottom:20px;cursor:pointer;padding:10px 12px;border-radius:8px;border:1px solid var(--cor-borda);background:var(--cor-fundo-3)">
+      <input type="checkbox" id="mod-lista-empresa" style="accent-color:var(--cor-destaque);width:16px;height:16px;cursor:pointer">
+      <span style="font-size:0.88rem">
+        <i class="fas fa-building" style="margin-right:5px;color:var(--cor-destaque)"></i>
+        <strong>Agenda da Empresa</strong>
+        <span style="display:block;font-size:0.78rem;color:var(--cor-texto-fraco);margin-top:2px">Visível para todos os usuários (somente leitura)</span>
+      </span>
+    </label>
+
+    <div style="display:flex; gap:10px; justify-content:flex-end">
+      <button class="btn btn-secundario" onclick="fecharModalLista()">Cancelar</button>
+      <button class="btn btn-primario" onclick="salvarLista()"><i class="fas fa-save"></i> Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     MODAL — MEMBROS / COMPARTILHAMENTO
+══════════════════════════════════════════════════════════ -->
+<div class="cont-modal-membros-overlay" id="mod-membros-overlay">
+  <div class="cont-modal-membros">
+    <div class="cont-modal-membros-header">
+      <h3><i class="fas fa-user-friends"></i> Compartilhar Lista</h3>
+      <button class="cont-modal-fechar" onclick="fecharModalMembros()"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="cont-modal-membros-corpo">
+      <div id="mod-membros-lista"></div>
+
+      <div class="cont-add-membro">
+        <label class="cont-form-label" style="margin-bottom:6px">Adicionar membro</label>
+        <div style="display:grid; grid-template-columns:1fr 100px 38px; gap:8px; align-items:center">
+          <div style="position:relative; min-width:0">
+            <input type="text" class="cont-form-input" id="mod-membro-usuario"
+                   placeholder="Login ou nome do usuário..."
+                   list="cont-usuarios-list"
+                   style="width:100%; box-sizing:border-box; padding-left:34px">
+            <i class="fas fa-search" style="position:absolute; left:11px; top:50%; transform:translateY(-50%); color:var(--cor-texto-fraco); font-size:0.78rem; pointer-events:none"></i>
+            <datalist id="cont-usuarios-list"></datalist>
+          </div>
+          <select class="cont-form-select" id="mod-membro-perm" style="width:100%; padding:9px 8px">
+            <option value="leitura">👁 Leitura</option>
+            <option value="edicao">✏️ Edição</option>
+          </select>
+          <button class="btn btn-primario" onclick="adicionarMembro()" style="padding:9px; width:38px; display:flex; align-items:center; justify-content:center" title="Adicionar membro">
+            <i class="fas fa-plus"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     MODAL — CRIAR / EDITAR CONTATO
+══════════════════════════════════════════════════════════ -->
+<div class="cont-modal-overlay" id="mod-contato-overlay">
+  <div class="cont-modal">
+    <div class="cont-modal-header">
+      <h3 id="mod-contato-titulo"><i class="fas fa-user-plus"></i> Novo Contato</h3>
+      <button class="cont-modal-fechar" onclick="fecharModalContato()"><i class="fas fa-times"></i></button>
+    </div>
+
+    <!-- Abas -->
+    <div class="cont-modal-tabs">
+      <button class="cont-modal-tab ativa" data-tab="geral" onclick="mudarTab('geral', this)">
+        <i class="fas fa-user"></i> Geral
+      </button>
+      <button class="cont-modal-tab" data-tab="contato" onclick="mudarTab('contato', this)">
+        <i class="fas fa-phone"></i> Contato
+      </button>
+      <button class="cont-modal-tab" data-tab="social" onclick="mudarTab('social', this)">
+        <i class="fas fa-share-alt"></i> Redes Sociais
+      </button>
+      <button class="cont-modal-tab" data-tab="endereco" onclick="mudarTab('endereco', this)">
+        <i class="fas fa-map-marker-alt"></i> Endereço
+      </button>
+      <button class="cont-modal-tab" data-tab="extra" onclick="mudarTab('extra', this)">
+        <i class="fas fa-info-circle"></i> Extra
+      </button>
+    </div>
+
+    <div class="cont-modal-corpo">
+
+      <!-- Aba: Geral -->
+      <div class="cont-tab-painel ativo" id="tab-geral">
+        <div class="cont-form-grid">
+          <div class="span2">
+            <label class="cont-form-label">Nome Completo *</label>
+            <input type="text" class="cont-form-input" id="f-nome" placeholder="Nome do contato">
+          </div>
+          <div>
+            <label class="cont-form-label">Cargo / Função</label>
+            <input type="text" class="cont-form-input" id="f-cargo" placeholder="Ex: Gerente Comercial">
+          </div>
+          <div>
+            <label class="cont-form-label">Empresa</label>
+            <input type="text" class="cont-form-input" id="f-empresa" placeholder="Nome da empresa">
+          </div>
+          <div>
+            <label class="cont-form-label">Departamento</label>
+            <input type="text" class="cont-form-input" id="f-departamento" placeholder="Ex: TI, Financeiro...">
+          </div>
+          <div>
+            <label class="cont-form-label">CNPJ / CPF</label>
+            <input type="text" class="cont-form-input" id="f-cnpj_cpf" placeholder="00.000.000/0001-00">
+          </div>
+          <div>
+            <label class="cont-form-label">Site / URL</label>
+            <div class="cont-form-input-icon">
+              <i class="fas fa-globe"></i>
+              <input type="text" id="f-site" placeholder="https://empresa.com.br">
+            </div>
+          </div>
+          <div>
+            <label class="cont-form-label">Data de Nascimento</label>
+            <input type="date" class="cont-form-input" id="f-data_nascimento">
+          </div>
+          <div class="span2">
+            <div class="cont-form-check-row">
+              <input type="checkbox" id="f-favorito">
+              <label for="f-favorito"><i class="fas fa-star" style="color:#f59e0b; margin-right:4px"></i> Marcar como favorito</label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Aba: Contato -->
+      <div class="cont-tab-painel" id="tab-contato">
+        <div class="cont-form-grid">
+          <div>
+            <label class="cont-form-label"><i class="fas fa-mobile-alt" style="margin-right:4px"></i> Celular Pessoal</label>
+            <div class="cont-form-input-icon">
+              <i class="fas fa-mobile-alt"></i>
+              <input type="tel" id="f-cel_pessoal" placeholder="(00) 90000-0000">
+            </div>
+          </div>
+          <div>
+            <label class="cont-form-label"><i class="fab fa-whatsapp" style="margin-right:4px; color:#25d366"></i> WhatsApp</label>
+            <div class="cont-form-input-icon">
+              <i class="fab fa-whatsapp" style="color:#25d366"></i>
+              <input type="tel" id="f-whatsapp" placeholder="(00) 90000-0000">
+            </div>
+          </div>
+          <div>
+            <label class="cont-form-label"><i class="fas fa-briefcase" style="margin-right:4px"></i> Celular Corporativo</label>
+            <div class="cont-form-input-icon">
+              <i class="fas fa-mobile-alt"></i>
+              <input type="tel" id="f-cel_corporativo" placeholder="(00) 90000-0000">
+            </div>
+          </div>
+          <div>
+            <label class="cont-form-label"><i class="fas fa-phone" style="margin-right:4px"></i> Telefone Fixo</label>
+            <div class="cont-form-input-icon">
+              <i class="fas fa-phone"></i>
+              <input type="tel" id="f-tel_fixo" placeholder="(00) 0000-0000">
+            </div>
+          </div>
+          <div>
+            <label class="cont-form-label">Ramal</label>
+            <div class="cont-form-input-icon">
+              <i class="fas fa-hashtag"></i>
+              <input type="text" id="f-tel_ramal" placeholder="Ex: 205">
+            </div>
+          </div>
+          <div>
+            <label class="cont-form-label"><i class="fas fa-envelope" style="margin-right:4px"></i> E-mail Pessoal</label>
+            <div class="cont-form-input-icon">
+              <i class="fas fa-envelope"></i>
+              <input type="email" id="f-email_pessoal" placeholder="nome@email.com">
+            </div>
+          </div>
+          <div class="span2">
+            <label class="cont-form-label"><i class="fas fa-envelope" style="margin-right:4px"></i> E-mail Corporativo</label>
+            <div class="cont-form-input-icon">
+              <i class="fas fa-envelope" style="color:var(--cor-destaque)"></i>
+              <input type="email" id="f-email_corporativo" placeholder="nome@empresa.com.br">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Aba: Redes Sociais -->
+      <div class="cont-tab-painel" id="tab-social">
+        <div class="cont-form-grid">
+          <div class="span2">
+            <label class="cont-form-label"><i class="fab fa-linkedin" style="color:#0a66c2; margin-right:4px"></i> LinkedIn</label>
+            <div class="cont-form-input-icon">
+              <i class="fab fa-linkedin" style="color:#0a66c2"></i>
+              <input type="text" id="f-linkedin" placeholder="linkedin.com/in/nome ou URL completa">
+            </div>
+          </div>
+          <div class="span2">
+            <label class="cont-form-label"><i class="fab fa-instagram" style="color:#e1306c; margin-right:4px"></i> Instagram</label>
+            <div class="cont-form-input-icon">
+              <i class="fab fa-instagram" style="color:#e1306c"></i>
+              <input type="text" id="f-instagram" placeholder="@usuario ou URL completa">
+            </div>
+          </div>
+          <div class="span2">
+            <label class="cont-form-label"><i class="fab fa-facebook" style="color:#1877f2; margin-right:4px"></i> Facebook</label>
+            <div class="cont-form-input-icon">
+              <i class="fab fa-facebook" style="color:#1877f2"></i>
+              <input type="text" id="f-facebook" placeholder="facebook.com/nome ou URL completa">
+            </div>
+          </div>
+          <div class="span2">
+            <label class="cont-form-label"><i class="fab fa-twitter" style="color:#1da1f2; margin-right:4px"></i> Twitter / X</label>
+            <div class="cont-form-input-icon">
+              <i class="fab fa-twitter" style="color:#1da1f2"></i>
+              <input type="text" id="f-twitter" placeholder="@usuario ou URL completa">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Aba: Endereço -->
+      <div class="cont-tab-painel" id="tab-endereco">
+        <div class="cont-form-grid">
+          <div class="span2">
+            <label class="cont-form-label">Endereço</label>
+            <input type="text" class="cont-form-input" id="f-endereco" placeholder="Rua, número, complemento">
+          </div>
+          <div>
+            <label class="cont-form-label">Cidade</label>
+            <input type="text" class="cont-form-input" id="f-cidade" placeholder="Cidade">
+          </div>
+          <div>
+            <label class="cont-form-label">Estado</label>
+            <input type="text" class="cont-form-input" id="f-estado" placeholder="SP">
+          </div>
+          <div>
+            <label class="cont-form-label">CEP</label>
+            <input type="text" class="cont-form-input" id="f-cep" placeholder="00000-000">
+          </div>
+          <div>
+            <label class="cont-form-label">País</label>
+            <input type="text" class="cont-form-input" id="f-pais" placeholder="Brasil" value="Brasil">
+          </div>
+        </div>
+      </div>
+
+      <!-- Aba: Extra -->
+      <div class="cont-tab-painel" id="tab-extra">
+        <div class="cont-form-grid">
+          <div class="span2">
+            <label class="cont-form-label">Tags <span style="font-weight:400;text-transform:none;letter-spacing:0">(separadas por vírgula)</span></label>
+            <input type="text" class="cont-form-input" id="f-tags" placeholder="cliente, vip, fornecedor, parceiro...">
+          </div>
+          <div class="span2">
+            <label class="cont-form-label">Observações</label>
+            <textarea class="cont-form-textarea" id="f-observacoes" rows="5" placeholder="Anotações livres sobre este contato..."></textarea>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /corpo -->
+
+    <div class="cont-modal-footer">
+      <button class="btn btn-secundario" onclick="fecharModalContato()">Cancelar</button>
+      <button class="btn btn-primario" onclick="salvarContato()"><i class="fas fa-save"></i> Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     MODAL — IMPORTAR CSV
+══════════════════════════════════════════════════════════ -->
+<div class="cont-modal-lista-overlay" id="mod-importar-overlay">
+  <div class="cont-modal-lista" style="max-width:560px">
+    <h3><i class="fas fa-file-import" style="margin-right:8px;color:var(--cor-destaque)"></i>Importar Contatos</h3>
+
+    <!-- Passo 1: selecionar arquivo -->
+    <div id="imp-passo1">
+      <div style="margin-bottom:14px">
+        <label class="cont-form-label">Lista de destino</label>
+        <select class="cont-form-select" id="imp-lista-destino" style="width:100%"></select>
+      </div>
+      <div style="margin-bottom:16px">
+        <label class="cont-form-label">Arquivo CSV ou vCard (.vcf)</label>
+        <label style="display:flex;align-items:center;gap:10px;padding:14px 16px;background:var(--cor-fundo-3);border:2px dashed var(--cor-borda);border-radius:8px;cursor:pointer;transition:border-color .15s" id="imp-drop-area">
+          <i class="fas fa-cloud-upload-alt" style="font-size:1.4rem;color:var(--cor-texto-fraco)"></i>
+          <div>
+            <div style="font-size:0.875rem;font-weight:600">Clique para selecionar ou arraste o arquivo</div>
+            <div style="font-size:0.75rem;color:var(--cor-texto-fraco)">CSV com cabeçalho (UTF-8) ou vCard (.vcf)</div>
+          </div>
+          <input type="file" id="imp-arquivo" accept=".csv,.vcf" style="display:none" onchange="lerArquivo()">
+        </label>
+      </div>
+      <div id="imp-info-arquivo" style="display:none; font-size:0.8rem; color:var(--cor-texto-fraco); margin-bottom:10px"></div>
+      <div style="background:var(--cor-fundo-3);border:1px solid var(--cor-borda);border-radius:8px;padding:12px;margin-bottom:16px;font-size:0.78rem;color:var(--cor-texto-fraco)">
+        <strong style="color:var(--cor-texto)">CSV — colunas esperadas (cabeçalho na 1ª linha):</strong><br>
+        <code style="color:var(--cor-destaque);font-size:0.72rem">nome, cargo, empresa, departamento, cel_pessoal, cel_corporativo, tel_fixo, tel_ramal, whatsapp, email_pessoal, email_corporativo, linkedin, instagram, facebook, twitter, site, cnpj_cpf, endereco, cidade, estado, cep, pais, data_nascimento, tags, observacoes</code><br>
+        <span style="margin-top:6px;display:block"><strong style="color:var(--cor-texto)">vCard</strong> — exportado pelo celular, Outlook, Google Contacts etc. Campos reconhecidos automaticamente.</span>
+      </div>
+    </div>
+
+    <!-- Passo 2: prévia -->
+    <div id="imp-passo2" style="display:none">
+      <div id="imp-preview-info" style="font-size:0.85rem;margin-bottom:10px;color:var(--cor-texto-fraco)"></div>
+      <div style="max-height:220px;overflow-y:auto;border:1px solid var(--cor-borda);border-radius:8px;margin-bottom:14px">
+        <table style="width:100%;font-size:0.78rem;border-collapse:collapse" id="imp-preview-table">
+          <thead id="imp-preview-head" style="position:sticky;top:0;background:var(--cor-fundo-3)"></thead>
+          <tbody id="imp-preview-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="imp-resultado" style="display:none;padding:10px 14px;border-radius:8px;font-size:0.875rem;margin-bottom:12px"></div>
+
+    <div style="display:flex;gap:10px;justify-content:flex-end">
+      <button class="btn btn-secundario" onclick="fecharModalImportar()">Cancelar</button>
+      <button class="btn btn-primario" id="imp-btn-acao" onclick="confirmarImportacao()" style="display:none">
+        <i class="fas fa-file-import"></i> Importar <span id="imp-btn-count"></span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     MODAL — MOVER CONTATO
+══════════════════════════════════════════════════════════ -->
+<div class="cont-modal-lista-overlay" id="mod-mover-overlay">
+  <div class="cont-modal-lista" style="max-width:380px">
+    <h3><i class="fas fa-exchange-alt" style="margin-right:8px;color:var(--cor-destaque)"></i>Mover Contato</h3>
+    <p style="font-size:0.85rem;color:var(--cor-texto-fraco);margin-bottom:14px" id="mod-mover-nome"></p>
+    <div style="margin-bottom:20px">
+      <label class="cont-form-label">Mover para a lista</label>
+      <select class="cont-form-select" id="mod-mover-lista" style="width:100%"></select>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end">
+      <button class="btn btn-secundario" onclick="fecharModalMover()">Cancelar</button>
+      <button class="btn btn-primario" onclick="confirmarMover()"><i class="fas fa-check"></i> Mover</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     MODAL — COPIAR CONTATO (individual)
+══════════════════════════════════════════════════════════ -->
+<div class="cont-modal-lista-overlay" id="mod-copiar-contato-overlay">
+  <div class="cont-modal-lista" style="max-width:380px">
+    <h3><i class="fas fa-copy" style="margin-right:8px;color:var(--cor-destaque)"></i>Copiar Contato</h3>
+    <p style="font-size:0.85rem;color:var(--cor-texto-fraco);margin-bottom:14px" id="mod-copiar-contato-nome"></p>
+    <div style="margin-bottom:20px">
+      <label class="cont-form-label">Copiar para a lista</label>
+      <select class="cont-form-select" id="mod-copiar-contato-lista" style="width:100%"></select>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end">
+      <button class="btn btn-secundario" onclick="fecharModalCopiarContato()">Cancelar</button>
+      <button class="btn btn-primario" onclick="confirmarCopiarContato()"><i class="fas fa-copy"></i> Copiar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     PAINEL DE DETALHES (slide-in lateral)
+══════════════════════════════════════════════════════════ -->
+<div class="cont-detalhe-overlay" id="cont-detalhe-overlay">
+  <div class="cont-detalhe-painel" id="cont-detalhe-painel">
+    <!-- preenchido via JS -->
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     MODAL — COPIAR CONTATOS
+══════════════════════════════════════════════════════════ -->
+<div class="cont-modal-lista-overlay" id="mod-copiar-overlay">
+  <div class="cont-modal-lista" style="max-width:460px">
+    <h3><i class="fas fa-copy" style="margin-right:8px;color:var(--cor-destaque)"></i>Copiar Contatos</h3>
+    <p style="font-size:0.85rem;color:var(--cor-texto-fraco);margin-bottom:18px">
+      Copia os contatos de outra lista para <strong id="copiar-destino-nome" style="color:var(--cor-texto)"></strong>.
+      Os contatos originais não serão removidos.
+    </p>
+    <div style="margin-bottom:16px">
+      <label class="cont-form-label">Lista de origem</label>
+      <select class="cont-form-input" id="mod-copiar-origem" onchange="previewCopiar()">
+        <option value="">Selecione uma lista…</option>
+      </select>
+    </div>
+    <div id="copiar-preview" style="display:none;background:var(--cor-fundo-3);border-radius:8px;padding:10px 14px;font-size:0.83rem;color:var(--cor-texto-fraco);margin-bottom:16px">
+      <i class="fas fa-info-circle" style="color:var(--cor-destaque);margin-right:6px"></i>
+      <span id="copiar-preview-txt"></span>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end">
+      <button class="btn btn-secundario" onclick="fecharModalCopiar()">Cancelar</button>
+      <button class="btn btn-primario" id="btn-confirmar-copiar" onclick="confirmarCopiar()" disabled>
+        <i class="fas fa-copy"></i> Copiar Contatos
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     SCRIPTS
+══════════════════════════════════════════════════════════ -->
+<script src="/js/menu.js"></script>
+<script>
+// ── Estado global ─────────────────────────────────────────
+let listas       = [];
+let listaAtual   = null; // objeto lista
+let contatos     = [];
+let contatoEditId = null;
+let listaEditObj  = null;
+let filtroAtual  = 'todos';
+let buscaTimer   = null;
+let todosUsuarios = [];
+
+const CORES = ['#3b82f6','#8b5cf6','#10b981','#f59e0b','#ef4444','#06b6d4','#ec4899','#f97316','#6366f1','#84cc16'];
+const ICONES = [
+  'fas fa-address-book','fas fa-users','fas fa-building','fas fa-briefcase',
+  'fas fa-star','fas fa-heart','fas fa-handshake','fas fa-user-tie',
+  'fas fa-store','fas fa-graduation-cap','fas fa-hospital','fas fa-tools'
+];
+
+let corSelecionada   = CORES[0];
+let iconeSelecionado = ICONES[0];
+
+// ── Inicialização ──────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', async () => {
+  await carregarListas();
+  await carregarUsuarios();
+  renderCorPicker();
+  renderIconePicker();
+
+  // Fecha detalhe ao clicar fora
+  document.getElementById('cont-detalhe-overlay').addEventListener('click', function(e) {
+    if (e.target === this) fecharDetalhe();
+  });
+  document.getElementById('mod-lista-overlay').addEventListener('click', function(e) {
+    if (e.target === this) fecharModalLista();
+  });
+  document.getElementById('mod-membros-overlay').addEventListener('click', function(e) {
+    if (e.target === this) fecharModalMembros();
+  });
+  document.getElementById('mod-contato-overlay').addEventListener('click', function(e) {
+    if (e.target === this) fecharModalContato();
+  });
+  document.getElementById('mod-importar-overlay').addEventListener('click', function(e) {
+    if (e.target === this) fecharModalImportar();
+  });
+  document.getElementById('mod-mover-overlay').addEventListener('click', function(e) {
+    if (e.target === this) fecharModalMover();
+  });
+  document.getElementById('mod-copiar-contato-overlay').addEventListener('click', function(e) {
+    if (e.target === this) fecharModalCopiarContato();
+  });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      fecharDetalhe();
+      fecharModalContato();
+      fecharModalLista();
+      fecharModalMembros();
+      fecharModalImportar();
+      fecharModalMover();
+    }
+  });
+});
+
+// ── Carregar listas ───────────────────────────────────────
+async function carregarListas() {
+  try {
+    const r = await fetch('/api/contatos/listas');
+    const d = await r.json();
+    if (!d.sucesso) return;
+    listas = d.listas;
+    renderSidebar();
+
+    // Restaura última lista aberta
+    if (!listaAtual) {
+      const ultimaId = parseInt(localStorage.getItem('contatos_ultima_lista'));
+      if (ultimaId && listas.find(l => l.id === ultimaId)) selecionarLista(ultimaId);
+    } else {
+      // Reseleciona para atualizar dados (ex: após criar tarefa)
+      const atualizada = listas.find(l => l.id === listaAtual.id);
+      if (atualizada) listaAtual = atualizada;
+    }
+  } catch(e) { console.error('Erro ao carregar listas', e); }
+}
+
+function renderSidebar() {
+  const minhas         = listas.filter(l => l.permissao === 'dono' && l.tipo !== 'empresa');
+  const compartilhadas = listas.filter(l => l.permissao !== 'dono' && l.tipo !== 'empresa');
+  const empresa        = listas.filter(l => l.tipo === 'empresa');
+
+  renderListasSidebar('cont-listas-minha',         minhas);
+  renderListasSidebar('cont-listas-compartilhada', compartilhadas);
+  renderListasSidebar('cont-listas-empresa',       empresa, true);
+
+  document.getElementById('cont-titulo-empresa').style.display       = empresa.length ? 'block' : 'none';
+  document.getElementById('cont-sep-empresa').style.display          = empresa.length ? 'block' : 'none';
+  document.getElementById('cont-sep-compartilhada').style.display    = compartilhadas.length ? 'block' : 'none';
+  document.getElementById('cont-titulo-compartilhada').style.display = compartilhadas.length ? 'block' : 'none';
+}
+
+function renderListasSidebar(containerId, lista, isEmpresa = false) {
+  const el = document.getElementById(containerId);
+  if (!lista.length) { el.innerHTML = ''; return; }
+  el.innerHTML = lista.map(l => `
+    <div class="cont-lista-item ${listaAtual?.id === l.id ? 'ativa' : ''}"
+         onclick="selecionarLista(${l.id})">
+      <span class="cont-lista-dot" style="background:${l.cor}"></span>
+      <span class="cont-lista-nome">
+        ${isEmpresa ? `<i class="fas fa-building" style="margin-right:4px;font-size:0.72rem;opacity:.7"></i>` : `<i class="${l.icone}" style="margin-right:5px;font-size:0.8rem;opacity:.7"></i>`}
+        ${l.nome}
+      </span>
+      <span class="cont-lista-count">${l.total_contatos}</span>
+      ${l.permissao === 'dono' ? `
+      <span class="cont-lista-acoes">
+        <button class="cont-lista-acao" onclick="event.stopPropagation();abrirModalLista(listas.find(x=>x.id===${l.id}))" title="Editar"><i class="fas fa-pencil-alt"></i></button>
+        <button class="cont-lista-acao perigo" onclick="event.stopPropagation();excluirLista(${l.id})" title="Excluir"><i class="fas fa-trash"></i></button>
+      </span>` : ''}
+    </div>
+  `).join('');
+}
+
+// ── Selecionar lista ──────────────────────────────────────
+async function selecionarLista(id) {
+  listaAtual = listas.find(l => l.id === id);
+  if (!listaAtual) return;
+  localStorage.setItem('contatos_ultima_lista', id);
+
+  document.getElementById('cont-boas-vindas').style.display = 'none';
+  const area = document.getElementById('cont-area-lista');
+  area.style.display = 'flex';
+
+  document.getElementById('cont-dot-cor').style.background = listaAtual.cor;
+  document.getElementById('cont-icone-lista').className = listaAtual.icone;
+  document.getElementById('cont-icone-lista').style.marginRight = '4px';
+  document.getElementById('cont-nome-lista').textContent = listaAtual.nome;
+
+  // Permissões
+  const podeEditar      = listaAtual.permissao === 'dono' || listaAtual.permissao === 'edicao';
+  const podeCopiarMover = podeEditar || listaAtual.tipo === 'empresa';
+  document.getElementById('btn-novo-contato').style.display    = podeEditar ? '' : 'none';
+  document.getElementById('btn-membros-lista').style.display   = listaAtual.permissao === 'dono' ? '' : 'none';
+  document.getElementById('btn-editar-lista').style.display    = listaAtual.permissao === 'dono' ? '' : 'none';
+  document.getElementById('btn-copiar-contatos').style.display = podeEditar ? '' : 'none';
+
+  renderSidebar();
+  document.getElementById('cont-busca').value = '';
+  filtroAtual = 'todos';
+  setFiltroBtn('todos');
+  fecharDetalhe();
+  await carregarContatos();
+}
+
+// ── Carregar contatos ─────────────────────────────────────
+async function carregarContatos() {
+  if (!listaAtual) return;
+  const busca = document.getElementById('cont-busca').value.trim();
+  const params = new URLSearchParams();
+  if (busca) params.set('busca', busca);
+  if (filtroAtual === 'favoritos') params.set('favorito', '1');
+  try {
+    const r = await fetch(`/api/contatos/listas/${listaAtual.id}/contatos?${params}`);
+    const d = await r.json();
+    if (!d.sucesso) return;
+    contatos = d.contatos;
+    renderGrid();
+    // Atualiza contador na sidebar
+    const l = listas.find(x => x.id === listaAtual.id);
+    if (l) { l.total_contatos = contatos.length; renderSidebar(); }
+  } catch(e) { console.error('Erro ao carregar contatos', e); }
+}
+
+function renderGrid() {
+  const grid  = document.getElementById('cont-grid');
+  const empty = document.getElementById('cont-empty');
+  const total = document.getElementById('cont-total-label');
+  total.textContent = `${contatos.length} contato${contatos.length !== 1 ? 's' : ''}`;
+
+  if (!contatos.length) {
+    grid.innerHTML = '';
+    empty.style.display = 'flex';
+    return;
+  }
+  empty.style.display = 'none';
+
+  const podeEditar      = listaAtual.permissao === 'dono' || listaAtual.permissao === 'edicao';
+  const podeCopiarMover = podeEditar || listaAtual.tipo === 'empresa';
+
+  grid.innerHTML = contatos.map(c => {
+    const iniciais = c.nome.split(' ').slice(0,2).map(n => n[0]).join('').toUpperCase();
+    const linhas = [];
+    if (c.cel_pessoal)       linhas.push(`<div class="cont-card-linha"><i class="fas fa-mobile-alt"></i><a href="tel:${c.cel_pessoal}">${c.cel_pessoal}</a><span style="font-size:0.7rem;color:var(--cor-texto-fraco);margin-left:2px">pessoal</span></div>`);
+    if (c.cel_corporativo)   linhas.push(`<div class="cont-card-linha"><i class="fas fa-mobile-alt"></i><a href="tel:${c.cel_corporativo}">${c.cel_corporativo}</a><span style="font-size:0.7rem;color:var(--cor-texto-fraco);margin-left:2px">corp.</span></div>`);
+    if (c.email_corporativo) linhas.push(`<div class="cont-card-linha"><i class="fas fa-envelope"></i><a href="mailto:${c.email_corporativo}">${c.email_corporativo}</a></div>`);
+    else if (c.email_pessoal) linhas.push(`<div class="cont-card-linha"><i class="fas fa-envelope"></i><a href="mailto:${c.email_pessoal}">${c.email_pessoal}</a></div>`);
+
+    const tags = c.tags ? c.tags.split(',').filter(t => t.trim()).slice(0,3).map(t => `<span class="cont-tag">${t.trim()}</span>`).join('') : '';
+
+    const sociais = [
+      c.whatsapp   ? `<a class="cont-social-btn whatsapp" href="https://wa.me/${c.whatsapp.replace(/\D/g,'')}" target="_blank" title="WhatsApp"><i class="fab fa-whatsapp"></i></a>` : '',
+      c.linkedin   ? `<a class="cont-social-btn linkedin"  href="${normalizeUrl(c.linkedin,'linkedin.com/in/')}" target="_blank" title="LinkedIn"><i class="fab fa-linkedin"></i></a>` : '',
+      c.instagram  ? `<a class="cont-social-btn instagram" href="${normalizeUrl(c.instagram,'instagram.com/')}" target="_blank" title="Instagram"><i class="fab fa-instagram"></i></a>` : '',
+      c.facebook   ? `<a class="cont-social-btn facebook"  href="${normalizeUrl(c.facebook,'facebook.com/')}" target="_blank" title="Facebook"><i class="fab fa-facebook"></i></a>` : '',
+      c.twitter    ? `<a class="cont-social-btn twitter"   href="${normalizeUrl(c.twitter,'twitter.com/')}" target="_blank" title="Twitter"><i class="fab fa-twitter"></i></a>` : '',
+    ].filter(Boolean).join('');
+
+    return `
+      <div class="cont-card" onclick="abrirDetalhe(${c.id})">
+        <div class="cont-card-header">
+          <div class="cont-avatar">${iniciais}</div>
+          <div class="cont-card-info">
+            <div class="cont-card-nome">${esc(c.nome)}</div>
+            ${c.cargo   ? `<div class="cont-card-cargo">${esc(c.cargo)}</div>` : ''}
+            ${c.empresa ? `<div class="cont-card-empresa">${esc(c.empresa)}</div>` : ''}
+          </div>
+          <button class="cont-card-fav ${c.favorito ? 'ativo' : ''}" onclick="event.stopPropagation();toggleFavorito(${c.id})" title="Favorito">
+            <i class="fa${c.favorito ? 's' : 'r'} fa-star"></i>
+          </button>
+        </div>
+        ${linhas.length ? `<div class="cont-card-contatos">${linhas.join('')}</div>` : ''}
+        ${tags ? `<div class="cont-card-tags">${tags}</div>` : ''}
+        <div class="cont-card-footer">
+          <div class="cont-card-sociais">${sociais}</div>
+          <div class="cont-card-acoes">
+            ${podeEditar      ? `<button class="cont-card-acao" onclick="event.stopPropagation();editarContato(${c.id})" title="Editar"><i class="fas fa-pencil-alt"></i></button>` : ''}
+            ${podeCopiarMover ? `<button class="cont-card-acao" onclick="event.stopPropagation();abrirModalMover(${c.id})" title="Mover para outra lista"><i class="fas fa-exchange-alt"></i></button>` : ''}
+            ${podeCopiarMover ? `<button class="cont-card-acao" onclick="event.stopPropagation();abrirModalCopiarContato(${c.id})" title="Copiar para outra lista"><i class="fas fa-copy"></i></button>` : ''}
+            ${podeEditar      ? `<button class="cont-card-acao perigo" onclick="event.stopPropagation();excluirContato(${c.id})" title="Excluir"><i class="fas fa-trash"></i></button>` : ''}
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+// ── Detalhes do contato ───────────────────────────────────
+function abrirDetalhe(id) {
+  const c = contatos.find(x => x.id === id);
+  if (!c) return;
+  const overlay = document.getElementById('cont-detalhe-overlay');
+  const painel  = document.getElementById('cont-detalhe-painel');
+  const iniciais = c.nome.split(' ').slice(0,2).map(n => n[0]).join('').toUpperCase();
+  const podeEditar      = listaAtual.permissao === 'dono' || listaAtual.permissao === 'edicao';
+  const podeCopiarMover = podeEditar || listaAtual.tipo === 'empresa';
+
+  const linha = (icone, label, valor, href) => valor ? `
+    <div class="cont-detalhe-linha">
+      <i class="${icone}"></i>
+      <span class="cont-detalhe-label">${label}</span>
+      <span class="cont-detalhe-valor">${href ? `<a href="${href}" target="_blank">${esc(valor)}</a>` : esc(valor)}</span>
+    </div>` : '';
+
+  painel.innerHTML = `
+    <div class="cont-detalhe-header">
+      <div class="cont-detalhe-avatar">${iniciais}</div>
+      <div class="cont-detalhe-info">
+        <div class="cont-detalhe-nome">${esc(c.nome)}</div>
+        ${c.cargo   ? `<div class="cont-detalhe-cargo">${esc(c.cargo)}</div>` : ''}
+        ${c.empresa ? `<div class="cont-detalhe-empresa">${esc(c.empresa)}</div>` : ''}
+      </div>
+      <button class="cont-detalhe-fechar" onclick="fecharDetalhe()"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="cont-detalhe-corpo">
+
+      ${(c.departamento || c.cnpj_cpf || c.site) ? `
+      <div class="cont-detalhe-secao">
+        <div class="cont-detalhe-secao-titulo"><i class="fas fa-briefcase" style="margin-right:5px"></i>Profissional</div>
+        ${linha('fas fa-building','Departamento',c.departamento)}
+        ${linha('fas fa-id-card','CNPJ/CPF',c.cnpj_cpf)}
+        ${linha('fas fa-globe','Site',c.site,c.site)}
+      </div>` : ''}
+
+      ${(c.cel_pessoal||c.cel_corporativo||c.whatsapp||c.tel_fixo||c.tel_ramal||c.email_pessoal||c.email_corporativo) ? `
+      <div class="cont-detalhe-secao">
+        <div class="cont-detalhe-secao-titulo"><i class="fas fa-phone" style="margin-right:5px"></i>Contato</div>
+        ${linha('fas fa-mobile-alt','Cel. Pessoal',c.cel_pessoal,`tel:${c.cel_pessoal}`)}
+        ${linha('fas fa-mobile-alt','Cel. Corp.',c.cel_corporativo,`tel:${c.cel_corporativo}`)}
+        ${linha('fab fa-whatsapp','WhatsApp',c.whatsapp,`https://wa.me/${(c.whatsapp||'').replace(/\D/g,'')}`)}
+        ${linha('fas fa-phone','Telefone',c.tel_fixo,`tel:${c.tel_fixo}`)}
+        ${linha('fas fa-hashtag','Ramal',c.tel_ramal)}
+        ${linha('fas fa-envelope','E-mail Pessoal',c.email_pessoal,`mailto:${c.email_pessoal}`)}
+        ${linha('fas fa-envelope','E-mail Corp.',c.email_corporativo,`mailto:${c.email_corporativo}`)}
+      </div>` : ''}
+
+      ${(c.linkedin||c.instagram||c.facebook||c.twitter) ? `
+      <div class="cont-detalhe-secao">
+        <div class="cont-detalhe-secao-titulo"><i class="fas fa-share-alt" style="margin-right:5px"></i>Redes Sociais</div>
+        ${c.linkedin  ? linha('fab fa-linkedin','LinkedIn',c.linkedin,normalizeUrl(c.linkedin,'linkedin.com/in/')):''}
+        ${c.instagram ? linha('fab fa-instagram','Instagram',c.instagram,normalizeUrl(c.instagram,'instagram.com/')):''}
+        ${c.facebook  ? linha('fab fa-facebook','Facebook',c.facebook,normalizeUrl(c.facebook,'facebook.com/')):''}
+        ${c.twitter   ? linha('fab fa-twitter','Twitter',c.twitter,normalizeUrl(c.twitter,'twitter.com/')):''}
+      </div>` : ''}
+
+      ${(c.endereco||c.cidade||c.estado||c.pais) ? `
+      <div class="cont-detalhe-secao">
+        <div class="cont-detalhe-secao-titulo"><i class="fas fa-map-marker-alt" style="margin-right:5px"></i>Endereço</div>
+        ${linha('fas fa-road','Endereço',c.endereco)}
+        ${linha('fas fa-city','Cidade',c.cidade)}
+        ${linha('fas fa-map','Estado',c.estado)}
+        ${linha('fas fa-mail-bulk','CEP',c.cep)}
+        ${linha('fas fa-globe','País',c.pais)}
+      </div>` : ''}
+
+      ${(c.data_nascimento||c.tags||c.observacoes) ? `
+      <div class="cont-detalhe-secao">
+        <div class="cont-detalhe-secao-titulo"><i class="fas fa-info-circle" style="margin-right:5px"></i>Extra</div>
+        ${c.data_nascimento ? linha('fas fa-birthday-cake','Nascimento',new Date(c.data_nascimento).toLocaleDateString('pt-BR')):''}
+        ${c.tags ? `<div class="cont-detalhe-linha"><i class="fas fa-tags"></i><span class="cont-detalhe-label">Tags</span><span class="cont-detalhe-valor"><div class="cont-card-tags" style="margin:0">${c.tags.split(',').filter(t=>t.trim()).map(t=>`<span class="cont-tag">${t.trim()}</span>`).join('')}</div></span></div>`:''}
+        ${c.observacoes ? linha('fas fa-sticky-note','Observações',c.observacoes):''}
+      </div>` : ''}
+
+    </div>
+    <div class="cont-detalhe-footer">
+      ${podeEditar      ? `<button class="btn btn-primario btn-sm" style="flex:1" onclick="fecharDetalhe();editarContato(${c.id})"><i class="fas fa-pencil-alt"></i> Editar</button>` : ''}
+      ${podeCopiarMover ? `<button class="btn btn-secundario btn-sm" onclick="abrirModalMover(${c.id})" title="Mover para outra lista"><i class="fas fa-exchange-alt"></i></button>` : ''}
+      ${podeCopiarMover ? `<button class="btn btn-secundario btn-sm" onclick="abrirModalCopiarContato(${c.id})" title="Copiar para outra lista"><i class="fas fa-copy"></i></button>` : ''}
+      ${c.email_corporativo||c.email_pessoal ? `<a class="btn btn-secundario btn-sm" href="mailto:${c.email_corporativo||c.email_pessoal}" style="flex:1;text-align:center"><i class="fas fa-envelope"></i> E-mail</a>`:''}
+      ${c.whatsapp ? `<a class="btn btn-secundario btn-sm" href="https://wa.me/${c.whatsapp.replace(/\D/g,'')}" target="_blank" style="flex:1;text-align:center;color:#25d366"><i class="fab fa-whatsapp"></i></a>`:''}
+    </div>
+  `;
+
+  overlay.classList.add('visivel');
+}
+
+function fecharDetalhe() {
+  document.getElementById('cont-detalhe-overlay').classList.remove('visivel');
+}
+
+// ── Filtros ───────────────────────────────────────────────
+function setFiltro(f) {
+  filtroAtual = f;
+  setFiltroBtn(f);
+  carregarContatos();
+}
+function setFiltroBtn(f) {
+  document.getElementById('filtro-todos').classList.toggle('ativo', f === 'todos');
+  document.getElementById('filtro-fav').classList.toggle('ativo',  f === 'favoritos');
+}
+function debBusca() {
+  clearTimeout(buscaTimer);
+  buscaTimer = setTimeout(carregarContatos, 300);
+}
+
+// ── Modal de Lista ────────────────────────────────────────
+function abrirModalLista(lista) {
+  listaEditObj = lista || null;
+  corSelecionada   = lista?.cor   || CORES[0];
+  iconeSelecionado = lista?.icone || ICONES[0];
+  document.getElementById('mod-lista-titulo').textContent = lista ? 'Editar Lista' : 'Nova Lista';
+  document.getElementById('mod-lista-nome').value    = lista?.nome        || '';
+  document.getElementById('mod-lista-desc').value    = lista?.descricao   || '';
+  document.getElementById('mod-lista-empresa').checked = lista?.tipo === 'empresa';
+  renderCorPicker();
+  renderIconePicker();
+  document.getElementById('mod-lista-overlay').classList.add('visivel');
+  setTimeout(() => document.getElementById('mod-lista-nome').focus(), 100);
+}
+function fecharModalLista() {
+  document.getElementById('mod-lista-overlay').classList.remove('visivel');
+}
+function renderCorPicker() {
+  document.getElementById('cont-cor-picker').innerHTML = CORES.map(c => `
+    <div class="cont-cor-opcao ${c === corSelecionada ? 'selecionada' : ''}"
+         style="background:${c}" onclick="selecionarCor('${c}')"></div>
+  `).join('');
+}
+function selecionarCor(c) { corSelecionada = c; renderCorPicker(); }
+function renderIconePicker() {
+  document.getElementById('cont-icone-picker').innerHTML = ICONES.map(ic => `
+    <div class="cont-icone-opcao ${ic === iconeSelecionado ? 'selecionado' : ''}" onclick="selecionarIcone('${ic}')">
+      <i class="${ic}"></i>
+    </div>
+  `).join('');
+}
+function selecionarIcone(ic) { iconeSelecionado = ic; renderIconePicker(); }
+
+async function salvarLista() {
+  const nome = document.getElementById('mod-lista-nome').value.trim();
+  if (!nome) { alert('Nome obrigatório.'); return; }
+  const tipo = document.getElementById('mod-lista-empresa').checked ? 'empresa' : 'pessoal';
+  const body = { nome, descricao: document.getElementById('mod-lista-desc').value.trim(), cor: corSelecionada, icone: iconeSelecionado, tipo };
+  try {
+    let r;
+    if (listaEditObj) {
+      r = await fetch(`/api/contatos/listas/${listaEditObj.id}`, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+    } else {
+      r = await fetch('/api/contatos/listas', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+    }
+    const d = await r.json();
+    if (!d.sucesso) { alert(d.erro || 'Erro ao salvar.'); return; }
+    fecharModalLista();
+    await carregarListas();
+    if (!listaEditObj && d.lista) selecionarLista(d.lista.id);
+    else if (listaAtual?.id === listaEditObj?.id) {
+      listaAtual = listas.find(l => l.id === listaAtual.id);
+      if (listaAtual) {
+        document.getElementById('cont-dot-cor').style.background = listaAtual.cor;
+        document.getElementById('cont-icone-lista').className = listaAtual.icone;
+        document.getElementById('cont-nome-lista').textContent = listaAtual.nome;
+      }
+    }
+  } catch(e) { alert('Erro de comunicação.'); }
+}
+
+async function excluirLista(id) {
+  const l = listas.find(x => x.id === id);
+  if (!confirm(`Excluir a lista "${l?.nome}" e todos os seus contatos? Esta ação não pode ser desfeita.`)) return;
+  const r = await fetch(`/api/contatos/listas/${id}`, { method:'DELETE' });
+  const d = await r.json();
+  if (!d.sucesso) { alert(d.erro || 'Erro ao excluir.'); return; }
+  if (listaAtual?.id === id) {
+    listaAtual = null;
+    document.getElementById('cont-boas-vindas').style.display = '';
+    document.getElementById('cont-area-lista').style.display = 'none';
+  }
+  await carregarListas();
+}
+
+// ── Modal de Membros ──────────────────────────────────────
+async function abrirModalMembros() {
+  if (!listaAtual) return;
+  await carregarUsuarios();
+  document.getElementById('mod-membros-overlay').classList.add('visivel');
+  await renderMembros();
+}
+function fecharModalMembros() {
+  document.getElementById('mod-membros-overlay').classList.remove('visivel');
+}
+async function renderMembros() {
+  const r = await fetch(`/api/contatos/listas/${listaAtual.id}/membros`);
+  const d = await r.json();
+  const cont = document.getElementById('mod-membros-lista');
+  if (!d.sucesso || !d.membros.length) {
+    cont.innerHTML = `<p style="color:var(--cor-texto-fraco);font-size:0.85rem">Nenhum membro adicionado ainda.</p>`;
+    return;
+  }
+  cont.innerHTML = d.membros.map(m => `
+    <div class="cont-membro-row">
+      <div style="flex:1">
+        <div class="cont-membro-nome">${esc(m.nome)}</div>
+        <div class="cont-membro-login">${esc(m.usuario)}</div>
+      </div>
+      <span class="cont-membro-perm ${m.permissao}">${m.permissao === 'edicao' ? 'Edição' : 'Leitura'}</span>
+      <button class="cont-lista-acao perigo" onclick="removerMembro('${m.usuario}')" title="Remover">
+        <i class="fas fa-trash"></i>
+      </button>
+    </div>`).join('');
+}
+async function adicionarMembro() {
+  const usuario   = document.getElementById('mod-membro-usuario').value.trim();
+  const permissao = document.getElementById('mod-membro-perm').value;
+  if (!usuario) return;
+  const r = await fetch(`/api/contatos/listas/${listaAtual.id}/membros`, {
+    method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ usuario, permissao })
+  });
+  const d = await r.json();
+  if (!d.sucesso) { alert(d.erro || 'Erro.'); return; }
+  document.getElementById('mod-membro-usuario').value = '';
+  await renderMembros();
+}
+async function removerMembro(usuario) {
+  if (!confirm(`Remover ${usuario} desta lista?`)) return;
+  const r = await fetch(`/api/contatos/listas/${listaAtual.id}/membros/${encodeURIComponent(usuario)}`, { method:'DELETE' });
+  const d = await r.json();
+  if (!d.sucesso) { alert(d.erro || 'Erro.'); return; }
+  await renderMembros();
+}
+// ── Modal Copiar Contatos ─────────────────────────────────
+function abrirModalCopiar() {
+  if (!listaAtual) return;
+  document.getElementById('copiar-destino-nome').textContent = listaAtual.nome;
+  document.getElementById('copiar-preview').style.display    = 'none';
+  document.getElementById('btn-confirmar-copiar').disabled   = true;
+
+  // Popula select com listas acessíveis (exceto a atual)
+  const sel = document.getElementById('mod-copiar-origem');
+  sel.innerHTML = '<option value="">Selecione uma lista…</option>' +
+    listas
+      .filter(l => l.id !== listaAtual.id)
+      .map(l => `<option value="${l.id}">${l.tipo === 'empresa' ? '🏢 ' : ''}${l.nome} (${l.total_contatos} contatos)</option>`)
+      .join('');
+
+  document.getElementById('mod-copiar-overlay').classList.add('visivel');
+}
+
+function fecharModalCopiar() {
+  document.getElementById('mod-copiar-overlay').classList.remove('visivel');
+}
+
+function previewCopiar() {
+  const origemId = parseInt(document.getElementById('mod-copiar-origem').value);
+  const btn      = document.getElementById('btn-confirmar-copiar');
+  const prev     = document.getElementById('copiar-preview');
+  if (!origemId) { prev.style.display = 'none'; btn.disabled = true; return; }
+  const origem = listas.find(l => l.id === origemId);
+  if (!origem) return;
+  document.getElementById('copiar-preview-txt').textContent =
+    `${origem.total_contatos} contato${origem.total_contatos !== 1 ? 's' : ''} serão copiados de "${origem.nome}" para "${listaAtual.nome}".`;
+  prev.style.display = 'block';
+  btn.disabled = origem.total_contatos === 0;
+}
+
+async function confirmarCopiar() {
+  const origemId = parseInt(document.getElementById('mod-copiar-origem').value);
+  if (!origemId) return;
+  const btn = document.getElementById('btn-confirmar-copiar');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="cont-spinner"></span> Copiando…';
+  try {
+    const r = await fetch(`/api/contatos/listas/${listaAtual.id}/copiar`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ lista_origem: origemId })
+    });
+    const d = await r.json();
+    if (!d.sucesso) throw new Error(d.erro || 'Erro ao copiar.');
+    fecharModalCopiar();
+    await carregarListas();
+    await carregarContatos();
+    alert(`✓ ${d.copiados} contato${d.copiados !== 1 ? 's copiados' : ' copiado'} com sucesso!`);
+  } catch (e) {
+    alert(e.message);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-copy"></i> Copiar Contatos';
+  }
+}
+
+async function carregarUsuarios() {
+  if (todosUsuarios.length) return;
+  try {
+    const r = await fetch('/api/contatos/usuarios');
+    const d = await r.json();
+    if (d.sucesso) {
+      todosUsuarios = d.usuarios;
+      const dl = document.getElementById('cont-usuarios-list');
+      dl.innerHTML = todosUsuarios.map(u => `<option value="${u.login}">${u.nome} (${u.login})</option>`).join('');
+    }
+  } catch(e) {}
+}
+
+// ── Modal de Contato ──────────────────────────────────────
+function abrirModalContato(c) {
+  contatoEditId = c?.id || null;
+  document.getElementById('mod-contato-titulo').innerHTML = c
+    ? '<i class="fas fa-user-edit"></i> Editar Contato'
+    : '<i class="fas fa-user-plus"></i> Novo Contato';
+
+  // Limpa / preenche campos
+  const campos = ['nome','cargo','empresa','departamento','cel_pessoal','cel_corporativo',
+    'tel_fixo','tel_ramal','whatsapp','email_pessoal','email_corporativo',
+    'linkedin','facebook','instagram','twitter','site','cnpj_cpf',
+    'endereco','cidade','estado','cep','pais','data_nascimento','tags','observacoes'];
+  campos.forEach(f => {
+    const el = document.getElementById(`f-${f}`);
+    if (!el) return;
+    if (f === 'data_nascimento') el.value = c?.[f] ? c[f].substring(0,10) : '';
+    else el.value = c?.[f] || (f === 'pais' ? 'Brasil' : '');
+  });
+  document.getElementById('f-favorito').checked = !!c?.favorito;
+
+  mudarTab('geral', document.querySelector('.cont-modal-tab[data-tab="geral"]'));
+  document.getElementById('mod-contato-overlay').classList.add('visivel');
+  setTimeout(() => document.getElementById('f-nome').focus(), 100);
+}
+function editarContato(id) {
+  const c = contatos.find(x => x.id === id);
+  if (c) abrirModalContato(c);
+}
+function fecharModalContato() {
+  document.getElementById('mod-contato-overlay').classList.remove('visivel');
+}
+function mudarTab(tab, btn) {
+  document.querySelectorAll('.cont-tab-painel').forEach(p => p.classList.remove('ativo'));
+  document.querySelectorAll('.cont-modal-tab').forEach(b => b.classList.remove('ativa'));
+  document.getElementById(`tab-${tab}`).classList.add('ativo');
+  if (btn) btn.classList.add('ativa');
+}
+
+async function salvarContato() {
+  const nome = document.getElementById('f-nome').value.trim();
+  if (!nome) { mudarTab('geral', document.querySelector('.cont-modal-tab[data-tab="geral"]')); alert('Nome é obrigatório.'); return; }
+
+  const body = {
+    nome,
+    cargo:             document.getElementById('f-cargo').value.trim()             || null,
+    empresa:           document.getElementById('f-empresa').value.trim()           || null,
+    departamento:      document.getElementById('f-departamento').value.trim()      || null,
+    cel_pessoal:       document.getElementById('f-cel_pessoal').value.trim()       || null,
+    cel_corporativo:   document.getElementById('f-cel_corporativo').value.trim()   || null,
+    tel_fixo:          document.getElementById('f-tel_fixo').value.trim()          || null,
+    tel_ramal:         document.getElementById('f-tel_ramal').value.trim()         || null,
+    whatsapp:          document.getElementById('f-whatsapp').value.trim()          || null,
+    email_pessoal:     document.getElementById('f-email_pessoal').value.trim()     || null,
+    email_corporativo: document.getElementById('f-email_corporativo').value.trim() || null,
+    linkedin:          document.getElementById('f-linkedin').value.trim()          || null,
+    facebook:          document.getElementById('f-facebook').value.trim()          || null,
+    instagram:         document.getElementById('f-instagram').value.trim()         || null,
+    twitter:           document.getElementById('f-twitter').value.trim()           || null,
+    site:              document.getElementById('f-site').value.trim()              || null,
+    cnpj_cpf:          document.getElementById('f-cnpj_cpf').value.trim()          || null,
+    endereco:          document.getElementById('f-endereco').value.trim()          || null,
+    cidade:            document.getElementById('f-cidade').value.trim()            || null,
+    estado:            document.getElementById('f-estado').value.trim()            || null,
+    cep:               document.getElementById('f-cep').value.trim()               || null,
+    pais:              document.getElementById('f-pais').value.trim()              || 'Brasil',
+    data_nascimento:   document.getElementById('f-data_nascimento').value          || null,
+    tags:              document.getElementById('f-tags').value.trim()              || null,
+    observacoes:       document.getElementById('f-observacoes').value.trim()       || null,
+    favorito:          document.getElementById('f-favorito').checked,
+  };
+
+  try {
+    let r;
+    if (contatoEditId) {
+      r = await fetch(`/api/contatos/${contatoEditId}`, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+    } else {
+      r = await fetch(`/api/contatos/listas/${listaAtual.id}/contatos`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+    }
+    const d = await r.json();
+    if (!d.sucesso) { alert(d.erro || 'Erro ao salvar.'); return; }
+    fecharModalContato();
+    await carregarContatos();
+  } catch(e) { alert('Erro de comunicação.'); }
+}
+
+async function toggleFavorito(id) {
+  const r = await fetch(`/api/contatos/${id}/favorito`, { method:'PATCH' });
+  const d = await r.json();
+  if (d.sucesso) await carregarContatos();
+}
+
+async function excluirContato(id) {
+  const c = contatos.find(x => x.id === id);
+  if (!confirm(`Excluir contato "${c?.nome}"?`)) return;
+  const r = await fetch(`/api/contatos/${id}`, { method:'DELETE' });
+  const d = await r.json();
+  if (!d.sucesso) { alert(d.erro || 'Erro ao excluir.'); return; }
+  await carregarContatos();
+}
+
+// ── Exportar CSV ─────────────────────────────────────────
+function exportarContatos() {
+  if (!listaAtual) return;
+  window.location.href = `/api/contatos/listas/${listaAtual.id}/exportar`;
+}
+
+// ── Exportar vCard ────────────────────────────────────────
+function exportarVCard() {
+  if (!listaAtual) return;
+  window.location.href = `/api/contatos/listas/${listaAtual.id}/exportar-vcf`;
+}
+
+// ── Modal Importar ────────────────────────────────────────
+let dadosImportacao = [];
+
+function abrirModalImportar() {
+  dadosImportacao = [];
+  document.getElementById('imp-arquivo').value = '';
+  document.getElementById('imp-info-arquivo').style.display = 'none';
+  document.getElementById('imp-passo2').style.display = 'none';
+  document.getElementById('imp-passo1').style.display = 'block';
+  document.getElementById('imp-btn-acao').style.display = 'none';
+  document.getElementById('imp-resultado').style.display = 'none';
+
+  // Popula select de listas com permissão edição
+  const sel = document.getElementById('imp-lista-destino');
+  sel.innerHTML = listas.filter(l => l.permissao === 'dono' || l.permissao === 'edicao')
+    .map(l => `<option value="${l.id}" ${l.id === listaAtual?.id ? 'selected' : ''}>${esc(l.nome)}</option>`)
+    .join('');
+
+  document.getElementById('mod-importar-overlay').classList.add('visivel');
+}
+function fecharModalImportar() {
+  document.getElementById('mod-importar-overlay').classList.remove('visivel');
+}
+
+function lerArquivo() {
+  const file = document.getElementById('imp-arquivo').files[0];
+  if (!file) return;
+  document.getElementById('imp-info-arquivo').style.display = 'block';
+  document.getElementById('imp-info-arquivo').textContent = `Arquivo: ${file.name} (${(file.size/1024).toFixed(1)} KB)`;
+
+  const isVCF = file.name.toLowerCase().endsWith('.vcf');
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      if (isVCF) {
+        dadosImportacao = parseVCF(e.target.result).filter(o => o.nome);
+        if (!dadosImportacao.length) { alert('Nenhum contato encontrado no arquivo vCard.'); return; }
+        const cols = ['nome','cargo','empresa','cel_pessoal','email_corporativo'];
+        document.getElementById('imp-preview-info').innerHTML =
+          `<strong>${dadosImportacao.length}</strong> contatos encontrados no vCard — prévia das primeiras 5:`;
+        document.getElementById('imp-preview-head').innerHTML =
+          `<tr>${cols.map(c=>`<th style="padding:7px 10px;text-align:left;font-size:0.75rem;color:var(--cor-texto-fraco)">${c}</th>`).join('')}</tr>`;
+        document.getElementById('imp-preview-body').innerHTML =
+          dadosImportacao.slice(0,5).map(c =>
+            `<tr style="border-top:1px solid var(--cor-borda)">${cols.map(f=>`<td style="padding:7px 10px;font-size:0.78rem">${esc(c[f]||'')}</td>`).join('')}</tr>`
+          ).join('');
+      } else {
+        const linhas = parseCSV(e.target.result);
+        if (linhas.length < 2) { alert('CSV sem dados.'); return; }
+        const headers = linhas[0].map(h => h.trim().toLowerCase());
+        dadosImportacao = linhas.slice(1).filter(l => l.some(c => c.trim())).map(linha => {
+          const obj = {};
+          headers.forEach((h, i) => { if (linha[i]?.trim()) obj[h] = linha[i].trim(); });
+          return obj;
+        }).filter(o => o.nome);
+        if (!dadosImportacao.length) { alert('CSV sem dados válidos (coluna "nome" obrigatória).'); return; }
+        const camposVisiveis = ['nome','cargo','empresa','cel_pessoal','email_corporativo','tags'];
+        const colsExibir = camposVisiveis.filter(c => headers.includes(c));
+        document.getElementById('imp-preview-info').innerHTML =
+          `<strong>${dadosImportacao.length}</strong> contatos encontrados${linhas.length - 1 - dadosImportacao.length > 0 ? ` (${linhas.length-1-dadosImportacao.length} ignorada(s) sem nome)` : ''} — prévia das primeiras 5:`;
+        document.getElementById('imp-preview-head').innerHTML =
+          `<tr>${colsExibir.map(c=>`<th style="padding:7px 10px;text-align:left;font-size:0.75rem;color:var(--cor-texto-fraco)">${c}</th>`).join('')}</tr>`;
+        document.getElementById('imp-preview-body').innerHTML =
+          dadosImportacao.slice(0,5).map(c =>
+            `<tr style="border-top:1px solid var(--cor-borda)">${colsExibir.map(f=>`<td style="padding:7px 10px;font-size:0.78rem">${esc(c[f]||'')}</td>`).join('')}</tr>`
+          ).join('');
+      }
+      document.getElementById('imp-passo2').style.display = 'block';
+      document.getElementById('imp-btn-acao').style.display = '';
+      document.getElementById('imp-btn-count').textContent = `(${dadosImportacao.length})`;
+      document.getElementById('imp-resultado').style.display = 'none';
+    } catch(err) { alert('Erro ao ler arquivo: ' + err.message); }
+  };
+  reader.readAsText(file, 'UTF-8');
+}
+// manter alias para compatibilidade
+function lerArquivoCSV() { lerArquivo(); }
+
+async function confirmarImportacao() {
+  const listaId = parseInt(document.getElementById('imp-lista-destino').value);
+  if (!listaId || !dadosImportacao.length) return;
+  document.getElementById('imp-btn-acao').disabled = true;
+  try {
+    const r = await fetch(`/api/contatos/listas/${listaId}/importar`, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ contatos: dadosImportacao })
+    });
+    const d = await r.json();
+    const res = document.getElementById('imp-resultado');
+    res.style.display = 'block';
+    if (d.sucesso) {
+      res.style.background = 'rgba(16,185,129,0.1)';
+      res.style.border = '1px solid rgba(16,185,129,0.3)';
+      res.style.color = '#10b981';
+      res.innerHTML = `<i class="fas fa-check-circle"></i> <strong>${d.importados}</strong> contatos importados com sucesso!${d.erros ? ` (${d.erros} erros)` : ''}`;
+      document.getElementById('imp-btn-acao').style.display = 'none';
+      if (listaAtual?.id === listaId) await carregarContatos();
+      await carregarListas();
+    } else {
+      res.style.background = 'rgba(239,68,68,0.1)';
+      res.style.color = '#ef4444';
+      res.textContent = d.erro || 'Erro ao importar.';
+    }
+  } catch(e) { alert('Erro de comunicação.'); }
+  finally { document.getElementById('imp-btn-acao').disabled = false; }
+}
+
+// Parser CSV simples (lida com campos entre aspas)
+function parseCSV(text) {
+  const resultado = [];
+  const linhas = text.replace(/\r\n/g,'\n').replace(/\r/g,'\n').split('\n');
+  for (const linha of linhas) {
+    if (!linha.trim()) continue;
+    const cols = [];
+    let atual = ''; let dentroAspas = false;
+    for (let i = 0; i < linha.length; i++) {
+      const c = linha[i];
+      if (c === '"') {
+        if (dentroAspas && linha[i+1] === '"') { atual += '"'; i++; }
+        else dentroAspas = !dentroAspas;
+      } else if (c === ',' && !dentroAspas) {
+        cols.push(atual); atual = '';
+      } else { atual += c; }
+    }
+    cols.push(atual);
+    resultado.push(cols);
+  }
+  return resultado;
+}
+
+// Parser vCard (3.0 / 4.0) — múltiplos contatos num .vcf
+function parseVCF(text) {
+  const resultado = [];
+  // Unfold: linhas que começam com espaço/tab são continuação da anterior
+  const linhas = text.replace(/\r\n/g,'\n').replace(/\r/g,'\n')
+    .replace(/\n[ \t]/g, '').split('\n');
+  const unesc = v => v.replace(/\\n/gi,'\n').replace(/\\,/g,',').replace(/\\;/g,';').replace(/\\\\/g,'\\');
+
+  let atual = null;
+  for (const linha of linhas) {
+    const upper = linha.trim().toUpperCase();
+    if (upper === 'BEGIN:VCARD') { atual = {}; continue; }
+    if (upper === 'END:VCARD')   { if (atual) { resultado.push(atual); atual = null; } continue; }
+    if (!atual) continue;
+
+    const ci = linha.indexOf(':');
+    if (ci < 0) continue;
+    const propRaw = linha.substring(0, ci).toUpperCase();
+    const val = unesc(linha.substring(ci + 1).trim());
+
+    if (propRaw === 'FN') {
+      atual.nome = val;
+    } else if (propRaw.startsWith('ORG')) {
+      const p = val.split(';');
+      if (p[0]) atual.empresa     = atual.empresa     || p[0];
+      if (p[1]) atual.departamento = atual.departamento || p[1];
+    } else if (propRaw.startsWith('TITLE')) {
+      atual.cargo = atual.cargo || val;
+    } else if (propRaw.startsWith('TEL')) {
+      if      (propRaw.includes('WHATSAPP'))             atual.whatsapp          = atual.whatsapp          || val;
+      else if (propRaw.includes('RAMAL'))                atual.tel_ramal         = atual.tel_ramal         || val;
+      else if (propRaw.includes('CELL') && propRaw.includes('HOME')) atual.cel_pessoal  = atual.cel_pessoal  || val;
+      else if (propRaw.includes('CELL') && propRaw.includes('WORK')) atual.cel_corporativo = atual.cel_corporativo || val;
+      else if (propRaw.includes('CELL'))                 atual.cel_pessoal       = atual.cel_pessoal       || val;
+      else if (propRaw.includes('WORK') || propRaw.includes('VOICE')) atual.tel_fixo = atual.tel_fixo     || val;
+      else                                               atual.cel_pessoal       = atual.cel_pessoal       || val;
+    } else if (propRaw.startsWith('EMAIL')) {
+      if (propRaw.includes('WORK')) atual.email_corporativo = atual.email_corporativo || val;
+      else                          atual.email_pessoal     = atual.email_pessoal     || val;
+    } else if (propRaw === 'URL') {
+      atual.site = atual.site || val;
+    } else if (propRaw.includes('LINKEDIN'))  { atual.linkedin  = atual.linkedin  || val; }
+      else if (propRaw.includes('FACEBOOK'))  { atual.facebook  = atual.facebook  || val; }
+      else if (propRaw.includes('INSTAGRAM')) { atual.instagram = atual.instagram || val; }
+      else if (propRaw.includes('TWITTER'))   { atual.twitter   = atual.twitter   || val; }
+    else if (propRaw.startsWith('ADR')) {
+      const p = val.split(';');
+      if (p[2]) atual.endereco = atual.endereco || p[2];
+      if (p[3]) atual.cidade   = atual.cidade   || p[3];
+      if (p[4]) atual.estado   = atual.estado   || p[4];
+      if (p[5]) atual.cep      = atual.cep      || p[5];
+      if (p[6]) atual.pais     = atual.pais     || p[6];
+    } else if (propRaw.startsWith('BDAY')) {
+      const bd = val.replace(/[^0-9]/g,'');
+      if (bd.length === 8) atual.data_nascimento = `${bd.substring(0,4)}-${bd.substring(4,6)}-${bd.substring(6,8)}`;
+    } else if (propRaw === 'NOTE') {
+      atual.observacoes = val;
+    }
+  }
+  return resultado;
+}
+
+// ── Modal Mover ───────────────────────────────────────────
+let contatoMover = null;
+
+function abrirModalMover(id) {
+  const c = contatos.find(x => x.id === id);
+  if (!c) return;
+  contatoMover = c;
+  document.getElementById('mod-mover-nome').textContent = `Contato: ${c.nome}`;
+
+  const sel = document.getElementById('mod-mover-lista');
+  sel.innerHTML = listas
+    .filter(l => l.id !== listaAtual.id && (l.permissao === 'dono' || l.permissao === 'edicao'))
+    .map(l => `<option value="${l.id}">${esc(l.nome)}</option>`)
+    .join('');
+
+  if (!sel.options.length) {
+    alert('Você não tem outras listas com permissão de edição para mover este contato.');
+    return;
+  }
+  document.getElementById('mod-mover-overlay').classList.add('visivel');
+}
+function fecharModalMover() {
+  document.getElementById('mod-mover-overlay').classList.remove('visivel');
+}
+async function confirmarMover() {
+  if (!contatoMover) return;
+  const listaDestino = parseInt(document.getElementById('mod-mover-lista').value);
+  const r = await fetch(`/api/contatos/${contatoMover.id}/mover`, {
+    method: 'PATCH',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ lista_destino: listaDestino })
+  });
+  const d = await r.json();
+  if (!d.sucesso) { alert(d.erro || 'Erro ao mover.'); return; }
+  fecharModalMover();
+  fecharDetalhe();
+  await carregarContatos();
+  await carregarListas();
+}
+
+// ── Modal Copiar Contato (individual) ────────────────────
+let contatoCopiar = null;
+
+function abrirModalCopiarContato(id) {
+  const c = contatos.find(x => x.id === id);
+  if (!c) return;
+  contatoCopiar = c;
+  document.getElementById('mod-copiar-contato-nome').textContent = `Contato: ${c.nome}`;
+
+  const sel = document.getElementById('mod-copiar-contato-lista');
+  const destinos = listas.filter(l => l.permissao === 'dono' || l.permissao === 'edicao');
+  if (!destinos.length) {
+    alert('Você não tem outras listas com permissão de edição para copiar este contato.');
+    return;
+  }
+  sel.innerHTML = destinos.map(l => `<option value="${l.id}">${esc(l.nome)}</option>`).join('');
+  document.getElementById('mod-copiar-contato-overlay').classList.add('visivel');
+}
+
+function fecharModalCopiarContato() {
+  document.getElementById('mod-copiar-contato-overlay').classList.remove('visivel');
+}
+
+async function confirmarCopiarContato() {
+  if (!contatoCopiar) return;
+  const listaDestino = parseInt(document.getElementById('mod-copiar-contato-lista').value);
+  const r = await fetch(`/api/contatos/${contatoCopiar.id}/copiar`, {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ lista_destino: listaDestino })
+  });
+  const d = await r.json();
+  if (!d.sucesso) { alert(d.erro || 'Erro ao copiar.'); return; }
+  fecharModalCopiarContato();
+  const nomeLista = listas.find(l => l.id === listaDestino)?.nome || '';
+  alert(`✓ Contato copiado para "${nomeLista}"!`);
+  await carregarListas();
+}
+
+// ── Utilitários ───────────────────────────────────────────
+function esc(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function normalizeUrl(val, base) {
+  if (!val) return '#';
+  if (val.startsWith('http')) return val;
+  if (val.startsWith('@')) return `https://${base}${val.slice(1)}`;
+  return `https://${base}${val}`;
+}
+</script>
+</body>
+</html>

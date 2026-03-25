@@ -1,0 +1,142 @@
+<!-- FRAGMENTO: Segurança -->
+<div class="barra-acoes">
+  <h3><i class="fas fa-shield-alt"></i> Segurança</h3>
+</div>
+
+<div id="alerta-seguranca" class="alerta" style="margin-bottom:16px"></div>
+
+<div class="config-linha">
+  <div class="config-info">
+    <strong>Tempo de sessão (horas)</strong>
+    <small>Usuário é deslogado automaticamente após este período</small>
+  </div>
+  <div class="config-valor">
+    <input type="number" id="seg-sessao-horas" value="8" min="1" max="24" style="width:80px">
+  </div>
+</div>
+
+<div class="config-linha">
+  <div class="config-info">
+    <strong>Máximo de tentativas de login</strong>
+    <small>Bloqueio temporário após atingir este limite (0 = desabilitado)</small>
+  </div>
+  <div class="config-valor">
+    <input type="number" id="seg-max-tentativas" value="0" min="0" max="20" style="width:80px">
+  </div>
+</div>
+
+<div class="config-linha">
+  <div class="config-info">
+    <strong>Tempo de bloqueio (minutos)</strong>
+    <small>Duração do bloqueio após tentativas excessivas</small>
+  </div>
+  <div class="config-valor">
+    <input type="number" id="seg-tempo-bloqueio" value="15" min="1" max="1440" style="width:80px">
+  </div>
+</div>
+
+<div class="config-linha">
+  <div class="config-info">
+    <strong>Tamanho mínimo da senha</strong>
+    <small>Número mínimo de caracteres exigido</small>
+  </div>
+  <div class="config-valor">
+    <input type="number" id="seg-senha-minima" value="6" min="4" max="32" style="width:80px">
+  </div>
+</div>
+
+<div class="config-linha">
+  <div class="config-info">
+    <strong>Forçar troca de senha no 1º login</strong>
+    <small>Novos usuários devem trocar a senha no primeiro acesso</small>
+  </div>
+  <div class="config-valor">
+    <label class="toggle">
+      <input type="checkbox" id="seg-forcar-troca">
+      <span class="toggle-slider"></span>
+    </label>
+  </div>
+</div>
+
+<div class="config-linha">
+  <div class="config-info">
+    <strong>Exigir senha complexa</strong>
+    <small>Senha deve conter maiúsculas, números e caracteres especiais</small>
+  </div>
+  <div class="config-valor">
+    <label class="toggle">
+      <input type="checkbox" id="seg-senha-complexa">
+      <span class="toggle-slider"></span>
+    </label>
+  </div>
+</div>
+
+<div class="config-linha">
+  <div class="config-info">
+    <strong>Registrar tentativas de login falhas</strong>
+    <small>Salva no log todas as tentativas de login com erro</small>
+  </div>
+  <div class="config-valor">
+    <label class="toggle">
+      <input type="checkbox" id="seg-log-falhas" checked>
+      <span class="toggle-slider"></span>
+    </label>
+  </div>
+</div>
+
+<div style="margin-top:24px">
+  <button class="btn btn-primario btn-sm" onclick="salvarSeguranca()" style="width:auto">
+    <i class="fas fa-save"></i> Salvar configurações
+  </button>
+</div>
+
+<script>
+(function () {
+  carregarSeguranca();
+
+  async function carregarSeguranca() {
+    try {
+      const resp = await fetch('/api/configuracoes/seguranca');
+      if (!resp.ok) return;
+      const { config } = await resp.json();
+      document.getElementById('seg-sessao-horas').value      = config['seg_sessao_horas']    || '8';
+      document.getElementById('seg-max-tentativas').value    = config['seg_max_tentativas']  || '0';
+      document.getElementById('seg-tempo-bloqueio').value    = config['seg_tempo_bloqueio']  || '15';
+      document.getElementById('seg-senha-minima').value      = config['seg_senha_minima']    || '6';
+      document.getElementById('seg-forcar-troca').checked    = config['seg_forcar_troca']    === 'true';
+      document.getElementById('seg-senha-complexa').checked  = config['seg_senha_complexa']  === 'true';
+      document.getElementById('seg-log-falhas').checked      = config['seg_log_falhas']      !== 'false';
+    } catch (e) {}
+  }
+
+  window.salvarSeguranca = async function () {
+    const configuracoes = {
+      seg_sessao_horas:   document.getElementById('seg-sessao-horas').value,
+      seg_max_tentativas: document.getElementById('seg-max-tentativas').value,
+      seg_tempo_bloqueio: document.getElementById('seg-tempo-bloqueio').value,
+      seg_senha_minima:   document.getElementById('seg-senha-minima').value,
+      seg_forcar_troca:   String(document.getElementById('seg-forcar-troca').checked),
+      seg_senha_complexa: String(document.getElementById('seg-senha-complexa').checked),
+      seg_log_falhas:     String(document.getElementById('seg-log-falhas').checked)
+    };
+    try {
+      const resp  = await fetch('/api/configuracoes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ grupo: 'seguranca', configuracoes })
+      });
+      const dados = await resp.json();
+      mostrarAlerta(dados.mensagem || dados.erro, resp.ok ? 'sucesso' : 'erro');
+    } catch (e) {
+      mostrarAlerta('Erro de comunicação.', 'erro');
+    }
+  };
+
+  function mostrarAlerta(msg, classe) {
+    const el = document.getElementById('alerta-seguranca');
+    el.className = `alerta alerta-${classe} visivel`;
+    el.textContent = msg;
+    setTimeout(() => el.classList.remove('visivel'), 5000);
+  }
+})();
+</script>

@@ -1,0 +1,1107 @@
+<!DOCTYPE html>
+<!--
+  ARQUIVO: public/chamados/index.html
+  VERSÃO:  2.0.0
+  DATA:    2026-03-04
+  DESCRIÇÃO: Sistema de Chamados — design original V7.8 adaptado para o Portal WKL
+-->
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📊 Chamados</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/menu.css">
+    <style>
+        /* ===== MONITORAMENTO_GERAL.CSS (original V7.8) ===== */
+        :root {
+            --bg: #0f172a;
+            --card: #1e293b;
+            --text: #f1f5f9;
+            --border: #334155;
+            --primary: #3b82f6;
+            --open: #ef4444;
+            --progress: #3b82f6;
+            --closed: #10b981;
+            --details: #f59e0b;
+            --purple: #8b5cf6;
+            --gray: #94a3b8;
+            --danger: #ef4444;
+            --cyan: #06b6d4;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { background: var(--bg); color: var(--text); padding-top: 60px; font-size: 13px; min-height: 100vh; overflow-x: hidden; }
+        .content-wrapper { padding: 20px; max-width: 1600px; margin: 0 auto; }
+        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 10px; }
+        .page-tools { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .refresh-tag { font-size: 0.7rem; font-weight: 800; background: var(--primary); color: white; padding: 4px 10px; border-radius: 6px; min-width: 45px; text-align: center; }
+        .btn-dash { background: #8b5cf6; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.3s; text-decoration: none; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; }
+        .btn-dash:hover { filter: brightness(1.2); transform: translateY(-2px); }
+        .btn-gear { background: none; border: none; cursor: pointer; font-size: 1.4rem; color: white; transition: 0.3s; display: flex; align-items: center; }
+        .btn-gear:hover { transform: rotate(90deg); color: var(--primary); }
+        .list-container { min-width: 1200px; }
+        .grid-header { display: grid; grid-template-columns: 90px 140px 1fr 180px 180px 150px 110px; background: rgba(0,0,0,0.3); padding: 15px; border-radius: 12px 12px 0 0; font-weight: 800; text-transform: uppercase; font-size: 0.65rem; color: #94a3b8; border: 1px solid var(--border); }
+        .list-row { display: grid; grid-template-columns: 90px 140px 1fr 180px 180px 150px 110px; align-items: center; background: var(--card); padding: 15px; border: 1px solid var(--border); margin-top: -1px; transition: 0.2s; }
+        .list-row:hover { background: #242f44; z-index: 10; border-color: var(--primary); }
+        @keyframes shimmering { 0% { opacity: 1; } 100% { opacity: 0.5; } }
+        .status-badge { padding: 5px 0; border-radius: 6px; font-size: 0.65rem; font-weight: 900; color: white; text-transform: uppercase; text-align: center; width: 120px; display: inline-block; border: 1px solid transparent; }
+        .badge-aberto      { background: rgba(239,68,68,0.15);  color: #ef4444; border-color: #ef4444; animation: shimmering 1.5s infinite alternate; }
+        .badge-reaberto    { background: rgba(239,68,68,0.2);   color: #ef4444; border-color: #ef4444; animation: shimmering 1s infinite alternate; }
+        .badge-finalizado  { background: rgba(16,185,129,0.15); color: #10b981; border-color: #10b981; }
+        .badge-reprovado   { background: rgba(239,68,68,0.3);   color: #fff;    border-color: #ef4444; font-weight: 900; animation: shimmering 1.5s infinite alternate; }
+        .badge-atendimento { background: rgba(59,130,246,0.15); color: #3b82f6; border-color: #3b82f6; }
+        .badge-aprovado    { background: rgba(16,185,129,0.15); color: #10b981; border-color: #10b981; animation: shimmering 1.5s infinite alternate; }
+        .badge-respondido,.badge-detalhes  { background: rgba(245,158,11,0.15); color: #f59e0b; border-color: #f59e0b; animation: shimmering 2s infinite alternate; }
+        .badge-aprovacao   { background: rgba(139,92,246,0.15); color: #a78bfa; border-color: #a78bfa; animation: shimmering 1.5s infinite alternate; }
+        .badge-transferido { background: rgba(6,182,212,0.15);  color: #06b6d4; border-color: #06b6d4; }
+        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; z-index: 5000; padding: 20px; }
+        .modal-content { background: var(--card); width: 100%; max-width: 750px; padding: 30px; border-radius: 15px; border: 1px solid var(--border); max-height: 90vh; overflow-y: auto; }
+        .history-box { background: rgba(0,0,0,0.2); padding: 15px; border-radius: 10px; margin: 15px 0; max-height: 300px; overflow-y: auto; }
+        .hist-item { margin-bottom: 12px; border-left: 3px solid var(--primary); padding-left: 15px; padding-bottom: 5px; border-bottom: 1px solid rgba(255,255,255,0.03); }
+        .hist-item small { color: var(--gray); display: block; margin-bottom: 2px; font-weight: bold; }
+        .hist-item b { color: #fff; margin-right: 5px; }
+        .hist-item i { color: var(--gray); font-size: 0.85rem; display: block; margin-top: 2px; }
+        #txt-resp { width: 100%; height: 80px; background: #0f172a; color: var(--text); border: 1px solid var(--border); border-radius: 10px; padding: 15px; font-size: 0.9rem; resize: none; outline: none; transition: 0.3s; margin-bottom: 10px; }
+        #txt-resp:focus { border-color: var(--primary); box-shadow: 0 0 10px rgba(59,130,246,0.2); }
+        .btn-abrir { background: var(--primary); color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-weight: 800; font-size: 0.7rem; text-transform: uppercase; }
+        .hidden { display: none !important; }
+
+        /* ===== INDEX.CSS (formulário de abertura) ===== */
+        .card { background: var(--card); padding: 2rem; border-radius: 12px; border: 1px solid var(--border); }
+        .card input[type="text"], .card textarea, .card input[type="file"] {
+            width: 100%; padding: 0.8rem; border: 1px solid var(--border);
+            border-radius: 8px; margin-bottom: 10px; background: #0f172a; color: var(--text);
+        }
+        .grid-deptos { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 1rem; margin-top: 20px; }
+        .depto-card { background: var(--card); padding: 2.5rem 1rem; border-radius: 12px; text-align: center; cursor: pointer; border: 2px solid var(--border); font-weight: 800; transition: 0.2s; }
+        .depto-card:hover { border-color: var(--primary); transform: translateY(-5px); }
+
+        /* ===== MAIS AÇÕES (expansível no modal) ===== */
+        .acoes-extra { margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--border); }
+        .acoes-extra input, .acoes-extra select, .acoes-extra textarea { width: 100%; padding: 12px 14px; border: 1px solid var(--border); border-radius: 8px; background: #0f172a; color: var(--text); margin-bottom: 0; font-family: inherit; font-size: 0.95rem; outline: none; transition: border-color .2s; }
+        .acoes-extra input:focus, .acoes-extra select:focus, .acoes-extra textarea:focus { border-color: var(--cyan); }
+        .acoes-extra textarea { height: 90px; resize: none; }
+        /* Pills */
+        .ma-pills { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+        .ma-pill {
+            padding: 10px 18px; border-radius: 22px; border: 1.5px solid var(--border);
+            background: rgba(255,255,255,0.04); font-size: 0.8rem; font-weight: 700;
+            cursor: pointer; display: inline-flex; align-items: center; gap: 8px;
+            color: var(--gray); transition: all .15s; user-select: none;
+        }
+        .ma-pill:hover { border-color: #475569; color: var(--text); }
+        .ma-pill.ativo-cyan   { border-color: var(--cyan);   color: var(--cyan);   background: rgba(6,182,212,.1); }
+        .ma-pill.ativo-purple { border-color: var(--purple); color: var(--purple); background: rgba(139,92,246,.1); }
+        .ma-pill.ativo-orange { border-color: #f59e0b;       color: #f59e0b;       background: rgba(245,158,11,.1); }
+        /* Painéis */
+        .ma-panel { display: none; background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 10px; padding: 18px; margin-bottom: 10px; animation: maFade .15s; }
+        .ma-panel.ativo { display: block; }
+        @keyframes maFade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+        .ma-badge { display: inline-flex; align-items: center; gap: 6px; font-size: 0.7rem; font-weight: 800; padding: 3px 10px; border-radius: 10px; margin-bottom: 14px; letter-spacing: .5px; text-transform: uppercase; }
+        .ma-badge-cyan   { background: rgba(6,182,212,.12);   color: var(--cyan); }
+        .ma-badge-purple { background: rgba(139,92,246,.12);  color: var(--purple); }
+        .ma-badge-orange { background: rgba(245,158,11,.12);  color: #f59e0b; }
+        .ma-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+        .ma-field { display: flex; flex-direction: column; gap: 6px; }
+        .ma-label { font-size: 0.7rem; font-weight: 700; letter-spacing: .8px; text-transform: uppercase; color: var(--gray); }
+        .ma-field-full { margin-bottom: 12px; display: flex; flex-direction: column; gap: 6px; }
+        @media (max-width: 600px) { .ma-row { grid-template-columns: 1fr; } }
+
+        /* ===== CHAMADO BLOQUEADO / VINCULADO ===== */
+        .banner-bloqueado {
+            background: rgba(245,158,11,0.12); border: 1px solid #f59e0b;
+            border-radius: 8px; padding: 10px 14px; margin-bottom: 14px;
+            font-size: 0.82rem; color: #f59e0b; display: flex; align-items: flex-start; gap: 10px;
+        }
+        .banner-vinculo-pai {
+            background: rgba(6,182,212,0.1); border: 1px solid #06b6d4;
+            border-radius: 8px; padding: 10px 14px; margin-bottom: 14px;
+            font-size: 0.82rem; color: #06b6d4;
+        }
+        .banner-vinculo-pai a { color: #38bdf8; cursor: pointer; text-decoration: underline; }
+        .hist-pai-box {
+            background: rgba(6,182,212,0.05); border: 1px solid rgba(6,182,212,0.2);
+            border-radius: 8px; padding: 10px; margin-bottom: 14px; max-height: 180px; overflow-y: auto;
+        }
+        .hist-pai-box .hist-item { border-left-color: #06b6d4; }
+        .badge-bloqueado { background: rgba(245,158,11,0.2); color: #f59e0b; }
+        .lock-icon { font-size: 0.7rem; margin-left: 4px; }
+
+        /* ===== NOTIFICAÇÕES ===== */
+        .notif-item {
+            display: flex; align-items: center; justify-content: space-between;
+            background: rgba(255,255,255,0.04); border: 1px solid var(--border);
+            border-radius: 8px; padding: 10px 14px; margin-bottom: 6px; gap: 10px;
+        }
+        .notif-item:hover { border-color: var(--primary); background: rgba(59,130,246,0.06); }
+        .notif-item-info { flex: 1; min-width: 0; }
+        .notif-protocolo { font-size: 0.7rem; font-weight: 900; color: var(--gray); }
+        .notif-assunto { font-weight: 700; font-size: 0.85rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .notif-setor { font-size: 0.7rem; color: var(--gray); margin-top: 2px; }
+        .notif-btn { flex-shrink: 0; background: var(--primary); color: white; border: none;
+            padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 0.72rem; font-weight: 800; white-space: nowrap; }
+        .notif-btn:hover { filter: brightness(1.2); }
+        .notif-btn-aprov { background: var(--purple); }
+
+        /* ===== FILTRO DE STATUS ===== */
+        .filtro-bar { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+        .filtro-btn { background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: var(--gray); padding: 4px 12px; border-radius: 20px; cursor: pointer; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; transition: 0.2s; }
+        .filtro-btn.ativo { background: var(--primary); border-color: var(--primary); color: white; }
+    </style>
+</head>
+<body>
+    <div id="menu-container"></div>
+
+    <!-- ===== VIEW: MONITORAMENTO (padrão) ===== -->
+    <div id="view-monitor">
+        <div class="content-wrapper">
+            <div class="page-header">
+                <h2>📊 Chamados</h2>
+                <div class="page-tools">
+                    <button onclick="abrirNovoChamado()" class="btn-dash" style="background:#10b981">➕ ABRIR CHAMADO</button>
+                    <a href="/chamados/tv" target="_blank" class="btn-dash" style="background:#8b5cf6">📺 TV</a>
+                    <a href="/chamados/relatorios" id="btn-relatorios" class="btn-dash" style="display:none;background:#0891b2">📊 RELATÓRIOS</a>
+                    <a href="/chamados/configuracoes" id="btn-config" class="btn-dash" style="display:none">⚙️ CONFIG</a>
+                    <button onclick="abrirConfigLocal()" class="btn-gear" title="Configurações locais">⚙️</button>
+                    <span id="refresh-label" class="refresh-tag">--s</span>
+                </div>
+            </div>
+
+            <!-- Barra de filtros -->
+            <div class="filtro-bar">
+                <button class="filtro-btn ativo" onclick="setFiltro('ATIVOS', this)">Ativos</button>
+                <button class="filtro-btn" onclick="setFiltro('TODOS', this)">Todos</button>
+                <button class="filtro-btn" onclick="setFiltro('Aberto', this)">Abertos</button>
+                <button class="filtro-btn" onclick="setFiltro('Em Atendimento', this)">Em Atendimento</button>
+                <button class="filtro-btn" onclick="setFiltro('Finalizado', this)">Finalizados</button>
+                <button class="filtro-btn" onclick="setFiltro('APROVADO', this)">Aprovados</button>
+                <button class="filtro-btn" onclick="setFiltro('APROVACAO', this)">Aguard. Aprovação</button>
+            </div>
+
+            <!-- Barra de busca -->
+            <div style="margin-bottom: 20px; display: flex; gap: 10px; background: var(--card); padding: 10px; border-radius: 12px; border: 1px solid var(--border);">
+                <input type="text" id="f-search" placeholder="Pesquisar protocolo, assunto ou solicitante..."
+                    oninput="render()" style="flex: 1; background: transparent; border: none; color: white; outline: none; padding: 5px;">
+                <button onclick="resetFiltros()" style="background:var(--primary); color:white; border:none; padding:5px 15px; border-radius:8px; cursor:pointer; font-weight:bold;">LIMPAR</button>
+            </div>
+
+            <div style="overflow-x: auto;">
+                <div class="list-container">
+                    <div class="grid-header">
+                        <div>ID</div><div>Status</div><div>Chamado</div><div>Setor</div><div>Envolvidos</div><div>Abertura</div><div>Ações</div>
+                    </div>
+                    <div id="list-body"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== VIEW: SELEÇÃO DE SETOR ===== -->
+    <div id="view-selecao" class="hidden">
+        <div class="content-wrapper">
+            <div class="page-header">
+                <h2>📋 Novo Chamado</h2>
+                <button onclick="voltarLista()" class="btn-dash">← VOLTAR</button>
+            </div>
+            <h3 style="text-align:center; margin-bottom:30px; font-size:1.1rem; font-weight:400;">Para qual setor é sua solicitação?</h3>
+            <div id="lista-deptos-selecao" class="grid-deptos"></div>
+        </div>
+    </div>
+
+    <!-- ===== VIEW: FORMULÁRIO DE ABERTURA ===== -->
+    <div id="view-formulario" class="hidden">
+        <div class="content-wrapper">
+            <div class="card">
+                <h2 style="margin-bottom:10px;">Novo Chamado</h2>
+                <p id="label-depto" style="color:var(--primary); font-weight:bold; margin-bottom:20px;"></p>
+                <form id="formChamado">
+                    <label style="font-size:0.8rem; font-weight:800; display:block; margin-bottom:5px;">ASSUNTO:</label>
+                    <input type="text" id="chamado-assunto" required placeholder="Resumo curto do problema">
+                    <label style="font-size:0.8rem; font-weight:800; display:block; margin-bottom:5px;">DESCRIÇÃO DETALHADA:</label>
+                    <textarea id="chamado-detalhe" required placeholder="Descreva aqui todos os detalhes..." rows="6"></textarea>
+                    <label style="font-size:0.7rem; font-weight:800; opacity:0.7; display:block; margin-bottom:5px;">ANEXO (OPCIONAL — MÁX 2MB):</label>
+                    <input type="file" id="chamado-anexo" accept="image/*,application/pdf">
+                    <div style="display:flex; gap:10px; margin-top:20px;">
+                        <button type="button" onclick="showView('view-selecao')" class="btn-abrir" style="background:#475569;">VOLTAR</button>
+                        <button type="submit" class="btn-abrir" style="background:#10b981; flex:1;">ENVIAR AGORA</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== MODAL: CONFIGURAÇÃO LOCAL ===== -->
+    <div id="modal-config-local" class="modal hidden">
+        <div class="modal-content" style="max-width:350px;">
+            <h3>⚙️ Configurações Locais</h3>
+            <label style="display:block; margin:15px 0 6px;">Segundos para Refresh:</label>
+            <input type="number" id="cfg-refresh-time" min="5"
+                style="width:100%; padding:8px; background:#0f172a; border:1px solid var(--border); color:white; border-radius:6px;">
+            <div style="display:flex; gap:10px; margin-top:20px;">
+                <button onclick="salvarConfigLocal()" class="btn-abrir">SALVAR</button>
+                <button onclick="fecharConfigLocal()" class="btn-abrir" style="background:#475569">FECHAR</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== MODAL: NOTIFICAÇÕES ===== -->
+    <div id="modal-notif" class="modal hidden" style="z-index:6000">
+        <div class="modal-content" style="max-width:600px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+                <h2 style="color:var(--primary); display:flex;align-items:center;gap:10px;">
+                    <span style="font-size:1.4rem">🔔</span>
+                    <span>Chamados aguardando sua atenção!</span>
+                </h2>
+                <span id="notif-total-badge" style="background:#ef4444;color:#fff;font-weight:900;padding:4px 12px;border-radius:20px;font-size:0.8rem"></span>
+            </div>
+
+            <!-- Seção: Abertos -->
+            <div id="notif-sec-abertos" class="hidden">
+                <div style="font-size:0.7rem;font-weight:900;color:#ef4444;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">
+                    🔴 Novos — Aguardando Aceite
+                </div>
+                <div id="notif-lista-abertos"></div>
+            </div>
+
+            <!-- Seção: Reabertos -->
+            <div id="notif-sec-reabertos" class="hidden" style="margin-top:14px">
+                <div style="font-size:0.7rem;font-weight:900;color:#ef4444;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">
+                    🔁 Reabertos
+                </div>
+                <div id="notif-lista-reabertos"></div>
+            </div>
+
+            <!-- Seção: Transferidos -->
+            <div id="notif-sec-transferidos" class="hidden" style="margin-top:14px">
+                <div style="font-size:0.7rem;font-weight:900;color:#06b6d4;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">
+                    🔀 Transferidos para seu Setor — Aguardando Aceite
+                </div>
+                <div id="notif-lista-transferidos"></div>
+            </div>
+
+            <!-- Seção: Aprovados (aguardando aceite do técnico) -->
+            <div id="notif-sec-aprovados" class="hidden" style="margin-top:14px">
+                <div style="font-size:0.7rem;font-weight:900;color:#10b981;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">
+                    ✅ Aprovados — Aguardando Aceite do Técnico
+                </div>
+                <div id="notif-lista-aprovados"></div>
+            </div>
+
+            <!-- Seção: Mensagens Pendentes -->
+            <div id="notif-sec-pendentes" class="hidden" style="margin-top:14px">
+                <div style="font-size:0.7rem;font-weight:900;color:#f59e0b;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">
+                    💬 Solicitante aguardando sua resposta
+                </div>
+                <div id="notif-lista-pendentes"></div>
+            </div>
+
+            <!-- Seção: Aprovações (GESTOR/ADMIN) -->
+            <div id="notif-sec-aprovacoes" class="hidden" style="margin-top:14px">
+                <div style="font-size:0.7rem;font-weight:900;color:#a78bfa;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">
+                    ✅ Aprovações Pendentes — Requerem sua ação
+                </div>
+                <div id="notif-lista-aprovacoes"></div>
+            </div>
+
+            <!-- Seção: Respondidos (SOLICITANTE) -->
+            <div id="notif-sec-respondidos" class="hidden" style="margin-top:14px">
+                <div style="font-size:0.7rem;font-weight:900;color:#f59e0b;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">
+                    📨 Técnico respondeu — Aguardando seu retorno
+                </div>
+                <div id="notif-lista-respondidos"></div>
+            </div>
+
+            <div style="display:flex;gap:10px;margin-top:24px;justify-content:flex-end;">
+                <button onclick="fecharNotif()" class="btn-abrir" style="background:#475569;">FECHAR</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== MODAL: APROVAÇÃO RÁPIDA ===== -->
+    <div id="modal-aprov-rapida" class="modal hidden" style="z-index:7000">
+        <div class="modal-content" style="max-width:680px;max-height:90vh;display:flex;flex-direction:column;">
+
+            <!-- Cabeçalho -->
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-shrink:0;">
+                <span style="font-size:1.4rem">✅</span>
+                <div>
+                    <h3 style="color:var(--purple);margin:0;">Responder Aprovação — Ação Obrigatória</h3>
+                    <p style="margin:4px 0 0;font-size:0.8rem;color:#ef4444;font-weight:700;">
+                        ⚠️ Você precisa APROVAR ou REPROVAR este chamado antes de continuar.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Dados do chamado -->
+            <div id="aprov-rapida-dados" style="flex-shrink:0;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:14px;">
+                <div id="aprov-rapida-protocolo" style="font-weight:900;color:var(--primary);font-size:0.85rem;margin-bottom:6px;"></div>
+                <div id="aprov-rapida-assunto"   style="font-weight:700;font-size:1rem;margin-bottom:6px;"></div>
+                <div id="aprov-rapida-detalhe"   style="font-size:0.85rem;color:var(--gray);white-space:pre-wrap;"></div>
+            </div>
+
+            <!-- Histórico -->
+            <div style="flex-shrink:0;margin-bottom:6px;">
+                <div style="font-size:0.7rem;font-weight:900;text-transform:uppercase;letter-spacing:1px;color:#a78bfa;margin-bottom:6px;">
+                    📜 Histórico do Chamado
+                </div>
+            </div>
+            <div id="aprov-rapida-hist" class="history-box" style="flex:1;overflow-y:auto;min-height:80px;max-height:220px;margin-bottom:14px;"></div>
+
+            <!-- Solicitante -->
+            <div id="aprov-rapida-solicitante" style="flex-shrink:0;font-size:0.8rem;color:var(--gray);margin-bottom:12px;"></div>
+
+            <!-- Justificativa -->
+            <textarea id="aprov-rapida-just" placeholder="Justificativa obrigatória..." rows="3"
+                style="flex-shrink:0;width:100%;background:#0f172a;border:1px solid var(--border);border-radius:8px;color:white;padding:12px;font-size:0.9rem;resize:none;outline:none;margin-bottom:14px;box-sizing:border-box;"></textarea>
+
+            <!-- Botões (sem CANCELAR) -->
+            <div style="flex-shrink:0;display:flex;gap:10px;">
+                <button onclick="confirmarAprovRapida('APROVADO')" class="btn-abrir" style="background:#10b981;flex:1;font-size:1rem;padding:14px;">✔️ APROVAR</button>
+                <button onclick="confirmarAprovRapida('REPROVADO')" class="btn-abrir" style="background:#ef4444;flex:1;font-size:1rem;padding:14px;">❌ REPROVAR</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== MODAL: ATENDIMENTO ===== -->
+    <div id="modal-atendimento" class="modal hidden">
+        <div class="modal-content">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                <h2 id="m-protocolo" style="color:var(--primary)"></h2>
+                <button onclick="toggleAcoesExtra()" id="btn-mais-acoes" class="btn-abrir hidden" style="background:var(--purple); padding:10px 20px;">🛠️ MAIS AÇÕES</button>
+            </div>
+
+            <!-- Banner: chamado BLOQUEADO por vínculo -->
+            <div id="banner-bloqueado" class="banner-bloqueado hidden">
+                🔒 <div id="banner-bloqueado-txt"></div>
+            </div>
+
+            <!-- Banner: este chamado É vinculado (tem pai) -->
+            <div id="banner-vinculo-pai" class="banner-vinculo-pai hidden">
+                <div id="banner-vinculo-pai-txt"></div>
+                <details style="margin-top:8px;">
+                    <summary style="cursor:pointer;font-weight:700;font-size:0.78rem;">📜 Ver histórico do chamado pai</summary>
+                    <div id="m-historico-pai" class="hist-pai-box" style="margin-top:8px;"></div>
+                </details>
+            </div>
+
+            <div id="m-anexo-container" class="hidden" style="margin-bottom:10px; padding:10px; border:1px solid var(--border); border-radius:8px; background:rgba(255,255,255,0.05);">
+                <b>📎 Anexo:</b> <span id="m-anexo-content"></span>
+            </div>
+
+            <div id="m-detalhe" style="padding:15px; background:rgba(255,255,255,0.05); border-radius:10px; margin-bottom:15px; font-style:italic; white-space:pre-wrap;"></div>
+
+            <h4>📜 Histórico Detalhado</h4>
+            <div id="m-historico" class="history-box"></div>
+
+            <div id="area-resposta">
+                <textarea id="txt-resp" placeholder="Resposta ou parecer..."></textarea>
+                <div style="display:flex; gap:10px; margin-top:10px; flex-wrap:wrap;">
+                    <button id="btn-aceitar"  onclick="aceitarChamado()"               class="btn-abrir">ACEITAR CHAMADO</button>
+                    <button id="btn-enviar"   onclick="salvarMsg()"                    class="btn-abrir">ENVIAR MENSAGEM</button>
+                    <button id="btn-aprovar"  onclick="decidirAprovacao('APROVADO')"   class="btn-abrir hidden" style="background:#10b981;">✔️ APROVAR</button>
+                    <button id="btn-reprovar" onclick="decidirAprovacao('REPROVADO')"  class="btn-abrir hidden" style="background:#ef4444;">❌ REPROVAR</button>
+                    <button id="btn-reabrir"  onclick="salvarMsg('Reaberto')"          class="btn-abrir hidden" style="background:var(--purple);">REABRIR CHAMADO</button>
+                    <button id="btn-f"        onclick="salvarMsg('Finalizado')"        class="btn-abrir hidden" style="background:#10b981;">FINALIZAR</button>
+                </div>
+            </div>
+
+            <!-- MAIS AÇÕES: transferir + solicitar aprovação + chamado vinculado -->
+            <div id="acoes-extra" class="acoes-extra hidden">
+                <h4 style="margin-bottom:14px;">🛠️ Mais Ações</h4>
+
+                <!-- Pílulas de seleção -->
+                <div class="ma-pills">
+                    <div class="ma-pill" id="ma-pill-transferir" onclick="abrirMaAcao('transferir')">
+                        <i class="fas fa-exchange-alt"></i> Transferir Setor
+                    </div>
+                    <div id="col-aprovacao" style="display:contents">
+                        <div class="ma-pill" id="ma-pill-aprovacao" onclick="abrirMaAcao('aprovacao')">
+                            <i class="fas fa-gavel"></i> Solicitar Aprovação
+                        </div>
+                    </div>
+                    <div id="col-vincular">
+                        <div class="ma-pill" id="ma-pill-vinculado" onclick="abrirMaAcao('vinculado')">
+                            <i class="fas fa-link"></i> Chamado Vinculado
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Painel: Transferir Setor -->
+                <div class="ma-panel" id="ma-panel-transferir">
+                    <div class="ma-badge ma-badge-cyan"><i class="fas fa-exchange-alt"></i> Transferir Setor</div>
+                    <div class="ma-row">
+                        <div class="ma-field">
+                            <span class="ma-label">Setor destino</span>
+                            <select id="tx-setor"></select>
+                        </div>
+                        <div class="ma-field">
+                            <span class="ma-label">Motivo</span>
+                            <input type="text" id="tx-motivo" placeholder="Motivo da transferência...">
+                        </div>
+                    </div>
+                    <button onclick="transferirChamado()" class="btn-abrir" style="background:var(--cyan);width:100%;margin-top:4px;">
+                        <i class="fas fa-exchange-alt"></i> TRANSFERIR
+                    </button>
+                </div>
+
+                <!-- Painel: Solicitar Aprovação -->
+                <div class="ma-panel" id="ma-panel-aprovacao">
+                    <div class="ma-badge ma-badge-purple"><i class="fas fa-gavel"></i> Solicitar Aprovação</div>
+                    <div class="ma-row">
+                        <div class="ma-field">
+                            <span class="ma-label">Aprovador</span>
+                            <select id="ap-aprovador"></select>
+                        </div>
+                        <div class="ma-field">
+                            <span class="ma-label">Motivo</span>
+                            <input type="text" id="ap-motivo" placeholder="Motivo da aprovação...">
+                        </div>
+                    </div>
+                    <button onclick="solicitarAprovacao()" class="btn-abrir" style="background:var(--purple);width:100%;margin-top:4px;">
+                        <i class="fas fa-gavel"></i> SOLICITAR
+                    </button>
+                </div>
+
+                <!-- Painel: Chamado Vinculado -->
+                <div class="ma-panel" id="ma-panel-vinculado">
+                    <div class="ma-badge ma-badge-orange"><i class="fas fa-link"></i> Chamado Vinculado</div>
+                    <p style="font-size:0.78rem;color:var(--gray);margin-bottom:14px;">Abre um chamado em outro setor e bloqueia este até que o vinculado seja finalizado.</p>
+                    <div class="ma-row">
+                        <div class="ma-field">
+                            <span class="ma-label">Setor destino</span>
+                            <select id="vc-setor"></select>
+                        </div>
+                        <div class="ma-field">
+                            <span class="ma-label">Assunto do vínculo</span>
+                            <input type="text" id="vc-assunto" placeholder="Descreva o que precisa...">
+                        </div>
+                    </div>
+                    <div class="ma-field-full">
+                        <span class="ma-label">Detalhamento</span>
+                        <textarea id="vc-detalhe" placeholder="Detalhamento (opcional)..."></textarea>
+                    </div>
+                    <button onclick="abrirChamadoVinculado()" class="btn-abrir" style="background:#f59e0b;color:#000;font-weight:900;width:100%;margin-top:4px;">
+                        <i class="fas fa-link"></i> ABRIR CHAMADO VINCULADO E BLOQUEAR ESTE
+                    </button>
+                </div>
+
+            </div>
+
+            <button onclick="fecharModal()" style="width:100%; margin-top:15px; background:none; border:none; color:white; cursor:pointer;">FECHAR JANELA</button>
+        </div>
+    </div>
+
+    <script src="/js/menu.js"></script>
+    <script>
+        // ── Estado ──────────────────────────────────────────────
+        let user       = null;
+        let tAtivo     = null;
+        let chamados   = [];
+        let setores    = [];
+        let usuarios   = [];
+        let filtroStatus = 'ATIVOS';
+        let refreshSecs  = 20;
+        let tempoRestante = refreshSecs;
+        let deptoAtivo = null;
+
+        // ── Inicialização ────────────────────────────────────────
+        async function init() {
+            const r = await fetch('/api/chamados/meu-perfil');
+            if (!r.ok) { window.location.href = '/login.html'; return; }
+            user = await r.json();
+
+            if (['ADMIN', 'GESTOR'].includes(user.cargo)) {
+                document.getElementById('btn-config').style.display = '';
+                document.getElementById('btn-relatorios').style.display = '';
+            }
+
+            await Promise.all([ carregarSetores(), carregarUsuarios() ]);
+            await sincronizarERenderizar();
+            await verificarNotificacoes();
+
+            setInterval(() => {
+                tempoRestante--;
+                const lbl = document.getElementById('refresh-label');
+                if (lbl) lbl.innerText = tempoRestante + 's';
+                if (tempoRestante <= 0) { tempoRestante = refreshSecs; sincronizarERenderizar(); verificarNotificacoes(); }
+            }, 1000);
+        }
+
+        async function carregarSetores() {
+            const r = await fetch('/api/chamados/setores');
+            if (r.ok) setores = await r.json();
+        }
+
+        async function carregarUsuarios() {
+            const r = await fetch('/api/chamados/usuarios-portal');
+            if (r.ok) usuarios = await r.json();
+        }
+
+        // ── Sincronização e Render ───────────────────────────────
+        async function sincronizarERenderizar() {
+            try {
+                const params = new URLSearchParams();
+                if (filtroStatus === 'ATIVOS') params.set('status', 'ativos');
+                else if (filtroStatus !== 'TODOS') params.set('status', filtroStatus);
+
+                const r = await fetch('/api/chamados/lista?' + params);
+                if (r.ok) chamados = await r.json();
+                render();
+            } catch (e) { console.error('Erro ao carregar chamados:', e); }
+        }
+
+        function render() {
+            const body = document.getElementById('list-body');
+            if (!body) return;
+
+            const search = (document.getElementById('f-search')?.value || '').toLowerCase();
+            let lista = chamados;
+
+            if (search) {
+                lista = lista.filter(t =>
+                    t.protocolo.toLowerCase().includes(search) ||
+                    t.assunto.toLowerCase().includes(search) ||
+                    (t.nome_solicitante || '').toLowerCase().includes(search)
+                );
+            }
+
+            if (!lista.length) {
+                body.innerHTML = '<div style="padding:30px; text-align:center; color:var(--gray); background:var(--card); border:1px solid var(--border);">Nenhum chamado encontrado.</div>';
+                return;
+            }
+
+            body.innerHTML = lista.map(t => {
+                const cl = statusClass(t.status);
+                const podeExcluir = user.cargo === 'ADMIN';
+                const lockBadge = t.bloqueado ? `<span class="status-badge badge-bloqueado lock-icon" title="Chamado bloqueado — aguardando vínculo">🔒</span>` : '';
+                const vinculoBadge = t.chamado_pai_id ? `<span class="status-badge" style="background:rgba(6,182,212,0.15);color:#06b6d4;font-size:0.6rem;" title="Chamado vinculado">🔗 vinculado</span>` : '';
+                return `
+                <div class="list-row">
+                    <div style="font-weight:900">#${t.protocolo}</div>
+                    <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:center;"><div class="status-badge ${cl}">${t.status}</div>${lockBadge}${vinculoBadge}</div>
+                    <div style="font-weight:bold">${escHtml(t.assunto)}</div>
+                    <div style="font-size:0.75rem">${escHtml(t.setor)}</div>
+                    <div style="font-size:0.75rem">S: ${escHtml(t.nome_solicitante)}<br>T: ${escHtml(t.nome_atendedor || '---')}</div>
+                    <div style="font-size:0.7rem">${fmtDate(t.criado_em)}</div>
+                    <div style="display:flex; gap:5px;">
+                        <button onclick="abrirModal(${t.id})" class="btn-abrir" style="flex:1">Abrir</button>
+                        ${podeExcluir ? `<button onclick="excluirChamado(${t.id})" class="btn-abrir" style="background:#ef4444;flex:none;width:40px;" title="Excluir">🗑️</button>` : ''}
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        function statusClass(s) {
+            return { 'Aberto':'badge-aberto','Reaberto':'badge-reaberto','Em Atendimento':'badge-atendimento',
+                     'Respondido':'badge-respondido','Finalizado':'badge-finalizado','REPROVADO':'badge-reprovado',
+                     'APROVACAO':'badge-aprovacao','TRANSFERIDO':'badge-transferido','APROVADO':'badge-aprovado' }[s] || 'badge-atendimento';
+        }
+
+        function fmtDate(dt) {
+            if (!dt) return '---';
+            return new Date(dt).toLocaleString('pt-BR');
+        }
+
+        function escHtml(s) {
+            return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+        }
+
+        // ── Modal Atendimento ────────────────────────────────────
+        async function abrirModal(id) {
+            const r = await fetch(`/api/chamados/${id}`);
+            if (!r.ok) return alert('Erro ao carregar chamado.');
+            tAtivo = await r.json();
+
+            document.getElementById('m-protocolo').innerText = `Ticket #${tAtivo.protocolo}`;
+            document.getElementById('m-detalhe').innerText   = tAtivo.detalhe || '';
+
+            document.getElementById('m-historico').innerHTML = (tAtivo.historico || []).map(h => `
+                <div class="hist-item">
+                    <small>${fmtDate(h.criado_em)}</small>
+                    <b>${escHtml(h.narrativa)}</b>
+                    <i>${escHtml(h.msg || '')}</i>
+                </div>`).join('');
+
+            if (tAtivo.anexo_nome) {
+                document.getElementById('m-anexo-container').classList.remove('hidden');
+                document.getElementById('m-anexo-content').innerHTML =
+                    `<a href="${tAtivo.anexo_base64}" download="${escHtml(tAtivo.anexo_nome)}" style="color:var(--primary)">${escHtml(tAtivo.anexo_nome)}</a>`;
+            } else {
+                document.getElementById('m-anexo-container').classList.add('hidden');
+            }
+
+            // Lógica de visibilidade dos botões
+            const encerrado       = ['Finalizado','REPROVADO'].includes(tAtivo.status);
+            const ehAutoridade    = ['ADMIN','GESTOR'].includes(user.cargo);
+            const pendenciaAprov  = tAtivo.status === 'APROVACAO' &&
+                                    (tAtivo.aprovador_login === user.login || user.cargo === 'ADMIN');
+            const jaTemTecnico    = !!tAtivo.login_atendedor;
+            const bloqueado       = !!tAtivo.bloqueado;
+            const setoresUsuario  = Array.isArray(user.setores) ? user.setores : [];
+            const setorPermitido  = user.cargo === 'ADMIN'
+                || user.cargo === 'GESTOR'
+                || setoresUsuario.length === 0
+                || setoresUsuario.includes(tAtivo.setor);
+            const podeAtender     = ['ADMIN','GESTOR','TECNICO'].includes(user.cargo)
+                && setorPermitido;
+
+            // Banner: chamado bloqueado por vínculo
+            const bannerBlk = document.getElementById('banner-bloqueado');
+            const bannerBlkTxt = document.getElementById('banner-bloqueado-txt');
+            if (bloqueado && tAtivo.chamadosVinculados?.length) {
+                const v = tAtivo.chamadosVinculados[0];
+                bannerBlkTxt.innerHTML = `<strong>Chamado BLOQUEADO</strong> — aguardando finalização do chamado vinculado
+                    <strong>#${escHtml(v.protocolo)}</strong> (${escHtml(v.setor)}) — <em>${escHtml(v.assunto)}</em>.<br>
+                    <small>Apenas mensagens são permitidas até o vínculo ser finalizado.</small>`;
+                bannerBlk.classList.remove('hidden');
+            } else {
+                bannerBlk.classList.add('hidden');
+            }
+
+            // Banner: este chamado é vinculado (tem pai)
+            const bannerPai = document.getElementById('banner-vinculo-pai');
+            const bannerPaiTxt = document.getElementById('banner-vinculo-pai-txt');
+            const histPaiBox = document.getElementById('m-historico-pai');
+            if (tAtivo.chamadoPai) {
+                const p = tAtivo.chamadoPai;
+                bannerPaiTxt.innerHTML = `🔗 <strong>Chamado vinculado</strong> do chamado pai
+                    <a onclick="fecharModal();abrirModal(${p.id})"><strong>#${escHtml(p.protocolo)}</strong></a>
+                    — ${escHtml(p.assunto)} <span style="color:var(--gray)">(${escHtml(p.status)})</span>`;
+                histPaiBox.innerHTML = (p.historico || []).map(h => `
+                    <div class="hist-item">
+                        <small>${fmtDate(h.criado_em)}</small>
+                        <b>${escHtml(h.narrativa)}</b>
+                        <i>${escHtml(h.msg || '')}</i>
+                    </div>`).join('') || '<div style="color:var(--gray);font-size:0.8rem">Sem histórico</div>';
+                bannerPai.classList.remove('hidden');
+            } else {
+                bannerPai.classList.add('hidden');
+            }
+
+            // Botões: se bloqueado, desabilita tudo exceto mensagem
+            document.getElementById('area-resposta').classList.toggle('hidden', encerrado && !ehAutoridade && !pendenciaAprov);
+            document.getElementById('btn-aceitar').classList.toggle('hidden',  bloqueado || encerrado || pendenciaAprov || jaTemTecnico || !podeAtender);
+            document.getElementById('btn-f').classList.toggle('hidden',        bloqueado || encerrado || pendenciaAprov || !jaTemTecnico || !podeAtender);
+            document.getElementById('btn-aprovar').classList.toggle('hidden',  !pendenciaAprov);
+            document.getElementById('btn-reprovar').classList.toggle('hidden', !pendenciaAprov);
+            document.getElementById('btn-enviar').classList.toggle('hidden',   pendenciaAprov || encerrado);
+            document.getElementById('btn-reabrir').classList.toggle('hidden',  !(encerrado && ehAutoridade && tAtivo.status !== 'REPROVADO'));
+            document.getElementById('btn-mais-acoes').classList.toggle('hidden', !podeAtender || encerrado || pendenciaAprov);
+
+            // Preenche selects de MAIS AÇÕES
+            document.getElementById('tx-setor').innerHTML =
+                setores.filter(s => s.nome !== tAtivo.setor).map(s => `<option value="${escHtml(s.nome)}">${escHtml(s.nome)}</option>`).join('');
+            document.getElementById('ap-aprovador').innerHTML =
+                usuarios.map(u => `<option value="${escHtml(u.login)}">${escHtml(u.nome || u.login)} (${escHtml(u.login)})</option>`).join('');
+            document.getElementById('vc-setor').innerHTML =
+                setores.map(s => `<option value="${escHtml(s.nome)}">${escHtml(s.nome)}</option>`).join('');
+            document.getElementById('vc-assunto').value = '';
+            document.getElementById('vc-detalhe').value = '';
+
+            // Oculta seção de vincular se chamado já está bloqueado ou é vinculado ou encerrado
+            document.getElementById('col-vincular').style.display =
+                (bloqueado || tAtivo.chamado_pai_id || encerrado) ? 'none' : '';
+
+            document.getElementById('acoes-extra').classList.add('hidden');
+            document.getElementById('modal-atendimento').classList.remove('hidden');
+        }
+
+        // Abre/fecha painel de pílula no "Mais Ações"
+        const maPilhaCores = { transferir: 'ativo-cyan', aprovacao: 'ativo-purple', vinculado: 'ativo-orange' };
+        let maAtivo = null;
+        function abrirMaAcao(key) {
+            const keys = ['transferir', 'aprovacao', 'vinculado'];
+            if (maAtivo === key) {
+                // fecha se clicar na mesma
+                document.getElementById(`ma-panel-${key}`).classList.remove('ativo');
+                document.getElementById(`ma-pill-${key}`).classList.remove(maPilhaCores[key]);
+                maAtivo = null;
+                return;
+            }
+            // fecha todos
+            keys.forEach(k => {
+                const pill = document.getElementById(`ma-pill-${k}`);
+                if (pill) pill.classList.remove(maPilhaCores[k]);
+                const panel = document.getElementById(`ma-panel-${k}`);
+                if (panel) panel.classList.remove('ativo');
+            });
+            // abre o selecionado
+            document.getElementById(`ma-pill-${key}`).classList.add(maPilhaCores[key]);
+            document.getElementById(`ma-panel-${key}`).classList.add('ativo');
+            maAtivo = key;
+        }
+
+        function toggleAcoesExtra() {
+            maAtivo = null; // reset pílula ao fechar/abrir
+            ['transferir','aprovacao','vinculado'].forEach(k => {
+                const pill = document.getElementById(`ma-pill-${k}`);
+                if (pill) pill.classList.remove(maPilhaCores[k]);
+                const panel = document.getElementById(`ma-panel-${k}`);
+                if (panel) panel.classList.remove('ativo');
+            });
+            document.getElementById('acoes-extra').classList.toggle('hidden');
+        }
+
+        // ── Ações do modal ───────────────────────────────────────
+        async function aceitarChamado() {
+            const r = await fetch(`/api/chamados/${tAtivo.id}/aceitar`, { method:'PUT' });
+            if (!r.ok) { const e = await r.json(); return alert(e.erro); }
+            fecharModal(); sincronizarERenderizar();
+        }
+
+        async function decidirAprovacao(decisao) {
+            const just = document.getElementById('txt-resp').value.trim();
+            if (!just) return alert('Justificativa obrigatória!');
+            const r = await fetch(`/api/chamados/${tAtivo.id}/responder-aprovacao`, {
+                method:'PUT', headers:{'Content-Type':'application/json'},
+                body: JSON.stringify({ decisao, justificativa: just })
+            });
+            if (!r.ok) { const e = await r.json(); return alert(e.erro); }
+            fecharModal(); sincronizarERenderizar();
+        }
+
+        async function salvarMsg(st) {
+            const msg = document.getElementById('txt-resp').value.trim();
+            if (st === 'Reaberto') {
+                if (!msg) return alert('⚠️ Motivo de reabertura obrigatório!');
+                const r = await fetch(`/api/chamados/${tAtivo.id}/reabrir`, {
+                    method:'PUT', headers:{'Content-Type':'application/json'},
+                    body: JSON.stringify({ motivo: msg })
+                });
+                if (!r.ok) { const e = await r.json(); return alert(e.erro); }
+            } else if (st === 'Finalizado') {
+                if (!msg) return alert('⚠️ Informe o parecer ou motivo de finalização antes de concluir o chamado!');
+                const r = await fetch(`/api/chamados/${tAtivo.id}/finalizar`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ parecer: msg })
+                });
+                if (!r.ok) { const e = await r.json(); return alert(e.erro); }
+                // parecer já gravado pelo backend — não envia mensagem separada
+            } else {
+                if (!msg) return alert('Digite uma mensagem!');
+                const r = await fetch(`/api/chamados/${tAtivo.id}/mensagem`, {
+                    method:'PUT', headers:{'Content-Type':'application/json'},
+                    body: JSON.stringify({ msg })
+                });
+                if (!r.ok) { const e = await r.json(); return alert(e.erro); }
+            }
+            document.getElementById('txt-resp').value = '';
+            fecharModal(); sincronizarERenderizar();
+        }
+
+        async function transferirChamado() {
+            const setor  = document.getElementById('tx-setor').value;
+            const motivo = document.getElementById('tx-motivo').value.trim();
+            if (!setor || !motivo) return alert('Preencha o setor e o motivo!');
+            const r = await fetch(`/api/chamados/${tAtivo.id}/transferir`, {
+                method:'PUT', headers:{'Content-Type':'application/json'},
+                body: JSON.stringify({ setor, motivo })
+            });
+            if (!r.ok) { const e = await r.json(); return alert(e.erro); }
+            fecharModal(); sincronizarERenderizar();
+        }
+
+        async function solicitarAprovacao() {
+            const aprovador_login = document.getElementById('ap-aprovador').value;
+            const motivo          = document.getElementById('ap-motivo').value.trim();
+            if (!aprovador_login || !motivo) return alert('Preencha o aprovador e o motivo!');
+            const r = await fetch(`/api/chamados/${tAtivo.id}/solicitar-aprovacao`, {
+                method:'PUT', headers:{'Content-Type':'application/json'},
+                body: JSON.stringify({ aprovador_login, motivo })
+            });
+            if (!r.ok) { const e = await r.json(); return alert(e.erro); }
+            fecharModal(); sincronizarERenderizar();
+        }
+
+        async function abrirChamadoVinculado() {
+            const setor   = document.getElementById('vc-setor').value;
+            const assunto = document.getElementById('vc-assunto').value.trim();
+            const detalhe = document.getElementById('vc-detalhe').value.trim();
+            if (!setor || !assunto) return alert('Preencha o setor destino e o assunto do chamado vinculado!');
+            if (!confirm(`Confirma abertura do chamado vinculado para o setor "${setor}"?\n\nO chamado atual será BLOQUEADO até que o vínculo seja finalizado.`)) return;
+            const r = await fetch(`/api/chamados/${tAtivo.id}/vincular`, {
+                method:'POST', headers:{'Content-Type':'application/json'},
+                body: JSON.stringify({ setor, assunto, detalhe })
+            });
+            const data = await r.json();
+            if (!r.ok) return alert(data.erro || 'Erro ao criar vínculo.');
+            alert(`✅ Chamado vinculado criado: #${data.protocolo}\nO chamado atual está bloqueado até a finalização deste vínculo.`);
+            fecharModal(); sincronizarERenderizar();
+        }
+
+        async function excluirChamado(id) {
+            const m = prompt('Motivo da exclusão:');
+            if (!m) return;
+            const r = await fetch(`/api/chamados/${id}`, { method:'DELETE' });
+            if (!r.ok) { const e = await r.json(); return alert(e.erro); }
+            sincronizarERenderizar();
+        }
+
+        function fecharModal() {
+            document.getElementById('modal-atendimento').classList.add('hidden');
+            tAtivo = null;
+        }
+
+        // ── Config Local ─────────────────────────────────────────
+        function abrirConfigLocal() {
+            document.getElementById('cfg-refresh-time').value = refreshSecs;
+            document.getElementById('modal-config-local').classList.remove('hidden');
+        }
+        function fecharConfigLocal() { document.getElementById('modal-config-local').classList.add('hidden'); }
+        function salvarConfigLocal() {
+            const novo = parseInt(document.getElementById('cfg-refresh-time').value);
+            if (novo < 5) return alert('Mínimo 5s');
+            refreshSecs = novo; tempoRestante = novo;
+            fecharConfigLocal();
+        }
+
+        // ── Filtros ──────────────────────────────────────────────
+        function setFiltro(status, btn) {
+            filtroStatus = status;
+            document.querySelectorAll('.filtro-btn').forEach(b => b.classList.remove('ativo'));
+            if (btn) btn.classList.add('ativo');
+            sincronizarERenderizar();
+        }
+
+        function resetFiltros() {
+            document.getElementById('f-search').value = '';
+            filtroStatus = 'ATIVOS';
+            document.querySelectorAll('.filtro-btn').forEach((b, i) => b.classList.toggle('ativo', i === 0));
+            sincronizarERenderizar();
+        }
+
+        // ── Novo Chamado ─────────────────────────────────────────
+        function abrirNovoChamado() {
+            showView('view-selecao');
+            renderDeptos();
+        }
+
+        function voltarLista() { showView('view-monitor'); }
+
+        function showView(id) {
+            ['view-monitor','view-selecao','view-formulario'].forEach(v => {
+                const el = document.getElementById(v);
+                if (el) el.classList.add('hidden');
+            });
+            document.getElementById(id).classList.remove('hidden');
+        }
+
+        function renderDeptos() {
+            const container = document.getElementById('lista-deptos-selecao');
+            if (!setores.length) {
+                container.innerHTML = '<p style="text-align:center;color:var(--gray);">Nenhum setor cadastrado. Contate o administrador.</p>';
+                return;
+            }
+            container.innerHTML = setores.map(d =>
+                `<div class="depto-card" data-nome="${escHtml(d.nome)}" onclick="abrirForm(this.dataset.nome)">🏢<br>${escHtml(d.nome)}</div>`
+            ).join('');
+        }
+
+        function abrirForm(nome) {
+            deptoAtivo = nome;
+            document.getElementById('label-depto').innerText = 'Destino: ' + nome;
+            showView('view-formulario');
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const form = document.getElementById('formChamado');
+            if (!form) return;
+            form.onsubmit = async (e) => {
+                e.preventDefault();
+                let anexo_nome = null, anexo_base64 = null;
+                const fInput = document.getElementById('chamado-anexo');
+                if (fInput.files[0]) {
+                    if (fInput.files[0].size > 2000000) return alert('Anexo máximo: 2MB');
+                    const rd = new FileReader();
+                    rd.readAsDataURL(fInput.files[0]);
+                    anexo_base64 = await new Promise(res => rd.onload = () => res(rd.result));
+                    anexo_nome   = fInput.files[0].name;
+                }
+                const payload = {
+                    setor:   deptoAtivo,
+                    assunto: document.getElementById('chamado-assunto').value,
+                    detalhe: document.getElementById('chamado-detalhe').value,
+                    anexo_nome, anexo_base64
+                };
+                const r = await fetch('/api/chamados', {
+                    method:'POST', headers:{'Content-Type':'application/json'},
+                    body: JSON.stringify(payload)
+                });
+                if (!r.ok) { const err = await r.json(); return alert(err.erro || 'Erro ao criar chamado'); }
+                const data = await r.json();
+                alert('Chamado criado! Protocolo: ' + data.protocolo);
+                form.reset();
+                showView('view-monitor');
+                sincronizarERenderizar();
+            };
+        });
+
+        // ── Notificações ─────────────────────────────────────────
+        let _notifAberto    = false;
+        let _notifFechada   = false; // usuário fechou nesta sessão → não reabrir automaticamente
+        let _aprovRapidaId  = null;
+
+        async function verificarNotificacoes() {
+            if (_notifAberto)  return; // modal já aberto
+            if (_notifFechada) return; // usuário fechou nesta sessão
+
+            let notif;
+            try {
+                const r = await fetch('/api/chamados/notificacoes');
+                if (!r.ok) {
+                    console.warn('[Notificações] API retornou', r.status, r.statusText);
+                    return;
+                }
+                notif = await r.json();
+            } catch (e) {
+                console.error('[Notificações] Erro de comunicação:', e);
+                return;
+            }
+
+            console.log('[Notificações]', notif); // ajuda a diagnosticar
+
+            if (!notif.total || notif.total === 0) return;
+
+            // Badge total
+            document.getElementById('notif-total-badge').textContent =
+                notif.total + ' chamado' + (notif.total > 1 ? 's' : '');
+
+            // Renderiza cada seção
+            renderNotifSec('abertos',      notif.abertos      || [], false);
+            renderNotifSec('reabertos',    notif.reabertos    || [], false);
+            renderNotifSec('transferidos', notif.transferidos || [], false);
+            renderNotifSec('aprovados',    notif.aprovados    || [], false);
+            renderNotifSec('pendentes',  notif.pendentes  || [], false);
+            renderNotifSec('respondidos',notif.respondidos|| [], false);
+            renderNotifSec('aprovacoes', notif.aprovacoes || [], true);
+
+            _notifAberto = true;
+            document.getElementById('modal-notif').classList.remove('hidden');
+        }
+
+        function renderNotifSec(tipo, lista, isAprov) {
+            const sec  = document.getElementById('notif-sec-'  + tipo);
+            const cont = document.getElementById('notif-lista-'+ tipo);
+            if (!sec || !cont) return;
+            if (!lista || lista.length === 0) { sec.classList.add('hidden'); return; }
+            sec.classList.remove('hidden');
+            cont.innerHTML = lista.map(function(c) {
+                var btn = isAprov
+                    ? '<button class="notif-btn notif-btn-aprov" onclick="abrirAprovRapida(' + c.id + ', this)">&#x2705; RESPONDER</button>'
+                    : '<button class="notif-btn" onclick="fecharNotifEAbrir(' + c.id + ')">ABRIR</button>';
+                return '<div class="notif-item">'
+                    + '<div class="notif-item-info">'
+                    + '<div class="notif-protocolo">#' + escHtml(c.protocolo) + '</div>'
+                    + '<div class="notif-assunto">' + escHtml(c.assunto) + '</div>'
+                    + '<div class="notif-setor">Setor: ' + escHtml(c.setor)
+                    + (c.nome_solicitante ? ' &bull; Por: ' + escHtml(c.nome_solicitante) : '')
+                    + '</div></div>' + btn + '</div>';
+            }).join('');
+        }
+
+        function fecharNotif() {
+            // Bloqueia fechar se ainda há aprovações pendentes na lista
+            var secAprov = document.getElementById('notif-sec-aprovacoes');
+            if (secAprov && !secAprov.classList.contains('hidden')) {
+                alert('Existem aprovações pendentes. Responda todas antes de fechar.');
+                return;
+            }
+            document.getElementById('modal-notif').classList.add('hidden');
+            _notifAberto  = false;
+            _notifFechada = true; // não reabre automaticamente até F5
+        }
+
+        async function fecharNotifEAbrir(id) {
+            fecharNotif();
+            await abrirModal(id);
+        }
+
+        async function abrirAprovRapida(id, btnEl) {
+            _aprovRapidaId = id;
+            document.getElementById('aprov-rapida-just').value = '';
+
+            // Limpa campos e mostra o modal imediatamente (com loading)
+            document.getElementById('aprov-rapida-protocolo').textContent  = 'Carregando...';
+            document.getElementById('aprov-rapida-assunto').textContent    = '';
+            document.getElementById('aprov-rapida-detalhe').textContent    = '';
+            document.getElementById('aprov-rapida-hist').innerHTML         = '<div style="color:var(--gray);font-size:0.85rem;padding:8px;">Carregando histórico...</div>';
+            document.getElementById('aprov-rapida-solicitante').textContent = '';
+            document.getElementById('modal-aprov-rapida').classList.remove('hidden');
+
+            // Carrega dados completos do chamado
+            try {
+                const r = await fetch('/api/chamados/' + id);
+                if (!r.ok) throw new Error('HTTP ' + r.status);
+                const c = await r.json();
+
+                document.getElementById('aprov-rapida-protocolo').textContent =
+                    'Ticket #' + (c.protocolo || id) + ' — ' + (c.setor || '') + ' — ' + (c.status || '');
+                document.getElementById('aprov-rapida-assunto').textContent = c.assunto || '';
+                document.getElementById('aprov-rapida-detalhe').textContent = c.detalhe || '';
+                document.getElementById('aprov-rapida-solicitante').textContent =
+                    'Solicitante: ' + (c.nome_solicitante || c.login_solicitante || '—')
+                    + (c.nome_atendedor ? '  |  Técnico: ' + c.nome_atendedor : '');
+
+                const hist = c.historico || [];
+                document.getElementById('aprov-rapida-hist').innerHTML = hist.length === 0
+                    ? '<div style="color:var(--gray);font-size:0.85rem;padding:8px;">Sem histórico.</div>'
+                    : hist.map(function(h) {
+                        return '<div class="hist-item">'
+                            + '<small>' + fmtDate(h.criado_em) + '</small>'
+                            + '<b>' + escHtml(h.narrativa) + '</b>'
+                            + '<i>' + escHtml(h.msg || '') + '</i>'
+                            + '</div>';
+                    }).join('');
+                // scroll para o final do histórico
+                var hEl = document.getElementById('aprov-rapida-hist');
+                hEl.scrollTop = hEl.scrollHeight;
+            } catch(e) {
+                document.getElementById('aprov-rapida-protocolo').textContent = 'Chamado #' + id;
+                document.getElementById('aprov-rapida-hist').innerHTML =
+                    '<div style="color:#ef4444;font-size:0.85rem;padding:8px;">Erro ao carregar dados: ' + escHtml(e.message) + '</div>';
+            }
+        }
+
+        // fecharAprovRapida só é chamado internamente após confirmar — não exposto ao usuário
+        function fecharAprovRapida() {
+            document.getElementById('modal-aprov-rapida').classList.add('hidden');
+            _aprovRapidaId = null;
+        }
+
+        async function confirmarAprovRapida(decisao) {
+            const just = document.getElementById('aprov-rapida-just').value.trim();
+            if (!just) { alert('Justificativa obrigatória!'); return; }
+            const idRespondido = _aprovRapidaId; // salva antes de fechar
+            try {
+                const r = await fetch('/api/chamados/' + idRespondido + '/responder-aprovacao', {
+                    method: 'PUT', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ decisao, justificativa: just })
+                });
+                if (!r.ok) { const e = await r.json(); alert(e.erro || 'Erro ao responder.'); return; }
+                fecharAprovRapida();
+                sincronizarERenderizar();
+                // Remove o item respondido da lista de aprovações
+                var lista = document.getElementById('notif-lista-aprovacoes');
+                if (lista) {
+                    lista.querySelectorAll('button').forEach(function(b) {
+                        var oc = b.getAttribute('onclick') || '';
+                        if (oc.indexOf('abrirAprovRapida(' + idRespondido + ',') >= 0) {
+                            b.closest('.notif-item').remove();
+                        }
+                    });
+                    if (lista.children.length === 0) {
+                        document.getElementById('notif-sec-aprovacoes').classList.add('hidden');
+                    }
+                }
+                // Recarrega notificações: se ainda houver aprovações, o modal reabre
+                _notifAberto  = false;
+                _notifFechada = false;
+                await verificarNotificacoes();
+            } catch(e) { alert('Erro de comunicação.'); }
+        }
+
+        window.onload = init;
+    </script>
+</body>
+</html>

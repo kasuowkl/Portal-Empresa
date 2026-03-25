@@ -1,0 +1,214 @@
+<!-- FRAGMENTO: Usuários Locais -->
+<div class="barra-acoes">
+  <h3><i class="fas fa-users"></i> Usuários Locais</h3>
+  <button class="btn btn-primario btn-sm" onclick="abrirModalUsuario()">
+    <i class="fas fa-plus"></i> Novo Usuário
+  </button>
+</div>
+
+<div id="alerta-usuarios" class="alerta" style="margin-bottom:14px"></div>
+
+<div class="tabela-wrapper">
+  <table class="tabela">
+    <thead>
+      <tr>
+        <th>Nome</th>
+        <th>Usuário</th>
+        <th>Nível</th>
+        <th>Status</th>
+        <th>Criado em</th>
+        <th class="col-acoes">Ações</th>
+      </tr>
+    </thead>
+    <tbody id="tbody-usuarios">
+      <tr><td colspan="6" style="text-align:center;padding:24px;color:var(--cor-texto-fraco)">
+        <i class="fas fa-spinner fa-spin"></i> Carregando...
+      </td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- Modal de usuário -->
+<div id="modal-usuario" class="modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-titulo">
+        <i class="fas fa-user"></i>
+        <span id="modal-usuario-titulo">Novo Usuário</span>
+      </div>
+      <button class="modal-fechar" onclick="fecharModalUsuario()"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-corpo">
+      <input type="hidden" id="usuario-id">
+      <div class="form-grupo">
+        <label>Nome completo</label>
+        <input type="text" id="usuario-nome" placeholder="Ex: João da Silva">
+      </div>
+      <div class="form-grupo">
+        <label>Login</label>
+        <input type="text" id="usuario-login" placeholder="Ex: joao.silva">
+      </div>
+      <div class="form-grupo">
+        <label>Senha <small id="senha-hint" style="color:var(--cor-texto-fraco);font-size:0.8em"></small></label>
+        <input type="password" id="usuario-senha" placeholder="Digite a senha">
+      </div>
+      <div class="form-grupo-select" style="margin-top:4px">
+        <label>Nível de acesso</label>
+        <select id="usuario-nivel">
+          <option value="usuario">Usuário</option>
+          <option value="admin">Administrador</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-rodape">
+      <button class="btn btn-sm" onclick="fecharModalUsuario()" style="width:auto;background:var(--cor-fundo-3);color:var(--cor-texto)">Cancelar</button>
+      <button class="btn btn-primario btn-sm" onclick="salvarUsuario()" style="width:auto">
+        <i class="fas fa-save"></i> Salvar
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  carregarUsuarios();
+
+  async function carregarUsuarios() {
+    const tbody = document.getElementById('tbody-usuarios');
+    try {
+      const resp  = await fetch('/api/usuarios');
+      if (resp.status === 401) { window.location.href = '/login.html'; return; }
+      const dados = await resp.json();
+
+      if (!dados.usuarios || dados.usuarios.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="sem-dados"><i class="fas fa-users"></i>Nenhum usuário cadastrado.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = dados.usuarios.map(u => `
+        <tr>
+          <td>${u.nome}</td>
+          <td><code style="font-size:0.85em">${u.usuario}</code></td>
+          <td><span class="badge badge-${u.nivel === 'admin' ? 'admin' : 'usuario'}">${u.nivel}</span></td>
+          <td><span class="badge badge-${u.ativo ? 'ativo' : 'inativo'}">${u.ativo ? 'Ativo' : 'Bloqueado'}</span></td>
+          <td>${new Date(u.criado_em).toLocaleDateString('pt-BR')}</td>
+          <td class="col-acoes">
+            <button class="btn-icone editar" title="Editar" onclick='editarUsuario(${JSON.stringify(u)})'><i class="fas fa-edit"></i></button>
+            <button class="btn-icone ativar" title="${u.ativo ? 'Bloquear' : 'Ativar'}" onclick="toggleUsuario(${u.id}, ${!u.ativo})">
+              <i class="fas fa-${u.ativo ? 'ban' : 'check'}"></i>
+            </button>
+            <button class="btn-icone excluir" title="Excluir" onclick="excluirUsuario(${u.id}, '${u.usuario}')"><i class="fas fa-trash"></i></button>
+          </td>
+        </tr>
+      `).join('');
+    } catch (e) {
+      tbody.innerHTML = '<tr><td colspan="6" class="sem-dados"><i class="fas fa-exclamation-triangle"></i>Erro ao carregar usuários.</td></tr>';
+    }
+  }
+
+  window.abrirModalUsuario = function () {
+    document.getElementById('usuario-id').value    = '';
+    document.getElementById('usuario-nome').value  = '';
+    document.getElementById('usuario-login').value = '';
+    document.getElementById('usuario-login').disabled = false;
+    document.getElementById('usuario-senha').value = '';
+    document.getElementById('usuario-nivel').value = 'usuario';
+    document.getElementById('modal-usuario-titulo').textContent = 'Novo Usuário';
+    document.getElementById('senha-hint').textContent = '';
+    document.getElementById('modal-usuario').classList.add('visivel');
+  };
+
+  window.editarUsuario = function (u) {
+    document.getElementById('usuario-id').value    = u.id;
+    document.getElementById('usuario-nome').value  = u.nome;
+    document.getElementById('usuario-login').value = u.usuario;
+    document.getElementById('usuario-login').disabled = true;
+    document.getElementById('usuario-senha').value = '';
+    document.getElementById('usuario-nivel').value = u.nivel;
+    document.getElementById('modal-usuario-titulo').textContent = 'Editar Usuário';
+    document.getElementById('senha-hint').textContent = '(deixe em branco para manter)';
+    document.getElementById('modal-usuario').classList.add('visivel');
+  };
+
+  window.fecharModalUsuario = function () {
+    document.getElementById('modal-usuario').classList.remove('visivel');
+  };
+
+  window.salvarUsuario = async function () {
+    const id    = document.getElementById('usuario-id').value;
+    const nome  = document.getElementById('usuario-nome').value.trim();
+    const login = document.getElementById('usuario-login').value.trim();
+    const senha = document.getElementById('usuario-senha').value;
+    const nivel = document.getElementById('usuario-nivel').value;
+
+    if (!nome) { mostrarAlerta('Informe o nome completo.', 'erro'); return; }
+
+    try {
+      let resp;
+      if (id) {
+        resp = await fetch(`/api/usuarios/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ nome, nivel, senha })
+        });
+      } else {
+        if (!login) { mostrarAlerta('Informe o login.', 'erro'); return; }
+        if (!senha)  { mostrarAlerta('Informe a senha.', 'erro'); return; }
+        resp = await fetch('/api/usuarios', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ nome, usuario: login, senha, nivel })
+        });
+      }
+
+      const dados = await resp.json();
+      if (!resp.ok) { mostrarAlerta(dados.erro, 'erro'); return; }
+
+      fecharModalUsuario();
+      mostrarAlerta(dados.mensagem, 'sucesso');
+      carregarUsuarios();
+    } catch (e) {
+      mostrarAlerta('Erro de comunicação.', 'erro');
+    }
+  };
+
+  window.toggleUsuario = async function (id, ativo) {
+    try {
+      const resp  = await fetch(`/api/usuarios/${id}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ativo })
+      });
+      const dados = await resp.json();
+      mostrarAlerta(dados.mensagem || dados.erro, resp.ok ? 'sucesso' : 'erro');
+      if (resp.ok) carregarUsuarios();
+    } catch (e) {
+      mostrarAlerta('Erro de comunicação.', 'erro');
+    }
+  };
+
+  window.excluirUsuario = async function (id, nome) {
+    if (!confirm(`Excluir o usuário "${nome}"?\nEsta ação não pode ser desfeita.`)) return;
+    try {
+      const resp  = await fetch(`/api/usuarios/${id}`, { method: 'DELETE' });
+      const dados = await resp.json();
+      mostrarAlerta(dados.mensagem || dados.erro, resp.ok ? 'sucesso' : 'erro');
+      if (resp.ok) carregarUsuarios();
+    } catch (e) {
+      mostrarAlerta('Erro de comunicação.', 'erro');
+    }
+  };
+
+  function mostrarAlerta(msg, classe) {
+    const el = document.getElementById('alerta-usuarios');
+    el.className = `alerta alerta-${classe} visivel`;
+    el.textContent = msg;
+    setTimeout(() => el.classList.remove('visivel'), 4000);
+  }
+
+  // Fecha modal ao clicar fora
+  document.getElementById('modal-usuario').addEventListener('click', function (e) {
+    if (e.target === this) fecharModalUsuario();
+  });
+})();
+</script>

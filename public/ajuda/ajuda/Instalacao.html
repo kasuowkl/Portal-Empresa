@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<!--
+  ARQUIVO: public/ajuda/Instalacao.html
+  VERSÃO:  1.0.0
+  DATA:    2026-03-06
+  DESCRIÇÃO: Guia completo de instalação e configuração do Portal WKL em Linux
+-->
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Instalação — Portal WKL</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/menu.css">
+  <style>
+    .doc-layout {
+      display: flex; max-width: 1140px; margin: 32px auto; padding: 0 24px; gap: 32px;
+    }
+    .doc-sidebar { width: 230px; flex-shrink: 0; }
+    .doc-sidebar-sticky { position: sticky; top: calc(var(--altura-menu) + 20px); }
+    .doc-sidebar h4 {
+      font-size: 11px; letter-spacing: 1.4px; text-transform: uppercase;
+      color: var(--cor-texto-fraco); margin-bottom: 12px;
+    }
+    .doc-sidebar a {
+      display: block; padding: 6px 12px; font-size: 13px;
+      color: var(--cor-texto-fraco); border-left: 2px solid var(--cor-borda);
+      text-decoration: none; transition: all .15s;
+    }
+    .doc-sidebar a:hover { color: #10b981; border-left-color: #10b981; }
+    .doc-sidebar .sidebar-grupo { margin-top: 14px; }
+    .doc-sidebar .sidebar-grupo-titulo {
+      font-size: 10px; font-weight: 700; letter-spacing: 1.2px;
+      text-transform: uppercase; color: var(--cor-texto-fraco);
+      padding: 4px 12px; margin-bottom: 2px;
+    }
+    .doc-conteudo { flex: 1; min-width: 0; }
+    .doc-breadcrumb { font-size: 12px; color: var(--cor-texto-fraco); margin-bottom: 24px; }
+    .doc-breadcrumb a { color: var(--cor-destaque); text-decoration: none; }
+    .doc-breadcrumb span { margin: 0 6px; }
+    .doc-titulo {
+      font-size: 26px; font-weight: 700; margin-bottom: 6px;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .doc-titulo i { color: #10b981; }
+    .doc-subtitulo { color: var(--cor-texto-fraco); font-size: 14px; margin-bottom: 36px; }
+    .doc-secao { margin-bottom: 44px; scroll-margin-top: calc(var(--altura-menu) + 16px); }
+    .doc-secao h2 {
+      font-size: 18px; font-weight: 600; margin-bottom: 16px;
+      padding-bottom: 8px; border-bottom: 1px solid var(--cor-borda);
+      display: flex; align-items: center; gap: 10px;
+    }
+    .doc-secao h2 i { color: #10b981; font-size: 16px; }
+    .doc-secao p, .doc-secao li {
+      font-size: 14px; color: var(--cor-texto-fraco); line-height: 1.7; margin-bottom: 8px;
+    }
+    .doc-secao ul, .doc-secao ol { padding-left: 20px; margin-bottom: 12px; }
+    .doc-secao strong { color: var(--cor-texto); }
+    /* Blocos de código */
+    .code-block {
+      background: #0d1117;
+      border: 1px solid var(--cor-borda);
+      border-radius: 8px;
+      padding: 16px 18px;
+      margin: 10px 0 16px;
+      position: relative;
+      overflow-x: auto;
+    }
+    .code-block pre {
+      margin: 0; font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+      font-size: 13px; line-height: 1.7; color: #e6edf3; white-space: pre;
+    }
+    .code-block .comment { color: #8b949e; }
+    .code-block .cmd     { color: #79c0ff; }
+    .code-block .str     { color: #a5d6ff; }
+    .code-block .kw      { color: #ff7b72; }
+    .code-block .val     { color: #7ee787; }
+    .code-label {
+      display: flex; align-items: center; justify-content: space-between;
+      font-size: 11px; font-weight: 600; letter-spacing: 1px;
+      text-transform: uppercase; color: var(--cor-texto-fraco);
+      margin-bottom: 6px;
+    }
+    .code-label span { color: #10b981; }
+    .btn-copy {
+      background: none; border: 1px solid var(--cor-borda); border-radius: 4px;
+      color: var(--cor-texto-fraco); font-size: 11px; padding: 2px 8px;
+      cursor: pointer; transition: all .15s;
+    }
+    .btn-copy:hover { border-color: #10b981; color: #10b981; }
+    /* Cards de info */
+    .doc-card {
+      background: var(--cor-fundo-2); border: 1px solid var(--cor-borda);
+      border-radius: 8px; padding: 16px 20px; margin-bottom: 12px;
+    }
+    .doc-card h4 { font-size: 14px; margin-bottom: 6px; color: var(--cor-texto); }
+    .doc-card p { margin: 0; font-size: 13.5px; color: var(--cor-texto-fraco); }
+    .doc-info {
+      background: rgba(16,185,129,0.07); border-left: 3px solid #10b981;
+      border-radius: 0 8px 8px 0; padding: 12px 16px; margin: 12px 0;
+      font-size: 13px; color: var(--cor-texto-fraco);
+    }
+    .doc-warn {
+      background: rgba(245,158,11,0.08); border-left: 3px solid #f59e0b;
+      border-radius: 0 8px 8px 0; padding: 12px 16px; margin: 12px 0;
+      font-size: 13px; color: var(--cor-texto-fraco);
+    }
+    .doc-danger {
+      background: rgba(239,68,68,0.08); border-left: 3px solid #ef4444;
+      border-radius: 0 8px 8px 0; padding: 12px 16px; margin: 12px 0;
+      font-size: 13px; color: var(--cor-texto-fraco);
+    }
+    /* Passos numerados */
+    .passo { display: flex; gap: 14px; margin-bottom: 14px; align-items: flex-start; }
+    .passo-num {
+      width: 28px; height: 28px; border-radius: 50%; background: #10b981;
+      color: #fff; font-size: 12px; font-weight: 700;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .passo-txt { font-size: 14px; color: var(--cor-texto-fraco); line-height: 1.6; flex: 1; }
+    .passo-txt strong { color: var(--cor-texto); }
+    /* Badges de requisito */
+    .req-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; margin-bottom: 12px; }
+    .req-item {
+      background: var(--cor-fundo-2); border: 1px solid var(--cor-borda);
+      border-radius: 8px; padding: 12px 14px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .req-item i { font-size: 20px; width: 24px; text-align: center; }
+    .req-item .req-info .req-nome { font-size: 13px; font-weight: 600; color: var(--cor-texto); }
+    .req-item .req-info .req-ver  { font-size: 11px; color: var(--cor-texto-fraco); }
+    /* Tabela de variáveis */
+    .env-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 16px; }
+    .env-table th {
+      background: var(--cor-fundo-3); padding: 8px 12px; text-align: left;
+      font-weight: 600; color: var(--cor-texto); border-bottom: 1px solid var(--cor-borda);
+    }
+    .env-table td { padding: 8px 12px; border-bottom: 1px solid var(--cor-borda); color: var(--cor-texto-fraco); vertical-align: top; }
+    .env-table td:first-child { font-family: monospace; color: #7ee787; font-size: 12px; }
+    .env-table td:nth-child(2) { color: #a5d6ff; font-family: monospace; font-size: 12px; }
+    /* Badge de seção */
+    .secao-num {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 22px; height: 22px; border-radius: 50%;
+      background: #10b981; color: #fff; font-size: 11px; font-weight: 700;
+      flex-shrink: 0;
+    }
+    @media (max-width: 700px) {
+      .doc-layout { flex-direction: column; }
+      .doc-sidebar { width: 100%; }
+      .doc-sidebar-sticky { position: static; }
+      .req-grid { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div id="menu-container"></div>
+
+  <div class="doc-layout">
+
+    <!-- Sumário -->
+    <aside class="doc-sidebar">
+      <div class="doc-sidebar-sticky">
+        <h4>Nesta página</h4>
+        <a href="#requisitos">Pré-requisitos</a>
+        <a href="#nodejs">1. Node.js</a>
+        <a href="#estrutura">2. Estrutura de Arquivos</a>
+        <a href="#dependencias">3. Dependências npm</a>
+        <a href="#env">4. Variáveis de Ambiente</a>
+        <a href="#banco">5. Banco de Dados</a>
+        <a href="#pm2">6. PM2 (Processo)</a>
+        <a href="#nginx">7. Nginx (Proxy)</a>
+        <a href="#firewall">8. Firewall</a>
+        <a href="#logs">9. Logs</a>
+        <a href="#atualizacao">10. Atualização</a>
+        <a href="#troubleshoot">Solução de Problemas</a>
+        <br>
+        <a href="/ajuda/Ajuda.html" style="color:var(--cor-destaque);font-size:12px;border:none;padding-left:0">
+          ← Voltar à Ajuda
+        </a>
+      </div>
+    </aside>
+
+    <!-- Conteúdo -->
+    <main class="doc-conteudo">
+
+      <div class="doc-breadcrumb">
+        <a href="/ajuda/Ajuda.html">Ajuda</a>
+        <span>›</span> Instalação Linux
+      </div>
+
+      <div class="doc-titulo">
+        <i class="fab fa-linux"></i> Instalação e Configuração — Linux
+      </div>
+      <div class="doc-subtitulo">
+        Guia completo para implantar o Portal WKL em um servidor Ubuntu/Debian.
+        Tempo estimado: 20–30 minutos.
+      </div>
+
+      <div class="doc-info">
+        <i class="fas fa-info-circle" style="color:#10b981;margin-right:6px"></i>
+        Guia testado em <strong>Ubuntu 22.04 LTS</strong> e <strong>Debian 12</strong>.
+        O banco de dados SQL Server pode estar em outro servidor na rede — não precisa estar no mesmo host.
+      </div>
+
+      <!-- PRÉ-REQUISITOS -->
+      <section class="doc-secao" id="requisitos">
+        <h2><i class="fas fa-clipboard-check"></i> Pré-requisitos</h2>
+        <p>O servidor Linux precisa ter acesso de rede ao SQL Server e as seguintes ferramentas instaladas:</p>
+        <div class="req-grid">
+          <div class="req-item">
+            <i class="fab fa-node-js" style="color:#68a063"></i>
+            <div class="req-info">
+              <div class="req-nome">Node.js</div>
+              <div class="req-ver">v18 LTS ou superior</div>
+            </div>
+          </div>
+          <div class="req-item">
+            <i class="fas fa-box" style="color:#cc3534"></i>
+            <div class="req-info">
+              <div class="req-nome">npm</div>
+              <div class="req-ver">v9+ (vem com o Node.js)</div>
+            </div>
+          </div>
+          <div class="req-item">
+            <i class="fas fa-server" style="color:#009900"></i>
+            <div class="req-info">
+              <div class="req-nome">Nginx</div>
+              <div class="req-ver">Opcional — proxy reverso</div>
+            </div>
+          </div>
+          <div class="req-item">
+            <i class="fas fa-recycle" style="color:#4e9af1"></i>
+            <div class="req-info">
+              <div class="req-nome">PM2</div>
+              <div class="req-ver">Gerenciador de processo Node</div>
+            </div>
+          </div>
+          <div class="req-item">
+            <i class="fas fa-database" style="color:#e05c30"></i>
+            <div class="req-info">
+              <div class="req-nome">SQL Server</div>
+              <div class="req-ver">2017+ (pode ser remoto)</div>
+            </div>
+          </div>
+          <div class="req-item">
+            <i class="fas fa-shield-alt" style="color:#f59e0b"></i>
+            <div class="req-info">
+              <div class="req-nome">ufw / iptables</div>
+              <div class="req-ver">Firewall do servidor</div>
+            </div>
+          </div>
+        </div>
+        <div class="doc-warn">
+          <i class="fas fa-exclamation-triangle" style="color:#f59e0b;margin-right:6px"></i>
+          Execute os comandos como <strong>root</strong> ou prefixe com <code>sudo</code>.
+          Recomendado criar um usuário dedicado (ex: <code>portaluser</code>) para rodar a aplicação.
+        </div>
+      </section>
+
+      <!-- NODE.JS -->
+      <section class="doc-secao" id="nodejs">
+        <h2><i class="fab fa-node-js"></i> <span class="secao-num">1</span> Instalar Node.js 18 LTS</h2>
+        <p>Use o repositório oficial da NodeSource para instalar a versão LTS mais recente:</p>
+
+        <div class="code-label"><span>bash</span> — Ubuntu / Debian</div>
+        <div class="code-block"><pre><span class="comment"># Atualiza os pacotes do sistema</span>
+apt update && apt upgrade -y
+
+<span class="comment"># Instala dependências necessárias</span>
+apt install -y curl ca-certificates gnupg
+
+<span class="comment"># Adiciona o repositório NodeSource (Node 18 LTS)</span>
+curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
+
+<span class="comment"># Instala o Node.js e o npm</span>
+apt install -y nodejs
+
+<span class="comment"># Verifica as versões instaladas</span>
+node --version   <span class="comment"># Deve exibir v18.x.x ou superior</span>
+npm --version    <span class="comment"># Deve exibir 9.x.x ou superior</span></pre></div>
+
+        <p>Instale o <strong>PM2</strong> globalmente (gerenciador de processos Node.js):</p>
+        <div class="code-label"><span>bash</span></div>
+        <div class="code-block"><pre>npm install -g pm2</pre></div>
+      </section>
+
+      <!-- ESTRUTURA DE ARQUIVOS -->
+      <section class="doc-secao" id="estrutura">
+        <h2><i class="fas fa-folder-open"></i> <span class="secao-num">2</span> Estrutura de Arquivos</h2>
+        <p>Crie o diretório de instalação e ajuste as permissões:</p>
+
+        <div class="code-label"><span>bash</span></div>
+        <div class="code-block"><pre><span class="comment"># Cria o diretório de instalação</span>
+mkdir -p /var/www/html/wkl/Portal
+cd /var/www/html/wkl/Portal
+
+<span class="comment"># Cria subdiretórios de logs (necessários na primeira execução)</span>
+mkdir -p logs uploads
+
+<span class="comment"># Ajusta permissões (adapte o usuário conforme seu ambiente)</span>
+chown -R www-data:www-data /var/www/html/wkl/Portal
+chmod -R 755 /var/www/html/wkl/Portal</pre></div>
+
+        <p>Copie os arquivos do Portal do seu computador Windows para o servidor via <strong>SCP</strong>:</p>
+        <div class="code-label"><span>powershell</span> — executar no Windows</div>
+        <div class="code-block"><pre><span class="comment"># Copia todos os arquivos do portal para o servidor</span>
+scp -r "C:\Users\kasuo\Desktop\Portal\*" user@192.168.0.80:/var/www/html/wkl/Portal/</pre></div>
+
+        <div class="doc-warn">
+          <i class="fas fa-exclamation-triangle" style="color:#f59e0b;margin-right:6px"></i>
+          <strong>Não copie</strong> a pasta <code>node_modules/</code> nem o arquivo <code>.env</code> pelo SCP.
+          Os módulos serão instalados via <code>npm install</code> no servidor e o <code>.env</code> deve ser criado manualmente.
+        </div>
+
+        <p style="margin-top:14px">Estrutura esperada após a cópia:</p>
+        <div class="code-block"><pre>/var/www/html/wkl/Portal/
+├── portal.js                 <span class="comment">← entrada principal da aplicação</span>
+├── criarBancoPortal.js       <span class="comment">← script de inicialização do banco</span>
+├── package.json
+├── .env                      <span class="comment">← criar manualmente (próximo passo)</span>
+├── routes/
+│   ├── portal.js
+│   ├── auth.js
+│   ├── chamados.js
+│   └── agenda.js
+├── middleware/
+├── lib/
+├── public/
+│   ├── css/
+│   ├── js/
+│   ├── ajuda/
+│   ├── chamados/
+│   └── fragmentos/
+└── logs/                     <span class="comment">← criado automaticamente</span></pre></div>
+      </section>
+
+      <!-- DEPENDÊNCIAS -->
+      <section class="doc-secao" id="dependencias">
+        <h2><i class="fas fa-box"></i> <span class="secao-num">3</span> Instalar Dependências npm</h2>
+        <p>Dentro do diretório do portal, instale todas as dependências listadas no <code>package.json</code>:</p>
+
+        <div class="code-label"><span>bash</span></div>
+        <div class="code-block"><pre>cd /var/www/html/wkl/Portal
+
+<span class="comment"># Instala todas as dependências (modo produção)</span>
+npm install --omit=dev</pre></div>
+
+        <p>As seguintes dependências serão instaladas automaticamente:</p>
+        <div class="req-grid" style="margin-top:8px">
+          <div class="req-item"><i class="fas fa-server" style="color:#68a063"></i><div class="req-info"><div class="req-nome">express</div><div class="req-ver">Framework web</div></div></div>
+          <div class="req-item"><i class="fas fa-database" style="color:#e05c30"></i><div class="req-info"><div class="req-nome">mssql</div><div class="req-ver">Cliente SQL Server</div></div></div>
+          <div class="req-item"><i class="fas fa-key" style="color:#f59e0b"></i><div class="req-info"><div class="req-nome">express-session</div><div class="req-ver">Gerenciamento de sessão</div></div></div>
+          <div class="req-item"><i class="fas fa-lock" style="color:#8b5cf6"></i><div class="req-info"><div class="req-nome">bcryptjs</div><div class="req-ver">Hash de senhas</div></div></div>
+          <div class="req-item"><i class="fas fa-file-alt" style="color:#4e9af1"></i><div class="req-info"><div class="req-nome">dotenv</div><div class="req-ver">Variáveis de ambiente</div></div></div>
+          <div class="req-item"><i class="fas fa-clipboard-list" style="color:#10b981"></i><div class="req-info"><div class="req-nome">winston</div><div class="req-ver">Sistema de logs</div></div></div>
+          <div class="req-item"><i class="fas fa-building" style="color:#6b7280"></i><div class="req-info"><div class="req-nome">ldapjs</div><div class="req-ver">Integração Active Directory</div></div></div>
+        </div>
+      </section>
+
+      <!-- VARIÁVEIS DE AMBIENTE -->
+      <section class="doc-secao" id="env">
+        <h2><i class="fas fa-sliders-h"></i> <span class="secao-num">4</span> Variáveis de Ambiente (.env)</h2>
+        <p>Crie o arquivo <code>.env</code> na raiz do projeto com as configurações do seu ambiente:</p>
+
+        <div class="code-label"><span>bash</span> — criar o arquivo</div>
+        <div class="code-block"><pre>nano /var/www/html/wkl/Portal/.env</pre></div>
+
+        <div class="code-label"><span>.env</span> — conteúdo do arquivo</div>
+        <div class="code-block"><pre><span class="comment"># ============================================================</span>
+<span class="comment"># Banco de Dados (SQL Server)</span>
+<span class="comment"># ============================================================</span>
+<span class="kw">DB_SERVER</span>=<span class="val">192.168.0.209</span>        <span class="comment"># IP ou hostname do SQL Server</span>
+<span class="kw">DB_PORT</span>=<span class="val">1433</span>                   <span class="comment"># Porta padrão do SQL Server</span>
+<span class="kw">DB_USER</span>=<span class="val">sa</span>                     <span class="comment"># Usuário do banco</span>
+<span class="kw">DB_PASSWORD</span>=<span class="val">SuaSenhaAqui</span>       <span class="comment"># Senha do banco</span>
+<span class="kw">DB_NAME</span>=<span class="val">PortalSistemas</span>         <span class="comment"># Nome do banco de dados</span>
+
+<span class="comment"># ============================================================</span>
+<span class="comment"># Servidor Web</span>
+<span class="comment"># ============================================================</span>
+<span class="kw">PORTA_APP</span>=<span class="val">3132</span>                 <span class="comment"># Porta em que o portal vai escutar</span>
+
+<span class="comment"># ============================================================</span>
+<span class="comment"># Sessão (use uma string longa e aleatória)</span>
+<span class="comment"># ============================================================</span>
+<span class="kw">SESSION_SECRET</span>=<span class="val">troque_por_texto_secreto_longo_aqui_2026</span></pre></div>
+
+        <div class="doc-danger">
+          <i class="fas fa-lock" style="color:#ef4444;margin-right:6px"></i>
+          <strong>Nunca</strong> versione o arquivo <code>.env</code> nem o compartilhe. Ele contém credenciais sensíveis.
+          Adicione ao <code>.gitignore</code> se usar Git: <code>echo ".env" >> .gitignore</code>
+        </div>
+
+        <p style="margin-top:14px">Referência de todas as variáveis disponíveis:</p>
+        <table class="env-table">
+          <thead><tr><th>Variável</th><th>Exemplo</th><th>Descrição</th></tr></thead>
+          <tbody>
+            <tr><td>DB_SERVER</td><td>192.168.0.209</td><td>IP ou hostname do SQL Server (pode ser remoto)</td></tr>
+            <tr><td>DB_PORT</td><td>1433</td><td>Porta TCP do SQL Server (padrão: 1433)</td></tr>
+            <tr><td>DB_USER</td><td>sa</td><td>Login do SQL Server com permissão de criação de tabelas</td></tr>
+            <tr><td>DB_PASSWORD</td><td>P@ssw0rd</td><td>Senha do usuário do banco</td></tr>
+            <tr><td>DB_NAME</td><td>PortalSistemas</td><td>Nome do banco de dados (criado automaticamente se não existir)</td></tr>
+            <tr><td>PORTA_APP</td><td>3132</td><td>Porta em que o servidor Node.js vai escutar</td></tr>
+            <tr><td>SESSION_SECRET</td><td>texto_secreto</td><td>Chave para assinar os cookies de sessão — use algo longo e aleatório</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- BANCO DE DADOS -->
+      <section class="doc-secao" id="banco">
+        <h2><i class="fas fa-database"></i> <span class="secao-num">5</span> Inicializar o Banco de Dados</h2>
+        <p>Execute o script de setup para criar o banco, todas as tabelas e o usuário <strong>admin</strong> inicial:</p>
+
+        <div class="code-label"><span>bash</span></div>
+        <div class="code-block"><pre>cd /var/www/html/wkl/Portal
+
+<span class="comment"># Cria o banco de dados e todas as tabelas</span>
+node criarBancoPortal.js</pre></div>
+
+        <p>Saída esperada (sem erros):</p>
+        <div class="code-block"><pre><span class="val">Conectando ao SQL Server...</span>
+<span class="val">Banco de dados "PortalSistemas" verificado/criado.</span>
+<span class="val">Criando tabelas...</span>
+<span class="val">  Tabela: usuarios — OK</span>
+<span class="val">  Tabela: sistemas — OK</span>
+<span class="val">  Tabela: servicos — OK</span>
+<span class="val">  Tabela: configuracoes — OK</span>
+<span class="val">  Tabela: logs_atividade — OK</span>
+<span class="val">  Tabela: agenda_listas — OK</span>
+<span class="val">  ... (demais tabelas)</span>
+<span class="val">Usuário admin criado/verificado.</span>
+<span class="val">Setup concluído com sucesso!</span></pre></div>
+
+        <div class="doc-info">
+          <i class="fas fa-info-circle" style="color:#10b981;margin-right:6px"></i>
+          O script é <strong>idempotente</strong> — pode ser executado várias vezes sem duplicar dados.
+          Execute novamente após qualquer atualização que adicione novas tabelas.
+        </div>
+
+        <div class="doc-card">
+          <h4><i class="fas fa-user-shield" style="color:#4e9af1;margin-right:6px"></i> Credenciais do Admin Inicial</h4>
+          <p>Após o setup, o primeiro acesso ao portal é feito com:<br>
+          <strong>Usuário:</strong> <code>admin</code> &nbsp;|&nbsp; <strong>Senha:</strong> <code>admin</code><br>
+          <strong>Troque a senha imediatamente</strong> após o primeiro login em Configurações → Usuários Locais.</p>
+        </div>
+
+        <p style="margin-top:14px"><strong>Verificar conectividade com o SQL Server:</strong></p>
+        <div class="code-label"><span>bash</span> — teste de porta TCP</div>
+        <div class="code-block"><pre><span class="comment"># Testa se a porta 1433 do SQL Server está acessível</span>
+nc -zv 192.168.0.209 1433
+
+<span class="comment"># Alternativa com telnet</span>
+telnet 192.168.0.209 1433</pre></div>
+
+        <p>Se a conexão falhar, verifique:</p>
+        <ul>
+          <li>O SQL Server está com <strong>TCP/IP habilitado</strong> no SQL Server Configuration Manager.</li>
+          <li>O <strong>Firewall do Windows</strong> permite conexões na porta 1433.</li>
+          <li>As credenciais no <code>.env</code> estão corretas e o usuário tem permissão de <strong>dbcreator</strong>.</li>
+        </ul>
+      </section>
+
+      <!-- PM2 -->
+      <section class="doc-secao" id="pm2">
+        <h2><i class="fas fa-recycle"></i> <span class="secao-num">6</span> PM2 — Gerenciador de Processo</h2>
+        <p>O PM2 mantém o portal em execução permanente, reinicia automaticamente em caso de crash e inicia com o sistema operacional.</p>
+
+        <p><strong>Iniciar a aplicação:</strong></p>
+        <div class="code-label"><span>bash</span></div>
+        <div class="code-block"><pre>cd /var/www/html/wkl/Portal
+
+<span class="comment"># Inicia o portal com PM2</span>
+pm2 start portal.js --name portal
+
+<span class="comment"># Verifica se está rodando</span>
+pm2 status</pre></div>
+
+        <p><strong>Configurar inicialização automática no boot:</strong></p>
+        <div class="code-label"><span>bash</span></div>
+        <div class="code-block"><pre><span class="comment"># Gera o comando de startup (copie e execute o comando gerado)</span>
+pm2 startup
+
+<span class="comment"># Salva a lista de processos atual para restaurar no boot</span>
+pm2 save</pre></div>
+
+        <div class="doc-info">
+          <i class="fas fa-info-circle" style="color:#10b981;margin-right:6px"></i>
+          O comando <code>pm2 startup</code> exibe um comando personalizado para o seu sistema. Copie e execute esse comando como root para registrar o serviço.
+        </div>
+
+        <p style="margin-top:14px"><strong>Comandos úteis do PM2:</strong></p>
+        <div class="code-label"><span>bash</span> — gerenciamento do processo</div>
+        <div class="code-block"><pre><span class="comment"># Ver status de todos os processos</span>
+pm2 status
+
+<span class="comment"># Ver logs em tempo real</span>
+pm2 logs portal
+
+<span class="comment"># Reiniciar o portal (após atualização de arquivos)</span>
+pm2 restart portal
+
+<span class="comment"># Parar o portal</span>
+pm2 stop portal
+
+<span class="comment"># Monitorar CPU e memória em tempo real</span>
+pm2 monit
+
+<span class="comment"># Ver informações detalhadas</span>
+pm2 show portal</pre></div>
+      </section>
+
+      <!-- NGINX -->
+      <section class="doc-secao" id="nginx">
+        <h2><i class="fas fa-server"></i> <span class="secao-num">7</span> Nginx — Proxy Reverso</h2>
+        <p>O Nginx recebe as requisições na porta 80 (HTTP padrão) e as repassa ao Node.js na porta 3132. Isso permite acessar o portal sem digitar a porta na URL.</p>
+
+        <div class="passo">
+          <div class="passo-num">1</div>
+          <div class="passo-txt"><strong>Instalar o Nginx:</strong></div>
+        </div>
+        <div class="code-label"><span>bash</span></div>
+        <div class="code-block"><pre>apt install -y nginx
+systemctl enable nginx
+systemctl start nginx</pre></div>
+
+        <div class="passo" style="margin-top:14px">
+          <div class="passo-num">2</div>
+          <div class="passo-txt"><strong>Criar o arquivo de configuração do site:</strong></div>
+        </div>
+        <div class="code-label"><span>bash</span></div>
+        <div class="code-block"><pre>nano /etc/nginx/sites-available/portal-wkl</pre></div>
+
+        <div class="passo" style="margin-top:14px">
+          <div class="passo-num">3</div>
+          <div class="passo-txt"><strong>Conteúdo do arquivo de configuração:</strong></div>
+        </div>
+        <div class="code-label"><span>nginx</span> — /etc/nginx/sites-available/portal-wkl</div>
+        <div class="code-block"><pre>server {
+    listen 80;
+    server_name 192.168.0.80;  <span class="comment"># IP ou domínio do servidor</span>
+
+    <span class="comment"># Tamanho máximo de upload (para Restore de banco)</span>
+    client_max_body_size 60m;
+
+    <span class="comment"># Proxy para o Node.js</span>
+    location / {
+        proxy_pass         http://127.0.0.1:3132;
+        proxy_http_version 1.1;
+        proxy_set_header   Upgrade $http_upgrade;
+        proxy_set_header   Connection 'upgrade';
+        proxy_set_header   Host $host;
+        proxy_set_header   X-Real-IP $remote_addr;
+        proxy_set_header   X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_cache_bypass $http_upgrade;
+
+        <span class="comment"># Timeout para operações longas (backup/restore)</span>
+        proxy_read_timeout 120s;
+        proxy_connect_timeout 10s;
+    }
+
+    <span class="comment"># Logs de acesso e erro</span>
+    access_log /var/log/nginx/portal-wkl.access.log;
+    error_log  /var/log/nginx/portal-wkl.error.log;
+}</pre></div>
+
+        <div class="passo" style="margin-top:14px">
+          <div class="passo-num">4</div>
+          <div class="passo-txt"><strong>Ativar o site e recarregar o Nginx:</strong></div>
+        </div>
+        <div class="code-label"><span>bash</span></div>
+        <div class="code-block"><pre><span class="comment"># Cria o link simbólico para ativar o site</span>
+ln -s /etc/nginx/sites-available/portal-wkl /etc/nginx/sites-enabled/
+
+<span class="comment"># Remove o site padrão (opcional)</span>
+rm -f /etc/nginx/sites-enabled/default
+
+<span class="comment"># Valida a configuração</span>
+nginx -t
+
+<span class="comment"># Recarrega o Nginx</span>
+systemctl reload nginx</pre></div>
+
+        <div class="doc-info">
+          <i class="fas fa-info-circle" style="color:#10b981;margin-right:6px"></i>
+          Após configurar o Nginx, o portal fica acessível em <strong>http://192.168.0.80/</strong> (sem porta).
+          Se preferir manter o acesso direto pela porta 3132, o Nginx é opcional.
+        </div>
+      </section>
+
+      <!-- FIREWALL -->
+      <section class="doc-secao" id="firewall">
+        <h2><i class="fas fa-shield-alt"></i> <span class="secao-num">8</span> Firewall (ufw)</h2>
+        <p>Libere apenas as portas necessárias no firewall do servidor Linux:</p>
+
+        <div class="code-label"><span>bash</span> — configuração do ufw</div>
+        <div class="code-block"><pre><span class="comment"># Ativa o ufw (confirme com "y")</span>
+ufw enable
+
+<span class="comment"># Permite SSH (mantenha sempre liberado!)</span>
+ufw allow 22/tcp
+
+<span class="comment"># Opção A: usando Nginx na porta 80 (recomendado)</span>
+ufw allow 80/tcp
+
+<span class="comment"># Opção B: acesso direto ao Node.js (sem Nginx)</span>
+ufw allow 3132/tcp
+
+<span class="comment"># Verifica as regras ativas</span>
+ufw status verbose</pre></div>
+
+        <div class="doc-danger">
+          <i class="fas fa-lock" style="color:#ef4444;margin-right:6px"></i>
+          <strong>Nunca bloqueie a porta 22 (SSH)</strong> antes de verificar que consegue acessar o servidor novamente — caso contrário, ficará sem acesso remoto.
+        </div>
+
+        <div class="doc-card" style="margin-top:14px">
+          <h4><i class="fas fa-network-wired" style="color:#4e9af1;margin-right:6px"></i> Acesso ao SQL Server</h4>
+          <p>A porta <strong>1433</strong> do SQL Server (em 192.168.0.209) deve estar liberada <em>no firewall do servidor Windows</em> para receber conexões do IP do servidor Linux. Configure uma regra de entrada no Windows Firewall ou Windows Defender Firewall.</p>
+        </div>
+      </section>
+
+      <!-- LOGS -->
+      <section class="doc-secao" id="logs">
+        <h2><i class="fas fa-clipboard-list"></i> <span class="secao-num">9</span> Logs</h2>
+        <p>O sistema mantém logs em dois lugares:</p>
+
+        <div class="doc-card">
+          <h4><i class="fas fa-file-alt" style="color:#4e9af1;margin-right:6px"></i> Logs da Aplicação (Winston)</h4>
+          <p>Arquivos gerados automaticamente em <code>/var/www/html/wkl/Portal/logs/</code>:</p>
+        </div>
+        <div class="code-label"><span>bash</span></div>
+        <div class="code-block"><pre><span class="comment"># Listar arquivos de log</span>
+ls -lh /var/www/html/wkl/Portal/logs/
+
+<span class="comment"># Ver log de atividade (últimas 50 linhas)</span>
+tail -50 /var/www/html/wkl/Portal/logs/atividade.log
+
+<span class="comment"># Ver log de erros</span>
+tail -50 /var/www/html/wkl/Portal/logs/erros.log
+
+<span class="comment"># Monitorar log em tempo real</span>
+tail -f /var/www/html/wkl/Portal/logs/erros.log</pre></div>
+
+        <div class="doc-card" style="margin-top:8px">
+          <h4><i class="fas fa-recycle" style="color:#10b981;margin-right:6px"></i> Logs do PM2</h4>
+          <p>O PM2 captura a saída do processo (stdout/stderr):</p>
+        </div>
+        <div class="code-label"><span>bash</span></div>
+        <div class="code-block"><pre><span class="comment"># Logs em tempo real</span>
+pm2 logs portal
+
+<span class="comment"># Últimas 100 linhas</span>
+pm2 logs portal --lines 100
+
+<span class="comment"># Localização dos arquivos de log do PM2</span>
+ls ~/.pm2/logs/</pre></div>
+
+        <div class="doc-card" style="margin-top:8px">
+          <h4><i class="fas fa-server" style="color:#6b7280;margin-right:6px"></i> Logs do Nginx</h4>
+          <p>Requisições HTTP e erros do proxy reverso:</p>
+        </div>
+        <div class="code-label"><span>bash</span></div>
+        <div class="code-block"><pre>tail -f /var/log/nginx/portal-wkl.access.log
+tail -f /var/log/nginx/portal-wkl.error.log</pre></div>
+      </section>
+
+      <!-- ATUALIZAÇÃO -->
+      <section class="doc-secao" id="atualizacao">
+        <h2><i class="fas fa-sync-alt"></i> <span class="secao-num">10</span> Atualização do Portal</h2>
+        <p>Para aplicar uma nova versão dos arquivos sem interromper o serviço por mais de alguns segundos:</p>
+
+        <div class="code-label"><span>bash</span> — deploy de atualização</div>
+        <div class="code-block"><pre><span class="comment"># 1. Copie os arquivos novos do Windows para o servidor (via SCP)</span>
+<span class="comment">#    Exemplo — copiar apenas os arquivos modificados:</span>
+<span class="comment">#    scp "C:\Portal\routes\portal.js" user@192.168.0.80:/var/www/html/wkl/Portal/routes/</span>
+
+<span class="comment"># 2. Se adicionou novas tabelas, rode o setup do banco</span>
+cd /var/www/html/wkl/Portal
+node criarBancoPortal.js
+
+<span class="comment"># 3. Reinicia o processo (zero-downtime)</span>
+pm2 restart portal
+
+<span class="comment"># 4. Verifica se voltou a funcionar</span>
+pm2 status
+pm2 logs portal --lines 20</pre></div>
+
+        <div class="doc-info">
+          <i class="fas fa-info-circle" style="color:#10b981;margin-right:6px"></i>
+          Para atualizações que envolvem muitos arquivos, use <code>scp -r</code> para copiar toda a pasta de uma vez e depois <code>pm2 restart portal</code>.
+        </div>
+
+        <p style="margin-top:14px"><strong>Script de deploy completo (opcional):</strong></p>
+        <div class="code-label"><span>bash</span> — salvar como /usr/local/bin/deploy-portal</div>
+        <div class="code-block"><pre>#!/bin/bash
+<span class="comment"># Script de deploy do Portal WKL</span>
+set -e
+
+APP_DIR="/var/www/html/wkl/Portal"
+
+echo "==> Instalando dependências..."
+cd $APP_DIR && npm install --omit=dev
+
+echo "==> Executando setup do banco..."
+node criarBancoPortal.js
+
+echo "==> Reiniciando aplicação..."
+pm2 restart portal
+
+echo "==> Deploy concluído!"
+pm2 status</pre></div>
+        <div class="code-label"><span>bash</span> — tornar executável</div>
+        <div class="code-block"><pre>chmod +x /usr/local/bin/deploy-portal
+<span class="comment"># Executar depois de copiar os arquivos:</span>
+deploy-portal</pre></div>
+      </section>
+
+      <!-- TROUBLESHOOT -->
+      <section class="doc-secao" id="troubleshoot">
+        <h2><i class="fas fa-bug"></i> Solução de Problemas</h2>
+
+        <div class="doc-card">
+          <h4><i class="fas fa-times-circle" style="color:#ef4444;margin-right:6px"></i> Erro: "Cannot connect to SQL Server"</h4>
+          <p>
+            1. Verifique a conectividade: <code>nc -zv 192.168.0.209 1433</code><br>
+            2. Confirme que TCP/IP está habilitado no SQL Server (SQL Server Configuration Manager → Protocols for MSSQLSERVER → TCP/IP = Enabled).<br>
+            3. Verifique as credenciais no <code>.env</code> — o usuário precisa ter permissão <strong>dbcreator</strong> ou acesso ao banco <strong>PortalSistemas</strong>.<br>
+            4. Confirme que o Firewall do Windows libera a porta 1433 para o IP do servidor Linux.
+          </p>
+        </div>
+
+        <div class="doc-card">
+          <h4><i class="fas fa-times-circle" style="color:#ef4444;margin-right:6px"></i> Erro: "EADDRINUSE — porta 3132 em uso"</h4>
+          <p>
+            Outra instância do portal já está rodando. Pare ela primeiro:<br>
+            <code>pm2 stop portal</code> ou <code>fuser -k 3132/tcp</code>
+          </p>
+        </div>
+
+        <div class="doc-card">
+          <h4><i class="fas fa-times-circle" style="color:#ef4444;margin-right:6px"></i> Portal não inicia após reboot</h4>
+          <p>
+            Execute novamente os comandos de startup do PM2:<br>
+            <code>pm2 startup</code> → copie e execute o comando gerado → <code>pm2 save</code>
+          </p>
+        </div>
+
+        <div class="doc-card">
+          <h4><i class="fas fa-times-circle" style="color:#ef4444;margin-right:6px"></i> Nginx retorna 502 Bad Gateway</h4>
+          <p>
+            O Node.js não está rodando ou está na porta errada.<br>
+            1. <code>pm2 status</code> — verifique se o processo está <strong>online</strong>.<br>
+            2. <code>pm2 restart portal</code> — reinicia o processo.<br>
+            3. Confirme que a porta no <code>.env</code> (PORTA_APP) bate com o <code>proxy_pass</code> do Nginx.
+          </p>
+        </div>
+
+        <div class="doc-card">
+          <h4><i class="fas fa-times-circle" style="color:#ef4444;margin-right:6px"></i> Login não funciona (sessão não persiste)</h4>
+          <p>
+            Verifique se o <code>SESSION_SECRET</code> no <code>.env</code> está definido e não está em branco.
+            Após alterar o <code>.env</code>, sempre reinicie: <code>pm2 restart portal</code>.
+          </p>
+        </div>
+
+        <div class="doc-card">
+          <h4><i class="fas fa-times-circle" style="color:#ef4444;margin-right:6px"></i> Permissão negada em /logs ou /uploads</h4>
+          <p>
+            Ajuste o dono dos diretórios para o usuário que roda o PM2:<br>
+            <code>chown -R $USER:$USER /var/www/html/wkl/Portal/logs /var/www/html/wkl/Portal/uploads</code>
+          </p>
+        </div>
+
+        <p style="margin-top:14px"><strong>Diagnóstico geral:</strong></p>
+        <div class="code-label"><span>bash</span></div>
+        <div class="code-block"><pre><span class="comment"># Checar todos os processos PM2</span>
+pm2 status
+
+<span class="comment"># Ver erros recentes da aplicação</span>
+pm2 logs portal --err --lines 30
+
+<span class="comment"># Testar se o portal responde localmente</span>
+curl -I http://127.0.0.1:3132/login.html
+
+<span class="comment"># Checar se a porta está escutando</span>
+ss -tlnp | grep 3132
+
+<span class="comment"># Checar uso de memória e CPU</span>
+pm2 monit</pre></div>
+      </section>
+
+    </main>
+  </div>
+
+  <script src="/js/menu.js"></script>
+</body>
+</html>

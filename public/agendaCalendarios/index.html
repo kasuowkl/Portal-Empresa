@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<!--
+  ARQUIVO: public/agendaCalendarios/index.html
+  VERSÃO: 1.0.0
+  DATA: 2026-03-23
+  DESCRIÇÃO: Agenda de Calendários — interface com FullCalendar
+-->
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portal WKL — Agenda de Calendários</title>
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/menu.css">
+  <link rel="stylesheet" href="/agendaCalendarios/css/calendarios.css">
+
+  <!-- FullCalendar 6.x via CDN (bundle completo: core + daygrid + timegrid + list + interaction) -->
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
+
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      padding-top: var(--altura-menu);
+      overflow: hidden;
+    }
+    #fullcalendar {
+      font-size: 0.9rem;
+    }
+    .fc-col-header-cell {
+      padding: 8px 2px !important;
+      font-size: 0.85rem;
+    }
+    .fc-daygrid-day-number {
+      font-size: 0.85rem;
+    }
+    .fc-event-title {
+      font-size: 0.8rem;
+      padding: 0 2px;
+    }
+    .fc-button-group > button {
+      font-size: 0.85rem !important;
+      padding: 4px 8px !important;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="menu-container"></div>
+
+  <div class="cal-layout">
+    <!-- ── SIDEBAR ── -->
+    <aside class="cal-sidebar">
+      <button class="btn-nova-agenda">
+        <i class="fas fa-plus"></i> Novo Calendário
+      </button>
+
+      <!-- Meus Calendários -->
+      <div class="sidebar-secao">
+        <div class="sidebar-titulo">Meus Calendários</div>
+        <div id="lista-meus-calendarios"></div>
+      </div>
+
+      <!-- Calendários Compartilhados -->
+      <div class="sidebar-secao">
+        <div class="sidebar-titulo">Compartilhados</div>
+        <div id="lista-compartilhados"></div>
+      </div>
+
+      <!-- Google Calendar Status -->
+      <div class="google-status">
+        <div class="sidebar-titulo">Google Calendar</div>
+        <div class="google-status-box">
+          <div class="google-indicator">
+            <div class="google-indicator-dot" id="google-indicator"></div>
+            <span id="google-text">Desconectado</span>
+          </div>
+          <div class="google-buttons">
+            <button class="btn-google-action" id="btn-google-config">⚙️ CalDAV</button>
+            <button class="btn-google-action" id="btn-ical-config">📅 URL iCal</button>
+            <button class="btn-google-action" id="btn-google-sync" style="display:none;">🔄 Sincronizar</button>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ── MAIN ── -->
+    <main class="cal-main">
+      <!-- Toolbar -->
+      <div class="cal-toolbar">
+        <div class="cal-toolbar-left">
+          <button class="cal-nav-btn" id="btn-prev" title="Anterior">
+            <i class="fas fa-chevron-left"></i>
+          </button>
+          <div class="cal-period" id="periodo">Março 2026</div>
+          <button class="cal-nav-btn" id="btn-next" title="Próximo">
+            <i class="fas fa-chevron-right"></i>
+          </button>
+          <button class="cal-nav-btn" id="btn-hoje" title="Hoje">
+            <i class="fas fa-calendar-day"></i>
+          </button>
+        </div>
+        <div class="cal-views">
+          <button class="cal-view-btn ativo" data-view="dayGridMonth">Mês</button>
+          <button class="cal-view-btn" data-view="timeGridWeek">Semana</button>
+          <button class="cal-view-btn" data-view="timeGridDay">Dia</button>
+          <button class="cal-view-btn" data-view="listWeek">Lista</button>
+        </div>
+      </div>
+
+      <!-- FullCalendar -->
+      <div id="fullcalendar"></div>
+    </main>
+  </div>
+
+  <!-- ── MODAIS ── -->
+
+  <!-- Modal: Novo/Editar Calendário -->
+  <div class="modal-cal" id="modal-calendario">
+    <div class="modal-cal-content">
+      <div class="modal-header">
+        <h2 id="modal-cal-titulo">Novo Calendário</h2>
+        <button class="btn-fechar" onclick="fecharModalCalendario()">×</button>
+      </div>
+      <form onsubmit="salvarCalendario(event)">
+        <div class="form-group">
+          <label>Nome</label>
+          <input type="text" id="cal-nome" required>
+        </div>
+        <div class="form-group">
+          <label>Descrição</label>
+          <textarea id="cal-descricao"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Cor</label>
+          <input type="color" id="cal-cor" value="#3b82f6">
+        </div>
+        <div class="btn-group">
+          <button type="button" class="btn-secondary" onclick="fecharModalCalendario()">Cancelar</button>
+          <button type="submit" class="btn-primary">Salvar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Novo/Editar Evento -->
+  <div class="modal-cal" id="modal-evento">
+    <div class="modal-cal-content">
+      <div class="modal-header">
+        <h2 id="modal-eve-titulo">Novo Evento</h2>
+        <button class="btn-fechar" onclick="fecharModalEvento()">×</button>
+      </div>
+      <form onsubmit="salvarEvento(event)">
+        <div class="form-group">
+          <label>Calendário</label>
+          <select id="eve-agenda" required></select>
+        </div>
+        <div class="form-group">
+          <label>Título</label>
+          <input type="text" id="eve-titulo" required>
+        </div>
+        <div class="form-group">
+          <label>Descrição</label>
+          <textarea id="eve-descricao"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Data e Hora Início</label>
+          <input type="datetime-local" id="eve-inicio" required>
+        </div>
+        <div class="form-group">
+          <label>Data e Hora Fim</label>
+          <input type="datetime-local" id="eve-fim" required>
+        </div>
+        <div class="form-group">
+          <label>
+            <input type="checkbox" id="eve-dia-inteiro">
+            Dia inteiro
+          </label>
+        </div>
+        <div class="form-group">
+          <label>Cor</label>
+          <input type="color" id="eve-cor">
+        </div>
+        <div class="form-group">
+          <label>Recorrência</label>
+          <select id="eve-recorrencia">
+            <option value="">Nenhuma</option>
+            <option value="diario">Diário</option>
+            <option value="semanal">Semanal</option>
+            <option value="mensal">Mensal</option>
+            <option value="anual">Anual</option>
+          </select>
+        </div>
+        <div class="btn-group">
+          <button type="button" class="btn-secondary" onclick="fecharModalEvento()">Cancelar</button>
+          <button type="button" class="btn-secondary" id="btn-excluir-evento" style="display:none; background:#ef4444; color:white; border-color:#ef4444;" onclick="excluirEvento()">Excluir</button>
+          <button type="submit" class="btn-primary">Salvar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Configurar Google Calendar -->
+  <div class="modal-cal" id="modal-google-config">
+    <div class="modal-cal-content">
+      <div class="modal-header">
+        <h2>Conectar Google Calendar</h2>
+        <button class="btn-fechar" onclick="fecharModalGoogleConfig()">×</button>
+      </div>
+      <p style="color: var(--cor-texto-fraco); font-size: 0.9rem; margin-bottom: 16px;">
+        Primeiro, gere uma Senha de App em <strong>myaccount.google.com/apppasswords</strong>
+      </p>
+      <form onsubmit="configurarGoogle(event)">
+        <div class="form-group">
+          <label>Email Google</label>
+          <input type="email" id="google-email" required>
+        </div>
+        <div class="form-group">
+          <label>Senha de App</label>
+          <input type="password" id="google-senha" required>
+        </div>
+        <div class="btn-group">
+          <button type="button" class="btn-secondary" onclick="fecharModalGoogleConfig()">Cancelar</button>
+          <button type="submit" class="btn-primary">Conectar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Sincronizar via URL iCal -->
+  <div class="modal-cal" id="modal-ical-config">
+    <div class="modal-cal-content">
+      <div class="modal-header">
+        <h2>Importar via URL iCal</h2>
+        <button class="btn-fechar" onclick="document.getElementById('modal-ical-config').classList.remove('ativo')">×</button>
+      </div>
+      <p style="color: var(--cor-texto-fraco); font-size: 0.9rem; margin-bottom: 16px;">
+        No Google Calendar: Configurações da agenda → <strong>"Endereço público no formato iCal"</strong> ou <strong>"Endereço secreto"</strong>. Cole a URL abaixo.
+      </p>
+      <form onsubmit="sincronizarIcal(event)">
+        <div class="form-group">
+          <label>URL iCal (.ics)</label>
+          <input type="url" id="ical-url" required placeholder="https://calendar.google.com/calendar/ical/.../basic.ics">
+        </div>
+        <div class="form-group">
+          <label>Nome da Agenda</label>
+          <input type="text" id="ical-nome" placeholder="Ex: Trabalho, Pessoal...">
+        </div>
+        <div class="btn-group">
+          <button type="button" class="btn-secondary" onclick="document.getElementById('modal-ical-config').classList.remove('ativo')">Cancelar</button>
+          <button type="submit" class="btn-primary" id="btn-ical-submit">Importar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="/js/menu.js"></script>
+  <script>
+    // ── VARIÁVEIS GLOBAIS ──
+    let usuarioLogado = null;
+    let calendarioAtivo = null;
+    let agendas = [];
+    let calendar = null;
+    let eventoEmEdicao = null;
+    const API = '/api/calendarios';
+
+    // ── INICIALIZAÇÃO ──
+    document.addEventListener('DOMContentLoaded', async () => {
+      // Obter usuário logado (definido pelo menu.js)
+      usuarioLogado = window.usuarioLogado || 'usuario';
+      // Verificação de autenticação é feita nas APIs (via verificarLogin middleware)
+
+      await carregarAgendas();
+      await carregarStatusGoogle();
+      inicializarFullCalendar();
+      anexarEventos();
+    });
+
+    // ── CARREGAR AGENDAS ──
+    async function carregarAgendas() {
+      try {
+        const r = await fetch(`${API}/agendas`);
+        if (r.status === 401) {
+          window.location.href = '/login.html';
+          return;
+        }
+        const dados = await r.json();
+        if (dados.sucesso) {
+          agendas = dados.agendas;
+          renderizarAgendas();
+        }
+      } catch (erro) {
+        console.error('Erro ao carregar agendas:', erro);
+      }
+    }
+
+    // ── RENDERIZAR AGENDAS NA SIDEBAR ──
+    function renderizarAgendas() {
+      const minhasDiv = document.getElementById('lista-meus-calendarios');
+      const compartDiv = document.getElementById('lista-compartilhados');
+      minhasDiv.innerHTML = '';
+      compartDiv.innerHTML = '';
+
+      const minhas = agendas.filter(a => a.permissao === 'dono');
+      const compart = agendas.filter(a => a.permissao !== 'dono');
+
+      minhas.forEach(a => {
+        const item = criarItemCalendario(a);
+        minhasDiv.appendChild(item);
+      });
+
+      compart.forEach(a => {
+        const item = criarItemCalendario(a);
+        compartDiv.appendChild(item);
+      });
+
+      // Preencher select de agendas no modal
+      const select = document.getElementById('eve-agenda');
+      select.innerHTML = '';
+      agendas.filter(a => a.permissao !== 'leitura').forEach(a => {
+        const opt = document.createElement('option');
+        opt.value = a.id;
+        opt.textContent = a.nome;
+        select.appendChild(opt);
+      });
+    }
+
+    // ── CRIAR ITEM CALENDÁRIO ──
+    function criarItemCalendario(agenda) {
+      const div = document.createElement('div');
+      div.className = 'cal-item';
+
+      const checkbox = document.createElement('input');
+      checkbox.type = 'checkbox';
+      checkbox.checked = true;
+      checkbox.dataset.agendaId = agenda.id;
+      checkbox.onchange = () => {
+        calendar.refetchEvents();
+      };
+
+      const cor = document.createElement('div');
+      cor.className = 'cal-item-cor';
+      cor.style.backgroundColor = agenda.cor;
+
+      const nome = document.createElement('span');
+      nome.className = 'cal-item-nome';
+      nome.textContent = agenda.nome;
+
+      const btnMenu = document.createElement('button');
+      btnMenu.className = 'btn-menu';
+      btnMenu.innerHTML = '⋮';
+      btnMenu.onclick = (e) => {
+        e.stopPropagation();
+        mostrarMenuAgenda(agenda, btnMenu);
+      };
+
+      div.appendChild(checkbox);
+      div.appendChild(cor);
+      div.appendChild(nome);
+      if (agenda.permissao !== 'leitura') {
+        div.appendChild(btnMenu);
+      }
+
+      return div;
+    }
+
+    // ── INICIALIZAR FULLCALENDAR ──
+    function inicializarFullCalendar() {
+      const calendarEl = document.getElementById('fullcalendar');
+      calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        headerToolbar: false,
+        locale: 'pt-br',
+        height: '100%',
+        contentHeight: '100%',
+        editable: true,
+        eventStartEditable: true,
+        eventDurationEditable: true,
+        selectable: true,
+        dateClick: (info) => {
+          if (agendas.length === 0) {
+            toast('Crie um calendário primeiro', 'erro');
+            return;
+          }
+          const fim = new Date(info.date);
+          fim.setHours(fim.getHours() + 1);
+          abrirNovoEvento({
+            start: info.date,
+            end: fim,
+            allDay: info.allDay
+          });
+        },
+        eventClick: (info) => {
+          eventoEmEdicao = info.event;
+          abrirModalEvento(info.event.extendedProps);
+        },
+        select: (info) => {
+          if (agendas.length === 0) {
+            toast('Crie um calendário primeiro', 'erro');
+            return;
+          }
+          abrirNovoEvento({
+            start: info.start,
+            end: info.end,
+            allDay: info.allDay
+          });
+        },
+        events: carregarEventos,
+        eventDrop: (info) => {
+          atualizarEvento(info.event);
+        },
+        eventResize: (info) => {
+          atualizarEvento(info.event);
+        }
+      });
+      calendar.render();
+
+      // Atualizar período quando mudar mês/semana
+      calendar.on('datesSet', () => {
+        atualizarPeriodo();
+      });
+    }
+
+    // ── CARREGAR EVENTOS ──
+    async function carregarEventos(info, successCallback) {
+      const checkboxes = document.querySelectorAll('.cal-item input[type="checkbox"]:checked');
+      const agendaIds = Array.from(checkboxes)
+        .map(cb => parseInt(cb.dataset.agendaId))
+        .filter(Boolean);
+
+      try {
+        const query = new URLSearchParams({
+          start: info.start.toISOString(),
+          end: info.end.toISOString(),
+          agendas: agendaIds.join(',')
+        });
+        const r = await fetch(`${API}/eventos?${query}`);
+        const dados = await r.json();
+        if (dados.sucesso) {
+          const eventos = dados.eventos.map(e => ({
+            id: e.id,
+            title: e.titulo,
+            start: e.inicio,
+            end: e.fim,
+            allDay: e.dia_inteiro === 1,
+            backgroundColor: e.cor || agendas.find(a => a.id === e.agenda_id)?.cor || '#3b82f6',
+            borderColor: e.cor || agendas.find(a => a.id === e.agenda_id)?.cor || '#3b82f6',
+            extendedProps: e
+          }));
+          successCallback(eventos);
+        }
+      } catch (erro) {
+        console.error('Erro ao carregar eventos:', erro);
+      }
+    }
+
+    // ── ATUALIZAR PERÍODO ──
+    function atualizarPeriodo() {
+      const view = calendar.view;
+      const start = view.activeStart;
+      const end = view.activeEnd;
+      const formatter = new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric' });
+      document.getElementById('periodo').textContent = formatter.format(start).charAt(0).toUpperCase() + formatter.format(start).slice(1);
+    }
+
+    // ── ABRIR MODAL NOVO EVENTO ──
+    function abrirNovoEvento(info) {
+      eventoEmEdicao = null;
+      document.getElementById('modal-eve-titulo').textContent = 'Novo Evento';
+      document.getElementById('eve-titulo').value = '';
+      document.getElementById('eve-descricao').value = '';
+      document.getElementById('eve-dia-inteiro').checked = info.allDay || false;
+      document.getElementById('eve-cor').value = '#3b82f6';
+      document.getElementById('eve-recorrencia').value = '';
+      document.getElementById('btn-excluir-evento').style.display = 'none';
+
+      if (info.start) {
+        document.getElementById('eve-inicio').value = dataParaInput(info.start);
+      }
+      if (info.end) {
+        document.getElementById('eve-fim').value = dataParaInput(info.end);
+      }
+
+      document.getElementById('modal-evento').classList.add('ativo');
+    }
+
+    // ── ABRIR MODAL EDITAR EVENTO ──
+    function abrirModalEvento(evento) {
+      document.getElementById('modal-eve-titulo').textContent = 'Editar Evento';
+      document.getElementById('eve-titulo').value = evento.titulo || '';
+      document.getElementById('eve-descricao').value = evento.descricao || '';
+      document.getElementById('eve-dia-inteiro').checked = evento.dia_inteiro === 1;
+      document.getElementById('eve-cor').value = evento.cor || '#3b82f6';
+      document.getElementById('eve-recorrencia').value = evento.recorrencia || '';
+      document.getElementById('eve-agenda').value = evento.agenda_id;
+      document.getElementById('eve-inicio').value = dataParaInput(evento.inicio);
+      document.getElementById('eve-fim').value = dataParaInput(evento.fim);
+      document.getElementById('btn-excluir-evento').style.display = 'block';
+
+      document.getElementById('modal-evento').classList.add('ativo');
+    }
+
+    // ── FECHAR MODAL EVENTO ──
+    function fecharModalEvento() {
+      document.getElementById('modal-evento').classList.remove('ativo');
+      eventoEmEdicao = null;
+    }
+
+    // ── SALVAR EVENTO ──
+    async function salvarEvento(e) {
+      e.preventDefault();
+
+      const evento = {
+        titulo: document.getElementById('eve-titulo').value,
+        descricao: document.getElementById('eve-descricao').value,
+        inicio: document.getElementById('eve-inicio').value,
+        fim: document.getElementById('eve-fim').value,
+        dia_inteiro: document.getElementById('eve-dia-inteiro').checked,
+        cor: document.getElementById('eve-cor').value,
+        recorrencia: document.getElementById('eve-recorrencia').value,
+        agenda_id: parseInt(document.getElementById('eve-agenda').value)
+      };
+
+      try {
+        const url = eventoEmEdicao
+          ? `${API}/eventos/${eventoEmEdicao.id}`
+          : `${API}/eventos`;
+        const method = eventoEmEdicao ? 'PATCH' : 'POST';
+
+        const r = await fetch(url, {
+          method,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(evento)
+        });
+
+        const dados = await r.json();
+        if (dados.sucesso) {
+          toast(eventoEmEdicao ? 'Evento atualizado' : 'Evento criado', 'sucesso');
+          fecharModalEvento();
+          calendar.refetchEvents();
+        } else {
+          toast(dados.erro || 'Erro ao salvar evento', 'erro');
+        }
+      } catch (erro) {
+        toast('Erro ao salvar evento', 'erro');
+      }
+    }
+
+    // ── EXCLUIR EVENTO ──
+    async function excluirEvento() {
+      if (!eventoEmEdicao) return;
+      if (!confirm('Deseja excluir este evento?')) return;
+
+      try {
+        const r = await fetch(`${API}/eventos/${eventoEmEdicao.id}`, { method: 'DELETE' });
+        const dados = await r.json();
+        if (dados.sucesso) {
+          toast('Evento excluído', 'sucesso');
+          fecharModalEvento();
+          calendar.refetchEvents();
+        } else {
+          toast(dados.erro || 'Erro ao excluir', 'erro');
+        }
+      } catch (erro) {
+        toast('Erro ao excluir evento', 'erro');
+      }
+    }
+
+    // ── ATUALIZAR EVENTO ──
+    async function atualizarEvento(event) {
+      const evento = {
+        titulo: event.title,
+        inicio: event.start.toISOString(),
+        fim: event.end?.toISOString() || event.start.toISOString(),
+        dia_inteiro: event.allDay ? 1 : 0
+      };
+
+      try {
+        const r = await fetch(`${API}/eventos/${event.id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(evento)
+        });
+
+        if (!r.ok) {
+          calendar.refetchEvents();
+          toast('Erro ao atualizar evento', 'erro');
+        }
+      } catch (erro) {
+        calendar.refetchEvents();
+      }
+    }
+
+    // ── MODAL CALENDÁRIO ──
+    function abrirModalCalendario() {
+      document.getElementById('modal-cal-titulo').textContent = 'Novo Calendário';
+      document.getElementById('cal-nome').value = '';
+      document.getElementById('cal-descricao').value = '';
+      document.getElementById('cal-cor').value = '#3b82f6';
+      document.getElementById('modal-calendario').dataset.editId = '';
+      document.getElementById('modal-calendario').classList.add('ativo');
+    }
+
+    function fecharModalCalendario() {
+      document.getElementById('modal-calendario').classList.remove('ativo');
+      document.getElementById('modal-calendario').dataset.editId = '';
+    }
+
+    async function salvarCalendario(e) {
+      e.preventDefault();
+
+      const modal = document.getElementById('modal-calendario');
+      const editId = modal.dataset.editId;
+
+      const calendario = {
+        nome: document.getElementById('cal-nome').value,
+        descricao: document.getElementById('cal-descricao').value,
+        cor: document.getElementById('cal-cor').value
+      };
+
+      try {
+        const url = editId ? `${API}/agendas/${editId}` : `${API}/agendas`;
+        const method = editId ? 'PATCH' : 'POST';
+
+        const r = await fetch(url, {
+          method,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(calendario)
+        });
+
+        const dados = await r.json();
+        if (dados.sucesso) {
+          toast(editId ? 'Calendário atualizado' : 'Calendário criado', 'sucesso');
+          fecharModalCalendario();
+          await carregarAgendas();
+          calendar.refetchEvents();
+        } else {
+          toast(dados.erro || 'Erro ao salvar calendário', 'erro');
+        }
+      } catch (erro) {
+        toast('Erro ao salvar calendário', 'erro');
+      }
+    }
+
+    // ── GOOGLE CALENDAR ──
+    async function carregarStatusGoogle() {
+      try {
+        const r = await fetch(`${API}/caldav/status`);
+        const dados = await r.json();
+        const indicator = document.getElementById('google-indicator');
+        const text = document.getElementById('google-text');
+        const btnSync = document.getElementById('btn-google-sync');
+        const btnConfig = document.getElementById('btn-google-config');
+
+        if (dados.conectado) {
+          indicator.classList.add('conectado');
+          text.textContent = `✓ ${dados.email}`;
+          btnSync.style.display = 'block';
+          btnConfig.textContent = '🔄 Reconectar';
+          // Guardar email para preencher no modal
+          window._googleEmail = dados.email;
+        } else {
+          window._googleEmail = '';
+          indicator.classList.remove('conectado');
+          text.textContent = 'Desconectado';
+          btnSync.style.display = 'none';
+          btnConfig.textContent = '⚙️ Configurar';
+        }
+      } catch (erro) {
+        console.error('Erro ao carregar status Google:', erro);
+      }
+    }
+
+    function abrirModalGoogleConfig() {
+      // Preencher email já cadastrado
+      if (window._googleEmail) {
+        document.getElementById('google-email').value = window._googleEmail;
+      }
+      document.getElementById('google-senha').value = '';
+      document.getElementById('modal-google-config').classList.add('ativo');
+    }
+
+    function fecharModalGoogleConfig() {
+      document.getElementById('modal-google-config').classList.remove('ativo');
+    }
+
+    async function configurarGoogle(e) {
+      e.preventDefault();
+
+      const config = {
+        email_google: document.getElementById('google-email').value,
+        senha_app: document.getElementById('google-senha').value
+      };
+
+      try {
+        const r = await fetch(`${API}/caldav/configurar`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(config)
+        });
+
+        const dados = await r.json();
+        if (dados.sucesso) {
+          toast('Google Calendar conectado!', 'sucesso');
+          fecharModalGoogleConfig();
+          await carregarStatusGoogle();
+        } else {
+          toast(dados.erro || 'Erro ao conectar', 'erro');
+        }
+      } catch (erro) {
+        toast('Erro ao conectar', 'erro');
+      }
+    }
+
+    async function sincronizarGoogle() {
+      // Pegar IDs das agendas selecionadas (checkbox marcado)
+      const checks = document.querySelectorAll('input[type="checkbox"][data-agenda-id]:checked');
+      const agendaIds = [...checks].map(c => parseInt(c.dataset.agendaId));
+
+      try {
+        const r = await fetch(`${API}/caldav/sincronizar`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ agenda_ids: agendaIds })
+        });
+        const dados = await r.json();
+        if (dados.sucesso) {
+          toast(dados.mensagem || 'Sincronização completa', 'sucesso');
+          await carregarAgendas();
+          calendar.refetchEvents();
+        } else {
+          toast(dados.erro || 'Erro na sincronização', 'erro');
+        }
+      } catch (erro) {
+        toast('Erro ao sincronizar', 'erro');
+      }
+    }
+
+    async function sincronizarIcal(e) {
+      e.preventDefault();
+      const url = document.getElementById('ical-url').value.trim();
+      const nome = document.getElementById('ical-nome').value.trim();
+      const btnSubmit = document.getElementById('btn-ical-submit');
+
+      if (!url) return;
+
+      btnSubmit.disabled = true;
+      btnSubmit.textContent = 'Importando...';
+
+      try {
+        const r = await fetch(`${API}/ical/sincronizar`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url, nome: nome || undefined })
+        });
+        const dados = await r.json();
+
+        if (dados.sucesso) {
+          toast(dados.mensagem || 'Sincronização concluída!', 'sucesso');
+          document.getElementById('modal-ical-config').classList.remove('ativo');
+          carregarAgendas();
+          calendar.refetchEvents();
+        } else {
+          toast(dados.erro || 'Erro na sincronização', 'erro');
+        }
+      } catch (erro) {
+        toast('Erro ao sincronizar via iCal', 'erro');
+      } finally {
+        btnSubmit.disabled = false;
+        btnSubmit.textContent = 'Importar';
+      }
+    }
+
+    function mostrarMenuAgenda(agenda, btn) {
+      // Remover menu existente se houver
+      const menuExistente = document.querySelector('.menu-contexto');
+      if (menuExistente) menuExistente.remove();
+
+      const menu = document.createElement('div');
+      menu.className = 'menu-contexto';
+      menu.innerHTML = `
+        <button onclick="editarAgenda(${agenda.id}, '${agenda.nome.replace(/'/g, "\\'")}', '${agenda.descricao ? agenda.descricao.replace(/'/g, "\\'") : ''}', '${agenda.cor}')">
+          <i class="fas fa-edit"></i> Editar
+        </button>
+        <button onclick="deletarAgenda(${agenda.id}, '${agenda.nome.replace(/'/g, "\\'")}')">
+          <i class="fas fa-trash"></i> Excluir
+        </button>
+      `;
+
+      // Posicionar menu
+      const rect = btn.getBoundingClientRect();
+      menu.style.position = 'fixed';
+      menu.style.top = rect.bottom + 'px';
+      menu.style.left = rect.left + 'px';
+      menu.style.zIndex = '9999';
+
+      document.body.appendChild(menu);
+
+      // Fechar ao clicar fora
+      setTimeout(() => {
+        document.addEventListener('click', function fechar() {
+          menu.remove();
+          document.removeEventListener('click', fechar);
+        }, { once: true });
+      }, 10);
+    }
+
+    // ── EDITAR AGENDA ──
+    function editarAgenda(id, nome, descricao, cor) {
+      document.getElementById('modal-cal-titulo').textContent = 'Editar Calendário';
+      document.getElementById('cal-nome').value = nome;
+      document.getElementById('cal-descricao').value = descricao;
+      document.getElementById('cal-cor').value = cor;
+      document.getElementById('modal-calendario').dataset.editId = id;
+      document.getElementById('modal-calendario').classList.add('ativo');
+    }
+
+    // ── DELETAR AGENDA ──
+    async function deletarAgenda(id, nome) {
+      if (!confirm(`Deseja excluir o calendário "${nome}"?\nTodos os eventos serão removidos.`)) return;
+
+      try {
+        const r = await fetch(`${API}/agendas/${id}`, { method: 'DELETE' });
+        const dados = await r.json();
+        if (dados.sucesso) {
+          toast('Calendário excluído', 'sucesso');
+          await carregarAgendas();
+          calendar.refetchEvents();
+        } else {
+          toast(dados.erro || 'Erro ao excluir', 'erro');
+        }
+      } catch (erro) {
+        toast('Erro ao excluir calendário', 'erro');
+      }
+    }
+
+    // ── HELPER: converter data para formato datetime-local (fuso local) ──
+    function dataParaInput(data) {
+      const dt = new Date(data);
+      const ano = dt.getFullYear();
+      const mes = String(dt.getMonth() + 1).padStart(2, '0');
+      const dia = String(dt.getDate()).padStart(2, '0');
+      const hora = String(dt.getHours()).padStart(2, '0');
+      const min = String(dt.getMinutes()).padStart(2, '0');
+      return `${ano}-${mes}-${dia}T${hora}:${min}`;
+    }
+
+    // ── TOAST ──
+    function toast(mensagem, tipo = 'sucesso') {
+      const div = document.createElement('div');
+      div.className = `toast ${tipo === 'erro' ? 'erro' : ''}`;
+      div.textContent = mensagem;
+      document.body.appendChild(div);
+      setTimeout(() => div.remove(), 3000);
+    }
+
+    // ── ANEXAR EVENTOS ──
+    function anexarEventos() {
+      document.querySelector('.btn-nova-agenda').onclick = abrirModalCalendario;
+      document.getElementById('btn-prev').onclick = () => calendar.prev();
+      document.getElementById('btn-next').onclick = () => calendar.next();
+      document.getElementById('btn-hoje').onclick = () => calendar.today();
+      document.getElementById('btn-google-config').onclick = abrirModalGoogleConfig;
+      document.getElementById('btn-google-sync').onclick = sincronizarGoogle;
+      document.getElementById('btn-ical-config').onclick = () => document.getElementById('modal-ical-config').classList.add('ativo');
+
+      document.querySelectorAll('.cal-view-btn').forEach(btn => {
+        btn.onclick = (e) => {
+          document.querySelectorAll('.cal-view-btn').forEach(b => b.classList.remove('ativo'));
+          btn.classList.add('ativo');
+          calendar.changeView(btn.dataset.view);
+        };
+      });
+    }
+  </script>
+</body>
+</html>

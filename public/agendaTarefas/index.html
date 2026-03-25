@@ -1,0 +1,1934 @@
+<!DOCTYPE html>
+<!--
+  ARQUIVO: public/agendaTarefas/index.html
+  VERSÃO:  1.0.0
+  DATA:    2026-03-03
+  DESCRIÇÃO: Agenda de Tarefas — módulo integrado ao Portal WKL
+-->
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portal WKL — Agenda de Tarefas</title>
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/menu.css">
+  <link rel="stylesheet" href="/agendaTarefas/css/agenda.css">
+
+  <style>
+    /* Remove padding-top do body para a agenda ocupar tela cheia abaixo do menu */
+    body { padding-top: var(--altura-menu); overflow: hidden; }
+
+    /* ── Passos / checklist ── */
+    .passos-box {
+      background: var(--cor-fundo-2);
+      border: 1px solid var(--cor-borda);
+      border-radius: 6px;
+      padding: 6px 8px;
+      margin-top: 4px;
+      width: 100%;
+      box-sizing: border-box;
+      overflow-y: auto;
+      max-height: 180px;
+    }
+    .passos-lista {
+      list-style: none;
+      padding: 0; margin: 0;
+      width: 100%;
+    }
+    .passo-item {
+      display: grid;
+      grid-template-columns: 16px 1fr auto auto;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      width: 100%;
+      box-sizing: border-box;
+      font-size: 0.8rem;
+    }
+    .passo-item:last-child { border-bottom: none; }
+    .passo-check {
+      width: 14px; height: 14px;
+      cursor: pointer;
+      accent-color: var(--cor-destaque);
+      justify-self: center;
+      flex-shrink: 0;
+    }
+    .passo-texto {
+      font-size: 0.8rem;
+      line-height: 1.3;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      min-width: 0;
+    }
+    .passo-texto.concluido {
+      text-decoration: line-through;
+      color: var(--cor-texto-fraco);
+    }
+    .passo-btn-editar {
+      background: var(--cor-destaque); border: none;
+      color: white; cursor: pointer;
+      padding: 2px 6px; font-size: 0.7rem;
+      border-radius: 3px; white-space: nowrap;
+      flex-shrink: 0;
+      opacity: 0;
+      transition: opacity .15s;
+    }
+    .passo-item:hover .passo-btn-editar { opacity: 1; }
+    .passo-del {
+      background: none; border: none;
+      color: var(--cor-texto-fraco);
+      cursor: pointer;
+      padding: 2px;
+      border-radius: 3px;
+      font-size: 0.7rem;
+      opacity: 0;
+      transition: opacity .15s, color .15s;
+      justify-self: center;
+      flex-shrink: 0;
+    }
+    .passo-item:hover .passo-del { opacity: 1; }
+    .passo-del:hover { color: #ef4444; }
+    /* Progresso no topo da caixa */
+    .passos-progresso-bar {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 6px;
+    }
+    .passos-progresso-bar .progresso-track { flex: 1; height: 4px; }
+    .passos-progresso-bar span { font-size: 0.68rem; color: var(--cor-texto-fraco); white-space: nowrap; }
+    /* Campo para adicionar */
+    .passos-add {
+      display: flex;
+      gap: 4px;
+      margin-top: 6px;
+      padding-top: 6px;
+      border-top: 1px solid var(--cor-borda);
+    }
+    .passos-add input {
+      flex: 1;
+      min-width: 0;
+      background: var(--cor-fundo-3);
+      border: 1px solid var(--cor-borda);
+      border-radius: 6px;
+      color: var(--cor-texto);
+      padding: 6px 10px;
+      font-size: 0.85rem;
+    }
+    .passos-add input:focus { outline: none; border-color: var(--cor-destaque); }
+    .passos-add .btn-add-passo {
+      flex-shrink: 0;
+      width: 34px; height: 34px;
+      background: var(--cor-destaque);
+      border: none; border-radius: 6px;
+      color: #fff; font-size: 0.95rem;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: opacity .15s;
+    }
+    .passos-add .btn-add-passo:hover { opacity: .85; }
+    /* Barra de progresso nos cards kanban */
+    .progresso-wrap { margin-top: 8px; }
+    .progresso-track { background: var(--cor-fundo-3); border-radius: 3px; height: 4px; }
+    .progresso-fill  { height: 4px; border-radius: 3px; background: var(--cor-destaque); transition: width .3s; }
+    .progresso-label { font-size: 0.68rem; color: var(--cor-texto-fraco); margin-top: 3px; }
+    /* Barra de progresso na vista lista */
+    .progresso-inline { display: flex; align-items: center; gap: 6px; }
+    .progresso-inline .progresso-track { flex: 1; height: 5px; }
+    .progresso-inline span { font-size: 0.7rem; color: var(--cor-texto-fraco); white-space: nowrap; }
+
+    /* Drag-and-drop Kanban */
+    .kanban-card[draggable="true"] { cursor: grab; }
+    .kanban-card.dragging { opacity: 0.35; cursor: grabbing; }
+    .kanban-cards.drag-over {
+      background: rgba(59, 130, 246, 0.08);
+      outline: 2px dashed var(--cor-destaque);
+      outline-offset: -4px;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Menu compartilhado -->
+  <div id="menu-container"></div>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       LAYOUT PRINCIPAL
+       ═══════════════════════════════════════════════════════════ -->
+  <div class="agenda-layout">
+
+    <!-- ── Sidebar: lista de projetos ───────────────────────── -->
+    <aside class="agenda-sidebar" id="sidebar">
+
+      <div class="sidebar-titulo">Minhas listas</div>
+      <div id="listas-minhas"></div>
+
+      <div id="secao-compartilhadas" style="display:none">
+        <div class="sidebar-separador"></div>
+        <div class="sidebar-titulo">Compartilhadas</div>
+        <div id="listas-compartilhadas"></div>
+      </div>
+
+      <div class="sidebar-separador"></div>
+      <div class="sidebar-acao" onclick="abrirModalLista()">
+        <i class="fas fa-plus"></i> Nova lista
+      </div>
+
+    </aside>
+
+    <!-- ── Conteúdo principal ───────────────────────────────── -->
+    <main class="agenda-conteudo" id="conteudo">
+
+      <!-- tela de boas-vindas -->
+      <div class="agenda-vazia" id="tela-boas-vindas">
+        <i class="fas fa-tasks"></i>
+        <h3>Selecione ou crie uma lista para começar</h3>
+        <button class="btn btn-primario btn-sm" style="width:auto" onclick="abrirModalLista()">
+          <i class="fas fa-plus"></i> Nova lista
+        </button>
+      </div>
+
+      <!-- painel de lista (oculto até selecionar) -->
+      <div id="painel-lista" style="display:none; flex-direction:column; flex:1">
+
+        <!-- cabeçalho da lista -->
+        <div class="lista-header">
+          <span class="lista-header-cor" id="hdr-cor"></span>
+          <span class="lista-header-nome-wrap">
+            <span class="lista-header-nome" id="hdr-nome"></span>
+            <span class="lista-header-dono" id="hdr-dono" style="display:none"></span>
+          </span>
+          <div class="lista-header-acoes" id="hdr-acoes"></div>
+        </div>
+
+        <!-- barra de ferramentas -->
+        <div class="toolbar">
+          <div class="view-tabs">
+            <button class="view-tab ativa" id="tab-lista"   onclick="setView('lista')">
+              <i class="fas fa-list"></i> Lista
+            </button>
+            <button class="view-tab"       id="tab-kanban" onclick="setView('kanban')">
+              <i class="fas fa-columns"></i> Kanban
+            </button>
+          </div>
+
+          <div class="filtros">
+            <select class="filtro-select" id="filtro-status" onchange="aplicarFiltros()">
+              <option value="">Todos os status</option>
+              <option value="a_fazer">A fazer</option>
+              <option value="em_andamento">Em andamento</option>
+              <option value="concluida">Concluída</option>
+            </select>
+            <select class="filtro-select" id="filtro-prioridade" onchange="aplicarFiltros()">
+              <option value="">Todas as prioridades</option>
+              <option value="alta">Alta</option>
+              <option value="media">Média</option>
+              <option value="baixa">Baixa</option>
+            </select>
+            <select class="filtro-select" id="filtro-categoria" onchange="aplicarFiltros()">
+              <option value="">Todas as categorias</option>
+            </select>
+          </div>
+
+          <button class="btn btn-primario btn-sm" id="btn-nova-tarefa"
+                  style="width:auto; display:none" onclick="abrirModalTarefa()">
+            <i class="fas fa-plus"></i> Nova tarefa
+          </button>
+        </div>
+
+        <!-- vista lista -->
+        <div id="vista-lista" class="tabela-wrapper">
+          <table class="tabela">
+            <thead>
+              <tr>
+                <th style="width:36px"></th>
+                <th>Título</th>
+                <th>Prazo</th>
+                <th>Prioridade</th>
+                <th>Categoria</th>
+                <th>Status</th>
+                <th class="col-acoes">Ações</th>
+              </tr>
+            </thead>
+            <tbody id="tbody-tarefas">
+              <tr><td colspan="7">
+                <div class="sem-dados"><i class="fas fa-spinner fa-spin"></i></div>
+              </td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- vista kanban -->
+        <div id="vista-kanban" class="kanban-board" style="display:none">
+          <div class="kanban-col">
+            <div class="kanban-col-header">
+              <span class="kanban-col-titulo">
+                <i class="fas fa-circle" style="color:#9e9e9e; font-size:0.6rem"></i> A Fazer
+              </span>
+              <span class="kanban-col-count" id="cnt-a_fazer">0</span>
+            </div>
+            <div class="kanban-cards" id="col-a_fazer"></div>
+          </div>
+          <div class="kanban-col">
+            <div class="kanban-col-header">
+              <span class="kanban-col-titulo">
+                <i class="fas fa-circle" style="color:#4e9af1; font-size:0.6rem"></i> Em Andamento
+              </span>
+              <span class="kanban-col-count" id="cnt-em_andamento">0</span>
+            </div>
+            <div class="kanban-cards" id="col-em_andamento"></div>
+          </div>
+          <div class="kanban-col">
+            <div class="kanban-col-header">
+              <span class="kanban-col-titulo">
+                <i class="fas fa-circle" style="color:#4caf50; font-size:0.6rem"></i> Concluída
+              </span>
+              <span class="kanban-col-count" id="cnt-concluida">0</span>
+            </div>
+            <div class="kanban-cards" id="col-concluida"></div>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       MODAL — Nova / Editar Lista
+       ═══════════════════════════════════════════════════════════ -->
+  <div class="modal-overlay" id="modal-lista">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-titulo"><i class="fas fa-folder"></i> <span id="modal-lista-titulo">Nova Lista</span></div>
+        <button class="modal-fechar" onclick="fecharModalLista()"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="modal-corpo">
+        <input type="hidden" id="lista-id">
+        <div class="form-grupo">
+          <label>Nome da lista *</label>
+          <input type="text" id="lista-nome" placeholder="Ex: Projeto Alpha">
+        </div>
+        <div class="form-grupo">
+          <label>Descrição</label>
+          <textarea id="lista-descricao" placeholder="Descreva o objetivo desta lista..."></textarea>
+        </div>
+        <div class="form-grupo">
+          <label>Cor</label>
+          <div class="cor-picker-wrap">
+            <input type="color" id="lista-cor" value="#3b82f6">
+            <span style="font-size:0.85rem; color:var(--cor-texto-fraco)">Escolha uma cor de identificação</span>
+          </div>
+        </div>
+      </div>
+      <div class="modal-rodape">
+        <button class="btn btn-sm" onclick="fecharModalLista()"
+                style="background:var(--cor-fundo-3);color:var(--cor-texto)">Cancelar</button>
+        <button class="btn btn-primario btn-sm" onclick="salvarLista()" style="width:auto">
+          <i class="fas fa-save"></i> Salvar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       MODAL — Gerenciar Membros
+       ═══════════════════════════════════════════════════════════ -->
+  <div class="modal-overlay" id="modal-membros">
+    <div class="modal modal-lg">
+      <div class="modal-header">
+        <div class="modal-titulo"><i class="fas fa-users"></i> Membros da lista</div>
+        <button class="modal-fechar" onclick="fecharModalMembros()"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="modal-corpo">
+        <ul class="membros-lista" id="membros-lista"></ul>
+
+        <div style="margin-top:8px; font-size:0.85rem; color:var(--cor-texto-fraco); font-weight:600">
+          Adicionar membro
+        </div>
+        <div class="add-membro-form">
+          <select id="membro-usuario-sel">
+            <option value="">Selecione o usuário...</option>
+          </select>
+          <select id="membro-permissao-sel">
+            <option value="leitura">Leitura</option>
+            <option value="edicao">Edição</option>
+          </select>
+          <button class="btn btn-primario btn-sm" onclick="adicionarMembro()" style="width:auto">
+            <i class="fas fa-plus"></i> Adicionar
+          </button>
+        </div>
+      </div>
+      <div class="modal-rodape">
+        <button class="btn btn-sm" onclick="fecharModalMembros()"
+                style="background:var(--cor-fundo-3);color:var(--cor-texto)">Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       MODAL — Nova / Editar Tarefa
+       ═══════════════════════════════════════════════════════════ -->
+  <div class="modal-overlay" id="modal-tarefa">
+    <div class="modal modal-lg">
+
+      <!-- Sub-modal: Gerenciar Categorias inline -->
+      <div id="sub-modal-cat" class="sub-modal-cat">
+        <h4>Categorias</h4>
+        <div style="max-height:160px;overflow-y:auto;margin-bottom:10px" id="sub-cat-lista"></div>
+        <div style="display:flex;gap:6px;margin-bottom:10px">
+          <input type="text" id="sub-cat-nome" placeholder="Nova categoria"
+                 onkeydown="if(event.key==='Enter'){event.preventDefault();addCategoriaInline()}"
+                 style="flex:1;padding:7px 10px;border-radius:6px;background:var(--cor-fundo);border:1px solid var(--cor-borda);color:var(--cor-texto);font-size:12px;outline:none">
+          <input type="color" id="sub-cat-cor" value="#6b7280"
+                 style="width:38px;height:35px;padding:2px 3px;border-radius:6px;cursor:pointer;border:1px solid var(--cor-borda);background:var(--cor-fundo-3)">
+          <button onclick="addCategoriaInline()" class="btn btn-primario btn-sm" style="width:auto">ADD</button>
+        </div>
+        <button onclick="fecharSubModalCat()" class="btn btn-sm" style="width:100%;background:var(--cor-fundo-3);color:var(--cor-texto)">Fechar</button>
+      </div>
+
+      <!-- Sub-modal para editar passo -->
+      <div id="sub-modal-passo" class="sub-modal-cat" style="display:none">
+        <h4 style="margin-bottom:12px">Editar Passo</h4>
+        <div style="margin-bottom:12px">
+          <label style="font-size:0.85rem;color:var(--cor-texto-fraco);display:block;margin-bottom:6px">Descrição:</label>
+          <input type="text" id="sub-passo-texto" placeholder="Descrição do passo"
+                 style="width:100%;padding:8px 10px;border-radius:6px;background:var(--cor-fundo);border:1px solid var(--cor-borda);color:var(--cor-texto);font-size:12px;outline:none;box-sizing:border-box">
+        </div>
+        <div style="margin-bottom:12px">
+          <label style="font-size:0.85rem;color:var(--cor-texto-fraco);display:block;margin-bottom:6px"><i class="fas fa-users"></i> Colaboradores:</label>
+          <div id="sub-passo-chips" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;min-height:28px;align-items:flex-start;padding:4px 0"></div>
+          <div style="display:flex;gap:6px;margin-bottom:8px">
+            <input type="text" id="sub-passo-usuario" placeholder="Adicionar usuário..."
+                   style="flex:1;padding:8px 10px;border-radius:6px;background:var(--cor-fundo);border:1px solid var(--cor-borda);color:var(--cor-texto);font-size:12px;outline:none;box-sizing:border-box"
+                   onkeydown="if(event.key==='Enter'){event.preventDefault();adicionarColaboradorSubModal()}"
+                   list="sub-passo-usuarios">
+            <button type="button" onclick="adicionarColaboradorSubModal()" class="btn btn-primario btn-sm" style="padding:8px 12px;white-space:nowrap">
+              <i class="fas fa-plus"></i> Adicionar
+            </button>
+          </div>
+          <datalist id="sub-passo-usuarios"></datalist>
+        </div>
+        <div style="display:flex;gap:6px">
+          <button onclick="console.log('[BOTAO] Clicou em Salvar do passo'); salvarEdicaoPasso()" class="btn btn-primario btn-sm" style="flex:1">Salvar</button>
+          <button onclick="console.log('[BOTAO] Clicou em Cancelar do passo'); fecharSubModalPasso()" class="btn btn-sm" style="flex:1;background:var(--cor-fundo-3);color:var(--cor-texto)">Cancelar</button>
+        </div>
+      </div>
+
+      <div class="modal-header">
+        <div class="modal-titulo"><i class="fas fa-tasks"></i> <span id="modal-tarefa-titulo">Nova Tarefa</span></div>
+        <button class="modal-fechar" onclick="fecharModalTarefa()"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="modal-corpo">
+        <input type="hidden" id="tarefa-id">
+        <div class="form-grupo">
+          <label>Título *</label>
+          <input type="text" id="tarefa-titulo" placeholder="Descreva a tarefa...">
+        </div>
+        <div class="form-grupo">
+          <label>Descrição</label>
+          <textarea id="tarefa-descricao" placeholder="Detalhes, links, observações..."></textarea>
+        </div>
+        <div class="form-linha form-linha-3">
+          <div class="form-grupo">
+            <label>Prazo</label>
+            <input type="date" id="tarefa-prazo">
+          </div>
+          <div class="form-grupo">
+            <label>Prioridade</label>
+            <select id="tarefa-prioridade">
+              <option value="baixa">Baixa</option>
+              <option value="media" selected>Média</option>
+              <option value="alta">Alta</option>
+            </select>
+          </div>
+          <div class="form-grupo">
+            <label>Status</label>
+            <select id="tarefa-status">
+              <option value="a_fazer">A Fazer</option>
+              <option value="em_andamento">Em Andamento</option>
+              <option value="concluida">Concluída</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-linha form-linha-2">
+          <div class="form-grupo">
+            <div class="label-with-gear">
+              <label>Categoria</label>
+              <button class="btn-gear" id="btn-gear-cat" onclick="abrirSubModalCat()" title="Gerenciar categorias">⚙️</button>
+            </div>
+            <select id="tarefa-categoria">
+              <option value="">Sem categoria</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Passos / checklist -->
+        <div class="form-grupo">
+          <label><i class="fas fa-list-check" style="font-size:0.82rem;margin-right:5px;opacity:.7"></i>Passos</label>
+          <div class="passos-box">
+            <!-- Barra de progresso (visível só quando há passos) -->
+            <div id="passos-progresso-bar" class="passos-progresso-bar" style="display:none">
+              <div class="progresso-track" style="height:6px">
+                <div class="progresso-fill" id="passos-fill" style="width:0%"></div>
+              </div>
+              <span id="passos-progresso"></span>
+            </div>
+            <ul class="passos-lista" id="passos-lista">
+              <li style="color:var(--cor-texto-fraco);font-size:0.8rem;padding:6px 2px">Nenhum passo adicionado.</li>
+            </ul>
+            <div id="passos-add-area" class="passos-add">
+              <input type="text" id="passo-novo" placeholder="Adicionar passo..."
+                     onkeydown="if(event.key==='Enter'){event.preventDefault();adicionarPassoLocal()}">
+              <button class="btn-add-passo" type="button" onclick="adicionarPassoLocal()" title="Adicionar">
+                <i class="fas fa-plus"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <div class="modal-rodape">
+        <button class="btn btn-sm" onclick="fecharModalTarefa()"
+                style="background:var(--cor-fundo-3);color:var(--cor-texto)">Cancelar</button>
+        <button class="btn btn-primario btn-sm" onclick="salvarTarefa()" style="width:auto">
+          <i class="fas fa-save"></i> Salvar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       MODAL — Categorias
+       ═══════════════════════════════════════════════════════════ -->
+  <div class="modal-overlay" id="modal-categorias">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-titulo"><i class="fas fa-tags"></i> Categorias</div>
+        <button class="modal-fechar" onclick="fecharModalCategorias()"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="modal-corpo">
+        <ul class="membros-lista" id="categorias-lista"></ul>
+
+        <div style="margin-top:8px; font-size:0.85rem; color:var(--cor-texto-fraco); font-weight:600">
+          Nova categoria
+        </div>
+        <div class="add-membro-form" style="align-items:center">
+          <input type="text" id="cat-nome" placeholder="Nome da categoria">
+          <input type="color" id="cat-cor" value="#6b7280"
+                 style="width:42px;height:38px;padding:2px 3px;border-radius:6px;cursor:pointer;border:1px solid var(--cor-borda);background:var(--cor-fundo-3)">
+          <button class="btn btn-primario btn-sm" onclick="adicionarCategoria()" style="width:auto">
+            <i class="fas fa-plus"></i> Adicionar
+          </button>
+        </div>
+      </div>
+      <div class="modal-rodape">
+        <button class="btn btn-sm" onclick="fecharModalCategorias()"
+                style="background:var(--cor-fundo-3);color:var(--cor-texto)">Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast de feedback -->
+  <div class="toast" id="toast"></div>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       MODAL — Mudar Status (Kanban)
+       ═══════════════════════════════════════════════════════════ -->
+  <div class="modal-overlay" id="modal-status">
+    <div class="modal" style="max-width:360px">
+      <div class="modal-header">
+        <div class="modal-titulo"><i class="fas fa-exchange-alt"></i> Mudar Status</div>
+        <button class="modal-fechar" onclick="fecharModalStatus()"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="modal-corpo">
+        <div style="font-size:0.8rem;color:var(--cor-texto-fraco);margin-bottom:12px">Tarefa:</div>
+        <div id="ms-titulo" style="font-weight:700;margin-bottom:20px;font-size:0.95rem;line-height:1.4"></div>
+        <div style="font-size:0.8rem;color:var(--cor-texto-fraco);margin-bottom:10px">Mover para:</div>
+        <div style="display:flex;flex-direction:column;gap:8px" id="ms-opcoes"></div>
+      </div>
+      <div class="modal-rodape">
+        <button class="btn btn-sm" onclick="fecharModalStatus()"
+                style="width:auto;background:var(--cor-fundo-3);color:var(--cor-texto)">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Menu compartilhado -->
+  <script src="/js/menu.js"></script>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       JAVASCRIPT DA AGENDA
+       ═══════════════════════════════════════════════════════════ -->
+  <script>
+  (function () {
+    'use strict';
+
+    // ── Estado global ──────────────────────────────────────────
+    let listaAtiva  = null;   // objeto da lista corrente
+    let tarefas     = [];     // todas as tarefas da lista
+    let categorias  = [];     // categorias da lista
+    let usuarios    = [];     // todos os usuários (para seletor de membros)
+    let permissao   = null;   // 'dono' | 'edicao' | 'leitura'
+    let viewAtual   = 'lista';
+    let _dragId = null, _dragTitulo = null, _dragStatus = null; // drag-and-drop
+    let _passos = [];          // { id?, texto, concluido } — passos em edição
+    let _passosCanEdit = true; // se o usuário pode editar
+    let _tarefaCriadoPor = null; // criador da tarefa (para padrão de colaboradores)
+
+    // ── Inicialização ──────────────────────────────────────────
+    console.log('AGENDA DE TAREFAS CARREGADA');
+    document.addEventListener('DOMContentLoaded', () => {
+      console.log('DOMContentLoaded disparado');
+      carregarListas();
+      carregarUsuarios();
+    });
+
+    // ── Toast ──────────────────────────────────────────────────
+    let toastTimer;
+    function toast(msg, tipo = 'ok') {
+      const el = document.getElementById('toast');
+      el.textContent = msg;
+      el.className   = `toast visivel toast-${tipo}`;
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => el.classList.remove('visivel'), 3500);
+    }
+
+    // ── Helpers ────────────────────────────────────────────────
+    function fmtData(d) {
+      if (!d) return '';
+      const dt = new Date(d + 'T00:00:00');
+      return dt.toLocaleDateString('pt-BR');
+    }
+
+    function isVencido(d) {
+      if (!d) return false;
+      return new Date(d + 'T23:59:59') < new Date();
+    }
+
+    const PRIORIDADE_LABEL = { alta: 'Alta', media: 'Média', baixa: 'Baixa' };
+    const STATUS_LABEL     = { a_fazer: 'A Fazer', em_andamento: 'Em Andamento', concluida: 'Concluída' };
+
+    // ── Carregar listas da sidebar ─────────────────────────────
+    async function carregarListas() {
+      try {
+        const r = await fetch('/api/agenda/listas');
+        if (r.status === 401) { window.location.href = '/login.html'; return; }
+        const { listas } = await r.json();
+
+        const minhas       = listas.filter(l => l.permissao === 'dono');
+        const compartilhadas = listas.filter(l => l.permissao !== 'dono');
+
+        renderSidebarSecao('listas-minhas', minhas);
+
+        const secaoComp = document.getElementById('secao-compartilhadas');
+        if (compartilhadas.length > 0) {
+          secaoComp.style.display = '';
+          renderSidebarSecao('listas-compartilhadas', compartilhadas);
+        } else {
+          secaoComp.style.display = 'none';
+        }
+
+        // Reseleciona a lista ativa se ainda existir, ou restaura a última aberta
+        if (listaAtiva) {
+          const atual = listas.find(l => l.id === listaAtiva.id);
+          if (atual) selecionarLista(atual);
+        } else {
+          const ultimaId = parseInt(localStorage.getItem('agenda_ultima_lista'));
+          if (ultimaId) {
+            const ultima = listas.find(l => l.id === ultimaId);
+            if (ultima) selecionarLista(ultima);
+          }
+        }
+      } catch (e) {
+        console.error('Erro ao carregar listas:', e);
+      }
+    }
+
+    function renderSidebarSecao(containerId, listas) {
+      const el = document.getElementById(containerId);
+      if (listas.length === 0) {
+        el.innerHTML = '<div style="padding:6px 16px;font-size:0.82rem;color:var(--cor-texto-fraco)">Nenhuma lista</div>';
+        return;
+      }
+      el.innerHTML = listas.map(l => `
+        <div class="lista-item ${listaAtiva && listaAtiva.id === l.id ? 'ativa' : ''}"
+             onclick='selecionarLista(${JSON.stringify(l)})'>
+          <span class="lista-cor" style="background:${l.cor}"></span>
+          <span class="lista-nome-wrap">
+            <span class="lista-nome" title="${l.nome}">${l.nome}</span>
+            ${l.permissao !== 'dono' ? `<span class="lista-dono">por ${esc(l.dono_nome || l.dono)}</span>` : ''}
+          </span>
+        </div>
+      `).join('');
+    }
+
+    // ── Selecionar lista ───────────────────────────────────────
+    window.selecionarLista = async function (lista) {
+      listaAtiva = lista;
+      permissao  = lista.permissao;
+      localStorage.setItem('agenda_ultima_lista', lista.id);
+
+      // Atualiza sidebar
+      document.querySelectorAll('.lista-item').forEach(el => el.classList.remove('ativa'));
+      document.querySelectorAll('.lista-item').forEach(el => {
+        if (el.querySelector('.lista-nome')?.title === lista.nome) {
+          el.classList.add('ativa');
+        }
+      });
+
+      // Mostra painel
+      document.getElementById('tela-boas-vindas').style.display = 'none';
+      const painel = document.getElementById('painel-lista');
+      painel.style.display = 'flex';
+
+      // Cabeçalho
+      document.getElementById('hdr-cor').style.background = lista.cor;
+      document.getElementById('hdr-nome').textContent     = lista.nome;
+      const hdrDono = document.getElementById('hdr-dono');
+      if (lista.permissao !== 'dono') {
+        hdrDono.textContent = `Compartilhada por ${lista.dono_nome || lista.dono}`;
+        hdrDono.style.display = '';
+      } else {
+        hdrDono.style.display = 'none';
+      }
+
+      // Ações do cabeçalho (dono vs membro)
+      const hdrAcoes = document.getElementById('hdr-acoes');
+      if (permissao === 'dono') {
+        hdrAcoes.innerHTML = `
+          <button class="btn-icone" title="Categorias" onclick="abrirModalCategorias()">
+            <i class="fas fa-tags"></i>
+          </button>
+          <button class="btn-icone" title="Membros" onclick="abrirModalMembros()">
+            <i class="fas fa-users"></i>
+          </button>
+          <button class="btn-icone" title="Editar lista" onclick="editarListaAtiva()">
+            <i class="fas fa-edit"></i>
+          </button>
+          <button class="btn-icone excluir" title="Excluir lista" onclick="excluirListaAtiva()">
+            <i class="fas fa-trash"></i>
+          </button>
+          <a class="btn-icone" title="Relatorios" href="/agenda/relatorios?lista_id=${listaAtiva.id}" style="text-decoration:none;display:inline-flex;align-items:center;justify-content:center">
+            <i class="fas fa-chart-bar"></i>
+          </a>`;
+      } else if (permissao === 'edicao') {
+        hdrAcoes.innerHTML = `
+          <button class="btn-icone" title="Categorias" onclick="abrirModalCategorias()">
+            <i class="fas fa-tags"></i>
+          </button>
+          <a class="btn-icone" title="Relatorios" href="/agenda/relatorios?lista_id=${listaAtiva.id}" style="text-decoration:none;display:inline-flex;align-items:center;justify-content:center">
+            <i class="fas fa-chart-bar"></i>
+          </a>`;
+      } else {
+        hdrAcoes.innerHTML = '';
+      }
+
+      // Botão nova tarefa
+      document.getElementById('btn-nova-tarefa').style.display =
+        (permissao === 'dono' || permissao === 'edicao') ? '' : 'none';
+
+      await Promise.all([carregarCategorias(), carregarTarefas()]);
+    };
+
+    // ── Tarefas ────────────────────────────────────────────────
+    async function carregarTarefas() {
+      if (!listaAtiva) return;
+      const r = await fetch(`/api/agenda/listas/${listaAtiva.id}/tarefas`);
+      if (!r.ok) return;
+      tarefas = (await r.json()).tarefas || [];
+      renderTarefas();
+    }
+
+    function tarefasFiltradas() {
+      const fStatus  = document.getElementById('filtro-status').value;
+      const fPrior   = document.getElementById('filtro-prioridade').value;
+      const fCat     = document.getElementById('filtro-categoria').value;
+
+      return tarefas.filter(t =>
+        (!fStatus || t.status === fStatus) &&
+        (!fPrior  || t.prioridade === fPrior) &&
+        (!fCat    || String(t.categoria_id) === fCat)
+      );
+    }
+
+    window.aplicarFiltros = renderTarefas;
+
+    function renderTarefas() {
+      if (viewAtual === 'lista') renderVista();
+      else                       renderKanban();
+    }
+
+    // Vista Lista
+    function renderVista() {
+      const lista   = tarefasFiltradas();
+      const tbody   = document.getElementById('tbody-tarefas');
+      const canEdit = permissao === 'dono' || permissao === 'edicao';
+
+      if (lista.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7">
+          <div class="sem-dados"><i class="fas fa-check-double"></i>Nenhuma tarefa encontrada.</div>
+        </td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = lista.map(t => {
+        const cat  = categorias.find(c => c.id === t.categoria_id);
+        const vcdo = isVencido(t.prazo);
+        const checked = t.status === 'concluida';
+
+        return `<tr class="${checked ? 'concluida' : ''}">
+          <td>
+            <div class="checkbox-status ${checked ? 'checked' : ''}"
+                 onclick="toggleStatus(${t.id}, '${t.status}')">
+              ${checked ? '<i class="fas fa-check"></i>' : ''}
+            </div>
+          </td>
+          <td>
+            <div class="tarefa-titulo-wrap">
+              <span class="tarefa-titulo"
+                    style="cursor:pointer"
+                    title="Clique para editar"
+                    onclick='editarTarefa(${JSON.stringify(t)})'>${esc(t.titulo)}</span>
+            </div>
+            ${t.passos_total > 0 ? (() => {
+              const p = Math.round(t.passos_concluidos / t.passos_total * 100);
+              return `<div class="progresso-inline" style="margin-top:4px">
+                <div class="progresso-track"><div class="progresso-fill" style="width:${p}%"></div></div>
+                <span>${t.passos_concluidos}/${t.passos_total}</span>
+              </div>`;
+            })() : ''}
+          </td>
+          <td>
+            ${t.prazo
+              ? `<span class="${vcdo && !checked ? 'prazo-vencido' : ''}">${fmtData(t.prazo)}</span>`
+              : '<span style="color:var(--cor-texto-fraco)">—</span>'}
+          </td>
+          <td><span class="badge badge-${t.prioridade}">${PRIORIDADE_LABEL[t.prioridade]}</span></td>
+          <td>${cat
+              ? `<span class="badge" style="background:${cat.cor}22;color:${cat.cor}">${esc(cat.nome)}</span>`
+              : '<span style="color:var(--cor-texto-fraco)">—</span>'}</td>
+          <td><span class="badge badge-${t.status}">${STATUS_LABEL[t.status]}</span></td>
+          <td class="col-acoes">
+            ${canEdit ? `
+              <button class="btn-icone" title="Editar" onclick='editarTarefa(${JSON.stringify(t)})'>
+                <i class="fas fa-edit"></i>
+              </button>
+              <button class="btn-icone excluir" title="Excluir" onclick="excluirTarefa(${t.id})">
+                <i class="fas fa-trash"></i>
+              </button>` : ''}
+          </td>
+        </tr>`;
+      }).join('');
+    }
+
+    // Vista Kanban
+    function renderKanban() {
+      const lista    = tarefasFiltradas();
+      const canEdit  = permissao === 'dono' || permissao === 'edicao';
+      const grupos   = { a_fazer: [], em_andamento: [], concluida: [] };
+
+      lista.forEach(t => {
+        if (grupos[t.status]) grupos[t.status].push(t);
+      });
+
+      ['a_fazer', 'em_andamento', 'concluida'].forEach(status => {
+        const col   = document.getElementById(`col-${status}`);
+        const cnt   = document.getElementById(`cnt-${status}`);
+        const items = grupos[status];
+
+        cnt.textContent = items.length;
+
+        if (items.length === 0) {
+          col.innerHTML = '<div class="kanban-vazio">Nenhuma tarefa aqui</div>';
+          return;
+        }
+
+        col.innerHTML = items.map(t => {
+          const cat  = categorias.find(c => c.id === t.categoria_id);
+          const vcdo = isVencido(t.prazo) && t.status !== 'concluida';
+
+          const pct = t.passos_total > 0 ? Math.round(t.passos_concluidos / t.passos_total * 100) : -1;
+
+          return `<div class="kanban-card ${t.status === 'concluida' ? 'concluida' : ''}"
+                       draggable="${canEdit ? 'true' : 'false'}"
+                       data-id="${t.id}"
+                       data-titulo="${esc(t.titulo)}"
+                       data-status="${t.status}"
+                       onclick='editarTarefa(${JSON.stringify(t)})'>
+            <div class="kanban-card-titulo">${esc(t.titulo)}</div>
+            <div class="kanban-card-meta">
+              <span class="badge badge-${t.prioridade}">${PRIORIDADE_LABEL[t.prioridade]}</span>
+              ${cat ? `<span class="badge" style="background:${cat.cor}22;color:${cat.cor}">${esc(cat.nome)}</span>` : ''}
+              ${t.prazo
+                ? `<span class="kanban-card-prazo ${vcdo ? 'vencido' : ''}">
+                     <i class="fas fa-calendar-alt"></i> ${fmtData(t.prazo)}
+                   </span>` : ''}
+            </div>
+            ${pct >= 0 ? `
+            <div class="progresso-wrap">
+              <div class="progresso-track"><div class="progresso-fill" style="width:${pct}%"></div></div>
+              <div class="progresso-label">${t.passos_concluidos}/${t.passos_total} passos &bull; ${pct}%</div>
+            </div>` : ''}
+          </div>`;
+        }).join('');
+      });
+
+      if (canEdit) configurarDragDrop();
+    }
+
+    // ── Drag-and-drop Kanban ───────────────────────────────────
+    function configurarDragDrop() {
+      // Cards — dragstart / dragend
+      document.querySelectorAll('.kanban-card[draggable="true"]').forEach(card => {
+        card.addEventListener('dragstart', e => {
+          _dragId     = card.dataset.id;
+          _dragTitulo = card.dataset.titulo;
+          _dragStatus = card.dataset.status;
+          card.classList.add('dragging');
+          e.dataTransfer.effectAllowed = 'move';
+        });
+        card.addEventListener('dragend', () => {
+          card.classList.remove('dragging');
+        });
+      });
+
+      // Colunas — zona de soltar
+      document.querySelectorAll('.kanban-cards').forEach(col => {
+        col.addEventListener('dragover', e => {
+          e.preventDefault();
+          e.dataTransfer.dropEffect = 'move';
+        });
+        col.addEventListener('dragenter', e => {
+          e.preventDefault();
+          col.classList.add('drag-over');
+        });
+        col.addEventListener('dragleave', e => {
+          if (!col.contains(e.relatedTarget)) col.classList.remove('drag-over');
+        });
+        col.addEventListener('drop', async e => {
+          e.preventDefault();
+          col.classList.remove('drag-over');
+
+          const novoStatus = col.id.replace('col-', '');
+          if (!_dragId || novoStatus === _dragStatus) return;
+
+          const label = STATUS_KANBAN.find(s => s.value === novoStatus)?.label || novoStatus;
+          const id    = _dragId;
+          const titulo = _dragTitulo;
+          _dragId = _dragTitulo = _dragStatus = null;
+
+          try {
+            const r = await fetch(`/api/agenda/tarefas/${id}/status`, {
+              method: 'PATCH',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ status: novoStatus })
+            });
+            if (!r.ok) { toast('Erro ao mover tarefa', 'erro'); return; }
+            toast(`"${titulo}" → "${label}"`, 'sucesso');
+            await carregarTarefas();
+          } catch (_) {
+            toast('Erro de comunicação', 'erro');
+          }
+        });
+      });
+    }
+
+    // Toggle status rápido (checkbox)
+    window.toggleStatus = async function (id, statusAtual) {
+      const novoStatus = statusAtual === 'concluida' ? 'a_fazer' : 'concluida';
+      try {
+        const r = await fetch(`/api/agenda/tarefas/${id}/status`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: novoStatus })
+        });
+        if (!r.ok) { toast('Erro ao atualizar status', 'erro'); return; }
+        await carregarTarefas();
+      } catch (e) {
+        toast('Erro de comunicação', 'erro');
+      }
+    };
+
+    // ── Mudar status via Kanban ────────────────────────────────
+    const STATUS_KANBAN = [
+      { value: 'a_fazer',      label: 'A Fazer',       cor: '#94a3b8', icon: 'fa-circle' },
+      { value: 'em_andamento', label: 'Em Andamento',  cor: '#3b82f6', icon: 'fa-spinner' },
+      { value: 'concluida',    label: 'Concluída',     cor: '#10b981', icon: 'fa-check-circle' }
+    ];
+
+    window.abrirModalStatus = function (t) {
+      if (permissao === 'leitura') { toast('Sem permissão para alterar tarefas', 'erro'); return; }
+
+      document.getElementById('ms-titulo').textContent = t.titulo;
+
+      document.getElementById('ms-opcoes').innerHTML = STATUS_KANBAN.map(s => {
+        const atual = s.value === t.status;
+        return `<button
+          onclick="confirmarMudancaStatus(${t.id}, '${esc(t.titulo)}', '${s.value}')"
+          style="
+            display:flex; align-items:center; gap:10px; padding:10px 14px;
+            border-radius:8px; border:2px solid ${atual ? s.cor : 'var(--cor-borda)'};
+            background:${atual ? s.cor + '22' : 'var(--cor-fundo-2)'};
+            color:${atual ? s.cor : 'var(--cor-texto)'}; font-weight:${atual ? '700' : '400'};
+            cursor:${atual ? 'default' : 'pointer'}; width:100%; text-align:left; font-size:0.9rem;
+          "
+          ${atual ? 'disabled' : ''}>
+          <i class="fas ${s.icon}" style="color:${s.cor}"></i>
+          ${s.label}
+          ${atual ? '<span style="margin-left:auto;font-size:0.7rem;opacity:0.7">atual</span>' : ''}
+        </button>`;
+      }).join('');
+
+      document.getElementById('modal-status').classList.add('visivel');
+    };
+
+    window.fecharModalStatus = function () {
+      document.getElementById('modal-status').classList.remove('visivel');
+    };
+
+    window.confirmarMudancaStatus = async function (id, titulo, novoStatus) {
+      const label = STATUS_KANBAN.find(s => s.value === novoStatus)?.label || novoStatus;
+      if (!confirm(`Mover "${titulo}" para "${label}"?`)) return;
+
+      fecharModalStatus();
+      try {
+        const r = await fetch(`/api/agenda/tarefas/${id}/status`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: novoStatus })
+        });
+        if (!r.ok) { toast('Erro ao atualizar status', 'erro'); return; }
+        toast(`Status atualizado para "${label}"`, 'sucesso');
+        await carregarTarefas();
+      } catch (e) {
+        toast('Erro de comunicação', 'erro');
+      }
+    };
+
+    document.getElementById('modal-status').addEventListener('click', function (e) {
+      if (e.target === this) fecharModalStatus();
+    });
+
+    // ── View switch ────────────────────────────────────────────
+    window.setView = function (view) {
+      viewAtual = view;
+      document.getElementById('tab-lista').classList.toggle('ativa',   view === 'lista');
+      document.getElementById('tab-kanban').classList.toggle('ativa',  view === 'kanban');
+      document.getElementById('vista-lista').style.display   = view === 'lista'   ? '' : 'none';
+      document.getElementById('vista-kanban').style.display  = view === 'kanban'  ? '' : 'none';
+      renderTarefas();
+    };
+
+    // ── Categorias ─────────────────────────────────────────────
+    async function carregarCategorias() {
+      if (!listaAtiva) return;
+      const r = await fetch(`/api/agenda/listas/${listaAtiva.id}/categorias`);
+      if (!r.ok) return;
+      categorias = (await r.json()).categorias || [];
+
+      // atualiza select de filtro
+      const fCat = document.getElementById('filtro-categoria');
+      fCat.innerHTML = '<option value="">Todas as categorias</option>' +
+        categorias.map(c => `<option value="${c.id}">${esc(c.nome)}</option>`).join('');
+
+      // atualiza select dentro do modal de tarefa
+      const tCat = document.getElementById('tarefa-categoria');
+      const prev = tCat.value;
+      tCat.innerHTML = '<option value="">Sem categoria</option>' +
+        categorias.map(c => `<option value="${c.id}">${esc(c.nome)}</option>`).join('');
+      tCat.value = prev;
+    }
+
+    // ── Usuários (para seletor de membros) ─────────────────────
+    async function carregarUsuarios() {
+      try {
+        const r = await fetch('/api/agenda/usuarios');
+        if (!r.ok) return;
+        usuarios = (await r.json()).usuarios || [];
+      } catch (e) { /* silencioso */ }
+    }
+
+    // ── Modal Lista ────────────────────────────────────────────
+    window.abrirModalLista = function () {
+      document.getElementById('lista-id').value         = '';
+      document.getElementById('lista-nome').value       = '';
+      document.getElementById('lista-descricao').value  = '';
+      document.getElementById('lista-cor').value        = '#3b82f6';
+      document.getElementById('modal-lista-titulo').textContent = 'Nova Lista';
+      document.getElementById('modal-lista').classList.add('visivel');
+    };
+
+    window.editarListaAtiva = function () {
+      document.getElementById('lista-id').value        = listaAtiva.id;
+      document.getElementById('lista-nome').value      = listaAtiva.nome;
+      document.getElementById('lista-descricao').value = listaAtiva.descricao || '';
+      document.getElementById('lista-cor').value       = listaAtiva.cor;
+      document.getElementById('modal-lista-titulo').textContent = 'Editar Lista';
+      document.getElementById('modal-lista').classList.add('visivel');
+    };
+
+    window.fecharModalLista = function () {
+      document.getElementById('modal-lista').classList.remove('visivel');
+    };
+
+    window.salvarLista = async function () {
+      const id   = document.getElementById('lista-id').value;
+      const nome = document.getElementById('lista-nome').value.trim();
+      if (!nome) { toast('Informe o nome da lista.', 'erro'); return; }
+
+      const corpo = {
+        nome,
+        descricao: document.getElementById('lista-descricao').value.trim(),
+        cor:       document.getElementById('lista-cor').value
+      };
+
+      try {
+        const r = id
+          ? await fetch(`/api/agenda/listas/${id}`, { method: 'PUT',  headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(corpo) })
+          : await fetch('/api/agenda/listas',         { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(corpo) });
+
+        const dados = await r.json();
+        if (!r.ok) { toast(dados.erro || 'Erro ao salvar.', 'erro'); return; }
+
+        fecharModalLista();
+        toast(dados.mensagem || 'Salvo!');
+        await carregarListas();
+
+        // Seleciona a lista recém-criada
+        if (!id && dados.lista) selecionarLista({ ...dados.lista, permissao: 'dono' });
+        else if (id) {
+          listaAtiva = { ...listaAtiva, ...corpo };
+          document.getElementById('hdr-cor').style.background = corpo.cor;
+          document.getElementById('hdr-nome').textContent     = corpo.nome;
+        }
+      } catch (e) {
+        toast('Erro de comunicação.', 'erro');
+      }
+    };
+
+    window.excluirListaAtiva = async function () {
+      if (!confirm(`Excluir a lista "${listaAtiva.nome}" e TODAS as suas tarefas?\nEsta ação não pode ser desfeita.`)) return;
+      try {
+        const r = await fetch(`/api/agenda/listas/${listaAtiva.id}`, { method: 'DELETE' });
+        const dados = await r.json();
+        if (!r.ok) { toast(dados.erro || 'Erro ao excluir.', 'erro'); return; }
+        toast(dados.mensagem || 'Lista excluída.');
+        listaAtiva = null;
+        document.getElementById('tela-boas-vindas').style.display = '';
+        document.getElementById('painel-lista').style.display     = 'none';
+        await carregarListas();
+      } catch (e) {
+        toast('Erro de comunicação.', 'erro');
+      }
+    };
+
+    // ── Modal Membros ──────────────────────────────────────────
+    window.abrirModalMembros = async function () {
+      document.getElementById('modal-membros').classList.add('visivel');
+
+      // Popula seletor de usuários
+      const sel = document.getElementById('membro-usuario-sel');
+      sel.innerHTML = '<option value="">Selecione o usuário...</option>' +
+        usuarios
+          .filter(u => u.login !== listaAtiva.dono)
+          .map(u => `<option value="${u.login}">${esc(u.nome)} (${u.login})</option>`)
+          .join('');
+
+      await renderMembros();
+    };
+
+    window.fecharModalMembros = function () {
+      document.getElementById('modal-membros').classList.remove('visivel');
+    };
+
+    async function renderMembros() {
+      const r = await fetch(`/api/agenda/listas/${listaAtiva.id}/membros`);
+      const { membros } = await r.json();
+      const ul = document.getElementById('membros-lista');
+
+      if (!membros || membros.length === 0) {
+        ul.innerHTML = '<li style="color:var(--cor-texto-fraco);font-size:0.88rem;padding:8px 0">Nenhum membro adicionado.</li>';
+        return;
+      }
+
+      ul.innerHTML = membros.map(m => `
+        <li class="membro-item">
+          <i class="fas fa-user" style="color:var(--cor-texto-fraco);width:16px"></i>
+          <span class="membro-nome">${esc(m.usuario)}</span>
+          <select class="membro-permissao" onchange="alterarPermissao('${m.usuario}', this.value)">
+            <option value="leitura"  ${m.permissao === 'leitura' ? 'selected' : ''}>Leitura</option>
+            <option value="edicao"   ${m.permissao === 'edicao'  ? 'selected' : ''}>Edição</option>
+          </select>
+          <button class="btn-icone excluir" onclick="removerMembro('${m.usuario}')">
+            <i class="fas fa-times"></i>
+          </button>
+        </li>
+      `).join('');
+    }
+
+    window.adicionarMembro = async function () {
+      const usuario   = document.getElementById('membro-usuario-sel').value;
+      const permissao = document.getElementById('membro-permissao-sel').value;
+      if (!usuario) { toast('Selecione um usuário.', 'erro'); return; }
+
+      try {
+        const r = await fetch(`/api/agenda/listas/${listaAtiva.id}/membros`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ usuario, permissao })
+        });
+        const dados = await r.json();
+        if (!r.ok) { toast(dados.erro || 'Erro.', 'erro'); return; }
+        toast(dados.mensagem || 'Membro adicionado.');
+        renderMembros();
+      } catch (e) { toast('Erro de comunicação.', 'erro'); }
+    };
+
+    window.alterarPermissao = async function (usuario, permissao) {
+      await fetch(`/api/agenda/listas/${listaAtiva.id}/membros`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ usuario, permissao })
+      });
+      toast('Permissão atualizada.');
+    };
+
+    window.removerMembro = async function (usuario) {
+      if (!confirm(`Remover o acesso de "${usuario}"?`)) return;
+      const r = await fetch(`/api/agenda/listas/${listaAtiva.id}/membros/${encodeURIComponent(usuario)}`, {
+        method: 'DELETE'
+      });
+      const dados = await r.json();
+      toast(dados.mensagem || 'Membro removido.');
+      renderMembros();
+    };
+
+    // ── Passos / checklist ────────────────────────────────────
+    function renderPassosModal() {
+      const ul    = document.getElementById('passos-lista');
+      const total = _passos.length;
+      const conc  = _passos.filter(p => p.concluido).length;
+      const pct   = total > 0 ? Math.round(conc / total * 100) : 0;
+
+      // Barra de progresso
+      const barWrap = document.getElementById('passos-progresso-bar');
+      if (total > 0) {
+        barWrap.style.display = '';
+        document.getElementById('passos-fill').style.width = pct + '%';
+        document.getElementById('passos-fill').style.background = pct === 100 ? '#10b981' : 'var(--cor-destaque)';
+        document.getElementById('passos-progresso').textContent = `${conc}/${total} · ${pct}%`;
+      } else {
+        barWrap.style.display = 'none';
+      }
+
+      document.getElementById('passos-add-area').style.display = _passosCanEdit ? '' : 'none';
+
+      if (total === 0) {
+        ul.innerHTML = '<li style="color:var(--cor-texto-fraco);font-size:0.8rem;padding:6px 2px">Nenhum passo adicionado.</li>';
+        return;
+      }
+
+      console.log('\n╔════════════════════════════════════════╗');
+      console.log('║ RENDERIZANDO LISTA DE PASSOS           ║');
+      console.log('╚════════════════════════════════════════╝');
+      console.log('Total de passos:', _passos.length);
+      console.log('_passos completo:', JSON.stringify(_passos, null, 2));
+      ul.innerHTML = _passos.map((p, i) => {
+        let colaboradores = Array.isArray(p.atribuido_para) ? p.atribuido_para : (p.atribuido_para ? [p.atribuido_para] : []);
+        console.log(`\nPasso[${i}]: "${p.texto}"`);
+        console.log('  atribuido_para original:', p.atribuido_para);
+        console.log('  colaboradores_array:', colaboradores);
+        // Se não tiver colaboradores, usar criado_por como padrão
+        if (colaboradores.length === 0 && _tarefaCriadoPor && !_passosCanEdit) {
+          colaboradores = [_tarefaCriadoPor];
+          console.log('  → Usando criado_por como padrão:', _tarefaCriadoPor);
+        }
+        const colabTexto = colaboradores.length > 0 ? colaboradores.join(', ') : '(sem colaborador)';
+        const temColab = colaboradores.length > 0;
+        console.log('  → Exibindo:', colabTexto);
+
+        return `
+          <li class="passo-item">
+            <input type="checkbox" class="passo-check" ${p.concluido ? 'checked' : ''}
+                   onchange="togglePassoModal(${i})" ${!_passosCanEdit ? 'disabled' : ''}>
+            <span class="passo-texto ${p.concluido ? 'concluido' : ''}" title="${esc(p.texto)}">${esc(p.texto)}</span>
+            <span style="font-size:0.75rem;color:${temColab ? 'var(--cor-destaque)' : 'var(--cor-texto-fraco)'};padding:2px 6px;background:rgba(0,0,0,0.2);border-radius:3px;white-space:nowrap" title="Colaboradores: ${colabTexto}">
+              <i class="fas fa-users"></i> ${colabTexto}
+            </span>
+            ${_passosCanEdit ? `
+              <button class="passo-btn-editar" onclick="editarPassoModal(${i})" title="Editar">
+                <i class="fas fa-edit"></i> Editar
+              </button>
+            ` : ''}
+            ${_passosCanEdit ? `
+              <button class="passo-del" onclick="removerPassoModal(${i})" title="Remover">
+                <i class="fas fa-trash"></i>
+              </button>
+            ` : ''}
+          </li>
+        `.trim();
+      }).join('');
+
+      // Preencher datalists com usuários
+      setTimeout(() => preencherDatalistUsuarios(), 0);
+    }
+
+    window.adicionarPassoLocal = function () {
+      console.log('[NOVO PASSO] Clicado botão adicionar passo');
+      const inp = document.getElementById('passo-novo');
+      const txt = inp.value.trim();
+      console.log('  Texto digitado:', txt);
+      if (!txt) {
+        console.log('  [ERRO] Texto vazio!');
+        return;
+      }
+      _passos.push({ texto: txt, concluido: false, atribuido_para: null });
+      console.log('  Passo adicionado! _passos agora tem:', _passos.length, 'passos');
+      console.log('  _passos atual:', JSON.stringify(_passos));
+      inp.value = '';
+      renderPassosModal();
+    };
+
+    window.removerPassoModal = function (i) {
+      const passo = _passos[i];
+      if (passo.id) {
+        fetch(`/api/agenda/passos/${passo.id}`, { method: 'DELETE' })
+          .then(() => carregarTarefas());
+      }
+      _passos.splice(i, 1);
+      renderPassosModal();
+    };
+
+    window._passoEmEdicao = null;
+    window._passoEmEdicaoCopia = null; // Armazena cópia do passo para edição
+
+    window.editarPassoModal = function (i) {
+      console.log('\n╔════════════════════════════════════════╗');
+      console.log('║ [EDITAR PASSO] ABRINDO SUB-MODAL       ║');
+      console.log('╚════════════════════════════════════════╝');
+      console.log('Índice:', i);
+      _passoEmEdicao = i;
+      const passo = _passos[i];
+      console.log('Passo original:', JSON.stringify(passo));
+
+      // Fazer uma CÓPIA do passo para edição (não modificar original até "Salvar")
+      _passoEmEdicaoCopia = {
+        texto: passo.texto,
+        atribuido_para: Array.isArray(passo.atribuido_para)
+          ? [...passo.atribuido_para]
+          : (passo.atribuido_para ? [passo.atribuido_para] : [])
+      };
+      console.log('Cópia criada:', JSON.stringify(_passoEmEdicaoCopia));
+      console.log('  _passoEmEdicao =', _passoEmEdicao);
+      console.log('  _passoEmEdicaoCopia.atribuido_para =', _passoEmEdicaoCopia.atribuido_para);
+
+      document.getElementById('sub-passo-texto').value = _passoEmEdicaoCopia.texto;
+
+      // Renderizar chips de colaboradores
+      renderChipsColaboradorPasso(_passoEmEdicaoCopia.atribuido_para);
+
+      // Preencher datalist com usuários
+      preencherDatalistUsuariosPasso();
+
+      document.getElementById('sub-modal-passo').style.display = 'block';
+      document.getElementById('sub-passo-texto').focus();
+    };
+
+    function renderChipsColaboradorPasso(colaboradores = []) {
+      console.log('[2] renderChipsColaboradorPasso() chamado com:', colaboradores);
+      const container = document.getElementById('sub-passo-chips');
+      container.innerHTML = colaboradores.map((c, idx) => `
+        <span style="display:inline-flex;align-items:center;gap:5px;background:var(--cor-destaque);color:white;padding:4px 8px;border-radius:4px;font-size:0.8rem">
+          ${esc(c)}
+          <button type="button" onclick="removerColaboradorPasso('${esc(c)}')"
+                  style="background:none;border:none;color:white;cursor:pointer;font-size:0.9rem;padding:0"><i class="fas fa-times"></i></button>
+        </span>
+      `).join('');
+    }
+
+    window.adicionarColaboradorSubModal = function () {
+      console.log('\n══════════════════════════════════════════');
+      console.log('ADICIONANDO COLABORADOR');
+      console.log('══════════════════════════════════════════');
+      const inp = document.getElementById('sub-passo-usuario');
+      const usuario = inp.value.trim();
+      console.log('✓ Usuário digitado:', usuario);
+      console.log('✓ _passoEmEdicao atual:', _passoEmEdicao);
+      console.log('✓ _passoEmEdicaoCopia ANTES:', JSON.stringify(_passoEmEdicaoCopia));
+
+      if (!usuario) {
+        console.error('❌ ERRO: Usuário vazio!');
+        return;
+      }
+      if (!_passoEmEdicaoCopia) {
+        console.error('❌ ERRO: _passoEmEdicaoCopia é nulo!');
+        return;
+      }
+
+      // Usar a CÓPIA, não o original
+      if (!_passoEmEdicaoCopia.atribuido_para) {
+        console.log('⚠ atribuido_para era nulo, criando array');
+        _passoEmEdicaoCopia.atribuido_para = [];
+      }
+      if (!_passoEmEdicaoCopia.atribuido_para.includes(usuario)) {
+        _passoEmEdicaoCopia.atribuido_para.push(usuario);
+        console.log('✅ Colaborador adicionado! Nova lista:', JSON.stringify(_passoEmEdicaoCopia.atribuido_para));
+        renderChipsColaboradorPasso(_passoEmEdicaoCopia.atribuido_para);
+      } else {
+        console.log('⚠ Colaborador já existe');
+      }
+      inp.value = '';
+    };
+
+    window.removerColaboradorPasso = function (usuario) {
+      if (!_passoEmEdicaoCopia) return;
+
+      // Usar a CÓPIA, não o original
+      if (Array.isArray(_passoEmEdicaoCopia.atribuido_para)) {
+        _passoEmEdicaoCopia.atribuido_para = _passoEmEdicaoCopia.atribuido_para.filter(c => c !== usuario);
+      }
+      renderChipsColaboradorPasso(_passoEmEdicaoCopia.atribuido_para || []);
+    };
+
+    window.salvarEdicaoPasso = function () {
+      console.log('\n╔════════════════════════════════════════╗');
+      console.log('║ SALVANDO PASSO (SUB-MODAL)             ║');
+      console.log('╚════════════════════════════════════════╝');
+      console.log('_passoEmEdicao:', _passoEmEdicao);
+      console.log('_passoEmEdicaoCopia:', JSON.stringify(_passoEmEdicaoCopia));
+      console.log('_passos.length:', _passos.length);
+
+      const novoTexto = document.getElementById('sub-passo-texto').value.trim();
+      if (!novoTexto) {
+        alert('O texto do passo não pode estar vazio.');
+        return;
+      }
+
+      // Aplicar mudanças da CÓPIA ao original só agora
+      if (_passoEmEdicao === null) {
+        console.error('[ERRO] _passoEmEdicao é null! Não foi possível salvar.');
+        toast('Erro: Índice do passo não definido.', 'erro');
+        return;
+      }
+
+      if (_passoEmEdicao < 0 || _passoEmEdicao >= _passos.length) {
+        console.error(`[ERRO] _passoEmEdicao ${_passoEmEdicao} fora do range! _passos.length=${_passos.length}`);
+        toast(`Erro: Índice inválido (${_passoEmEdicao}).`, 'erro');
+        return;
+      }
+
+      if (!_passos[_passoEmEdicao]) {
+        console.error(`[ERRO] _passos[${_passoEmEdicao}] não existe!`);
+        toast(`Erro: Passo não encontrado no índice ${_passoEmEdicao}.`, 'erro');
+        return;
+      }
+
+      // Atualizar o passo original com os dados da cópia
+      console.log(`\n[4] salvarEdicaoPasso() - Atualizando passo ${_passoEmEdicao}...`);
+      console.log('  Antes:', JSON.stringify(_passos[_passoEmEdicao]));
+      console.log('  _passoEmEdicaoCopia.atribuido_para:', JSON.stringify(_passoEmEdicaoCopia.atribuido_para));
+
+      _passos[_passoEmEdicao].texto = novoTexto;
+      _passos[_passoEmEdicao].atribuido_para = _passoEmEdicaoCopia.atribuido_para && _passoEmEdicaoCopia.atribuido_para.length > 0
+        ? _passoEmEdicaoCopia.atribuido_para
+        : null;
+
+      console.log('  Depois:', JSON.stringify(_passos[_passoEmEdicao]));
+      console.log('  _passos completo:', JSON.stringify(_passos));
+
+      // ✅ VERIFICAR SE PASSO JÁ TEM ID NO BANCO
+      const passoId = _passos[_passoEmEdicao].id;
+
+      if (!passoId) {
+        // Passo ainda não foi salvo no banco (novo passo)
+        console.log(`⚠️ Passo ${_passoEmEdicao} ainda não tem ID no banco. Mudanças salvas em memória.`);
+        console.log('   Será sincronizado quando a tarefa for salva.');
+        toast('Passo atualizado! Salve a tarefa para confirmar as mudanças.', 'info');
+        fecharSubModalPasso();
+        renderPassosModal();
+        return;
+      }
+
+      // Passo existe no banco, fazer PATCH
+      const payload = {
+        texto: _passos[_passoEmEdicao].texto,
+        atribuido_para: _passos[_passoEmEdicao].atribuido_para || null
+      };
+
+      console.log(`\n[5] Enviando PATCH para /api/agenda/passos/${passoId}...`);
+      console.log('Payload:', JSON.stringify(payload));
+
+      fetch(`/api/agenda/passos/${passoId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+        .then(async res => {
+          const data = await res.json();
+          console.log(`[RESPOSTA] Status: ${res.status}, Dados:`, data);
+
+          if (!res.ok) {
+            throw new Error(`HTTP ${res.status}: ${data.erro || 'Erro desconhecido'}`);
+          }
+          return data;
+        })
+        .then(data => {
+          console.log('✅ Passo salvo no banco com sucesso!', data);
+          toast('Passo atualizado com sucesso!', 'sucesso');
+          fecharSubModalPasso();
+          renderPassosModal();
+          console.log('[DEBUG] Passo salvo no BD e renderizado!');
+        })
+        .catch(erro => {
+          console.error('❌ ERRO AO SALVAR PASSO:', erro.message);
+          toast('Erro ao salvar passo: ' + erro.message, 'erro');
+        });
+    };
+
+    window.fecharSubModalPasso = function () {
+      document.getElementById('sub-modal-passo').style.display = 'none';
+      _passoEmEdicao = null;
+      _passoEmEdicaoCopia = null; // Descartar cópia ao cancelar
+    };
+
+    window.adicionarColaboradorModal = async function (i) {
+      const input = document.getElementById(`passo-input-${i}`);
+      const usuario = input.value.trim();
+      if (!usuario) return;
+
+      if (!Array.isArray(_passos[i].atribuido_para)) {
+        _passos[i].atribuido_para = _passos[i].atribuido_para ? [_passos[i].atribuido_para] : [];
+      }
+
+      if (!_passos[i].atribuido_para.includes(usuario)) {
+        _passos[i].atribuido_para.push(usuario);
+      }
+
+      input.value = '';
+      renderPassosModal();
+    };
+
+    window.removerColaboradorModal = function (i, usuario) {
+      if (!Array.isArray(_passos[i].atribuido_para)) {
+        _passos[i].atribuido_para = _passos[i].atribuido_para ? [_passos[i].atribuido_para] : [];
+      }
+      _passos[i].atribuido_para = _passos[i].atribuido_para.filter(u => u !== usuario);
+      if (_passos[i].atribuido_para.length === 0) _passos[i].atribuido_para = null;
+      renderPassosModal();
+    };
+
+    window.togglePassoModal = async function (i) {
+      _passos[i].concluido = !_passos[i].concluido;
+      renderPassosModal();
+      if (_passos[i].id) {
+        await fetch(`/api/agenda/passos/${_passos[i].id}/concluido`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ concluido: _passos[i].concluido })
+        });
+        await carregarTarefas(); // atualiza barra de progresso nos cards
+      }
+    };
+
+    // ── Carregar usuários para autocomplete ────────────────────
+    let usuariosCache = [];
+    async function carregarUsuariosCache() {
+      try {
+        const r = await fetch('/api/agenda/usuarios');
+        const d = await r.json();
+        if (d.sucesso) usuariosCache = d.usuarios;
+      } catch (_) {}
+    }
+
+    function preencherDatalistUsuarios() {
+      for (let i = 0; i < _passos.length; i++) {
+        const datalist = document.getElementById(`usuarios-list-${i}`);
+        if (datalist) {
+          datalist.innerHTML = usuariosCache.map(u => `<option value="${esc(u.login)}">${esc(u.nome || u.login)}</option>`).join('');
+        }
+      }
+    }
+
+    function preencherDatalistUsuariosPasso() {
+      const datalist = document.getElementById('sub-passo-usuarios');
+      if (datalist) {
+        datalist.innerHTML = usuariosCache.map(u => `<option value="${esc(u.login)}">${esc(u.nome || u.login)}</option>`).join('');
+      }
+    }
+
+    // ── Modal Tarefa ───────────────────────────────────────────
+    window.abrirModalTarefa = async function () {
+      _passos = [];
+      _passosCanEdit = true;
+      await carregarUsuariosCache();
+      document.getElementById('tarefa-id').value          = '';
+      document.getElementById('tarefa-titulo').value      = '';
+      document.getElementById('tarefa-descricao').value   = '';
+      document.getElementById('tarefa-prazo').value       = '';
+      document.getElementById('tarefa-prioridade').value  = 'media';
+      document.getElementById('tarefa-status').value      = 'a_fazer';
+      document.getElementById('tarefa-categoria').value   = '';
+      document.getElementById('modal-tarefa-titulo').textContent = 'Nova Tarefa';
+      renderPassosModal();
+      setTimeout(() => preencherDatalistUsuarios(), 100);
+      document.getElementById('modal-tarefa').classList.add('visivel');
+    };
+
+    window.editarTarefa = async function (t) {
+      console.log('===== ABRINDO TAREFA =====');
+      console.log('Tarefa:', t.titulo);
+      console.log('ID:', t.id);
+      const canEdit = permissao === 'dono' || permissao === 'edicao';
+      _passos = [];
+      _passosCanEdit = canEdit;
+      _tarefaCriadoPor = t.criado_por;
+      console.log('Carregando usuários...');
+      await carregarUsuariosCache();
+      console.log('Usuários carregados');
+
+      document.getElementById('tarefa-id').value         = t.id;
+      document.getElementById('tarefa-titulo').value     = t.titulo;
+      document.getElementById('tarefa-descricao').value  = t.descricao || '';
+      document.getElementById('tarefa-prazo').value      = t.prazo ? t.prazo.substring(0, 10) : '';
+      document.getElementById('tarefa-prioridade').value = t.prioridade;
+      document.getElementById('tarefa-status').value     = t.status;
+      document.getElementById('tarefa-categoria').value  = t.categoria_id || '';
+      document.getElementById('modal-tarefa-titulo').textContent = canEdit ? 'Editar Tarefa' : 'Detalhes da Tarefa';
+
+      // Desabilita campos se somente leitura
+      ['tarefa-titulo','tarefa-descricao','tarefa-prazo','tarefa-prioridade','tarefa-status','tarefa-categoria']
+        .forEach(id => document.getElementById(id).disabled = !canEdit);
+
+      document.querySelector('#modal-tarefa .modal-rodape .btn-primario').style.display = canEdit ? '' : 'none';
+
+      // Carrega passos existentes
+      try {
+        const r = await fetch(`/api/agenda/tarefas/${t.id}/passos`);
+        const d = await r.json();
+        if (d.sucesso) {
+          _passos = d.passos.map(p => {
+            let atrib = p.atribuido_para;
+            // Converter JSON string para array se necessário
+            if (typeof atrib === 'string' && atrib) {
+              try {
+                atrib = JSON.parse(atrib);
+              } catch (_) {
+                // Se não for JSON válido, tratar como string simples
+                atrib = [atrib];
+              }
+            } else if (!atrib) {
+              atrib = null;
+            }
+            return { id: p.id, texto: p.texto, concluido: !!p.concluido, atribuido_para: atrib };
+          });
+        }
+      } catch (_) {}
+      renderPassosModal();
+      setTimeout(() => preencherDatalistUsuarios(), 100);
+
+      document.getElementById('modal-tarefa').classList.add('visivel');
+    };
+
+    window.fecharModalTarefa = function () {
+      document.getElementById('sub-modal-cat').style.display = 'none';
+      document.getElementById('modal-tarefa').classList.remove('visivel');
+    };
+
+    // ── Função auxiliar: preparar colaboradores para envio ──
+    function prepararColaboradores(atribuido_para) {
+      return (atribuido_para && Array.isArray(atribuido_para) && atribuido_para.length > 0)
+        ? atribuido_para
+        : [];
+    }
+
+    window.salvarTarefa = async function () {
+      const id     = document.getElementById('tarefa-id').value;
+      const titulo = document.getElementById('tarefa-titulo').value.trim();
+      if (!titulo) { toast('Informe o título da tarefa.', 'erro'); return; }
+
+      const corpo = {
+        titulo,
+        descricao:   document.getElementById('tarefa-descricao').value.trim(),
+        prazo:       document.getElementById('tarefa-prazo').value || null,
+        prioridade:  document.getElementById('tarefa-prioridade').value,
+        status:      document.getElementById('tarefa-status').value,
+        categoria_id: document.getElementById('tarefa-categoria').value || null
+      };
+
+      try {
+        // ── 1. Validar passos: não permitir passos vazios ──
+        for (let i = 0; i < _passos.length; i++) {
+          if (!_passos[i].texto || !_passos[i].texto.trim()) {
+            toast(`Passo ${i + 1} não pode estar vazio.`, 'erro');
+            return;
+          }
+        }
+
+        // ── 2. Salvar/atualizar tarefa ──
+        const r = id
+          ? await fetch(`/api/agenda/tarefas/${id}`, { method: 'PUT',  headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(corpo) })
+          : await fetch(`/api/agenda/listas/${listaAtiva.id}/tarefas`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(corpo) });
+
+        const dados = await r.json();
+        if (!r.ok) { toast(dados.erro || 'Erro ao salvar.', 'erro'); return; }
+
+        const tarefaId = id || dados.id;
+        let errosPassos = [];
+
+        // ── 3. Sincronizar passos deletados ──
+        if (id) {
+          try {
+            const rPassosAPI = await fetch(`/api/agenda/tarefas/${tarefaId}/passos`);
+            const dPassosAPI = await rPassosAPI.json();
+            if (dPassosAPI.sucesso) {
+              const idsPassosAtuais = _passos.filter(p => p.id).map(p => p.id);
+              const passosDeletados = dPassosAPI.passos.filter(p => !idsPassosAtuais.includes(p.id));
+
+              // Deletar passos que foram removidos
+              for (const pDel of passosDeletados) {
+                try {
+                  await fetch(`/api/agenda/passos/${pDel.id}`, { method: 'DELETE' });
+                } catch (eDel) {
+                  errosPassos.push(`Falha ao deletar passo "${pDel.texto}"`);
+                }
+              }
+            }
+          } catch (eSync) {
+            console.warn('Erro ao sincronizar passos deletados:', eSync);
+          }
+        }
+
+        // ── 4. Salvar passos novos (sem id) ──
+        for (const p of _passos.filter(x => !x.id)) {
+          const colabParaEnviar = prepararColaboradores(p.atribuido_para);
+
+          try {
+            const rPasso = await fetch(`/api/agenda/tarefas/${tarefaId}/passos`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                texto: p.texto,
+                concluido: p.concluido ? 1 : 0,
+                atribuido_para: colabParaEnviar
+              })
+            });
+
+            if (!rPasso.ok) {
+              const dErro = await rPasso.json();
+              errosPassos.push(`Falha ao criar passo: ${dErro.erro || 'erro desconhecido'}`);
+            } else {
+              // ✅ CAPTURAR E SALVAR O ID DO PASSO CRIADO
+              const dPasso = await rPasso.json();
+              if (dPasso.id) {
+                p.id = dPasso.id;
+                console.log(`✅ Passo criado com ID: ${dPasso.id}`);
+              }
+            }
+          } catch (ePasso) {
+            errosPassos.push(`Falha ao criar passo: ${p.texto}`);
+          }
+        }
+
+        // ── 5. Atualizar passos existentes ──
+        for (const p of _passos.filter(x => x.id)) {
+          const colabParaEnviar = prepararColaboradores(p.atribuido_para);
+
+          try {
+            const rPasso = await fetch(`/api/agenda/passos/${p.id}`, {
+              method: 'PATCH',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                texto: p.texto,
+                atribuido_para: colabParaEnviar
+              })
+            });
+
+            if (!rPasso.ok) {
+              const dErro = await rPasso.json();
+              errosPassos.push(`Falha ao atualizar passo: ${dErro.erro || 'erro desconhecido'}`);
+            }
+          } catch (ePasso) {
+            errosPassos.push(`Falha ao atualizar passo: ${p.texto}`);
+          }
+        }
+
+        // ── 6. Notificar (consolidado, 1 email) ──
+        const tipoNotif = id ? 'editada' : 'nova';
+        try {
+          // fire-and-forget: não bloqueia o fluxo do usuário
+          fetch(`/api/agenda/tarefas/${tarefaId}/notificar?tipo=${tipoNotif}`, { method: 'POST' })
+            .catch(() => {}); // silencia erros de rede — email é melhor-esforço
+        } catch (_) {}
+
+        // ── 7. Finalizar ──
+        fecharModalTarefa();
+
+        if (errosPassos.length > 0) {
+          const msg = `Tarefa salva, mas com erros em passos:\n\n${errosPassos.join('\n')}`;
+          toast(msg, 'aviso');
+        } else {
+          toast(dados.mensagem || 'Tarefa salva com sucesso!');
+        }
+
+        await carregarTarefas();
+      } catch (e) {
+        toast(`Erro ao salvar: ${e.message || 'erro desconhecido'}`, 'erro');
+      }
+    };
+
+    window.excluirTarefa = async function (id) {
+      if (!confirm('Excluir esta tarefa?')) return;
+      try {
+        const r    = await fetch(`/api/agenda/tarefas/${id}`, { method: 'DELETE' });
+        const dados = await r.json();
+        if (!r.ok) { toast(dados.erro || 'Erro.', 'erro'); return; }
+        toast(dados.mensagem || 'Tarefa excluída.');
+        await carregarTarefas();
+      } catch (e) { toast('Erro de comunicação.', 'erro'); }
+    };
+
+    // ── Modal Categorias ───────────────────────────────────────
+    window.abrirModalCategorias = async function () {
+      document.getElementById('modal-categorias').classList.add('visivel');
+      renderCategorias();
+    };
+
+    window.fecharModalCategorias = function () {
+      document.getElementById('modal-categorias').classList.remove('visivel');
+    };
+
+    function renderCategorias() {
+      const ul = document.getElementById('categorias-lista');
+      if (categorias.length === 0) {
+        ul.innerHTML = '<li style="color:var(--cor-texto-fraco);font-size:0.88rem;padding:8px 0">Nenhuma categoria.</li>';
+        return;
+      }
+      ul.innerHTML = categorias.map(c => `
+        <li class="membro-item">
+          <span style="width:14px;height:14px;border-radius:50%;background:${c.cor};flex-shrink:0;display:inline-block"></span>
+          <span class="membro-nome">${esc(c.nome)}</span>
+          <button class="btn-icone excluir" onclick="excluirCategoria(${c.id})">
+            <i class="fas fa-times"></i>
+          </button>
+        </li>
+      `).join('');
+    }
+
+    window.adicionarCategoria = async function () {
+      const nome = document.getElementById('cat-nome').value.trim();
+      const cor  = document.getElementById('cat-cor').value;
+      if (!nome) { toast('Informe o nome da categoria.', 'erro'); return; }
+
+      try {
+        const r = await fetch(`/api/agenda/listas/${listaAtiva.id}/categorias`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ nome, cor })
+        });
+        const dados = await r.json();
+        if (!r.ok) { toast(dados.erro || 'Erro.', 'erro'); return; }
+        toast(dados.mensagem || 'Categoria criada.');
+        document.getElementById('cat-nome').value = '';
+        await carregarCategorias();
+        renderCategorias();
+      } catch (e) { toast('Erro de comunicação.', 'erro'); }
+    };
+
+    window.excluirCategoria = async function (id) {
+      if (!confirm('Excluir esta categoria?')) return;
+      try {
+        const r    = await fetch(`/api/agenda/categorias/${id}`, { method: 'DELETE' });
+        const dados = await r.json();
+        if (!r.ok) { toast(dados.erro || 'Erro.', 'erro'); return; }
+        toast(dados.mensagem || 'Categoria excluída.');
+        await carregarCategorias();
+        renderCategorias();
+        renderTarefas();
+      } catch (e) { toast('Erro de comunicação.', 'erro'); }
+    };
+
+    // ── Sub-modal inline de categorias ────────────────────────
+    window.abrirSubModalCat = function () {
+      renderSubCatList();
+      document.getElementById('sub-modal-cat').style.display = 'block';
+    };
+
+    window.fecharSubModalCat = function () {
+      document.getElementById('sub-modal-cat').style.display = 'none';
+    };
+
+    function renderSubCatList() {
+      const lista = document.getElementById('sub-cat-lista');
+      if (!categorias.length) {
+        lista.innerHTML = '<div style="font-size:12px;color:var(--cor-texto-fraco);padding:4px 0">Nenhuma categoria criada.</div>';
+        return;
+      }
+      lista.innerHTML = categorias.map(c => `
+        <div class="sub-cat-item">
+          <span style="display:flex;align-items:center;gap:7px">
+            <span style="width:11px;height:11px;border-radius:50%;background:${c.cor};flex-shrink:0"></span>
+            ${esc(c.nome)}
+          </span>
+          <button class="btn-del" onclick="excluirCategoriaInline(${c.id})" title="Excluir">&times;</button>
+        </div>
+      `).join('');
+    }
+
+    window.addCategoriaInline = async function () {
+      const nome = document.getElementById('sub-cat-nome').value.trim();
+      const cor  = document.getElementById('sub-cat-cor').value;
+      if (!nome) return;
+      try {
+        const r = await fetch(`/api/agenda/listas/${listaAtiva.id}/categorias`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ nome, cor })
+        });
+        const d = await r.json();
+        if (!r.ok) { toast(d.erro || 'Erro.', 'erro'); return; }
+        document.getElementById('sub-cat-nome').value = '';
+        await carregarCategorias();
+        renderSubCatList();
+        renderCategorias();
+      } catch (e) { toast('Erro de comunicação.', 'erro'); }
+    };
+
+    window.excluirCategoriaInline = async function (id) {
+      if (!confirm('Excluir esta categoria? As tarefas vinculadas ficarão sem categoria.')) return;
+      try {
+        const r = await fetch(`/api/agenda/categorias/${id}`, { method: 'DELETE' });
+        const d = await r.json();
+        if (!r.ok) { toast(d.erro || 'Erro.', 'erro'); return; }
+        await carregarCategorias();
+        renderSubCatList();
+        renderCategorias();
+        renderTarefas();
+      } catch (e) { toast('Erro de comunicação.', 'erro'); }
+    };
+
+    // ── Fechar modal clicando fora ─────────────────────────────
+    ['modal-lista','modal-membros','modal-tarefa','modal-categorias'].forEach(id => {
+      document.getElementById(id).addEventListener('click', function (e) {
+        if (e.target === this) this.classList.remove('visivel');
+      });
+    });
+
+    // ── Escape HTML ────────────────────────────────────────────
+    function esc(s) {
+      return String(s || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+  })();
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<!--
+  ARQUIVO: public/agendaTarefas/relatoriosTarefas.html
+  VERSAO:  1.0.0
+  DATA:    2026-03-06
+  DESCRICAO: Relatorios da Agenda de Tarefas
+-->
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relatorios — Agenda de Tarefas</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/menu.css">
+    <style>
+        :root {
+            --bg:      #0f172a;
+            --card:    #1e293b;
+            --card2:   #243044;
+            --text:    #f1f5f9;
+            --gray:    #94a3b8;
+            --border:  #334155;
+            --primary: #8b5cf6;
+            --green:   #10b981;
+            --red:     #ef4444;
+            --amber:   #f59e0b;
+            --blue:    #3b82f6;
+            --cyan:    #06b6d4;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; min-height: 100vh; }
+        .page { max-width: 1400px; margin: 0 auto; padding: 80px 20px 60px; }
+
+        /* Cabecalho */
+        .page-header {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 24px; flex-wrap: wrap; gap: 12px;
+        }
+        .page-header h1 { font-size: 1.5rem; color: var(--primary); display: flex; align-items: center; gap: 10px; }
+        .btn-voltar {
+            background: var(--card); border: 1px solid var(--border); color: var(--gray);
+            padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 0.85rem;
+            text-decoration: none; display: flex; align-items: center; gap: 6px;
+        }
+        .btn-voltar:hover { color: var(--text); border-color: var(--primary); }
+
+        /* Painel de Filtros */
+        .filtros-panel {
+            background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+            padding: 20px; margin-bottom: 24px;
+        }
+        .filtros-panel h3 { font-size: 0.8rem; font-weight: 900; text-transform: uppercase;
+            letter-spacing: 1px; color: var(--primary); margin-bottom: 16px; }
+
+        .periodo-rapido { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+        .btn-periodo {
+            background: var(--card2); border: 1px solid var(--border); color: var(--gray);
+            padding: 6px 14px; border-radius: 20px; cursor: pointer; font-size: 0.8rem;
+            transition: all 0.2s;
+        }
+        .btn-periodo:hover, .btn-periodo.ativo { background: var(--primary); border-color: var(--primary); color: #fff; }
+
+        .periodo-label {
+            font-size: 0.7rem; color: var(--gray); margin-bottom: 6px;
+            display: flex; align-items: center; gap: 6px;
+        }
+        .periodo-label span { font-size: 0.65rem; background: rgba(139,92,246,0.15); color: var(--primary);
+            padding: 1px 6px; border-radius: 8px; }
+
+        .filtros-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px;
+            margin-bottom: 16px;
+        }
+        .filtro-group label { display: block; font-size: 0.72rem; font-weight: 700;
+            text-transform: uppercase; color: var(--gray); margin-bottom: 6px; }
+        .filtro-group input, .filtro-group select {
+            width: 100%; background: var(--bg); border: 1px solid var(--border);
+            border-radius: 8px; color: var(--text); padding: 9px 12px; font-size: 0.85rem; outline: none;
+        }
+        .filtro-group input:focus, .filtro-group select:focus { border-color: var(--primary); }
+
+        .tipo-btns { display: flex; gap: 10px; }
+        .btn-tipo {
+            flex: 1; padding: 10px; background: var(--card2); border: 2px solid var(--border);
+            border-radius: 8px; color: var(--gray); cursor: pointer; text-align: center; font-size: 0.85rem;
+        }
+        .btn-tipo.ativo { border-color: var(--primary); color: var(--primary); background: rgba(139,92,246,0.1); }
+
+        .btn-gerar {
+            width: 100%; padding: 13px; background: var(--primary); border: none; border-radius: 8px;
+            color: #fff; font-size: 0.95rem; font-weight: 900; cursor: pointer; letter-spacing: 0.5px;
+            transition: background 0.2s; margin-top: 4px;
+        }
+        .btn-gerar:hover { background: #7c3aed; }
+        .btn-gerar:disabled { background: #334155; color: var(--gray); cursor: not-allowed; }
+
+        /* Resultados */
+        #resultado { display: none; }
+        .resultado-header {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 20px; flex-wrap: wrap; gap: 10px;
+        }
+        .resultado-header h2 { font-size: 1.1rem; color: var(--text); }
+        .resultado-header span { font-size: 0.8rem; color: var(--gray); }
+        .btn-exportar {
+            background: var(--blue); border: none; color: #fff; padding: 8px 18px;
+            border-radius: 8px; cursor: pointer; font-size: 0.82rem; font-weight: 700;
+        }
+        .btn-exportar:hover { background: #2563eb; }
+
+        /* Cards de totais */
+        .cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 24px; }
+        .card-stat {
+            background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+            padding: 16px; text-align: center;
+        }
+        .card-stat .val { font-size: 2.2rem; font-weight: 900; line-height: 1; }
+        .card-stat .lbl { font-size: 0.72rem; color: var(--gray); text-transform: uppercase;
+            letter-spacing: 0.5px; margin-top: 6px; }
+        .card-stat .sub { font-size: 0.7rem; color: var(--gray); margin-top: 4px; }
+        .c-total .val    { color: var(--primary); }
+        .c-afazer .val   { color: var(--gray); }
+        .c-andando .val  { color: var(--blue); }
+        .c-concluida .val{ color: var(--green); }
+        .c-taxa .val     { color: var(--cyan); font-size: 1.6rem; }
+        .c-vencida .val  { color: var(--red); }
+        .c-alta .val     { color: var(--amber); }
+
+        /* Progress ring simples */
+        .taxa-ring {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: rgba(6,182,212,0.1); border-radius: 8px;
+            padding: 6px 12px; margin-top: 6px;
+        }
+        .taxa-ring span { font-size: 0.75rem; color: var(--cyan); font-weight: 700; }
+
+        /* Secao grafico/tabela */
+        .secao { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 20px; margin-bottom: 20px; }
+        .secao h3 { font-size: 0.75rem; font-weight: 900; text-transform: uppercase;
+            letter-spacing: 1px; color: var(--gray); margin-bottom: 16px; }
+
+        /* Grafico de barras CSS */
+        .bar-chart { display: flex; flex-direction: column; gap: 10px; }
+        .bar-row { display: grid; grid-template-columns: 160px 1fr 60px; align-items: center; gap: 10px; }
+        .bar-label { font-size: 0.82rem; text-align: right; color: var(--text);
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .bar-track { background: rgba(255,255,255,0.05); border-radius: 4px; height: 20px; overflow: hidden; position: relative; }
+        .bar-fill { height: 100%; border-radius: 4px; transition: width 0.6s ease; }
+        .bar-fill-over { height: 100%; border-radius: 4px; position: absolute; top: 0; left: 0;
+            background: rgba(16,185,129,0.35); transition: width 0.6s ease; }
+        .bar-count { font-size: 0.82rem; font-weight: 700; color: var(--text); text-align: right; }
+        .bar-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 4px; flex-shrink: 0; }
+
+        /* Prioridade cores */
+        .pri-alta   { background: var(--red); }
+        .pri-media  { background: var(--amber); }
+        .pri-baixa  { background: var(--green); }
+
+        /* Tabelas */
+        .tbl-wrap { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.83rem; }
+        th { background: rgba(255,255,255,0.05); color: var(--gray); font-weight: 700;
+            text-transform: uppercase; font-size: 0.68rem; letter-spacing: 0.5px;
+            padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--border); }
+        td { padding: 10px 12px; border-bottom: 1px solid rgba(51,65,85,0.4); vertical-align: middle; }
+        tr:hover td { background: rgba(255,255,255,0.03); }
+        tr:last-child td { border-bottom: none; }
+        .td-num { text-align: right; font-variant-numeric: tabular-nums; }
+        .td-center { text-align: center; }
+
+        /* Taxa barra inline */
+        .taxa-bar { display: flex; align-items: center; gap: 8px; }
+        .taxa-track { flex: 1; background: rgba(255,255,255,0.05); border-radius: 3px; height: 6px; min-width: 60px; }
+        .taxa-fill  { height: 100%; border-radius: 3px; background: var(--green); }
+        .taxa-pct   { font-size: 0.75rem; color: var(--green); font-weight: 700; min-width: 36px; text-align: right; }
+
+        /* Ordenação nas colunas */
+        .th-sort { cursor: pointer; user-select: none; white-space: nowrap; }
+        .th-sort:hover { color: var(--primary); }
+        .th-sort i.fa-sort, .th-sort i.fa-sort-up, .th-sort i.fa-sort-down { font-size: 0.6rem; margin-left: 4px; opacity: 0.4; }
+        .th-sort.asc i, .th-sort.desc i { opacity: 1; color: var(--primary); }
+
+        /* Filtros na tabela */
+        .filtros-tabela th { padding: 4px 6px; background: rgba(255,255,255,0.02); }
+        .filtros-tabela input,
+        .filtros-tabela select {
+            width: 100%; padding: 5px 8px; font-size: 0.75rem;
+            background: rgba(15,23,42,0.8); color: var(--text); border: 1px solid var(--border);
+            border-radius: 4px; outline: none;
+        }
+        .filtros-tabela input:focus,
+        .filtros-tabela select:focus { border-color: var(--primary); }
+        .filtros-tabela input::placeholder { color: var(--gray); opacity: 0.6; }
+
+        /* Badges */
+        .badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 0.7rem; font-weight: 700; }
+        .b-afazer   { background: rgba(148,163,184,0.15); color: #94a3b8; }
+        .b-andando  { background: rgba(59,130,246,0.15);  color: #3b82f6; }
+        .b-concluida{ background: rgba(16,185,129,0.15);  color: #10b981; }
+        .b-alta     { background: rgba(239,68,68,0.15);   color: #ef4444; }
+        .b-media    { background: rgba(245,158,11,0.15);  color: #f59e0b; }
+        .b-baixa    { background: rgba(16,185,129,0.15);  color: #10b981; }
+        .b-vencida  { background: rgba(239,68,68,0.2);    color: #fca5a5; font-size: 0.65rem; margin-left: 4px; }
+
+        /* Secao grid 2/3 colunas */
+        .secao-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+        .secao-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+
+        /* Loading */
+        .loading { display: flex; align-items: center; justify-content: center; padding: 40px;
+            color: var(--gray); gap: 12px; font-size: 0.9rem; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .spinner { width: 20px; height: 20px; border: 2px solid var(--border);
+            border-top-color: var(--primary); border-radius: 50%; animation: spin 0.7s linear infinite; }
+
+        .sem-dados { text-align: center; padding: 30px; color: var(--gray); font-size: 0.85rem; }
+
+        /* Busca global */
+        .busca-global { margin-bottom: 16px; position: relative; }
+        .busca-global input {
+            width: 100%; background: var(--bg); border: 1px solid var(--border);
+            border-radius: 8px; color: var(--text); padding: 10px 12px 10px 36px;
+            font-size: 0.85rem; outline: none;
+        }
+        .busca-global input:focus { border-color: var(--primary); }
+        .busca-global i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--gray); font-size: 0.8rem; }
+
+        /* Paginacao */
+        .paginacao { display: flex; align-items: center; justify-content: space-between;
+            margin-top: 16px; flex-wrap: wrap; gap: 10px; }
+        .paginacao span { font-size: 0.8rem; color: var(--gray); }
+        .pag-btns { display: flex; gap: 6px; }
+        .btn-pag {
+            background: var(--card2); border: 1px solid var(--border); color: var(--gray);
+            padding: 5px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem;
+        }
+        .btn-pag:hover { border-color: var(--primary); color: var(--text); }
+        .btn-pag:disabled { opacity: 0.3; cursor: not-allowed; }
+
+        @media (max-width: 768px) {
+            .filtros-grid { grid-template-columns: 1fr; }
+            .bar-row { grid-template-columns: 100px 1fr 50px; }
+            .secao-grid-2, .secao-grid-3 { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+<div id="menu-container"></div>
+<div class="page">
+
+    <!-- Filtros -->
+    <div class="filtros-panel">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+            <h3 style="margin:0;"><i class="fas fa-filter"></i> Filtros</h3>
+            <a href="/agenda" class="btn-voltar"><i class="fas fa-arrow-left"></i> Voltar</a>
+        </div>
+
+        <div class="periodo-label">
+            Filtrar por prazo &nbsp;<span>data de vencimento da tarefa</span>
+        </div>
+        <div class="periodo-rapido">
+            <button class="btn-periodo" onclick="setPeriodo('hoje',this)">Hoje</button>
+            <button class="btn-periodo" onclick="setPeriodo('semana',this)">Esta Semana</button>
+            <button class="btn-periodo ativo" onclick="setPeriodo('mes',this)">Este Mes</button>
+            <button class="btn-periodo" onclick="setPeriodo('trimestre',this)">Trimestre</button>
+            <button class="btn-periodo" onclick="setPeriodo('ano',this)">Este Ano</button>
+            <button class="btn-periodo" onclick="setPeriodo('todos',this)">Todos</button>
+            <button class="btn-periodo" onclick="setPeriodo('custom',this)">Personalizado</button>
+        </div>
+
+        <div id="datas-custom" class="filtros-grid" style="display:none">
+            <div class="filtro-group">
+                <label>Prazo De</label>
+                <input type="date" id="f-di">
+            </div>
+            <div class="filtro-group">
+                <label>Prazo Ate</label>
+                <input type="date" id="f-df">
+            </div>
+        </div>
+
+        <div class="filtros-grid">
+            <div class="filtro-group">
+                <label>Lista</label>
+                <select id="f-lista" onchange="listaChanged()">
+                    <option value="">Todas as listas</option>
+                </select>
+            </div>
+            <div class="filtro-group">
+                <label>Categoria</label>
+                <select id="f-categoria">
+                    <option value="">Todas as categorias</option>
+                </select>
+            </div>
+            <div class="filtro-group">
+                <label>Status</label>
+                <select id="f-status">
+                    <option value="todos">Todos</option>
+                    <option value="a_fazer">A Fazer</option>
+                    <option value="em_andamento">Em Andamento</option>
+                    <option value="concluida">Concluida</option>
+                </select>
+            </div>
+            <div class="filtro-group">
+                <label>Prioridade</label>
+                <select id="f-prioridade">
+                    <option value="todas">Todas</option>
+                    <option value="alta">Alta</option>
+                    <option value="media">Media</option>
+                    <option value="baixa">Baixa</option>
+                </select>
+            </div>
+            <div class="filtro-group">
+                <label>Tipo de Relatorio</label>
+                <div class="tipo-btns">
+                    <button class="btn-tipo ativo" id="btn-resumido" onclick="setTipo('resumido')">
+                        <i class="fas fa-chart-pie"></i> Resumido
+                    </button>
+                    <button class="btn-tipo" id="btn-detalhado" onclick="setTipo('detalhado')">
+                        <i class="fas fa-list"></i> Detalhado
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <button class="btn-gerar" id="btn-gerar" onclick="gerarRelatorio()">
+            <i class="fas fa-sync-alt"></i> GERAR RELATORIO
+        </button>
+    </div>
+
+    <div id="resultado"></div>
+
+</div>
+
+<script src="/js/menu.js"></script>
+<script>
+    let tipoAtual    = 'resumido';
+    let periodoAtual = 'mes';
+    let paginaAtual  = 1;
+    const POR_PAGINA = 50;
+
+    // ── Helpers de data ──────────────────────────────────────
+    function hoje()            { return new Date().toISOString().slice(0,10); }
+    function inicioSemana()    { const d=new Date(),day=d.getDay(); d.setDate(d.getDate()-(day===0?6:day-1)); return d.toISOString().slice(0,10); }
+    function fimSemana()       { const d=new Date(),day=d.getDay(); d.setDate(d.getDate()+(day===0?0:7-day)); return d.toISOString().slice(0,10); }
+    function inicioMes()       { const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-01`; }
+    function fimMes()          { const d=new Date(); return new Date(d.getFullYear(),d.getMonth()+1,0).toISOString().slice(0,10); }
+    function inicioTrimestre() { const d=new Date(),q=Math.floor(d.getMonth()/3)*3; return `${d.getFullYear()}-${String(q+1).padStart(2,'0')}-01`; }
+    function fimTrimestre()    { const d=new Date(),q=Math.floor(d.getMonth()/3)*3+2; return new Date(d.getFullYear(),q+1,0).toISOString().slice(0,10); }
+    function inicioAno()       { return `${new Date().getFullYear()}-01-01`; }
+    function fimAno()          { return `${new Date().getFullYear()}-12-31`; }
+
+    function fmtData(d) {
+        if (!d) return '—';
+        return new Date(d).toLocaleDateString('pt-BR', { timeZone: 'UTC' });
+    }
+    function isVencida(t) {
+        if (t.status === 'concluida' || !t.prazo) return false;
+        return new Date(t.prazo) < new Date(new Date().toDateString());
+    }
+
+    function setPeriodo(p, btn) {
+        periodoAtual = p;
+        document.querySelectorAll('.btn-periodo').forEach(b => b.classList.remove('ativo'));
+        btn.classList.add('ativo');
+        const custom = document.getElementById('datas-custom');
+        if (p === 'custom') { custom.style.display = 'grid'; return; }
+        custom.style.display = 'none';
+        if (p === 'todos') {
+            document.getElementById('f-di').value = '';
+            document.getElementById('f-df').value = '';
+            return;
+        }
+        const map = {
+            hoje:      [hoje(), hoje()],
+            semana:    [inicioSemana(), fimSemana()],
+            mes:       [inicioMes(), fimMes()],
+            trimestre: [inicioTrimestre(), fimTrimestre()],
+            ano:       [inicioAno(), fimAno()]
+        };
+        const [di, df] = map[p] || [inicioMes(), fimMes()];
+        document.getElementById('f-di').value = di;
+        document.getElementById('f-df').value = df;
+    }
+
+    function setTipo(t) {
+        tipoAtual = t;
+        document.getElementById('btn-resumido').classList.toggle('ativo', t === 'resumido');
+        document.getElementById('btn-detalhado').classList.toggle('ativo', t === 'detalhado');
+    }
+
+    // ── Carregar listas ───────────────────────────────────────
+    async function carregarListas() {
+        const r = await fetch('/api/agenda/listas');
+        if (!r.ok) return;
+        const data = await r.json();
+        const sel  = document.getElementById('f-lista');
+        (data.listas || []).forEach(l => {
+            const o = document.createElement('option');
+            o.value       = l.id;
+            o.textContent = l.nome + (l.permissao !== 'dono' ? ' (compartilhada)' : '');
+            o.dataset.cor = l.cor;
+            sel.appendChild(o);
+        });
+    }
+
+    async function listaChanged() {
+        const lId    = document.getElementById('f-lista').value;
+        const selCat = document.getElementById('f-categoria');
+        selCat.innerHTML = '<option value="">Todas as categorias</option>';
+        if (!lId) return;
+        const r = await fetch(`/api/agenda/listas/${lId}/categorias`);
+        const d = await r.json();
+        (d.categorias || []).forEach(c => {
+            const o = document.createElement('option');
+            o.value = c.id; o.textContent = c.nome;
+            selCat.appendChild(o);
+        });
+    }
+
+    // ── Gerar Relatorio ───────────────────────────────────────
+    async function gerarRelatorio(pg = 1) {
+        const di        = document.getElementById('f-di').value;
+        const df        = document.getElementById('f-df').value;
+        const lId       = document.getElementById('f-lista').value;
+        const catId     = document.getElementById('f-categoria').value;
+        const status    = document.getElementById('f-status').value;
+        const prioridade= document.getElementById('f-prioridade').value;
+
+        const params = new URLSearchParams({ tipo: tipoAtual });
+        if (di)       params.set('prazoInicio', di);
+        if (df)       params.set('prazoFim',    df);
+        if (lId)      params.set('lista_id',    lId);
+        if (catId)    params.set('categoria_id',catId);
+        if (status)   params.set('status',      status);
+        if (prioridade) params.set('prioridade',prioridade);
+        if (tipoAtual === 'detalhado') params.set('page', pg);
+
+        const res = document.getElementById('resultado');
+        res.style.display = 'block';
+        res.innerHTML = '<div class="loading"><div class="spinner"></div> Carregando...</div>';
+
+        const btn = document.getElementById('btn-gerar');
+        btn.disabled = true;
+
+        try {
+            const r    = await fetch('/api/agenda/relatorios?' + params.toString());
+            const data = await r.json();
+            if (!r.ok) throw new Error(data.erro || 'Erro desconhecido');
+
+            paginaAtual = pg;
+            if (tipoAtual === 'resumido') renderResumo(data, di, df);
+            else renderDetalhado(data, di, df);
+        } catch (e) {
+            res.innerHTML = `<div class="sem-dados"><i class="fas fa-exclamation-circle"></i> ${e.message}</div>`;
+        } finally {
+            btn.disabled = false;
+        }
+    }
+
+    // ── Render Resumido ───────────────────────────────────────
+    function renderResumo(data, di, df) {
+        const r = data.resumo;
+        const periodo = (di || df) ? `${di ? fmtData(di) : '...'} — ${df ? fmtData(df) : '...'}` : 'Todos os prazos';
+        const taxa    = r.total > 0 ? Math.round(r.concluida / r.total * 100) : 0;
+
+        let html = `
+        <div class="resultado-header">
+            <h2>Resumo de Tarefas</h2>
+            <span><i class="fas fa-calendar-alt"></i> ${periodo}</span>
+        </div>
+
+        <div class="cards-grid">
+            <div class="card-stat c-total">
+                <div class="val">${r.total}</div>
+                <div class="lbl">Total de Tarefas</div>
+            </div>
+            <div class="card-stat c-afazer">
+                <div class="val">${r.a_fazer}</div>
+                <div class="lbl">A Fazer</div>
+            </div>
+            <div class="card-stat c-andando">
+                <div class="val">${r.em_andamento}</div>
+                <div class="lbl">Em Andamento</div>
+            </div>
+            <div class="card-stat c-concluida">
+                <div class="val">${r.concluida}</div>
+                <div class="lbl">Concluidas</div>
+            </div>
+            <div class="card-stat c-taxa">
+                <div class="val">${taxa}%</div>
+                <div class="lbl">Taxa de Conclusao</div>
+            </div>
+            <div class="card-stat c-vencida">
+                <div class="val">${r.vencidas}</div>
+                <div class="lbl">Vencidas</div>
+                <div class="sub">pendentes com prazo expirado</div>
+            </div>
+            <div class="card-stat c-alta">
+                <div class="val">${r.alta_pendente}</div>
+                <div class="lbl">Alta Prior. Pendentes</div>
+            </div>
+        </div>`;
+
+        // Secao grid 2: categoria + prioridade
+        html += '<div class="secao-grid-2">';
+
+        // Por Categoria
+        html += '<div class="secao"><h3><i class="fas fa-tag"></i> Por Categoria</h3>';
+        if (!data.por_categoria.length) {
+            html += '<div class="sem-dados">Nenhuma categoria</div>';
+        } else {
+            const maxCat = Math.max(...data.por_categoria.map(c => c.total));
+            html += '<div class="bar-chart">';
+            data.por_categoria.forEach(c => {
+                const pct      = maxCat > 0 ? (c.total / maxCat * 100).toFixed(1) : 0;
+                const pctConc  = c.total > 0 ? (c.concluidas / c.total * 100).toFixed(1) : 0;
+                const cor      = c.cor || '#6b7280';
+                html += `
+                <div class="bar-row">
+                    <div class="bar-label" title="${c.categoria}">${c.categoria}</div>
+                    <div class="bar-track" style="position:relative">
+                        <div class="bar-fill" style="width:${pct}%; background:${cor}88"></div>
+                        <div class="bar-fill-over" style="width:${pct * pctConc / 100}%; background:${cor}55"></div>
+                    </div>
+                    <div class="bar-count">${c.total}</div>
+                </div>`;
+            });
+            html += '</div>';
+        }
+        html += '</div>';
+
+        // Por Prioridade
+        html += '<div class="secao"><h3><i class="fas fa-exclamation-triangle"></i> Por Prioridade</h3>';
+        if (!data.por_prioridade.length) {
+            html += '<div class="sem-dados">Nenhum dado</div>';
+        } else {
+            const maxPri = Math.max(...data.por_prioridade.map(p => p.total));
+            const priCores = { alta: '#ef4444', media: '#f59e0b', baixa: '#10b981' };
+            const priLabels = { alta: 'Alta', media: 'Media', baixa: 'Baixa' };
+            html += '<div class="bar-chart">';
+            data.por_prioridade.forEach(p => {
+                const pct    = maxPri > 0 ? (p.total / maxPri * 100).toFixed(1) : 0;
+                const cor    = priCores[p.prioridade] || '#6b7280';
+                const label  = priLabels[p.prioridade] || p.prioridade;
+                const taxaCon = p.total > 0 ? Math.round(p.concluidas / p.total * 100) : 0;
+                html += `
+                <div class="bar-row">
+                    <div class="bar-label">
+                        <span class="bar-dot" style="background:${cor}"></span>${label}
+                    </div>
+                    <div class="bar-track">
+                        <div class="bar-fill" style="width:${pct}%; background:${cor}"></div>
+                    </div>
+                    <div class="bar-count">${p.total} <span style="font-size:0.65rem;color:var(--green)">${taxaCon}%</span></div>
+                </div>`;
+            });
+            html += '</div>';
+        }
+        html += '</div>';
+
+        html += '</div>'; // fim secao-grid-2
+
+        // Por Lista (se nao filtrou uma lista)
+        if (data.por_lista && data.por_lista.length > 0) {
+            html += `
+            <div class="secao">
+                <h3><i class="fas fa-list"></i> Por Lista</h3>
+                <div class="tbl-wrap">
+                    <table>
+                        <thead><tr>
+                            <th>Lista</th>
+                            <th class="td-num">Total</th>
+                            <th class="td-num">Concluidas</th>
+                            <th class="td-num">A Fazer</th>
+                            <th>Taxa</th>
+                        </tr></thead>
+                        <tbody>`;
+            data.por_lista.forEach(l => {
+                const taxa  = l.total > 0 ? Math.round(l.concluidas / l.total * 100) : 0;
+                const afazer = l.total - l.concluidas;
+                const cor   = l.cor || '#8b5cf6';
+                html += `<tr>
+                    <td><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${cor};margin-right:8px"></span>${l.lista}</td>
+                    <td class="td-num">${l.total}</td>
+                    <td class="td-num">${l.concluidas}</td>
+                    <td class="td-num">${afazer}</td>
+                    <td>
+                        <div class="taxa-bar">
+                            <div class="taxa-track"><div class="taxa-fill" style="width:${taxa}%"></div></div>
+                            <span class="taxa-pct">${taxa}%</span>
+                        </div>
+                    </td>
+                </tr>`;
+            });
+            html += '</tbody></table></div></div>';
+        }
+
+        document.getElementById('resultado').innerHTML = html;
+    }
+
+    // ── Render Detalhado ──────────────────────────────────────
+    let _detTarefas = [];
+    let _sortCol = '';
+    let _sortDir = 'asc';
+
+    const statusMap = { a_fazer: ['b-afazer','A Fazer'], em_andamento: ['b-andando','Em Andamento'], concluida: ['b-concluida','Concluida'] };
+    const priMap    = { alta: ['b-alta','Alta'], media: ['b-media','Media'], baixa: ['b-baixa','Baixa'] };
+
+    function renderDetalhado(data, di, df) {
+        _detTarefas = data.tarefas || [];
+        const periodo = (di || df) ? `${di ? fmtData(di) : '...'} — ${df ? fmtData(df) : '...'}` : 'Todos os prazos';
+        const totalPgs = Math.ceil(data.total / POR_PAGINA);
+
+        let html = `
+        <div class="resultado-header">
+            <h2>Relatorio Detalhado</h2>
+            <span><i class="fas fa-calendar-alt"></i> ${periodo} &nbsp;|&nbsp; ${data.total} tarefas</span>
+            <button class="btn-exportar" onclick="exportarCSV()"><i class="fas fa-download"></i> Exportar CSV</button>
+        </div>`;
+
+        if (!_detTarefas.length) {
+            html += '<div class="sem-dados"><i class="fas fa-inbox"></i> Nenhuma tarefa encontrada.</div>';
+            document.getElementById('resultado').innerHTML = html;
+            return;
+        }
+
+        html += `
+        <div class="busca-global">
+            <i class="fas fa-search"></i>
+            <input type="text" id="ft-busca" placeholder="Buscar em todos os campos..." oninput="filtrarTabela()">
+        </div>
+        <div class="secao">
+            <div class="tbl-wrap">
+                <table id="tbl-detalhado">
+                    <thead>
+                        <tr>
+                            <th class="th-sort" onclick="ordenarTabela('lista_nome')">Lista <i class="fas fa-sort"></i></th>
+                            <th class="th-sort" onclick="ordenarTabela('titulo')">Titulo <i class="fas fa-sort"></i></th>
+                            <th class="td-center th-sort" onclick="ordenarTabela('prioridade')">Prior. <i class="fas fa-sort"></i></th>
+                            <th class="td-center th-sort" onclick="ordenarTabela('status')">Status <i class="fas fa-sort"></i></th>
+                            <th class="th-sort" onclick="ordenarTabela('prazo')">Prazo <i class="fas fa-sort"></i></th>
+                            <th class="th-sort" onclick="ordenarTabela('categoria_nome')">Categoria <i class="fas fa-sort"></i></th>
+                            <th class="th-sort" onclick="ordenarTabela('criado_por')">Criado Por <i class="fas fa-sort"></i></th>
+                        </tr>
+                        <tr class="filtros-tabela">
+                            <th><input type="text" placeholder="Filtrar..." id="ft-lista" onkeyup="filtrarTabela()"></th>
+                            <th><input type="text" placeholder="Filtrar..." id="ft-titulo" onkeyup="filtrarTabela()"></th>
+                            <th><select id="ft-prioridade" onchange="filtrarTabela()">
+                                <option value="">Todas</option>
+                                <option value="alta">Alta</option>
+                                <option value="media">Media</option>
+                                <option value="baixa">Baixa</option>
+                            </select></th>
+                            <th><select id="ft-status" onchange="filtrarTabela()">
+                                <option value="">Todos</option>
+                                <option value="a_fazer">A Fazer</option>
+                                <option value="em_andamento">Em Andamento</option>
+                                <option value="concluida">Concluida</option>
+                            </select></th>
+                            <th></th>
+                            <th><input type="text" placeholder="Filtrar..." id="ft-categoria" onkeyup="filtrarTabela()"></th>
+                            <th><input type="text" placeholder="Filtrar..." id="ft-criado" onkeyup="filtrarTabela()"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbody-detalhado">`;
+
+        html += renderLinhasTarefas(_detTarefas);
+
+        html += `</tbody></table></div>
+            <div class="paginacao">
+                <span>Pagina ${paginaAtual} de ${totalPgs} &nbsp;(${data.total} registros)</span>
+                <div class="pag-btns">
+                    <button class="btn-pag" onclick="gerarRelatorio(${paginaAtual-1})" ${paginaAtual<=1?'disabled':''}>
+                        <i class="fas fa-chevron-left"></i> Anterior
+                    </button>
+                    <button class="btn-pag" onclick="gerarRelatorio(${paginaAtual+1})" ${paginaAtual>=totalPgs?'disabled':''}>
+                        Proxima <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+        </div>`;
+
+        document.getElementById('resultado').innerHTML = html;
+    }
+
+    function renderLinhasTarefas(tarefas) {
+        let html = '';
+        tarefas.forEach(t => {
+            const vencida = isVencida(t);
+            const [sCls, sLbl] = statusMap[t.status] || ['b-afazer', t.status];
+            const [pCls, pLbl] = priMap[t.prioridade] || ['b-media', t.prioridade];
+            const prazoTxt = t.prazo ? fmtData(t.prazo) + (vencida ? ' <span class="badge b-vencida">VENC.</span>' : '') : '—';
+            const catCor = t.categoria_cor ? `style="color:${t.categoria_cor}"` : '';
+            html += `<tr>
+                <td><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${t.lista_cor||'#8b5cf6'};margin-right:6px"></span>${t.lista_nome}</td>
+                <td>${t.titulo}</td>
+                <td class="td-center"><span class="badge ${pCls}">${pLbl}</span></td>
+                <td class="td-center"><span class="badge ${sCls}">${sLbl}</span></td>
+                <td>${prazoTxt}</td>
+                <td><span ${catCor}>${t.categoria_nome || '—'}</span></td>
+                <td>${t.criado_por || '—'}</td>
+            </tr>`;
+        });
+        return html;
+    }
+
+    function filtrarTabela() {
+        const fBusca      = (document.getElementById('ft-busca')?.value || '').toLowerCase();
+        const fLista      = (document.getElementById('ft-lista')?.value || '').toLowerCase();
+        const fTitulo     = (document.getElementById('ft-titulo')?.value || '').toLowerCase();
+        const fPrioridade = document.getElementById('ft-prioridade')?.value || '';
+        const fStatus     = document.getElementById('ft-status')?.value || '';
+        const fCategoria  = (document.getElementById('ft-categoria')?.value || '').toLowerCase();
+        const fCriado     = (document.getElementById('ft-criado')?.value || '').toLowerCase();
+
+        const filtradas = _detTarefas.filter(t => {
+            if (fBusca) {
+                const tudo = [t.lista_nome, t.titulo, t.prioridade, t.status, t.categoria_nome, t.criado_por].join(' ').toLowerCase();
+                if (!tudo.includes(fBusca)) return false;
+            }
+            if (fLista && !(t.lista_nome || '').toLowerCase().includes(fLista)) return false;
+            if (fTitulo && !(t.titulo || '').toLowerCase().includes(fTitulo)) return false;
+            if (fPrioridade && t.prioridade !== fPrioridade) return false;
+            if (fStatus && t.status !== fStatus) return false;
+            if (fCategoria && !(t.categoria_nome || '').toLowerCase().includes(fCategoria)) return false;
+            if (fCriado && !(t.criado_por || '').toLowerCase().includes(fCriado)) return false;
+            return true;
+        });
+
+        const tbody = document.getElementById('tbody-detalhado');
+        if (tbody) tbody.innerHTML = renderLinhasTarefas(filtradas);
+    }
+
+    function ordenarTabela(col) {
+        if (_sortCol === col) { _sortDir = _sortDir === 'asc' ? 'desc' : 'asc'; }
+        else { _sortCol = col; _sortDir = 'asc'; }
+
+        const dateCols = ['prazo', 'criado_em'];
+        _detTarefas.sort((a, b) => {
+            let vA = a[col], vB = b[col];
+            if (dateCols.includes(col)) {
+                vA = new Date(vA || 0).getTime(); vB = new Date(vB || 0).getTime();
+            } else {
+                vA = (vA || '').toString().toLowerCase();
+                vB = (vB || '').toString().toLowerCase();
+            }
+            if (vA < vB) return _sortDir === 'asc' ? -1 : 1;
+            if (vA > vB) return _sortDir === 'asc' ? 1 : -1;
+            return 0;
+        });
+
+        filtrarTabela();
+
+        // Atualizar ícones
+        document.querySelectorAll('.th-sort').forEach(th => {
+            th.classList.remove('asc', 'desc');
+            const icon = th.querySelector('i');
+            if (icon) icon.className = 'fas fa-sort';
+        });
+        document.querySelectorAll('.th-sort').forEach(th => {
+            const onclick = th.getAttribute('onclick') || '';
+            if (onclick.includes(`'${col}'`)) {
+                th.classList.add(_sortDir);
+                const icon = th.querySelector('i');
+                if (icon) icon.className = _sortDir === 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down';
+            }
+        });
+    }
+
+    // ── Exportar CSV ──────────────────────────────────────────
+    async function exportarCSV() {
+        const di        = document.getElementById('f-di').value;
+        const df        = document.getElementById('f-df').value;
+        const lId       = document.getElementById('f-lista').value;
+        const catId     = document.getElementById('f-categoria').value;
+        const status    = document.getElementById('f-status').value;
+        const prioridade= document.getElementById('f-prioridade').value;
+
+        let todos = [];
+        let pg = 1;
+        while (true) {
+            const params = new URLSearchParams({ tipo:'detalhado', page: pg });
+            if (di)        params.set('prazoInicio', di);
+            if (df)        params.set('prazoFim',    df);
+            if (lId)       params.set('lista_id',    lId);
+            if (catId)     params.set('categoria_id',catId);
+            if (status)    params.set('status',      status);
+            if (prioridade)params.set('prioridade',  prioridade);
+            const r = await fetch('/api/agenda/relatorios?' + params.toString());
+            const d = await r.json();
+            todos = todos.concat(d.tarefas || []);
+            if (todos.length >= d.total || pg * 50 >= d.total) break;
+            pg++;
+            if (pg > 100) break;
+        }
+
+        const priLabels   = { alta:'Alta', media:'Media', baixa:'Baixa' };
+        const statusLabels = { a_fazer:'A Fazer', em_andamento:'Em Andamento', concluida:'Concluida' };
+
+        const BOM    = '\uFEFF';
+        const header = ['ID','Lista','Titulo','Prioridade','Status','Prazo','Categoria','Criado Por','Criado Em'];
+        const rows   = todos.map(t => [
+            t.id,
+            `"${(t.lista_nome||'').replace(/"/g,'""')}"`,
+            `"${(t.titulo||'').replace(/"/g,'""')}"`,
+            priLabels[t.prioridade] || t.prioridade,
+            statusLabels[t.status] || t.status,
+            fmtData(t.prazo),
+            `"${(t.categoria_nome||'').replace(/"/g,'""')}"`,
+            t.criado_por||'',
+            t.criado_em ? new Date(t.criado_em).toLocaleString('pt-BR') : ''
+        ].join(';'));
+
+        const csv  = BOM + [header.join(';'), ...rows].join('\n');
+        const blob = new Blob([csv], { type:'text/csv;charset=utf-8;' });
+        const url  = URL.createObjectURL(blob);
+        const a    = document.createElement('a');
+        a.href     = url;
+        const nomePeriodo = di && df ? `${di}_${df}` : 'todos';
+        a.download = `relatorio_tarefas_${nomePeriodo}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+    }
+
+    // ── Init ─────────────────────────────────────────────────
+    setPeriodo('mes', document.querySelector('.btn-periodo.ativo'));
+    carregarListas();
+</script>
+</body>
+</html>

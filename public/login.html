@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<!--
+  ARQUIVO: public/login.html
+  VERSÃO:  1.0.0
+  DATA:    2026-03-02
+  DESCRIÇÃO: Página de login do Portal de Sistemas e Serviços
+
+  HISTÓRICO:
+  1.0.0 - 2026-03-02 - Versão inicial
+-->
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portal WKL — Login</title>
+
+  <!-- Ícones Font Awesome (via CDN) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <!-- Estilos globais -->
+  <link rel="stylesheet" href="/css/style.css">
+
+  <style>
+    /* A página de login não tem menu, então remove o padding-top */
+    body {
+      padding-top:     0;
+      display:         flex;
+      align-items:     center;
+      justify-content: center;
+      min-height:      100vh;
+      background:      var(--cor-fundo);
+    }
+
+    /* Caixa central de login */
+    .login-box {
+      background:    var(--cor-fundo-2);
+      border:        1px solid var(--cor-borda);
+      border-radius: var(--raio);
+      padding:       40px 36px;
+      width:         100%;
+      max-width:     400px;
+      box-shadow:    var(--sombra);
+    }
+
+    /* Logo / cabeçalho */
+    .login-header {
+      text-align:    center;
+      margin-bottom: 32px;
+    }
+
+    .login-icone {
+      font-size:     3rem;
+      color:         var(--cor-destaque);
+      margin-bottom: 12px;
+      display:       block;
+    }
+
+    .login-titulo {
+      font-size:   1.5rem;
+      font-weight: 700;
+      color:       var(--cor-texto);
+    }
+
+    .login-subtitulo {
+      font-size:  0.85rem;
+      color:      var(--cor-texto-fraco);
+      margin-top: 4px;
+    }
+
+    /* Botão de login com estado de carregando */
+    #btn-entrar {
+      margin-top: 8px;
+      position:   relative;
+    }
+
+    #btn-entrar.carregando {
+      opacity:        0.7;
+      pointer-events: none;
+    }
+
+    #btn-entrar.carregando::after {
+      content:      '';
+      display:      inline-block;
+      width:        14px;
+      height:       14px;
+      border:       2px solid rgba(255,255,255,0.3);
+      border-top:   2px solid #fff;
+      border-radius: 50%;
+      animation:    girar 0.6s linear infinite;
+      margin-left:  10px;
+      vertical-align: middle;
+    }
+
+    @keyframes girar {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Rodapé da caixa */
+    .login-rodape {
+      text-align:  center;
+      margin-top:  24px;
+      font-size:   0.78rem;
+      color:       var(--cor-texto-fraco);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="login-box">
+
+    <!-- Cabeçalho -->
+    <div class="login-header">
+      <i class="fas fa-layer-group login-icone"></i>
+      <div class="login-titulo">Portal WKL</div>
+      <div class="login-subtitulo">Sistemas e Serviços</div>
+    </div>
+
+    <!-- Mensagem de erro -->
+    <div id="msg-erro" class="alerta alerta-erro">
+      <i class="fas fa-exclamation-circle"></i>
+      <span id="texto-erro">Usuário ou senha inválidos.</span>
+    </div>
+
+    <!-- Formulário de login -->
+    <form id="form-login" onsubmit="fazerLogin(event)">
+
+      <div class="form-grupo">
+        <label for="campo-usuario">
+          <i class="fas fa-user"></i> Usuário
+        </label>
+        <input
+          type="text"
+          id="campo-usuario"
+          name="usuario"
+          placeholder="Digite seu usuário"
+          autocomplete="username"
+          required
+        >
+      </div>
+
+      <div class="form-grupo">
+        <label for="campo-senha">
+          <i class="fas fa-lock"></i> Senha
+        </label>
+        <input
+          type="password"
+          id="campo-senha"
+          name="senha"
+          placeholder="Digite sua senha"
+          autocomplete="current-password"
+          required
+        >
+      </div>
+
+      <button type="submit" class="btn btn-primario" id="btn-entrar">
+        <i class="fas fa-sign-in-alt"></i>
+        Entrar
+      </button>
+
+    </form>
+
+    <div class="login-rodape">
+      Portal de Sistemas &copy; 2026 — WKL
+    </div>
+
+  </div>
+
+  <script>
+    // Foca no campo de usuário ao abrir a página
+    document.getElementById('campo-usuario').focus();
+
+    // --------------------------------------------------------
+    // FUNÇÃO DE LOGIN
+    // --------------------------------------------------------
+    async function fazerLogin(evento) {
+      evento.preventDefault();
+
+      const usuario = document.getElementById('campo-usuario').value.trim();
+      const senha   = document.getElementById('campo-senha').value;
+      const btnEntrar = document.getElementById('btn-entrar');
+      const msgErro   = document.getElementById('msg-erro');
+      const textoErro = document.getElementById('texto-erro');
+
+      // Esconde mensagem de erro anterior
+      msgErro.classList.remove('visivel');
+
+      // Ativa estado de carregando
+      btnEntrar.classList.add('carregando');
+      btnEntrar.textContent = 'Entrando...';
+
+      try {
+        const resposta = await fetch('/login', {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify({ usuario, senha })
+        });
+
+        const dados = await resposta.json();
+
+        if (dados.sucesso) {
+          // Login bem-sucedido — redireciona para o portal
+          window.location.href = dados.redirecionar || '/portal.html';
+        } else {
+          // Exibe mensagem de erro
+          textoErro.textContent = dados.erro || 'Usuário ou senha inválidos.';
+          msgErro.classList.add('visivel');
+          document.getElementById('campo-senha').value = '';
+          document.getElementById('campo-usuario').focus();
+        }
+
+      } catch (erro) {
+        textoErro.textContent = 'Erro de conexão. Tente novamente.';
+        msgErro.classList.add('visivel');
+      } finally {
+        // Restaura o botão
+        btnEntrar.classList.remove('carregando');
+        btnEntrar.innerHTML = '<i class="fas fa-sign-in-alt"></i> Entrar';
+      }
+    }
+  </script>
+
+</body>
+</html>

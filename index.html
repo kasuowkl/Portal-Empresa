@@ -1,0 +1,1496 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Aprovações — Portal WKL</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="stylesheet" href="/css/menu.css" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: var(--cor-fundo, #0f172a);
+      color: var(--cor-texto, #e2e8f0);
+      min-height: 100vh;
+    }
+
+    /* ── Layout ──────────────────────────────────────── */
+    #app {
+      display: flex;
+      height: calc(100vh - var(--altura-menu, 56px));
+      overflow: hidden;
+    }
+
+    /* ── Sidebar ─────────────────────────────────────── */
+    #sidebar {
+      width: 320px;
+      min-width: 320px;
+      background: var(--cor-fundo-2, #1e293b);
+      border-right: 1px solid var(--cor-borda, #334155);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      transition: transform 0.3s ease;
+    }
+
+    #sidebar-header {
+      padding: 16px;
+      border-bottom: 1px solid var(--cor-borda, #334155);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    #sidebar-header h1 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--cor-texto, #e2e8f0);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    #sidebar-header h1 i { color: var(--cor-destaque, #3b82f6); }
+
+    .btn-nova {
+      background: var(--cor-destaque, #3b82f6);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 7px 14px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+      transition: background 0.2s, transform 0.1s;
+    }
+    .btn-nova:hover { background: #2563eb; transform: translateY(-1px); }
+    .btn-nova:active { transform: translateY(0); }
+
+    /* ── Abas ────────────────────────────────────────── */
+    .abas {
+      display: flex;
+      border-bottom: 1px solid var(--cor-borda, #334155);
+    }
+
+    .aba {
+      flex: 1;
+      padding: 10px;
+      text-align: center;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--cor-texto-fraco, #94a3b8);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: color 0.2s, border-color 0.2s;
+    }
+    .aba:hover { color: var(--cor-texto, #e2e8f0); }
+    .aba.ativa {
+      color: var(--cor-destaque, #3b82f6);
+      border-bottom-color: var(--cor-destaque, #3b82f6);
+    }
+
+    /* ── Lista de cards ──────────────────────────────── */
+    #lista-aprovacoes {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px;
+    }
+
+    #lista-aprovacoes::-webkit-scrollbar { width: 4px; }
+    #lista-aprovacoes::-webkit-scrollbar-thumb { background: var(--cor-borda, #334155); border-radius: 4px; }
+
+    .card-apr {
+      background: var(--cor-fundo-3, #1e293b);
+      border: 1px solid var(--cor-borda, #334155);
+      border-radius: 10px;
+      padding: 12px;
+      margin-bottom: 8px;
+      cursor: pointer;
+      transition: border-color 0.2s, transform 0.15s, box-shadow 0.2s;
+    }
+    .card-apr:hover {
+      border-color: var(--cor-destaque, #3b82f6);
+      transform: translateX(2px);
+      box-shadow: 0 2px 12px rgba(59,130,246,0.15);
+    }
+    .card-apr.ativo {
+      border-color: var(--cor-destaque, #3b82f6);
+      background: rgba(59,130,246,0.07);
+    }
+
+    .card-apr-titulo {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--cor-texto, #e2e8f0);
+      margin-bottom: 6px;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .card-apr-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .card-apr-progresso {
+      font-size: 0.75rem;
+      color: var(--cor-texto-fraco, #94a3b8);
+    }
+
+    .card-apr-data {
+      font-size: 0.72rem;
+      color: var(--cor-texto-fraco, #94a3b8);
+    }
+
+    /* ── Status badges ───────────────────────────────── */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 8px;
+      border-radius: 20px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .badge-pendente  { background: rgba(245,158,11,0.15); color: #f59e0b; }
+    .badge-aprovado  { background: rgba(16,185,129,0.15); color: #10b981; }
+    .badge-reprovado { background: rgba(239,68,68,0.15);  color: #ef4444; }
+    .badge-cancelado { background: rgba(107,114,128,0.15);color: #6b7280; }
+
+    /* ── Painel direito ──────────────────────────────── */
+    #painel {
+      flex: 1;
+      overflow-y: auto;
+      background: var(--cor-fundo, #0f172a);
+      display: flex;
+      flex-direction: column;
+    }
+    #painel::-webkit-scrollbar { width: 4px; }
+    #painel::-webkit-scrollbar-thumb { background: var(--cor-borda, #334155); border-radius: 4px; }
+
+    /* ── Estado vazio ────────────────────────────────── */
+    .vazio {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      flex: 1;
+      gap: 12px;
+      color: var(--cor-texto-fraco, #94a3b8);
+      padding: 40px;
+      text-align: center;
+    }
+    .vazio i { font-size: 3rem; opacity: 0.4; }
+    .vazio p { font-size: 0.9rem; }
+
+    .lista-vazia {
+      padding: 40px 16px;
+      text-align: center;
+      color: var(--cor-texto-fraco, #94a3b8);
+      font-size: 0.85rem;
+    }
+    .lista-vazia i { font-size: 2rem; display: block; margin-bottom: 8px; opacity: 0.4; }
+
+    /* ── Formulário de criação ───────────────────────── */
+    #form-criacao {
+      padding: 24px;
+      max-width: 680px;
+      animation: slideIn 0.2s ease;
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateX(12px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+
+    .form-titulo-sec {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--cor-texto, #e2e8f0);
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .form-titulo-sec i { color: var(--cor-destaque, #3b82f6); }
+
+    .campo-grupo {
+      margin-bottom: 18px;
+    }
+    .campo-grupo label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--cor-texto-fraco, #94a3b8);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .campo-grupo input,
+    .campo-grupo textarea {
+      width: 100%;
+      background: var(--cor-fundo-2, #1e293b);
+      border: 1px solid var(--cor-borda, #334155);
+      border-radius: 8px;
+      padding: 10px 14px;
+      color: var(--cor-texto, #e2e8f0);
+      font-size: 0.9rem;
+      font-family: inherit;
+      transition: border-color 0.2s;
+      resize: vertical;
+    }
+    .campo-grupo input:focus,
+    .campo-grupo textarea:focus {
+      outline: none;
+      border-color: var(--cor-destaque, #3b82f6);
+    }
+    .campo-grupo input::placeholder,
+    .campo-grupo textarea::placeholder { color: var(--cor-texto-fraco, #94a3b8); }
+
+    /* ── Chip selector de aprovadores ─────────────────── */
+    .chip-selector {
+      border: 1px solid var(--cor-borda, #334155);
+      border-radius: 8px;
+      background: var(--cor-fundo-2, #1e293b);
+      position: relative;
+    }
+    .chip-selector-top {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      padding: 8px 10px;
+      min-height: 44px;
+      align-items: center;
+      cursor: text;
+    }
+    .chip-selector-top input {
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--cor-texto, #e2e8f0);
+      font-size: 0.85rem;
+      font-family: inherit;
+      flex: 1;
+      min-width: 140px;
+    }
+    .chip-selector-top input::placeholder { color: var(--cor-texto-fraco, #94a3b8); }
+    .chip-selector:focus-within { border-color: var(--cor-destaque, #3b82f6); }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: rgba(59,130,246,0.15);
+      border: 1px solid rgba(59,130,246,0.4);
+      border-radius: 20px;
+      padding: 3px 8px 3px 10px;
+      font-size: 0.8rem;
+      color: var(--cor-texto, #e2e8f0);
+      white-space: nowrap;
+    }
+    .chip-rem {
+      cursor: pointer;
+      color: var(--cor-texto-fraco, #94a3b8);
+      line-height: 1;
+      font-size: 1rem;
+      padding: 0 2px;
+      border-radius: 50%;
+      transition: color 0.15s, background 0.15s;
+    }
+    .chip-rem:hover { color: #ef4444; background: rgba(239,68,68,0.15); }
+
+    .chip-obs {
+      background: rgba(16,185,129,0.12);
+      border-color: rgba(16,185,129,0.4);
+    }
+
+    .chip-dropdown {
+      border-top: 1px solid var(--cor-borda, #334155);
+      max-height: 200px;
+      overflow-y: auto;
+      display: none;
+      border-radius: 0 0 8px 8px;
+    }
+    .chip-dropdown.aberto { display: block; }
+    .chip-dropdown::-webkit-scrollbar { width: 4px; }
+    .chip-dropdown::-webkit-scrollbar-thumb { background: var(--cor-borda, #334155); border-radius: 4px; }
+
+    .chip-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 9px 14px;
+      cursor: pointer;
+      border-bottom: 1px solid var(--cor-borda, #334155);
+      transition: background 0.15s;
+    }
+    .chip-item:last-child { border-bottom: none; }
+    .chip-item:hover { background: rgba(59,130,246,0.08); }
+    .chip-item.selecionado { background: rgba(59,130,246,0.06); }
+    .chip-item-nome { font-size: 0.87rem; color: var(--cor-texto, #e2e8f0); }
+    .chip-item-dir { display: flex; align-items: center; gap: 8px; }
+    .chip-item-login { font-size: 0.78rem; color: var(--cor-texto-fraco, #94a3b8); }
+    .chip-item-check { color: var(--cor-destaque, #3b82f6); font-size: 0.8rem; }
+
+    /* ── Botão editar aprovação ────────────────────────── */
+    .btn-editar-apr {
+      background: transparent;
+      color: var(--cor-destaque, #3b82f6);
+      border: 1px solid rgba(59,130,246,0.4);
+      border-radius: 8px;
+      padding: 7px 14px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.2s, border-color 0.2s;
+    }
+    .btn-editar-apr:hover { background: rgba(59,130,246,0.1); border-color: var(--cor-destaque, #3b82f6); }
+
+    /* ── Botões de ação ──────────────────────────────── */
+    .btn-principal {
+      background: var(--cor-destaque, #3b82f6);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 20px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: background 0.2s, transform 0.1s;
+    }
+    .btn-principal:hover { background: #2563eb; transform: translateY(-1px); }
+    .btn-principal:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+    .btn-aprovar {
+      background: rgba(16,185,129,0.15);
+      color: #10b981;
+      border: 1px solid #10b981;
+      border-radius: 8px;
+      padding: 9px 18px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      transition: background 0.2s, transform 0.1s;
+    }
+    .btn-aprovar:hover { background: rgba(16,185,129,0.25); transform: translateY(-1px); }
+
+    .btn-reprovar {
+      background: rgba(239,68,68,0.1);
+      color: #ef4444;
+      border: 1px solid #ef4444;
+      border-radius: 8px;
+      padding: 9px 18px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      transition: background 0.2s, transform 0.1s;
+    }
+    .btn-reprovar:hover { background: rgba(239,68,68,0.2); transform: translateY(-1px); }
+
+    .btn-cancelar-apr {
+      background: transparent;
+      color: #ef4444;
+      border: 1px solid rgba(239,68,68,0.4);
+      border-radius: 8px;
+      padding: 7px 14px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.2s, border-color 0.2s;
+    }
+    .btn-cancelar-apr:hover { background: rgba(239,68,68,0.1); border-color: #ef4444; }
+
+    .btn-voltar-mobile {
+      display: none;
+      background: transparent;
+      border: none;
+      color: var(--cor-texto-fraco, #94a3b8);
+      cursor: pointer;
+      font-size: 0.85rem;
+      padding: 8px 16px;
+      align-items: center;
+      gap: 6px;
+      border-bottom: 1px solid var(--cor-borda, #334155);
+    }
+    .btn-voltar-mobile:hover { color: var(--cor-texto, #e2e8f0); }
+
+    /* ── Painel de detalhe ───────────────────────────── */
+    #detalhe {
+      padding: 24px;
+      max-width: 760px;
+      animation: slideIn 0.2s ease;
+    }
+
+    .detalhe-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .detalhe-titulo {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--cor-texto, #e2e8f0);
+      flex: 1;
+    }
+
+    .detalhe-meta {
+      font-size: 0.8rem;
+      color: var(--cor-texto-fraco, #94a3b8);
+      margin-top: 4px;
+    }
+
+    .badge-lg {
+      padding: 5px 14px;
+      font-size: 0.8rem;
+    }
+
+    /* ── Cards de seção ──────────────────────────────── */
+    .secao-card {
+      background: var(--cor-fundo-2, #1e293b);
+      border: 1px solid var(--cor-borda, #334155);
+      border-radius: 12px;
+      padding: 18px;
+      margin-bottom: 16px;
+    }
+
+    .secao-titulo {
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--cor-texto-fraco, #94a3b8);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+    .secao-titulo i { color: var(--cor-destaque, #3b82f6); }
+
+    /* ── Barra de progresso ──────────────────────────── */
+    .progresso-wrap {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+    .progresso-bar-bg {
+      flex: 1;
+      height: 8px;
+      background: var(--cor-fundo-3, #0f172a);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .progresso-bar-fill {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 0.5s ease;
+    }
+    .progresso-texto {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--cor-texto, #e2e8f0);
+      white-space: nowrap;
+    }
+
+    /* ── Lista de aprovadores ────────────────────────── */
+    .aprovador-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--cor-borda, #334155);
+    }
+    .aprovador-item:last-child { border-bottom: none; }
+
+    .avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.85rem;
+      font-weight: 700;
+      flex-shrink: 0;
+      color: #fff;
+    }
+
+    .aprovador-info { flex: 1; min-width: 0; }
+    .aprovador-nome {
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--cor-texto, #e2e8f0);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .aprovador-motivo {
+      font-size: 0.78rem;
+      color: var(--cor-texto-fraco, #94a3b8);
+      margin-top: 2px;
+      font-style: italic;
+    }
+    .aprovador-data {
+      font-size: 0.72rem;
+      color: var(--cor-texto-fraco, #94a3b8);
+      white-space: nowrap;
+    }
+
+    /* ── Área de resposta ────────────────────────────── */
+    .area-resposta {
+      background: rgba(59,130,246,0.05);
+      border: 1px solid rgba(59,130,246,0.2);
+      border-radius: 10px;
+      padding: 16px;
+    }
+    .area-resposta-titulo {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--cor-destaque, #3b82f6);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .area-resposta textarea {
+      width: 100%;
+      background: var(--cor-fundo-2, #1e293b);
+      border: 1px solid var(--cor-borda, #334155);
+      border-radius: 8px;
+      padding: 10px 12px;
+      color: var(--cor-texto, #e2e8f0);
+      font-size: 0.85rem;
+      font-family: inherit;
+      resize: vertical;
+      min-height: 70px;
+      margin-bottom: 12px;
+      transition: border-color 0.2s;
+    }
+    .area-resposta textarea:focus { outline: none; border-color: var(--cor-destaque, #3b82f6); }
+    .area-resposta textarea::placeholder { color: var(--cor-texto-fraco, #94a3b8); }
+    .btns-resposta { display: flex; gap: 10px; flex-wrap: wrap; }
+
+    /* ── Timeline de log ─────────────────────────────── */
+    .timeline { position: relative; }
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 15px;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: var(--cor-borda, #334155);
+    }
+
+    .timeline-item {
+      display: flex;
+      gap: 12px;
+      padding: 6px 0 6px 0;
+      position: relative;
+    }
+
+    .timeline-dot {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: var(--cor-fundo-3, #0f172a);
+      border: 2px solid var(--cor-borda, #334155);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.65rem;
+      color: var(--cor-texto-fraco, #94a3b8);
+      flex-shrink: 0;
+      z-index: 1;
+    }
+
+    .timeline-content { flex: 1; padding-top: 4px; }
+    .timeline-acao {
+      font-size: 0.85rem;
+      color: var(--cor-texto, #e2e8f0);
+    }
+    .timeline-data {
+      font-size: 0.72rem;
+      color: var(--cor-texto-fraco, #94a3b8);
+      margin-top: 2px;
+    }
+
+    /* ── Spinner ─────────────────────────────────────── */
+    .spinner {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 2px solid var(--cor-borda, #334155);
+      border-top-color: var(--cor-destaque, #3b82f6);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Toast ───────────────────────────────────────── */
+    #toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      pointer-events: none;
+    }
+    .toast-item {
+      background: var(--cor-fundo-2, #1e293b);
+      border: 1px solid var(--cor-borda, #334155);
+      border-radius: 10px;
+      padding: 12px 18px;
+      font-size: 0.85rem;
+      color: var(--cor-texto, #e2e8f0);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      animation: toastIn 0.3s ease;
+      pointer-events: all;
+    }
+    .toast-item.sucesso { border-left: 3px solid #10b981; }
+    .toast-item.erro    { border-left: 3px solid #ef4444; }
+    .toast-item.info    { border-left: 3px solid #3b82f6; }
+    @keyframes toastIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* ── Responsivo ──────────────────────────────────── */
+    @media (max-width: 768px) {
+      #app { position: relative; }
+      #sidebar {
+        position: absolute;
+        left: 0; top: 0; bottom: 0;
+        z-index: 10;
+        width: 100%;
+      }
+      #sidebar.oculto { transform: translateX(-100%); }
+      #painel { width: 100%; }
+      .btn-voltar-mobile { display: flex; }
+    }
+  </style>
+</head>
+<body>
+  <div id="menu-container"></div>
+
+  <div id="app">
+    <!-- ── Sidebar (lista) ── -->
+    <aside id="sidebar">
+      <div id="sidebar-header">
+        <h1><i class="fas fa-check-circle"></i> Aprovações</h1>
+        <button class="btn-nova" onclick="mostrarCriacao()">
+          <i class="fas fa-plus"></i> Nova
+        </button>
+      </div>
+
+      <div class="abas">
+        <div class="aba ativa" id="aba-minhas" onclick="mudarAba('minhas')">
+          <i class="fas fa-file-signature"></i> Minhas
+        </div>
+        <div class="aba" id="aba-para-mim" onclick="mudarAba('para-mim')">
+          <i class="fas fa-inbox"></i> Para mim
+        </div>
+      </div>
+
+      <div id="lista-aprovacoes">
+        <div class="lista-vazia">
+          <i class="fas fa-circle-notch fa-spin"></i>
+          Carregando…
+        </div>
+      </div>
+    </aside>
+
+    <!-- ── Painel direito ── -->
+    <main id="painel">
+      <button class="btn-voltar-mobile" onclick="voltarLista()">
+        <i class="fas fa-arrow-left"></i> Voltar à lista
+      </button>
+
+      <div class="vazio" id="estado-vazio">
+        <i class="fas fa-check-circle"></i>
+        <p>Selecione uma aprovação ou crie uma nova.</p>
+      </div>
+
+      <!-- Formulário de criação -->
+      <div id="form-criacao" style="display:none">
+        <div class="form-titulo-sec">
+          <i class="fas fa-plus-circle"></i> Nova Aprovação
+        </div>
+
+        <div class="campo-grupo">
+          <label>Título *</label>
+          <input type="text" id="inp-titulo" placeholder="Ex: Aprovação de compra de equipamentos" maxlength="200" />
+        </div>
+
+        <div class="campo-grupo">
+          <label>Objetivo / Descrição</label>
+          <textarea id="inp-objetivo" rows="4" placeholder="Descreva o que está sendo solicitado para aprovação…"></textarea>
+        </div>
+
+        <div class="campo-grupo">
+          <label>Aprovadores *</label>
+          <div class="chip-selector" id="chip-selector">
+            <div class="chip-selector-top" onclick="document.getElementById('chip-busca').focus()">
+              <div id="chips-container"></div>
+              <input type="text" id="chip-busca"
+                placeholder="Buscar e adicionar aprovador…"
+                oninput="filtrarChipDropdown()"
+                onfocus="abrirChipDropdown()"
+                onblur="fecharChipDropdown()" />
+            </div>
+            <div class="chip-dropdown" id="chip-dropdown"></div>
+          </div>
+        </div>
+
+        <div class="campo-grupo">
+          <label>Observadores <span style="font-weight:400;text-transform:none;font-size:.75rem;opacity:.7">(opcional — recebem notificações de status)</span></label>
+          <div class="chip-selector" id="chip-selector-obs">
+            <div class="chip-selector-top" onclick="document.getElementById('chip-busca-obs').focus()">
+              <div id="chips-container-obs"></div>
+              <input type="text" id="chip-busca-obs"
+                placeholder="Buscar e adicionar observador…"
+                oninput="filtrarChipDropdownObs()"
+                onfocus="abrirChipDropdownObs()"
+                onblur="fecharChipDropdownObs()" />
+            </div>
+            <div class="chip-dropdown" id="chip-dropdown-obs"></div>
+          </div>
+        </div>
+
+        <button class="btn-principal" id="btn-form-submit" onclick="submitFormulario()">
+          <i class="fas fa-paper-plane"></i> Criar Aprovação
+        </button>
+      </div>
+
+      <!-- Detalhe -->
+      <div id="detalhe" style="display:none"></div>
+    </main>
+  </div>
+
+  <!-- Toast container -->
+  <div id="toast"></div>
+
+  <script src="/js/menu.js"></script>
+  <script>
+    // ────────────────────────────────────────────────────
+    // Estado
+    // ────────────────────────────────────────────────────
+    let listaCompleta           = [];
+    let abaAtiva                = 'minhas';
+    let idAberto                = null;
+    let todosUsuarios           = [];
+    let pollingTimer            = null;
+    let aprovadoresSelecionados = []; // [{login, nome}]
+    let observadoresSelecionados = []; // [{login, nome}]
+    let modoEdicao              = false;
+    let idEdicao                = null;
+
+    // ────────────────────────────────────────────────────
+    // Inicialização
+    // ────────────────────────────────────────────────────
+    document.addEventListener('DOMContentLoaded', () => {
+      carregarLista();
+      carregarUsuarios();
+      pollingTimer = setInterval(carregarLista, 30000);
+    });
+
+    // ────────────────────────────────────────────────────
+    // HELPERS
+    // ────────────────────────────────────────────────────
+    function toast(msg, tipo = 'info') {
+      const el = document.createElement('div');
+      el.className = `toast-item ${tipo}`;
+      const icons = { sucesso: 'fa-check-circle', erro: 'fa-times-circle', info: 'fa-info-circle' };
+      const colors = { sucesso: '#10b981', erro: '#ef4444', info: '#3b82f6' };
+      el.innerHTML = `<i class="fas ${icons[tipo]}" style="color:${colors[tipo]}"></i> ${msg}`;
+      document.getElementById('toast').appendChild(el);
+      setTimeout(() => el.remove(), 4000);
+    }
+
+    function fmtData(d) {
+      if (!d) return '—';
+      const dt = new Date(d);
+      return dt.toLocaleString('pt-BR', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' });
+    }
+
+    function fmtDataCurta(d) {
+      if (!d) return '—';
+      const dt = new Date(d);
+      return dt.toLocaleDateString('pt-BR');
+    }
+
+    function badgeStatus(status) {
+      const map = {
+        Pendente:  ['badge-pendente',  'fa-clock',        'Pendente'],
+        Aprovado:  ['badge-aprovado',  'fa-check-circle', 'Aprovado'],
+        Reprovado: ['badge-reprovado', 'fa-times-circle', 'Reprovado'],
+        Cancelado: ['badge-cancelado', 'fa-ban',          'Cancelado'],
+      };
+      const [cls, icon, txt] = map[status] || ['badge-cancelado', 'fa-question', status];
+      return `<span class="badge ${cls}"><i class="fas ${icon}"></i>${txt}</span>`;
+    }
+
+    function corAvatar(login) {
+      const cores = ['#3b82f6','#8b5cf6','#ec4899','#f59e0b','#10b981','#06b6d4','#ef4444','#84cc16'];
+      let sum = 0;
+      for (let c of (login || 'x')) sum += c.charCodeAt(0);
+      return cores[sum % cores.length];
+    }
+
+    function inicialAvatar(nome) {
+      if (!nome) return '?';
+      const p = nome.trim().split(' ');
+      if (p.length > 1) return (p[0][0] + p[p.length-1][0]).toUpperCase();
+      return p[0][0].toUpperCase();
+    }
+
+    // ────────────────────────────────────────────────────
+    // Abas
+    // ────────────────────────────────────────────────────
+    function mudarAba(aba) {
+      abaAtiva = aba;
+      document.getElementById('aba-minhas').classList.toggle('ativa', aba === 'minhas');
+      document.getElementById('aba-para-mim').classList.toggle('ativa', aba === 'para-mim');
+      renderizarLista();
+    }
+
+    // ────────────────────────────────────────────────────
+    // Mobile
+    // ────────────────────────────────────────────────────
+    function voltarLista() {
+      document.getElementById('sidebar').classList.remove('oculto');
+    }
+    function abrirMobile() {
+      if (window.innerWidth <= 768) {
+        document.getElementById('sidebar').classList.add('oculto');
+      }
+    }
+
+    // ────────────────────────────────────────────────────
+    // CARREGAR LISTA
+    // ────────────────────────────────────────────────────
+    async function carregarLista() {
+      try {
+        const r = await fetch('/api/aprovacoes');
+        if (!r.ok) throw new Error();
+        const data = await r.json();
+        listaCompleta = data.aprovacoes || [];
+        renderizarLista();
+
+        // Atualiza detalhe se aberto
+        if (idAberto) {
+          const ainda = listaCompleta.find(a => a.id === idAberto);
+          if (ainda) abrirDetalhe(idAberto, true);
+        }
+      } catch {
+        // silencioso no polling
+      }
+    }
+
+    function renderizarLista() {
+      const el    = document.getElementById('lista-aprovacoes');
+      const login = window.usuarioLogado?.usuario || window.usuarioLogado?.login || '';
+      let itens   = listaCompleta;
+
+      if (abaAtiva === 'minhas') {
+        itens = listaCompleta.filter(a => a.sou_criador);
+      } else {
+        itens = listaCompleta.filter(a => !a.sou_criador);
+      }
+
+      if (!itens.length) {
+        el.innerHTML = `<div class="lista-vazia">
+          <i class="fas fa-inbox"></i>
+          ${abaAtiva === 'minhas' ? 'Nenhuma aprovação criada por você.' : 'Nenhuma aprovação aguardando sua resposta.'}
+        </div>`;
+        return;
+      }
+
+      el.innerHTML = itens.map(a => {
+        const prog = `${a.total_aprovados}/${a.total_aprovadores} aprovaram`;
+        return `
+          <div class="card-apr ${idAberto === a.id ? 'ativo' : ''}" onclick="abrirDetalhe(${a.id})">
+            <div class="card-apr-titulo">${esc(a.titulo)}</div>
+            <div class="card-apr-meta">
+              ${badgeStatus(a.status)}
+              <span class="card-apr-progresso"><i class="fas fa-users" style="opacity:.6"></i> ${prog}</span>
+              <span class="card-apr-data">${fmtDataCurta(a.criado_em)}</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function esc(s) {
+      if (!s) return '';
+      return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    // ────────────────────────────────────────────────────
+    // MOSTRAR CRIAÇÃO / EDIÇÃO
+    // ────────────────────────────────────────────────────
+    function resetFormulario() {
+      document.getElementById('inp-titulo').value = '';
+      document.getElementById('inp-objetivo').value = '';
+      aprovadoresSelecionados = [];
+      renderChips();
+      document.getElementById('chip-busca').value = '';
+      document.getElementById('chip-dropdown').classList.remove('aberto');
+      observadoresSelecionados = [];
+      renderChipsObs();
+      document.getElementById('chip-busca-obs').value = '';
+      document.getElementById('chip-dropdown-obs').classList.remove('aberto');
+    }
+
+    function mostrarCriacao() {
+      modoEdicao = false;
+      idEdicao   = null;
+      idAberto   = null;
+      document.querySelectorAll('.card-apr').forEach(c => c.classList.remove('ativo'));
+      document.getElementById('estado-vazio').style.display = 'none';
+      document.getElementById('detalhe').style.display = 'none';
+      document.getElementById('form-criacao').style.display = 'block';
+      document.querySelector('#form-criacao .form-titulo-sec').innerHTML =
+        '<i class="fas fa-plus-circle"></i> Nova Aprovação';
+      document.getElementById('btn-form-submit').innerHTML =
+        '<i class="fas fa-paper-plane"></i> Criar Aprovação';
+      resetFormulario();
+      abrirMobile();
+    }
+
+    function mostrarEdicao(apr, participantes, observadores) {
+      modoEdicao = true;
+      idEdicao   = apr.id;
+      document.getElementById('estado-vazio').style.display = 'none';
+      document.getElementById('detalhe').style.display = 'none';
+      document.getElementById('form-criacao').style.display = 'block';
+      document.querySelector('#form-criacao .form-titulo-sec').innerHTML =
+        '<i class="fas fa-edit"></i> Editar Aprovação';
+      document.getElementById('btn-form-submit').innerHTML =
+        '<i class="fas fa-save"></i> Salvar Alterações';
+
+      document.getElementById('inp-titulo').value   = apr.titulo  || '';
+      document.getElementById('inp-objetivo').value = apr.objetivo || '';
+
+      // Pré-carrega aprovadores pendentes como chips
+      aprovadoresSelecionados = participantes
+        .filter(p => p.decisao === 'Pendente')
+        .map(p => ({ login: p.aprovador_login, nome: p.aprovador_nome || p.aprovador_login }));
+      renderChips();
+      document.getElementById('chip-busca').value = '';
+      document.getElementById('chip-dropdown').classList.remove('aberto');
+
+      // Pré-carrega observadores
+      observadoresSelecionados = (observadores || [])
+        .map(o => ({ login: o.observador_login, nome: o.observador_nome || o.observador_login }));
+      renderChipsObs();
+      document.getElementById('chip-busca-obs').value = '';
+      document.getElementById('chip-dropdown-obs').classList.remove('aberto');
+      abrirMobile();
+    }
+
+    async function submitFormulario() {
+      if (modoEdicao) {
+        await salvarEdicao(idEdicao);
+      } else {
+        await criarAprovacao();
+      }
+    }
+
+    // ────────────────────────────────────────────────────
+    // CARREGAR USUÁRIOS
+    // ────────────────────────────────────────────────────
+    async function carregarUsuarios() {
+      try {
+        let r = await fetch('/api/contatos/usuarios');
+        if (!r.ok) r = await fetch('/api/chamados/usuarios');
+        const data = await r.json();
+        todosUsuarios = data.usuarios || [];
+      } catch {
+        // silencioso — dropdown mostrará vazio
+      }
+    }
+
+    // ────────────────────────────────────────────────────
+    // CHIP SELECTOR
+    // ────────────────────────────────────────────────────
+    function renderChips() {
+      document.getElementById('chips-container').innerHTML =
+        aprovadoresSelecionados.map(u => `
+          <span class="chip">
+            ${esc(u.nome || u.login)}
+            <span class="chip-rem" onmousedown="event.preventDefault();removerChip('${esc(u.login)}')">&times;</span>
+          </span>
+        `).join('');
+    }
+
+    function adicionarChip(login, nome) {
+      if (aprovadoresSelecionados.find(u => u.login === login)) {
+        removerChip(login);
+        return;
+      }
+      aprovadoresSelecionados.push({ login, nome });
+      renderChips();
+      renderChipDropdown();
+      document.getElementById('chip-busca').value = '';
+    }
+
+    function removerChip(login) {
+      aprovadoresSelecionados = aprovadoresSelecionados.filter(u => u.login !== login);
+      renderChips();
+      renderChipDropdown();
+    }
+
+    function abrirChipDropdown() {
+      document.getElementById('chip-dropdown').classList.add('aberto');
+      renderChipDropdown();
+    }
+
+    function fecharChipDropdown() {
+      setTimeout(() => document.getElementById('chip-dropdown').classList.remove('aberto'), 180);
+    }
+
+    function filtrarChipDropdown() {
+      document.getElementById('chip-dropdown').classList.add('aberto');
+      renderChipDropdown();
+    }
+
+    function renderChipDropdown() {
+      const q     = (document.getElementById('chip-busca').value || '').toLowerCase();
+      const login = window.usuarioLogado?.usuario || window.usuarioLogado?.login || '';
+      const el    = document.getElementById('chip-dropdown');
+      const lista = todosUsuarios.filter(u =>
+        u.login !== login &&
+        ((u.nome || '').toLowerCase().includes(q) || u.login.toLowerCase().includes(q))
+      );
+      if (!lista.length) {
+        el.innerHTML = '<div style="padding:10px 14px;font-size:.83rem;color:var(--cor-texto-fraco)">Nenhum resultado.</div>';
+        return;
+      }
+      el.innerHTML = lista.map(u => {
+        const sel = aprovadoresSelecionados.find(a => a.login === u.login);
+        return `
+          <div class="chip-item ${sel ? 'selecionado' : ''}"
+               onmousedown="event.preventDefault();adicionarChip('${esc(u.login)}','${esc(u.nome || u.login)}')">
+            <span class="chip-item-nome">${esc(u.nome || u.login)}</span>
+            <span class="chip-item-dir">
+              <span class="chip-item-login">${esc(u.login)}</span>
+              ${sel ? '<i class="fas fa-check chip-item-check"></i>' : ''}
+            </span>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // ────────────────────────────────────────────────────
+    // CHIP SELECTOR — OBSERVADORES
+    // ────────────────────────────────────────────────────
+    function renderChipsObs() {
+      document.getElementById('chips-container-obs').innerHTML =
+        observadoresSelecionados.map(u => `
+          <span class="chip chip-obs">
+            ${esc(u.nome || u.login)}
+            <span class="chip-rem" onmousedown="event.preventDefault();removerChipObs('${esc(u.login)}')">&times;</span>
+          </span>
+        `).join('');
+    }
+
+    function adicionarChipObs(login, nome) {
+      if (observadoresSelecionados.find(u => u.login === login)) {
+        removerChipObs(login);
+        return;
+      }
+      observadoresSelecionados.push({ login, nome });
+      renderChipsObs();
+      renderChipDropdownObs();
+      document.getElementById('chip-busca-obs').value = '';
+    }
+
+    function removerChipObs(login) {
+      observadoresSelecionados = observadoresSelecionados.filter(u => u.login !== login);
+      renderChipsObs();
+      renderChipDropdownObs();
+    }
+
+    function abrirChipDropdownObs() {
+      document.getElementById('chip-dropdown-obs').classList.add('aberto');
+      renderChipDropdownObs();
+    }
+
+    function fecharChipDropdownObs() {
+      setTimeout(() => document.getElementById('chip-dropdown-obs').classList.remove('aberto'), 180);
+    }
+
+    function filtrarChipDropdownObs() {
+      document.getElementById('chip-dropdown-obs').classList.add('aberto');
+      renderChipDropdownObs();
+    }
+
+    function renderChipDropdownObs() {
+      const q     = (document.getElementById('chip-busca-obs').value || '').toLowerCase();
+      const login = window.usuarioLogado?.usuario || window.usuarioLogado?.login || '';
+      const el    = document.getElementById('chip-dropdown-obs');
+      const lista = todosUsuarios.filter(u =>
+        u.login !== login &&
+        ((u.nome || '').toLowerCase().includes(q) || u.login.toLowerCase().includes(q))
+      );
+      if (!lista.length) {
+        el.innerHTML = '<div style="padding:10px 14px;font-size:.83rem;color:var(--cor-texto-fraco)">Nenhum resultado.</div>';
+        return;
+      }
+      el.innerHTML = lista.map(u => {
+        const sel = observadoresSelecionados.find(a => a.login === u.login);
+        return `
+          <div class="chip-item ${sel ? 'selecionado' : ''}"
+               onmousedown="event.preventDefault();adicionarChipObs('${esc(u.login)}','${esc(u.nome || u.login)}')">
+            <span class="chip-item-nome">${esc(u.nome || u.login)}</span>
+            <span class="chip-item-dir">
+              <span class="chip-item-login">${esc(u.login)}</span>
+              ${sel ? '<i class="fas fa-check chip-item-check"></i>' : ''}
+            </span>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // ────────────────────────────────────────────────────
+    // CRIAR APROVAÇÃO
+    // ────────────────────────────────────────────────────
+    async function criarAprovacao() {
+      const titulo      = document.getElementById('inp-titulo').value.trim();
+      const objetivo    = document.getElementById('inp-objetivo').value.trim();
+      const aprovadores = aprovadoresSelecionados.map(u => u.login);
+      const observadores = observadoresSelecionados.map(u => u.login);
+
+      if (!titulo)             return toast('Informe um título.', 'erro');
+      if (!aprovadores.length) return toast('Selecione ao menos um aprovador.', 'erro');
+
+      const btn = document.getElementById('btn-form-submit');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span> Criando…';
+
+      try {
+        const r = await fetch('/api/aprovacoes', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ titulo, objetivo, aprovadores, observadores })
+        });
+        const data = await r.json();
+        if (!r.ok) throw new Error(data.erro || 'Erro');
+        toast('Aprovação criada com sucesso!', 'sucesso');
+        await carregarLista();
+        abrirDetalhe(data.id);
+      } catch (e) {
+        toast(e.message, 'erro');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-paper-plane"></i> Criar Aprovação';
+      }
+    }
+
+    // ────────────────────────────────────────────────────
+    // EDITAR APROVAÇÃO
+    // ────────────────────────────────────────────────────
+    async function salvarEdicao(id) {
+      const titulo       = document.getElementById('inp-titulo').value.trim();
+      const objetivo     = document.getElementById('inp-objetivo').value.trim();
+      const aprovadores  = aprovadoresSelecionados.map(u => u.login);
+      const observadores = observadoresSelecionados.map(u => u.login);
+
+      if (!titulo)             return toast('Informe um título.', 'erro');
+      if (!aprovadores.length) return toast('Selecione ao menos um aprovador.', 'erro');
+
+      const btn = document.getElementById('btn-form-submit');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span> Salvando…';
+
+      try {
+        const r = await fetch(`/api/aprovacoes/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ titulo, objetivo, aprovadores, observadores })
+        });
+        const data = await r.json();
+        if (!r.ok) throw new Error(data.erro || 'Erro');
+        toast('Aprovação atualizada!', 'sucesso');
+        modoEdicao = false;
+        idEdicao   = null;
+        await carregarLista();
+        abrirDetalhe(id);
+      } catch (e) {
+        toast(e.message, 'erro');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-save"></i> Salvar Alterações';
+      }
+    }
+
+    // ────────────────────────────────────────────────────
+    // ABRIR DETALHE
+    // ────────────────────────────────────────────────────
+    async function abrirDetalhe(id, silencioso = false) {
+      idAberto = id;
+      document.querySelectorAll('.card-apr').forEach(c => {
+        c.classList.toggle('ativo', c.onclick?.toString().includes(`(${id})`));
+      });
+
+      if (!silencioso) {
+        document.getElementById('estado-vazio').style.display = 'none';
+        document.getElementById('form-criacao').style.display = 'none';
+        document.getElementById('detalhe').style.display = 'block';
+        document.getElementById('detalhe').innerHTML = '<div style="padding:40px;text-align:center"><span class="spinner"></span></div>';
+        abrirMobile();
+      }
+
+      try {
+        const r = await fetch(`/api/aprovacoes/${id}`);
+        const data = await r.json();
+        if (!r.ok) throw new Error(data.erro || 'Erro');
+        renderizarDetalhe(data);
+      } catch (e) {
+        if (!silencioso) {
+          document.getElementById('detalhe').innerHTML =
+            `<div class="vazio"><i class="fas fa-exclamation-triangle"></i><p>${e.message}</p></div>`;
+        }
+      }
+    }
+
+    // ────────────────────────────────────────────────────
+    // RENDERIZAR DETALHE
+    // ────────────────────────────────────────────────────
+    let _dadosAbertos = null; // guarda último detalhe carregado para uso em mostrarEdicao
+
+    function renderizarDetalhe({ aprovacao: apr, participantes, observadores = [], log }) {
+      _dadosAbertos = { apr, participantes, observadores };
+      const login    = window.usuarioLogado?.usuario || window.usuarioLogado?.login || '';
+      const sou      = apr.sou_criador;
+      const meuPart  = participantes.find(p => p.aprovador_login === login);
+      const possoResp = meuPart && meuPart.decisao === 'Pendente' && apr.status === 'Pendente';
+      const podeCancelar = sou && apr.status === 'Pendente';
+      const podeEditar   = sou && apr.status === 'Pendente';
+
+      const total = participantes.length;
+      const aprovados = participantes.filter(p => p.decisao === 'Aprovado').length;
+      const pct = total ? Math.round((aprovados / total) * 100) : 0;
+      let barColor = '#f59e0b';
+      if (apr.status === 'Aprovado')  barColor = '#10b981';
+      if (apr.status === 'Reprovado') barColor = '#ef4444';
+      if (apr.status === 'Cancelado') barColor = '#6b7280';
+
+      // Participantes HTML
+      const partsHtml = participantes.map(p => {
+        let badgePart = badgeStatus(p.decisao);
+        return `
+          <div class="aprovador-item">
+            <div class="avatar" style="background:${corAvatar(p.aprovador_login)}">${inicialAvatar(p.aprovador_nome || p.aprovador_login)}</div>
+            <div class="aprovador-info">
+              <div class="aprovador-nome">${esc(p.aprovador_nome || p.aprovador_login)}</div>
+              ${p.motivo ? `<div class="aprovador-motivo">"${esc(p.motivo)}"</div>` : ''}
+            </div>
+            <div style="text-align:right">
+              ${badgePart}
+              ${p.respondido_em ? `<div class="aprovador-data">${fmtData(p.respondido_em)}</div>` : ''}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      // Timeline HTML
+      const timelineHtml = log.map(e => {
+        let icon = 'fa-circle-dot';
+        if (e.acao.includes('criou'))    icon = 'fa-plus';
+        if (e.acao.includes('aprovou'))  icon = 'fa-check';
+        if (e.acao.includes('reprovou')) icon = 'fa-times';
+        if (e.acao.includes('cancelou')) icon = 'fa-ban';
+        if (e.usuario === 'sistema')     icon = 'fa-robot';
+        return `
+          <div class="timeline-item">
+            <div class="timeline-dot"><i class="fas ${icon}"></i></div>
+            <div class="timeline-content">
+              <div class="timeline-acao">${esc(e.acao)}</div>
+              <div class="timeline-data">${fmtData(e.criado_em)}</div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      // Área de resposta
+      const respostaHtml = possoResp ? `
+        <div class="secao-card">
+          <div class="area-resposta">
+            <div class="area-resposta-titulo"><i class="fas fa-reply"></i> Sua resposta</div>
+            <textarea id="txt-motivo" placeholder="Motivo ou comentário (opcional para aprovação, recomendado para reprovação)…"></textarea>
+            <div class="btns-resposta">
+              <button class="btn-aprovar" onclick="responder(${apr.id}, 'Aprovado')">
+                <i class="fas fa-check"></i> APROVAR
+              </button>
+              <button class="btn-reprovar" onclick="responder(${apr.id}, 'Reprovado')">
+                <i class="fas fa-times"></i> REPROVAR
+              </button>
+            </div>
+          </div>
+        </div>
+      ` : '';
+
+      const acoesCriadorHtml = (podeEditar || podeCancelar) ? `
+        <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+          ${podeEditar ? `
+            <button class="btn-editar-apr" onclick="mostrarEdicao(_dadosAbertos.apr, _dadosAbertos.participantes, _dadosAbertos.observadores)">
+              <i class="fas fa-edit"></i> Editar
+            </button>
+          ` : ''}
+          ${podeCancelar ? `
+            <button class="btn-cancelar-apr" onclick="cancelar(${apr.id})">
+              <i class="fas fa-ban"></i> Cancelar
+            </button>
+          ` : ''}
+        </div>
+      ` : '';
+      const cancelarHtml = ''; // movido para acoesCriadorHtml
+
+      document.getElementById('detalhe').innerHTML = `
+        <div class="detalhe-header">
+          <div>
+            <div class="detalhe-titulo">${esc(apr.titulo)}</div>
+            <div class="detalhe-meta">
+              Criado por <strong>${esc(apr.criado_por_nome || apr.criado_por)}</strong>
+              em ${fmtData(apr.criado_em)}
+            </div>
+          </div>
+          <div>${badgeStatus(apr.status).replace('badge"', 'badge badge-lg"')}</div>
+        </div>
+
+        ${apr.objetivo ? `
+          <div class="secao-card">
+            <div class="secao-titulo"><i class="fas fa-align-left"></i> Objetivo</div>
+            <p style="font-size:.9rem;color:var(--cor-texto);line-height:1.6;white-space:pre-wrap">${esc(apr.objetivo)}</p>
+          </div>
+        ` : ''}
+
+        <div class="secao-card">
+          <div class="secao-titulo"><i class="fas fa-chart-bar"></i> Progresso</div>
+          <div class="progresso-wrap">
+            <div class="progresso-bar-bg">
+              <div class="progresso-bar-fill" style="width:${pct}%;background:${barColor}"></div>
+            </div>
+            <span class="progresso-texto">${aprovados} / ${total} aprovaram</span>
+          </div>
+        </div>
+
+        <div class="secao-card">
+          <div class="secao-titulo"><i class="fas fa-users"></i> Aprovadores</div>
+          ${partsHtml || '<p style="font-size:.85rem;color:var(--cor-texto-fraco)">Nenhum aprovador.</p>'}
+        </div>
+
+        ${observadores.length ? `
+          <div class="secao-card">
+            <div class="secao-titulo"><i class="fas fa-eye"></i> Observadores</div>
+            ${observadores.map(o => `
+              <div class="aprovador-item">
+                <div class="avatar" style="background:${corAvatar(o.observador_login)}">${inicialAvatar(o.observador_nome || o.observador_login)}</div>
+                <div class="aprovador-info">
+                  <div class="aprovador-nome">${esc(o.observador_nome || o.observador_login)}</div>
+                  <div class="aprovador-motivo">${esc(o.observador_login)}</div>
+                </div>
+                <span class="badge" style="background:rgba(16,185,129,0.12);color:#10b981;border:1px solid rgba(16,185,129,0.3)"><i class="fas fa-eye"></i> Observador</span>
+              </div>
+            `).join('')}
+          </div>
+        ` : ''}
+
+        ${respostaHtml}
+
+        <div class="secao-card">
+          <div class="secao-titulo"><i class="fas fa-history"></i> Histórico</div>
+          <div class="timeline">
+            ${timelineHtml || '<p style="font-size:.85rem;color:var(--cor-texto-fraco)">Sem registros.</p>'}
+          </div>
+        </div>
+
+        ${acoesCriadorHtml}
+      `;
+    }
+
+    // ────────────────────────────────────────────────────
+    // RESPONDER
+    // ────────────────────────────────────────────────────
+    async function responder(id, decisao) {
+      const motivo = document.getElementById('txt-motivo')?.value?.trim() || '';
+      if (decisao === 'Reprovado' && !motivo) {
+        return toast('Informe um motivo para reprovar.', 'erro');
+      }
+      if (!confirm(`Confirma ${decisao === 'Aprovado' ? 'APROVAR' : 'REPROVAR'} esta aprovação?`)) return;
+
+      try {
+        const r = await fetch(`/api/aprovacoes/${id}/responder`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ decisao, motivo })
+        });
+        const data = await r.json();
+        if (!r.ok) throw new Error(data.erro || 'Erro');
+        toast(`Resposta registrada: ${decisao}`, 'sucesso');
+        await carregarLista();
+        await abrirDetalhe(id);
+      } catch (e) {
+        toast(e.message, 'erro');
+      }
+    }
+
+    // ────────────────────────────────────────────────────
+    // CANCELAR
+    // ────────────────────────────────────────────────────
+    async function cancelar(id) {
+      if (!confirm('Cancelar esta aprovação? Esta ação não pode ser desfeita.')) return;
+      try {
+        const r = await fetch(`/api/aprovacoes/${id}`, { method: 'DELETE' });
+        const data = await r.json();
+        if (!r.ok) throw new Error(data.erro || 'Erro');
+        toast('Aprovação cancelada.', 'info');
+        idAberto = null;
+        await carregarLista();
+        document.getElementById('detalhe').style.display = 'none';
+        document.getElementById('estado-vazio').style.display = 'flex';
+      } catch (e) {
+        toast(e.message, 'erro');
+      }
+    }
+  </script>
+</body>
+</html>

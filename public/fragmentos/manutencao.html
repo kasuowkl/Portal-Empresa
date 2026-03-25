@@ -1,0 +1,535 @@
+<!-- FRAGMENTO: Manutenção -->
+<style>
+  .man-secao {
+    border: 1px solid var(--cor-borda);
+    border-radius: 8px;
+    padding: 20px 24px;
+    margin-bottom: 20px;
+    background: var(--cor-fundo-2);
+  }
+  .man-secao-titulo {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--cor-destaque);
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .man-secao-desc {
+    font-size: 0.85em;
+    color: var(--cor-texto-fraco);
+    margin-bottom: 16px;
+  }
+  .man-grid-limpeza {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+    gap: 10px;
+  }
+  .man-btn-limpeza {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    border: 1px solid var(--cor-borda);
+    border-radius: 6px;
+    background: var(--cor-fundo-3);
+    color: var(--cor-texto);
+    cursor: pointer;
+    font-size: 0.9em;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  .man-btn-limpeza:hover { background: var(--cor-fundo-hover); border-color: var(--cor-destaque); }
+  .man-btn-limpeza i { color: var(--cor-destaque); width: 16px; text-align: center; }
+  .man-btn-limpeza.perigo:hover { border-color: #e94560; }
+  .man-btn-limpeza.perigo i { color: #e94560; }
+
+  /* Transferência */
+  .man-transfer-row {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 12px;
+    align-items: end;
+    margin-bottom: 14px;
+  }
+  .man-transfer-row .arrow {
+    font-size: 1.4rem;
+    color: var(--cor-destaque);
+    padding-bottom: 6px;
+    text-align: center;
+  }
+  .man-transfer-checks {
+    display: flex;
+    gap: 18px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+  }
+  .man-transfer-checks label {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 0.9em;
+    cursor: pointer;
+  }
+  .man-transfer-checks input[type=checkbox] {
+    width: 16px; height: 16px;
+    accent-color: var(--cor-destaque);
+    cursor: pointer;
+  }
+
+  /* Restore */
+  .man-restore-label {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    border: 2px dashed var(--cor-borda);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: border-color 0.15s;
+    font-size: 0.9em;
+    color: var(--cor-texto-fraco);
+    margin-bottom: 10px;
+  }
+  .man-restore-label:hover { border-color: var(--cor-destaque); color: var(--cor-texto); }
+  .man-restore-label i { font-size: 1.4rem; color: var(--cor-destaque); }
+
+  /* Modal de seleção de usuário para limpeza */
+  #man-modal-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.6);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+  }
+  #man-modal-overlay.visivel { display: flex; }
+  #man-modal {
+    background: var(--cor-fundo-2);
+    border: 1px solid var(--cor-borda);
+    border-radius: 10px;
+    padding: 24px 28px;
+    min-width: 340px;
+    max-width: 440px;
+    width: 100%;
+  }
+  #man-modal h4 { margin: 0 0 16px; font-size: 1rem; color: var(--cor-destaque); }
+  .man-radio-group { display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px; }
+  .man-radio-group label {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 0.9em; cursor: pointer;
+  }
+  .man-radio-group input[type=radio] { accent-color: var(--cor-destaque); width:15px; height:15px; }
+  #man-modal-usuario-wrap { margin-bottom: 14px; }
+
+  /* Alerta global */
+  #man-alerta {
+    margin-bottom: 14px;
+    display: none;
+    padding: 10px 14px;
+    border-radius: 6px;
+    font-size: 0.9em;
+  }
+  #man-alerta.sucesso { background: rgba(34,197,94,0.15); color: #4ade80; border: 1px solid #22c55e44; display: block; }
+  #man-alerta.erro    { background: rgba(233,69,96,0.15);  color: #f87171; border: 1px solid #e9456044; display: block; }
+  #man-alerta.info    { background: rgba(59,130,246,0.15); color: #60a5fa; border: 1px solid #3b82f644; display: block; }
+
+  .man-reset-aviso {
+    background: rgba(233,69,96,0.08);
+    border: 1px solid #e9456044;
+    border-radius: 6px;
+    padding: 12px 14px;
+    font-size: 0.85em;
+    color: #f87171;
+    margin-bottom: 14px;
+  }
+  .man-reset-aviso strong { color: #e94560; }
+  select.man-select {
+    width: 100%; padding: 8px 10px; border-radius: 6px;
+    border: 1px solid var(--cor-borda); background: var(--cor-fundo-3);
+    color: var(--cor-texto); font-size: 0.9em;
+  }
+  .man-form-label { font-size: 0.82em; color: var(--cor-texto-fraco); margin-bottom: 4px; display: block; }
+</style>
+
+<div class="barra-acoes" style="margin-bottom:20px">
+  <h3><i class="fas fa-tools"></i> Manutenção</h3>
+</div>
+
+<div id="man-alerta"></div>
+
+<!-- ── BACKUP ──────────────────────────────────────────── -->
+<div class="man-secao">
+  <div class="man-secao-titulo"><i class="fas fa-download"></i> Backup do Banco de Dados</div>
+  <div class="man-secao-desc">
+    Exporta todos os dados do banco em formato JSON para download.
+  </div>
+  <button class="btn btn-primario btn-sm" onclick="fazerBackup()" style="width:auto" id="btn-backup">
+    <i class="fas fa-download" id="ico-backup"></i>
+    <i class="fas fa-spinner fa-spin" id="spin-backup" style="display:none"></i>
+    Gerar Backup
+  </button>
+</div>
+
+<!-- ── RESTORE ─────────────────────────────────────────── -->
+<div class="man-secao">
+  <div class="man-secao-titulo"><i class="fas fa-upload"></i> Restaurar Banco de Dados</div>
+  <div class="man-secao-desc">
+    Selecione um arquivo de backup (.json). <strong style="color:#f87171">Todos os dados atuais serão substituídos.</strong>
+  </div>
+  <label class="man-restore-label" for="man-restore-file">
+    <i class="fas fa-file-code"></i>
+    <span id="man-restore-info">Clique para selecionar o arquivo de backup (.json)</span>
+  </label>
+  <input type="file" id="man-restore-file" accept=".json" style="display:none" onchange="selecionarArquivoRestore(this)">
+  <button class="btn btn-sm" onclick="fazerRestore()" id="btn-restore"
+    style="width:auto;background:#7c3aed;color:#fff;display:none">
+    <i class="fas fa-upload" id="ico-restore"></i>
+    <i class="fas fa-spinner fa-spin" id="spin-restore" style="display:none"></i>
+    Restaurar Agora
+  </button>
+</div>
+
+<!-- ── LIMPEZA POR SISTEMA ─────────────────────────────── -->
+<div class="man-secao">
+  <div class="man-secao-titulo"><i class="fas fa-broom"></i> Limpeza de Dados por Sistema</div>
+  <div class="man-secao-desc">
+    Remove dados operacionais do sistema selecionado. Você pode limpar de todos os usuários ou de um usuário específico.
+  </div>
+  <div class="man-grid-limpeza">
+    <button class="man-btn-limpeza" onclick="abrirModalLimpeza('chamados','Chamados')">
+      <i class="fas fa-headset"></i> Chamados
+    </button>
+    <button class="man-btn-limpeza" onclick="abrirModalLimpeza('aprovacoes','Aprovações')">
+      <i class="fas fa-check-square"></i> Aprovações
+    </button>
+    <button class="man-btn-limpeza" onclick="abrirModalLimpeza('tarefas','Agenda Tarefas')">
+      <i class="fas fa-tasks"></i> Agenda Tarefas
+    </button>
+    <button class="man-btn-limpeza" onclick="abrirModalLimpeza('financeiro','Agenda Financeira')">
+      <i class="fas fa-wallet"></i> Agenda Financeira
+    </button>
+    <button class="man-btn-limpeza" onclick="abrirModalLimpeza('contatos','Agenda Contatos')">
+      <i class="fas fa-address-book"></i> Agenda Contatos
+    </button>
+    <button class="man-btn-limpeza" onclick="abrirModalLimpeza('logs','Logs de Atividade')">
+      <i class="fas fa-clipboard-list"></i> Logs de Atividade
+    </button>
+    <button class="man-btn-limpeza" onclick="abrirModalLimpeza('patrimonio','Patrimônio')">
+      <i class="fas fa-box"></i> Patrimônio
+    </button>
+    <button class="man-btn-limpeza" onclick="abrirModalLimpeza('calendarios','Agenda Calendários')">
+      <i class="fas fa-calendar-alt"></i> Agenda Calendários
+    </button>
+    <button class="man-btn-limpeza perigo" onclick="abrirModalLimpeza('tudo','TODOS os sistemas')">
+      <i class="fas fa-trash-alt"></i> Limpar Tudo
+    </button>
+  </div>
+</div>
+
+<!-- ── TRANSFERÊNCIA DE AGENDAS ───────────────────────── -->
+<div class="man-secao">
+  <div class="man-secao-titulo"><i class="fas fa-exchange-alt"></i> Transferência de Agendas</div>
+  <div class="man-secao-desc">
+    Transfere a propriedade das agendas de um usuário para outro (ex: quando um colaborador sai da empresa).
+  </div>
+
+  <div class="man-transfer-row">
+    <div>
+      <span class="man-form-label">De (usuário origem)</span>
+      <select class="man-select" id="transfer-origem"></select>
+    </div>
+    <div class="arrow"><i class="fas fa-long-arrow-alt-right"></i></div>
+    <div>
+      <span class="man-form-label">Para (usuário destino)</span>
+      <select class="man-select" id="transfer-destino"></select>
+    </div>
+  </div>
+
+  <div class="man-transfer-checks">
+    <label>
+      <input type="checkbox" id="chk-tarefas" checked>
+      <i class="fas fa-tasks" style="color:var(--cor-destaque)"></i> Agenda Tarefas
+    </label>
+    <label>
+      <input type="checkbox" id="chk-financeiro" checked>
+      <i class="fas fa-wallet" style="color:var(--cor-destaque)"></i> Agenda Financeira
+    </label>
+    <label>
+      <input type="checkbox" id="chk-contatos" checked>
+      <i class="fas fa-address-book" style="color:var(--cor-destaque)"></i> Agenda Contatos
+    </label>
+    <label>
+      <input type="checkbox" id="chk-calendarios" checked>
+      <i class="fas fa-calendar-alt" style="color:var(--cor-destaque)"></i> Agenda Calendários
+    </label>
+  </div>
+
+  <button class="btn btn-primario btn-sm" onclick="fazerTransferencia()" style="width:auto" id="btn-transfer">
+    <i class="fas fa-exchange-alt" id="ico-transfer"></i>
+    <i class="fas fa-spinner fa-spin" id="spin-transfer" style="display:none"></i>
+    Transferir Agendas
+  </button>
+</div>
+
+<!-- ── RESET COMPLETO ─────────────────────────────────── -->
+<div class="man-secao">
+  <div class="man-secao-titulo" style="color:#e94560"><i class="fas fa-exclamation-triangle"></i> Reset Completo do Portal</div>
+  <div class="man-reset-aviso">
+    <strong>Atenção:</strong> Remove <strong>todos os dados</strong> (chamados, aprovações, tarefas, financeiro, contatos, patrimônio, usuários, logs).
+    Apenas o usuário <strong>admin</strong> e as configurações de sistemas/serviços serão mantidos.
+    Login continuará funcionando com <strong>usuario: admin / senha: admin</strong>.
+  </div>
+  <button class="btn btn-sm" onclick="resetPortal()"
+    style="width:auto;background:#e94560;color:#fff" id="btn-reset">
+    <i class="fas fa-power-off" id="ico-reset"></i>
+    <i class="fas fa-spinner fa-spin" id="spin-reset" style="display:none"></i>
+    Resetar Portal
+  </button>
+</div>
+
+<!-- ── MODAL LIMPEZA ──────────────────────────────────── -->
+<div id="man-modal-overlay">
+  <div id="man-modal">
+    <h4 id="man-modal-titulo"><i class="fas fa-broom"></i> Limpar dados</h4>
+
+    <div class="man-radio-group">
+      <label>
+        <input type="radio" name="man-escopo" value="todos" checked onchange="toggleModalUsuario()">
+        Todos os usuários
+      </label>
+      <label>
+        <input type="radio" name="man-escopo" value="especifico" onchange="toggleModalUsuario()">
+        Usuário específico
+      </label>
+    </div>
+
+    <div id="man-modal-usuario-wrap" style="display:none">
+      <span class="man-form-label">Selecione o usuário</span>
+      <select class="man-select" id="man-modal-usuario"></select>
+    </div>
+
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:18px">
+      <button class="btn btn-sm" onclick="fecharModalLimpeza()"
+        style="width:auto;background:var(--cor-fundo-3);color:var(--cor-texto)">Cancelar</button>
+      <button class="btn btn-primario btn-sm" onclick="confirmarLimpeza()" style="width:auto">
+        <i class="fas fa-broom"></i> Limpar
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  let sistemaAtual = '';
+  let labelAtual   = '';
+  let arquivoRestore = null;
+  let todosUsuarios  = [];
+
+  // Carrega lista de usuários ao abrir o fragmento
+  carregarUsuarios();
+
+  async function carregarUsuarios() {
+    try {
+      const r = await fetch('/api/manutencao/usuarios');
+      if (!r.ok) return;
+      const d = await r.json();
+      todosUsuarios = d.usuarios || [];
+
+      const populaSelect = (sel) => {
+        sel.innerHTML = todosUsuarios.map(u =>
+          `<option value="${u.login}">${u.nome} (${u.login})</option>`
+        ).join('');
+      };
+
+      populaSelect(document.getElementById('transfer-origem'));
+      populaSelect(document.getElementById('transfer-destino'));
+      populaSelect(document.getElementById('man-modal-usuario'));
+
+      // Seleciona segundo usuário no destino por padrão (evita origem = destino)
+      const dest = document.getElementById('transfer-destino');
+      if (dest.options.length > 1) dest.selectedIndex = 1;
+    } catch (e) { /* silencioso */ }
+  }
+
+  // ── BACKUP ────────────────────────────────────────────
+  window.fazerBackup = async function () {
+    setLoading('backup', true);
+    mostrarAlerta('Gerando backup, aguarde...', 'info');
+    try {
+      const resp = await fetch('/api/manutencao/backup');
+      if (!resp.ok) { const d = await resp.json(); mostrarAlerta(d.erro, 'erro'); return; }
+      const blob = await resp.blob();
+      const url  = URL.createObjectURL(blob);
+      const a    = document.createElement('a');
+      a.href     = url;
+      a.download = `backup_portal_${new Date().toISOString().slice(0,10)}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      mostrarAlerta('Backup gerado e download iniciado.', 'sucesso');
+    } catch (e) {
+      mostrarAlerta('Erro ao gerar backup.', 'erro');
+    } finally { setLoading('backup', false); }
+  };
+
+  // ── RESTORE ───────────────────────────────────────────
+  window.selecionarArquivoRestore = function (input) {
+    arquivoRestore = input.files[0] || null;
+    const info = document.getElementById('man-restore-info');
+    const btn  = document.getElementById('btn-restore');
+    if (arquivoRestore) {
+      info.textContent   = arquivoRestore.name + ' (' + (arquivoRestore.size / 1024).toFixed(1) + ' KB)';
+      btn.style.display  = 'inline-flex';
+    } else {
+      info.textContent   = 'Clique para selecionar o arquivo de backup (.json)';
+      btn.style.display  = 'none';
+    }
+  };
+
+  window.fazerRestore = async function () {
+    if (!arquivoRestore) return;
+    if (!confirm('Confirmar restauração?\n\nTodos os dados atuais serão substituídos.\nEsta ação não pode ser desfeita.')) return;
+    setLoading('restore', true);
+    mostrarAlerta('Restaurando banco, aguarde...', 'info');
+    try {
+      const texto  = await arquivoRestore.text();
+      const backup = JSON.parse(texto);
+      const resp   = await fetch('/api/manutencao/restore', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(backup),
+      });
+      const dados = await resp.json();
+      mostrarAlerta(dados.mensagem || dados.erro, resp.ok ? 'sucesso' : 'erro');
+    } catch (e) {
+      mostrarAlerta('Erro ao restaurar: ' + e.message, 'erro');
+    } finally { setLoading('restore', false); }
+  };
+
+  // ── LIMPEZA — modal ───────────────────────────────────
+  window.abrirModalLimpeza = function (sistema, label) {
+    sistemaAtual = sistema;
+    labelAtual   = label;
+    document.getElementById('man-modal-titulo').innerHTML = `<i class="fas fa-broom"></i> Limpar — ${label}`;
+    document.querySelector('input[name="man-escopo"][value="todos"]').checked = true;
+    document.getElementById('man-modal-usuario-wrap').style.display = 'none';
+
+    // Logs, Patrimônio e Aprovações não têm filtro por usuário — esconde a opção
+    const semFiltroUser = ['logs', 'patrimonio', 'aprovacoes'].includes(sistema);
+    const radioEsp = document.querySelector('input[name="man-escopo"][value="especifico"]').closest('label');
+    radioEsp.style.display = semFiltroUser ? 'none' : 'flex';
+
+    document.getElementById('man-modal-overlay').classList.add('visivel');
+  };
+
+  window.fecharModalLimpeza = function () {
+    document.getElementById('man-modal-overlay').classList.remove('visivel');
+  };
+
+  window.toggleModalUsuario = function () {
+    const esp = document.querySelector('input[name="man-escopo"]:checked').value === 'especifico';
+    document.getElementById('man-modal-usuario-wrap').style.display = esp ? 'block' : 'none';
+  };
+
+  window.confirmarLimpeza = async function () {
+    const escopo  = document.querySelector('input[name="man-escopo"]:checked').value;
+    const usuario = escopo === 'especifico' ? document.getElementById('man-modal-usuario').value : null;
+    const sufixo  = usuario ? ` do usuário "${usuario}"` : ' de todos os usuários';
+
+    if (!confirm(`Limpar dados de "${labelAtual}"${sufixo}?\nEsta ação não pode ser desfeita.`)) return;
+
+    fecharModalLimpeza();
+    mostrarAlerta('Limpando dados, aguarde...', 'info');
+
+    try {
+      const body = { sistema: sistemaAtual };
+      if (usuario) body.usuario = usuario;
+
+      const resp  = await fetch('/api/manutencao/limpar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      const dados = await resp.json();
+      mostrarAlerta(dados.mensagem || dados.erro, resp.ok ? 'sucesso' : 'erro');
+    } catch (e) {
+      mostrarAlerta('Erro ao limpar dados.', 'erro');
+    }
+  };
+
+  // Fecha modal ao clicar fora
+  document.getElementById('man-modal-overlay').addEventListener('click', function (e) {
+    if (e.target === this) fecharModalLimpeza();
+  });
+
+  // ── TRANSFERÊNCIA ────────────────────────────────────
+  window.fazerTransferencia = async function () {
+    const origem  = document.getElementById('transfer-origem').value;
+    const destino = document.getElementById('transfer-destino').value;
+    const sistemas = [];
+    if (document.getElementById('chk-tarefas').checked)     sistemas.push('tarefas');
+    if (document.getElementById('chk-financeiro').checked)   sistemas.push('financeiro');
+    if (document.getElementById('chk-contatos').checked)     sistemas.push('contatos');
+    if (document.getElementById('chk-calendarios').checked)  sistemas.push('calendarios');
+
+    if (!origem || !destino)       { mostrarAlerta('Selecione origem e destino.', 'erro'); return; }
+    if (origem === destino)         { mostrarAlerta('Origem e destino devem ser usuários diferentes.', 'erro'); return; }
+    if (sistemas.length === 0)      { mostrarAlerta('Selecione pelo menos um sistema para transferir.', 'erro'); return; }
+
+    const nomeOrigem  = todosUsuarios.find(u => u.login === origem)?.nome  || origem;
+    const nomeDestino = todosUsuarios.find(u => u.login === destino)?.nome || destino;
+
+    if (!confirm(`Transferir agendas de "${nomeOrigem}" para "${nomeDestino}"?\n\nSistemas: ${sistemas.join(', ')}`)) return;
+
+    setLoading('transfer', true);
+    mostrarAlerta('Transferindo agendas, aguarde...', 'info');
+
+    try {
+      const resp  = await fetch('/api/manutencao/transferir', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ origem, destino, sistemas }),
+      });
+      const dados = await resp.json();
+      mostrarAlerta(dados.mensagem || dados.erro, resp.ok ? 'sucesso' : 'erro');
+    } catch (e) {
+      mostrarAlerta('Erro ao transferir agendas.', 'erro');
+    } finally { setLoading('transfer', false); }
+  };
+
+  // ── RESET ─────────────────────────────────────────────
+  window.resetPortal = async function () {
+    if (!confirm('RESET COMPLETO DO PORTAL\n\nIsso apagará TODOS os dados exceto o usuário admin.\nVocê tem certeza absoluta?')) return;
+    if (!confirm('Segunda confirmação necessária.\nTodos os usuários, chamados, tarefas e históricos serão APAGADOS.\nContinuar?')) return;
+
+    setLoading('reset', true);
+    mostrarAlerta('Executando reset, aguarde...', 'info');
+
+    try {
+      const resp  = await fetch('/api/manutencao/reset', { method: 'POST' });
+      const dados = await resp.json();
+      mostrarAlerta(dados.mensagem || dados.erro, resp.ok ? 'sucesso' : 'erro');
+    } catch (e) {
+      mostrarAlerta('Erro ao resetar portal.', 'erro');
+    } finally { setLoading('reset', false); }
+  };
+
+  // ── HELPERS ───────────────────────────────────────────
+  function setLoading(id, ativo) {
+    const btn  = document.getElementById(`btn-${id}`);
+    const ico  = document.getElementById(`ico-${id}`);
+    const spin = document.getElementById(`spin-${id}`);
+    if (btn)  btn.disabled         = ativo;
+    if (ico)  ico.style.display    = ativo ? 'none' : '';
+    if (spin) spin.style.display   = ativo ? 'inline-block' : 'none';
+  }
+
+  function mostrarAlerta(msg, classe) {
+    const el = document.getElementById('man-alerta');
+    el.className = classe;
+    el.textContent = msg;
+    el.style.display = 'block';
+    if (classe !== 'info') setTimeout(() => { el.style.display = 'none'; }, 5000);
+  }
+})();
+</script>

@@ -1,0 +1,1493 @@
+<!DOCTYPE html>
+<!--
+  ARQUIVO: public/agendaFinanceira/index.html
+  VERSÃO:  1.0.0
+  DATA:    2026-03-04
+  DESCRIÇÃO: Agenda Financeira — módulo integrado ao Portal WKL
+-->
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portal WKL — Agenda Financeira</title>
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/menu.css">
+  <link rel="stylesheet" href="/agendaFinanceira/css/financeiro.css">
+
+  <style>
+    body { padding-top: var(--altura-menu); overflow: hidden; }
+  </style>
+</head>
+<body>
+
+  <!-- Menu compartilhado -->
+  <div id="menu-container"></div>
+
+  <!-- Toast de notificação -->
+  <div class="fin-toast" id="toast"></div>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       LAYOUT PRINCIPAL
+       ═══════════════════════════════════════════════════════════ -->
+  <div class="fin-layout">
+
+    <!-- ── Sidebar: lista de agendas ── -->
+    <aside class="fin-sidebar" id="sidebar">
+      <div class="sidebar-titulo">Minhas Agendas</div>
+      <div id="agendas-minhas"></div>
+
+      <div id="secao-compartilhadas" style="display:none">
+        <div class="sidebar-separador"></div>
+        <div class="sidebar-titulo">Compartilhadas</div>
+        <div id="agendas-compartilhadas"></div>
+      </div>
+
+      <div class="sidebar-separador"></div>
+      <div class="sidebar-acao" onclick="abrirModalAgenda()">
+        <i class="fas fa-plus"></i> Nova Agenda
+      </div>
+
+      <div class="sidebar-separador"></div>
+      <div class="sidebar-titulo">Configurações</div>
+      <div style="padding:0 12px 12px">
+        <label style="font-size:11px; color:var(--cor-texto-fraco); display:block; margin-bottom:4px">
+          <i class="fas fa-bell"></i> Dias antecedência lembrete
+        </label>
+        <div style="display:flex; gap:6px; align-items:center">
+          <input type="number" id="input-dias-lembrete" min="1" max="60" value="3"
+            style="width:60px; padding:4px 6px; border-radius:5px; border:1px solid var(--cor-borda);
+                   background:var(--cor-fundo-2); color:var(--cor-texto); font-size:12px"
+            onchange="salvarDiasLembrete(this.value)">
+          <span style="font-size:11px; color:var(--cor-texto-fraco)">dias</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ── Conteúdo principal ── -->
+    <main class="fin-conteudo" id="conteudo">
+
+      <!-- Tela de boas-vindas -->
+      <div class="fin-vazia" id="tela-boas-vindas">
+        <i class="fas fa-wallet"></i>
+        <h3>Selecione ou crie uma Agenda Financeira</h3>
+        <button class="btn btn-primario btn-sm" style="width:auto" onclick="abrirModalAgenda()">
+          <i class="fas fa-plus"></i> Nova Agenda
+        </button>
+      </div>
+
+      <!-- Painel da agenda (oculto até selecionar) -->
+      <div id="painel-agenda" class="fin-painel" style="display:none">
+
+        <!-- Cabeçalho -->
+        <div class="fin-header">
+          <span class="fin-header-cor" id="hdr-cor"></span>
+          <div class="fin-header-nome-wrap">
+            <span class="fin-header-nome" id="hdr-nome"></span>
+            <span class="fin-header-dono" id="hdr-dono" style="display:none"></span>
+          </div>
+          <div class="fin-header-acoes" id="hdr-acoes"></div>
+        </div>
+
+        <!-- Área com scroll -->
+        <div class="fin-scroll">
+
+          <!-- Cards de resumo -->
+          <div id="resumo-container" class="summary-grid"></div>
+
+          <!-- Busca -->
+          <div class="fin-search">
+            <input type="text" id="busca" placeholder="🔍 Buscar por descrição, categoria..." oninput="filtrarBusca(this.value)">
+          </div>
+
+          <!-- Calendário + Lista -->
+          <div class="fin-main-layout">
+
+            <!-- Calendário -->
+            <aside id="calendario-container"></aside>
+
+            <!-- Lista -->
+            <section>
+              <div class="fin-tabs" id="fin-tabs">
+                <button class="fin-tab" onclick="filtrarStatus('todas')">Todas</button>
+                <button class="fin-tab ativa" onclick="filtrarStatus('pendente')">Pendentes</button>
+                <button class="fin-tab" onclick="filtrarStatus('lancado')">Lançados</button>
+                <button class="fin-tab" onclick="filtrarStatus('pago')">Pagas</button>
+              </div>
+              <div id="lista-container" class="fin-lista-card"></div>
+            </section>
+
+          </div><!-- /fin-main-layout -->
+        </div><!-- /fin-scroll -->
+      </div><!-- /painel-agenda -->
+
+    </main>
+  </div><!-- /fin-layout -->
+
+  <!-- ═══════════════════════════════════════════════════════════
+       MODAL: CRIAR / EDITAR AGENDA
+       ═══════════════════════════════════════════════════════════ -->
+  <div class="modal-overlay" id="modal-agenda">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="modal-agenda-titulo">Nova Agenda</h3>
+        <button class="modal-fechar" onclick="fecharModalAgenda()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="input-row">
+          <div class="input-group">
+            <label>Nome da Agenda</label>
+            <input type="text" id="agenda-nome" placeholder="Ex: Contas Pessoais">
+          </div>
+        </div>
+        <div class="input-row">
+          <div class="input-group">
+            <label>Descrição (opcional)</label>
+            <input type="text" id="agenda-descricao" placeholder="Breve descrição">
+          </div>
+        </div>
+        <div class="input-group" style="margin-bottom:0">
+          <label>Cor de identificação</label>
+          <div class="cor-opcoes" id="cor-opcoes">
+            <!-- gerado pelo JS -->
+          </div>
+          <input type="hidden" id="agenda-cor" value="#3b82f6">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline-sm" onclick="fecharModalAgenda()">Cancelar</button>
+        <button class="btn btn-primario" onclick="salvarAgenda()">Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       MODAL: CRIAR / EDITAR CONTA
+       ═══════════════════════════════════════════════════════════ -->
+  <div class="modal-overlay" id="modal-conta">
+    <div class="modal-card" style="position:relative">
+
+      <!-- Sub-modal: Gerenciar Categorias -->
+      <div id="subModalCategorias" class="sub-modal">
+        <h4 style="font-size:13px; margin-bottom:12px; color:var(--cor-texto)">GERENCIAR CATEGORIAS</h4>
+        <div style="display:flex; gap:6px; margin-bottom:12px">
+          <input type="text" id="nova-categoria" placeholder="Nova categoria"
+            style="flex:1; padding:7px 10px; border-radius:6px; background:var(--cor-fundo); border:1px solid var(--cor-borda); color:var(--cor-texto); font-size:12px; outline:none">
+          <button onclick="addCategoria()" class="btn btn-primario btn-sm">ADD</button>
+        </div>
+        <div id="lista-categorias-gerenciador" style="max-height:180px; overflow-y:auto; margin-bottom:12px"></div>
+        <button onclick="fecharGerenciador()" class="btn btn-outline-sm" style="width:100%; text-align:center">FECHAR</button>
+      </div>
+
+      <!-- Sub-modal: Gerenciar Empresas -->
+      <div id="subModalEmpresas" class="sub-modal">
+        <h4 style="font-size:13px; margin-bottom:12px; color:var(--cor-texto)">GERENCIAR EMPRESAS</h4>
+        <div style="display:flex; gap:6px; margin-bottom:12px">
+          <input type="text" id="nova-empresa" placeholder="Nome da empresa"
+            style="flex:1; padding:7px 10px; border-radius:6px; background:var(--cor-fundo); border:1px solid var(--cor-borda); color:var(--cor-texto); font-size:12px; outline:none">
+          <button onclick="addEmpresa()" class="btn btn-primario btn-sm">ADD</button>
+        </div>
+        <div id="lista-empresas-gerenciador" style="max-height:180px; overflow-y:auto; margin-bottom:12px"></div>
+        <button onclick="fecharGerenciadorEmpresas()" class="btn btn-outline-sm" style="width:100%; text-align:center">FECHAR</button>
+      </div>
+
+      <div class="modal-header">
+        <h3 id="modal-conta-titulo">Novo Lançamento</h3>
+        <button class="modal-fechar" onclick="fecharModalConta()">&times;</button>
+      </div>
+      <div class="modal-body">
+
+        <div class="input-row">
+          <div class="input-group">
+            <label>Descrição da Conta</label>
+            <input type="text" id="cad-desc" placeholder="Ex: Conta de Luz">
+          </div>
+          <div class="input-group" style="max-width:150px">
+            <label>Valor (R$)</label>
+            <input type="number" id="cad-valor" step="0.01" min="0" placeholder="0,00">
+          </div>
+        </div>
+
+        <div class="input-row">
+          <div class="input-group">
+            <label>Data de Vencimento</label>
+            <input type="date" id="cad-data">
+          </div>
+          <div class="input-group">
+            <div class="label-with-action">
+              <label>Categoria</label>
+              <span class="btn-manage" id="btn-gerenciar-cat" onclick="abrirGerenciador()">⚙️</span>
+            </div>
+            <select id="cad-cat">
+              <option value="Geral">Geral</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="input-row">
+          <div class="input-group">
+            <div class="label-with-action">
+              <label>Empresa</label>
+              <span class="btn-manage" id="btn-gerenciar-emp" onclick="abrirGerenciadorEmpresas()">⚙️</span>
+            </div>
+            <select id="cad-emp">
+              <option value="">— Nenhuma —</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Recorrência -->
+        <div class="recurrence-box">
+          <div class="recurrence-header">
+            <span>HABILITAR RECORRÊNCIA</span>
+            <label class="switch">
+              <input type="checkbox" id="check-recorrencia" onchange="toggleRecorrencia()">
+              <span class="slider"></span>
+            </label>
+          </div>
+          <div id="campos-recorrencia" class="input-row campos-recorrencia-off">
+            <div class="input-group">
+              <label>Frequência</label>
+              <select id="cad-frequencia">
+                <option value="Diária">Diária</option>
+                <option value="Semanal">Semanal</option>
+                <option value="Quinzenal">Quinzenal</option>
+                <option value="Mensal" selected>Mensal</option>
+                <option value="Semestral">Semestral</option>
+                <option value="Anual">Anual</option>
+              </select>
+            </div>
+            <div class="input-group">
+              <label>Data de Término</label>
+              <input type="date" id="cad-data-fim">
+            </div>
+            <div class="input-group" style="max-width:80px">
+              <label>Máx. parcelas</label>
+              <input type="number" id="cad-max-parcelas" value="12" min="1" max="100">
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline-sm" onclick="fecharModalConta()">Cancelar</button>
+        <button class="btn btn-primario" onclick="salvarConta()"><i class="fas fa-save"></i> Salvar Lançamento</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       MODAL: MEMBROS
+       ═══════════════════════════════════════════════════════════ -->
+  <div class="modal-overlay" id="modal-membros">
+    <div class="modal-card modal-lg">
+      <div class="modal-header">
+        <h3>Membros da Agenda</h3>
+        <button class="modal-fechar" onclick="fecharModalMembros()">&times;</button>
+      </div>
+      <div class="modal-body">
+
+        <!-- Adicionar membro -->
+        <div style="display:grid; grid-template-columns:1fr auto auto; gap:8px; align-items:flex-end; margin-bottom:20px">
+          <div class="input-group" style="min-width:0">
+            <label>Usuário</label>
+            <select id="sel-usuario-membro">
+              <option value="">Selecione...</option>
+            </select>
+          </div>
+          <div class="input-group" style="width:120px">
+            <label>Permissão</label>
+            <select id="sel-permissao-membro">
+              <option value="leitura">Leitura</option>
+              <option value="edicao">Edição</option>
+            </select>
+          </div>
+          <div style="display:flex; align-items:flex-end">
+            <button class="btn btn-primario" onclick="adicionarMembro()" style="white-space:nowrap">
+              <i class="fas fa-user-plus"></i> Adicionar
+            </button>
+          </div>
+        </div>
+
+        <hr style="border:none; border-top:1px solid var(--cor-borda); margin-bottom:16px">
+
+        <div id="lista-membros" style="max-height:300px; overflow-y:auto">
+          <p style="color:var(--cor-texto-fraco); font-size:13px; text-align:center; padding:20px">Carregando...</p>
+        </div>
+
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline-sm" onclick="fecharModalMembros()">Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       MODAL: LOGS DE AUDITORIA
+       ═══════════════════════════════════════════════════════════ -->
+  <div class="modal-overlay" id="modal-logs">
+    <div class="modal-card modal-lg">
+      <div class="modal-header">
+        <h3><i class="fas fa-history"></i> Logs de Auditoria</h3>
+        <button class="modal-fechar" onclick="fecharModalLogs()">&times;</button>
+      </div>
+      <div class="modal-body" style="padding:0">
+        <div style="overflow-x:auto; max-height:450px; overflow-y:auto">
+          <table class="log-table">
+            <thead>
+              <tr>
+                <th>Data/Hora</th>
+                <th>Ação</th>
+                <th>Conta</th>
+                <th>Detalhes</th>
+                <th>Usuário</th>
+              </tr>
+            </thead>
+            <tbody id="lista-logs"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline-sm" onclick="fecharModalLogs()">Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       SCRIPTS
+       ═══════════════════════════════════════════════════════════ -->
+  <script src="/js/menu.js"></script>
+  <script>
+    // ── Constantes ──────────────────────────────────────────────
+    const API = '/api/financeiro';
+    const CORES_AGENDA = ['#3b82f6','#8b5cf6','#ec4899','#f59e0b','#10b981','#ef4444','#06b6d4','#84cc16','#f97316','#64748b'];
+
+    // ── Helpers ──────────────────────────────────────────────────
+    function parseData(d) {
+      return new Date((d || '').substring(0, 10) + 'T00:00:00');
+    }
+
+    // ── Estado global ────────────────────────────────────────────
+    let agendaSelecionada = null;
+    let dadosContas       = [];
+    let filtroStatus      = 'pendente';
+    let mesSelecionado    = new Date().getMonth();
+    let anoSelecionado    = new Date().getFullYear();
+    let termoBusca        = '';
+    let diaFiltro         = null;
+    let permissaoAtual    = null;
+    let modoEdicaoAgenda  = false;
+    let idEdicaoAgenda    = null;
+    let modoEdicaoConta       = false;
+    let idEdicaoConta         = null;
+    let modoEdicaoRecorrente  = false;
+    let modoEdicaoPai         = false;
+    let usuarioLogado     = null;
+
+    // ── Inicialização ────────────────────────────────────────────
+    window.onload = async () => {
+      try {
+        const r = await fetch('/sessao');
+        if (!r.ok) { location.href = '/login.html'; return; }
+        const d = await r.json();
+        if (!d.usuario) { location.href = '/login.html'; return; }
+        usuarioLogado = d.usuario;
+        await carregarAgendas();
+        await carregarDiasLembrete();
+      } catch (e) {
+        console.error('Erro na inicialização:', e);
+      }
+    };
+
+    async function carregarDiasLembrete() {
+      try {
+        const r = await fetch('/api/financeiro/config');
+        if (!r.ok) return;
+        const d = await r.json();
+        const dias = d.config?.['financeiro.dias_lembrete'];
+        const input = document.getElementById('input-dias-lembrete');
+        if (dias) input.value = dias;
+        // Bloquear edição se não for admin
+        if (usuarioLogado?.nivel !== 'admin') input.disabled = true;
+      } catch (e) { /* silencioso */ }
+    }
+
+    async function salvarDiasLembrete(valor) {
+      if (usuarioLogado?.nivel !== 'admin') return;
+      const dias = parseInt(valor);
+      if (isNaN(dias) || dias < 1) return;
+      try {
+        const r = await fetch('/api/financeiro/config', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ dias_lembrete: dias })
+        });
+        const d = await r.json();
+        if (!d.sucesso) { mostrarToast(d.erro || 'Erro.', 'erro'); return; }
+        mostrarToast(`Lembrete configurado para ${dias} dias.`);
+      } catch (e) { mostrarToast('Erro ao salvar configuração.', 'erro'); }
+    }
+
+    // ════════════════════════════════════════════════════════════
+    // SIDEBAR — AGENDAS
+    // ════════════════════════════════════════════════════════════
+    async function carregarAgendas() {
+      const r = await fetch(`${API}/agendas`);
+      const d = await r.json();
+      if (!d.sucesso) return;
+
+      const minhas       = d.agendas.filter(a => a.permissao === 'dono');
+      const compartilhadas = d.agendas.filter(a => a.permissao !== 'dono');
+
+      document.getElementById('agendas-minhas').innerHTML =
+        minhas.length ? minhas.map(renderItemSidebar).join('') :
+        '<div style="padding:6px 16px; font-size:11px; color:var(--cor-texto-fraco)">Nenhuma agenda.</div>';
+
+      const secComp = document.getElementById('secao-compartilhadas');
+      if (compartilhadas.length > 0) {
+        secComp.style.display = 'block';
+        document.getElementById('agendas-compartilhadas').innerHTML =
+          compartilhadas.map(renderItemSidebar).join('');
+      } else {
+        secComp.style.display = 'none';
+      }
+
+      // Restaura última agenda aberta
+      if (!agendaSelecionada) {
+        const ultimaId = parseInt(localStorage.getItem('financeiro_ultima_agenda'));
+        if (ultimaId) {
+          const ultima = d.agendas.find(a => a.id === ultimaId);
+          if (ultima) selecionarAgenda(ultima);
+        }
+      }
+    }
+
+    function renderItemSidebar(a) {
+      const ativa = agendaSelecionada?.id === a.id ? 'ativa' : '';
+      const dados = encodeURIComponent(JSON.stringify(a));
+      return `
+        <div class="sidebar-item ${ativa}" onclick="selecionarAgenda(JSON.parse(decodeURIComponent('${dados}')))">
+          <span class="sidebar-item-cor" style="background:${a.cor}"></span>
+          <div class="sidebar-item-info">
+            <span>${a.nome}</span>
+            ${a.permissao !== 'dono' ? `<small>por ${a.dono_nome || a.dono}</small>` : ''}
+          </div>
+        </div>`;
+    }
+
+    // ════════════════════════════════════════════════════════════
+    // SELECIONAR AGENDA
+    // ════════════════════════════════════════════════════════════
+    async function selecionarAgenda(agenda) {
+      agendaSelecionada = agenda;
+      permissaoAtual    = agenda.permissao;
+      localStorage.setItem('financeiro_ultima_agenda', agenda.id);
+      diaFiltro         = null;
+      filtroStatus      = 'pendente';
+      termoBusca        = '';
+      document.getElementById('busca').value = '';
+      // Sincroniza visual das tabs
+      document.querySelectorAll('.fin-tab').forEach(t => t.classList.remove('ativa'));
+      const tabs = document.querySelectorAll('.fin-tab');
+      if (tabs[1]) tabs[1].classList.add('ativa'); // índice 1 = Pendentes
+
+      document.getElementById('tela-boas-vindas').style.display = 'none';
+      document.getElementById('painel-agenda').style.display    = 'flex';
+
+      // Cabeçalho
+      document.getElementById('hdr-cor').style.background = agenda.cor;
+      document.getElementById('hdr-nome').textContent     = agenda.nome;
+      const elDono = document.getElementById('hdr-dono');
+      if (agenda.permissao !== 'dono') {
+        elDono.textContent    = `Compartilhada por ${agenda.dono_nome || agenda.dono}`;
+        elDono.style.display  = 'block';
+      } else {
+        elDono.style.display  = 'none';
+      }
+
+      renderHeaderAcoes();
+      await carregarAgendas();
+      await carregarContas();
+    }
+
+    function renderHeaderAcoes() {
+      const el   = document.getElementById('hdr-acoes');
+      const dono = permissaoAtual === 'dono';
+      const edit = temPermissao(permissaoAtual, 'edicao');
+      let html = '';
+      if (dono) {
+        html += `<button class="btn btn-outline-sm" title="Editar agenda" onclick="abrirModalAgenda(${agendaSelecionada.id})"><i class="fas fa-edit"></i></button>`;
+        html += `<button class="btn btn-outline-sm" onclick="abrirModalMembros()"><i class="fas fa-users"></i> Membros</button>`;
+      }
+      html += `<button class="btn btn-outline-sm" onclick="abrirModalLogs()"><i class="fas fa-history"></i> Logs</button>`;
+      html += `<a  class="btn btn-outline-sm" href="/agendaFinanceira/relatorios?agenda_id=${agendaSelecionada.id}" style="text-decoration:none"><i class="fas fa-chart-bar"></i> Relatorios</a>`;
+      if (dono) {
+        html += `<button class="btn btn-danger-sm" title="Excluir agenda" onclick="excluirAgenda()"><i class="fas fa-trash"></i></button>`;
+      }
+      if (edit) {
+        html += `<button class="btn btn-primario btn-sm" onclick="abrirModalConta()"><i class="fas fa-plus"></i> Nova Conta</button>`;
+      }
+      el.innerHTML = html;
+    }
+
+    // ════════════════════════════════════════════════════════════
+    // CARREGAR CONTAS
+    // ════════════════════════════════════════════════════════════
+    async function carregarContas() {
+      const r = await fetch(`${API}/agendas/${agendaSelecionada.id}/contas`);
+      const d = await r.json();
+      if (!d.sucesso) { mostrarToast('Erro ao carregar contas.', 'erro'); return; }
+      dadosContas    = d.contas || [];
+      permissaoAtual = d.permissao || agendaSelecionada.permissao;
+      renderHeaderAcoes();
+      atualizarInterface();
+    }
+
+    // ════════════════════════════════════════════════════════════
+    // INTERFACE
+    // ════════════════════════════════════════════════════════════
+    function atualizarInterface() {
+      renderResumo();
+      renderCalendario();
+      renderLista();
+    }
+
+    // ── Cards de resumo ──────────────────────────────────────────
+    function renderResumo() {
+      const container = document.getElementById('resumo-container');
+      const hoje = new Date(); hoje.setHours(0,0,0,0);
+      const mes = mesSelecionado, ano = anoSelecionado;
+      const fmt = v => v.toLocaleString('pt-br', { minimumFractionDigits: 2, style: 'currency', currency: 'BRL' });
+
+      const ehNaoPago = c => c.status === 'pendente' || c.status === 'lancado';
+
+      const pendentesMes = dadosContas.filter(c => {
+        const dt = parseData(c.data);
+        return dt.getMonth() === mes && dt.getFullYear() === ano && ehNaoPago(c);
+      });
+      const totalPendMes = pendentesMes.reduce((a,c) => a + parseFloat(c.valor||0), 0);
+
+      const vencidas = dadosContas.filter(c => {
+        const dt = parseData(c.data);
+        return ehNaoPago(c) && dt < hoje;
+      });
+      const totalVencidas = vencidas.reduce((a,c) => a + parseFloat(c.valor||0), 0);
+
+      const limite7 = new Date(); limite7.setDate(hoje.getDate() + 7);
+      const prox7 = dadosContas.filter(c => {
+        const dt = parseData(c.data);
+        return ehNaoPago(c) && dt >= hoje && dt <= limite7;
+      });
+      const total7 = prox7.reduce((a,c) => a + parseFloat(c.valor||0), 0);
+
+      const pagas = dadosContas.filter(c => {
+        const dt = parseData(c.data);
+        return dt.getMonth() === mes && dt.getFullYear() === ano && c.status === 'pago';
+      });
+      const totalPagas = pagas.reduce((a,c) => a + parseFloat(c.valor||0), 0);
+
+      container.innerHTML = `
+        <div class="summary-card" onclick="setFiltroResumo('pendente_mes')">
+          <span>PENDÊNCIAS MENSAL</span>
+          <h2 class="txt-blue">${pendentesMes.length} <small>(${fmt(totalPendMes)})</small></h2>
+        </div>
+        <div class="summary-card" onclick="setFiltroResumo('vencidas')">
+          <span>VENCIDAS</span>
+          <h2 class="txt-red">${vencidas.length} <small>(${fmt(totalVencidas)})</small></h2>
+        </div>
+        <div class="summary-card" onclick="setFiltroResumo('prox7')">
+          <span>PRÓXIMOS 7 DIAS</span>
+          <h2 class="txt-orange">${prox7.length} <small>(${fmt(total7)})</small></h2>
+        </div>
+        <div class="summary-card" onclick="setFiltroResumo('pagas_mes')">
+          <span>PAGAS NO MÊS</span>
+          <h2 class="txt-green">${pagas.length} <small>(${fmt(totalPagas)})</small></h2>
+        </div>`;
+    }
+
+    // ── Calendário ───────────────────────────────────────────────
+    function renderCalendario() {
+      const container = document.getElementById('calendario-container');
+      const nomes = ["JANEIRO","FEVEREIRO","MARÇO","ABRIL","MAIO","JUNHO","JULHO","AGOSTO","SETEMBRO","OUTUBRO","NOVEMBRO","DEZEMBRO"];
+      const primeiroDia  = new Date(anoSelecionado, mesSelecionado, 1).getDay();
+      const ultimoDiaMes = new Date(anoSelecionado, mesSelecionado + 1, 0).getDate();
+
+      let html = `
+        <div class="calendar-widget">
+          <header class="cal-header">
+            <button class="cal-btn" onclick="mudarMes(-1)">‹</button>
+            <span>${nomes[mesSelecionado]} ${anoSelecionado}</span>
+            <button class="cal-btn" onclick="mudarMes(1)">›</button>
+          </header>
+          <div class="cal-grid-header">
+            <span>D</span><span>S</span><span>T</span><span>Q</span><span>Q</span><span>S</span><span>S</span>
+          </div>
+          <div class="cal-grid-days">`;
+
+      for (let i = 0; i < primeiroDia; i++) html += `<div class="cal-day empty"></div>`;
+
+      for (let dia = 1; dia <= ultimoDiaMes; dia++) {
+        const d = String(dia).padStart(2,'0');
+        const m = String(mesSelecionado + 1).padStart(2,'0');
+        const dataStr = `${anoSelecionado}-${m}-${d}`;
+        const contasDia   = dadosContas.filter(c => c.data && c.data.trim().substring(0,10) === dataStr);
+        const temPendente = contasDia.some(c => c.status === 'pendente');
+        const temLancado  = contasDia.some(c => c.status === 'lancado');
+        const temPago     = contasDia.some(c => c.status === 'pago');
+        const sel         = diaFiltro === dataStr ? 'selected' : '';
+        html += `
+          <div class="cal-day ${sel}" onclick="selecionarDia('${dataStr}')">
+            <span>${dia}</span>
+            <div class="dots-container">
+              ${temPendente ? '<i class="cal-dot dot-red"></i>' : ''}
+              ${temLancado  ? '<i class="cal-dot" style="background:#f97316"></i>' : ''}
+              ${temPago     ? '<i class="cal-dot dot-green"></i>' : ''}
+            </div>
+          </div>`;
+      }
+
+      html += `</div>
+          <div class="cal-footer">
+            <div class="cal-legend" onclick="setFiltroResumo('pendente_mes')"><i class="cal-dot dot-red"></i> PENDENTE</div>
+            <div class="cal-legend" onclick="filtrarStatus('lancado')"><i class="cal-dot" style="background:#f97316"></i> LANÇADO</div>
+            <div class="cal-legend" onclick="setFiltroResumo('pagas_mes')"><i class="cal-dot dot-green"></i> PAGO</div>
+            <button class="btn-limpar-cal" onclick="limparFiltros()">LIMPAR</button>
+          </div>
+        </div>`;
+      container.innerHTML = html;
+    }
+
+    // ── Lista de contas ──────────────────────────────────────────
+    function renderLista() {
+      const container = document.getElementById('lista-container');
+      const hoje = new Date(); hoje.setHours(0,0,0,0);
+
+      let filtradas = [...dadosContas];
+
+      // Filtro por dia ou mês
+      if (diaFiltro) {
+        filtradas = filtradas.filter(c => c.data && c.data.trim().substring(0,10) === diaFiltro);
+      } else if (!['vencidas','prox7'].includes(filtroStatus)) {
+        filtradas = filtradas.filter(c => {
+          const dt = parseData(c.data);
+          return dt.getMonth() === mesSelecionado && dt.getFullYear() === anoSelecionado;
+        });
+      }
+
+      // Filtro por status
+      if (filtroStatus === 'pendente' || filtroStatus === 'pendente_mes') {
+        filtradas = filtradas.filter(c => c.status === 'pendente' || c.status === 'lancado');
+      } else if (filtroStatus === 'lancado') {
+        filtradas = filtradas.filter(c => c.status === 'lancado');
+      } else if (filtroStatus === 'pago' || filtroStatus === 'pagas_mes') {
+        filtradas = filtradas.filter(c => c.status === 'pago');
+      } else if (filtroStatus === 'vencidas') {
+        filtradas = filtradas.filter(c => {
+          const dt = parseData(c.data);
+          return (c.status === 'pendente' || c.status === 'lancado') && dt < hoje;
+        });
+      } else if (filtroStatus === 'prox7') {
+        const lim = new Date(); lim.setDate(hoje.getDate() + 7);
+        filtradas = filtradas.filter(c => {
+          const dt = parseData(c.data);
+          return (c.status === 'pendente' || c.status === 'lancado') && dt >= hoje && dt <= lim;
+        });
+      }
+
+      // Filtro texto
+      if (termoBusca.trim()) {
+        const t = termoBusca.toLowerCase();
+        filtradas = filtradas.filter(c =>
+          (c.descricao && c.descricao.toLowerCase().includes(t)) ||
+          (c.categoria && c.categoria.toLowerCase().includes(t)) ||
+          (c.frequencia && c.frequencia.toLowerCase().includes(t))
+        );
+      }
+
+      const soma  = filtradas.reduce((a,c) => a + parseFloat(c.valor||0), 0);
+      const fmt   = v => v.toLocaleString('pt-br', { minimumFractionDigits: 2, style: 'currency', currency: 'BRL' });
+      const nomes = ["JANEIRO","FEVEREIRO","MARÇO","ABRIL","MAIO","JUNHO","JULHO","AGOSTO","SETEMBRO","OUTUBRO","NOVEMBRO","DEZEMBRO"];
+      const titulo = diaFiltro ? diaFiltro.substring(0,10).split('-').reverse().join('/') : `${nomes[mesSelecionado]} / ${anoSelecionado}`;
+      const canEdit = temPermissao(permissaoAtual, 'edicao');
+
+      if (filtradas.length === 0) {
+        container.innerHTML = `<div style="text-align:center; padding:80px 0; color:var(--cor-texto-fraco)">Nenhum registro encontrado para este período.</div>`;
+        return;
+      }
+
+      container.innerHTML = `
+        <h3 style="margin-bottom:16px; font-size:13px; color:var(--cor-texto-fraco)">
+          ${titulo}
+          <span style="color:var(--cor-destaque); margin-left:8px">(${filtradas.length}) — ${fmt(soma)}</span>
+        </h3>`;
+
+      filtradas.forEach(c => {
+        const dt       = parseData(c.data);
+        const vencida  = c.status === 'pendente' && dt < hoje;
+        const dataFmt  = c.data ? c.data.substring(0,10).split('-').reverse().join('/') : '--';
+        const valorCor = c.status === 'pago' ? 'valor-pago' : (c.status === 'lancado' ? 'valor-lancado' : (vencida ? 'txt-red' : ''));
+        const ehRecorr = c.recorrencia_id && c.recorrencia_id !== '';
+        const ehPai    = c.eh_pai === true || c.eh_pai === 1;
+
+        const item = document.createElement('div');
+        item.className = 'item-conta';
+        item.innerHTML = `
+          <div class="item-conta-icone">
+            <i class="fas fa-file-invoice-dollar"></i>
+          </div>
+          <div class="item-info-col">
+            <strong>${(c.descricao || '').toUpperCase()}</strong>
+            <div class="meta-info">
+              <span class="badge-info">📁 ${c.categoria || 'Geral'}</span>
+              <span class="badge-info">🔁 ${c.frequencia || 'Única'}</span>
+              <span class="badge-info ${vencida ? 'badge-vencida' : ''}">📅 ${dataFmt}</span>
+            </div>
+          </div>
+          <div class="item-valor-col ${valorCor}">
+            R$ ${parseFloat(c.valor||0).toFixed(2)}
+          </div>
+          <div class="item-acoes-col">
+            ${canEdit && c.status === 'pendente' ? `<button class="btn-acao btn-lancar" onclick="marcarComoLancado(${c.id})">Lançar</button>` : ''}
+            ${c.status === 'lancado' ? '<span style="color:#f97316; font-size:11px; font-weight:700">LANÇADO 🟠</span>' : ''}
+            ${canEdit && (c.status === 'pendente' || c.status === 'lancado') ? `<button class="btn-acao btn-pagar" onclick="marcarComoPago(${c.id})">Pagar</button>` : ''}
+            ${c.status === 'pago' ? '<span style="color:#10b981; font-size:11px; font-weight:700">PAGO ✅</span>' : ''}
+            ${canEdit ? `<button class="btn-acao btn-editar" onclick="prepararEdicao(${c.id})">Editar</button>` : ''}
+            ${canEdit ? (ehPai && ehRecorr
+              ? `<button class="btn-acao btn-excluir" onclick="excluirGrupo('${c.recorrencia_id}')">Excluir Grupo</button>`
+              : (!ehRecorr ? `<button class="btn-acao btn-excluir" onclick="excluirConta(${c.id})">Excluir</button>` : '<span style="font-size:10px; color:var(--cor-texto-fraco)">Parcela</span>')) : ''}
+          </div>`;
+        container.appendChild(item);
+      });
+    }
+
+    // ════════════════════════════════════════════════════════════
+    // FILTROS E NAVEGAÇÃO
+    // ════════════════════════════════════════════════════════════
+    function filtrarStatus(novoFiltro) {
+      filtroStatus = novoFiltro;
+      diaFiltro    = null;
+      document.querySelectorAll('.fin-tab').forEach(t => t.classList.remove('ativa'));
+      const map = { todas: 0, pendente: 1, lancado: 2, pago: 3 };
+      const tabs = document.querySelectorAll('.fin-tab');
+      if (map[novoFiltro] !== undefined) tabs[map[novoFiltro]]?.classList.add('ativa');
+      atualizarInterface();
+    }
+
+    function setFiltroResumo(filtro) {
+      filtroStatus = filtro;
+      diaFiltro    = null;
+      document.querySelectorAll('.fin-tab').forEach(t => t.classList.remove('ativa'));
+      atualizarInterface();
+    }
+
+    function filtrarBusca(valor) {
+      termoBusca = valor;
+      renderLista();
+    }
+
+    function selecionarDia(dataStr) {
+      diaFiltro    = diaFiltro === dataStr ? null : dataStr;
+      filtroStatus = 'todas';
+      atualizarInterface();
+    }
+
+    function limparFiltros() {
+      diaFiltro    = null;
+      filtroStatus = 'pendente';
+      document.querySelectorAll('.fin-tab').forEach(t => t.classList.remove('ativa'));
+      const tabs = document.querySelectorAll('.fin-tab');
+      if (tabs[1]) tabs[1].classList.add('ativa');
+      atualizarInterface();
+    }
+
+    function mudarMes(dir) {
+      const d = new Date(anoSelecionado, mesSelecionado + dir, 1);
+      mesSelecionado = d.getMonth();
+      anoSelecionado = d.getFullYear();
+      atualizarInterface();
+    }
+
+    // ════════════════════════════════════════════════════════════
+    // HELPERS DE PERMISSÃO
+    // ════════════════════════════════════════════════════════════
+    const NIVEL = { leitura: 1, edicao: 2, dono: 3 };
+    function temPermissao(perm, min) {
+      return !!perm && (NIVEL[perm] || 0) >= (NIVEL[min] || 0);
+    }
+
+    // ════════════════════════════════════════════════════════════
+    // MODAL: AGENDA
+    // ════════════════════════════════════════════════════════════
+    function abrirModalAgenda(id = null) {
+      modoEdicaoAgenda = !!id;
+      idEdicaoAgenda   = id;
+
+      // Gerar seletor de cores
+      const el = document.getElementById('cor-opcoes');
+      el.innerHTML = CORES_AGENDA.map(cor => `
+        <div class="cor-opcao" style="background:${cor}" onclick="selecionarCor('${cor}')"
+          title="${cor}"></div>`).join('');
+
+      if (id) {
+        // Edição
+        document.getElementById('modal-agenda-titulo').textContent = 'Editar Agenda';
+        document.getElementById('agenda-nome').value      = agendaSelecionada.nome;
+        document.getElementById('agenda-descricao').value = agendaSelecionada.descricao || '';
+        document.getElementById('agenda-cor').value       = agendaSelecionada.cor;
+        selecionarCor(agendaSelecionada.cor);
+      } else {
+        document.getElementById('modal-agenda-titulo').textContent = 'Nova Agenda';
+        document.getElementById('agenda-nome').value      = '';
+        document.getElementById('agenda-descricao').value = '';
+        document.getElementById('agenda-cor').value       = CORES_AGENDA[0];
+        selecionarCor(CORES_AGENDA[0]);
+      }
+
+      document.getElementById('modal-agenda').classList.add('ativo');
+    }
+
+    function selecionarCor(cor) {
+      document.getElementById('agenda-cor').value = cor;
+      document.querySelectorAll('.cor-opcao').forEach(el => {
+        el.classList.toggle('selecionada', el.style.background === cor || el.style.backgroundColor === cor);
+      });
+    }
+
+    function fecharModalAgenda() {
+      document.getElementById('modal-agenda').classList.remove('ativo');
+    }
+
+    async function salvarAgenda() {
+      const nome      = document.getElementById('agenda-nome').value.trim();
+      const descricao = document.getElementById('agenda-descricao').value.trim();
+      const cor       = document.getElementById('agenda-cor').value;
+      if (!nome) { mostrarToast('Informe o nome da agenda.', 'erro'); return; }
+
+      const url    = modoEdicaoAgenda ? `${API}/agendas/${idEdicaoAgenda}` : `${API}/agendas`;
+      const method = modoEdicaoAgenda ? 'PUT' : 'POST';
+      const r = await fetch(url, { method, headers: {'Content-Type':'application/json'}, body: JSON.stringify({ nome, descricao, cor }) });
+      const d = await r.json();
+
+      if (!d.sucesso) { mostrarToast(d.erro || 'Erro ao salvar.', 'erro'); return; }
+      fecharModalAgenda();
+      mostrarToast(d.mensagem);
+
+      if (!modoEdicaoAgenda) {
+        await carregarAgendas();
+        await selecionarAgenda(d.agenda);
+      } else {
+        agendaSelecionada = { ...agendaSelecionada, nome, descricao, cor };
+        document.getElementById('hdr-cor').style.background = cor;
+        document.getElementById('hdr-nome').textContent     = nome;
+        await carregarAgendas();
+      }
+    }
+
+    async function excluirAgenda() {
+      if (!confirm(`Excluir a agenda "${agendaSelecionada.nome}" e TODOS os lançamentos? Esta ação não pode ser desfeita.`)) return;
+      const r = await fetch(`${API}/agendas/${agendaSelecionada.id}`, { method: 'DELETE' });
+      const d = await r.json();
+      if (!d.sucesso) { mostrarToast(d.erro || 'Erro.', 'erro'); return; }
+      mostrarToast('Agenda excluída.');
+      agendaSelecionada = null;
+      document.getElementById('painel-agenda').style.display    = 'none';
+      document.getElementById('tela-boas-vindas').style.display = 'flex';
+      await carregarAgendas();
+    }
+
+    // ════════════════════════════════════════════════════════════
+    // MODAL: CONTA
+    // ════════════════════════════════════════════════════════════
+    async function abrirModalConta() {
+      modoEdicaoConta = false;
+      idEdicaoConta   = null;
+      document.getElementById('modal-conta-titulo').textContent = 'Novo Lançamento';
+      document.getElementById('cad-desc').value  = '';
+      document.getElementById('cad-valor').value = '';
+      document.getElementById('cad-data').value  = '';
+      document.getElementById('check-recorrencia').checked = false;
+      document.getElementById('cad-frequencia').value       = 'Mensal';
+      document.getElementById('cad-data-fim').value         = '';
+      document.getElementById('cad-max-parcelas').value     = '12';
+      modoEdicaoRecorrente = false;
+      modoEdicaoPai        = false;
+      ['cad-desc', 'cad-cat', 'cad-emp', 'check-recorrencia'].forEach(id => {
+        const el = document.getElementById(id); if (el) el.disabled = false;
+      });
+      const recBox = document.getElementById('campos-recorrencia');
+      if (recBox) recBox.style.opacity = '1';
+      const aviso = document.getElementById('aviso-recorrente');
+      if (aviso) aviso.style.display = 'none';
+      document.getElementById('btn-gerenciar-cat').style.visibility = 'visible';
+      toggleRecorrencia();
+      await carregarCategorias();
+      await carregarEmpresas();
+      document.getElementById('cad-emp').value = '';
+      document.getElementById('modal-conta').classList.add('ativo');
+    }
+
+    async function prepararEdicao(id) {
+      const c = dadosContas.find(x => x.id == id);
+      if (!c) return;
+      modoEdicaoConta      = true;
+      idEdicaoConta        = id;
+      const ehRecorrente   = !!(c.recorrencia_id);
+      const ehPai          = c.eh_pai === true || c.eh_pai === 1;
+      modoEdicaoRecorrente = ehRecorrente && !ehPai;  // parcela normal: restrito
+      modoEdicaoPai        = ehRecorrente && ehPai;   // primeira parcela: edição completa + propaga
+
+      document.getElementById('modal-conta-titulo').textContent = 'Editar Lançamento';
+      document.getElementById('cad-desc').value  = c.descricao;
+      document.getElementById('cad-valor').value = c.valor;
+      document.getElementById('cad-data').value  = c.data ? c.data.substring(0,10) : '';
+      document.getElementById('check-recorrencia').checked = false;
+      toggleRecorrencia();
+      await carregarCategorias();
+      await carregarEmpresas();
+      document.getElementById('cad-cat').value  = c.categoria || 'Geral';
+      document.getElementById('cad-emp').value  = c.empresa || '';
+
+      // Parcela normal (não é pai): bloqueia desc/cat/emp
+      const camposFixos = ['cad-desc', 'cad-cat', 'cad-emp'];
+      camposFixos.forEach(fId => {
+        const el = document.getElementById(fId);
+        if (el) el.disabled = modoEdicaoRecorrente;
+      });
+      const recBox = document.getElementById('campos-recorrencia');
+      const recHdr = document.getElementById('check-recorrencia');
+      const bloqueado = modoEdicaoRecorrente;
+      if (recBox) recBox.style.opacity = bloqueado ? '0.4' : '1';
+      if (recHdr) recHdr.disabled      = bloqueado;
+
+      // Aviso visual
+      let aviso = document.getElementById('aviso-recorrente');
+      if (!aviso) {
+        aviso = document.createElement('div');
+        aviso.id = 'aviso-recorrente';
+        aviso.style.cssText = 'border-radius:8px;padding:8px 12px;font-size:0.8rem;margin-bottom:10px';
+        document.getElementById('modal-conta-titulo').parentElement.after(aviso);
+      }
+      if (modoEdicaoRecorrente) {
+        aviso.style.cssText += ';background:#1e3a5f;border:1px solid #3b82f6;color:#93c5fd';
+        aviso.innerHTML = '<i class="fas fa-info-circle"></i> Conta recorrente: apenas <strong>valor</strong> e <strong>data de vencimento</strong> podem ser alterados.';
+        aviso.style.display = '';
+      } else if (modoEdicaoPai) {
+        aviso.style.cssText += ';background:#1c3a1e;border:1px solid #22c55e;color:#86efac';
+        aviso.innerHTML = '<i class="fas fa-sync-alt"></i> Conta pai: as alterações de <strong>descrição</strong>, <strong>categoria</strong> e <strong>empresa</strong> serão aplicadas a todas as parcelas do grupo.';
+        aviso.style.display = '';
+      } else {
+        aviso.style.display = 'none';
+      }
+
+      document.getElementById('modal-conta').classList.add('ativo');
+    }
+
+    function fecharModalConta() {
+      fecharGerenciador();
+      fecharGerenciadorEmpresas();
+      document.getElementById('modal-conta').classList.remove('ativo');
+    }
+
+    function toggleRecorrencia() {
+      const ativa = document.getElementById('check-recorrencia').checked;
+      const campos = document.getElementById('campos-recorrencia');
+      campos.classList.toggle('campos-recorrencia-off', !ativa);
+      if (ativa) sincronizarPorFrequenciaOuData();
+    }
+
+    // ── Cálculo automático de parcelas / data de término ─────────
+    let _atualizandoRecorr = false;
+
+    function _proxOcorrencia(d, freq) {
+      const n = new Date(d);
+      switch (freq) {
+        case 'Diária':    n.setDate(n.getDate() + 1);         break;
+        case 'Semanal':   n.setDate(n.getDate() + 7);         break;
+        case 'Quinzenal': n.setDate(n.getDate() + 15);        break;
+        case 'Mensal':    n.setMonth(n.getMonth() + 1);       break;
+        case 'Semestral': n.setMonth(n.getMonth() + 6);       break;
+        case 'Anual':     n.setFullYear(n.getFullYear() + 1); break;
+      }
+      return n;
+    }
+
+    function _contarParcelas(dataInicio, freq, dataFim) {
+      let d = new Date(dataInicio + 'T00:00:00');
+      const fim = new Date(dataFim + 'T00:00:00');
+      let count = 0;
+      while (d <= fim && count < 500) { count++; d = _proxOcorrencia(d, freq); }
+      return Math.max(count, 1);
+    }
+
+    function _dataFimPorParcelas(dataInicio, freq, num) {
+      let d = new Date(dataInicio + 'T00:00:00');
+      for (let i = 1; i < num; i++) d = _proxOcorrencia(d, freq);
+      return d.toISOString().split('T')[0];
+    }
+
+    // Frequência ou data de início mudou → recalcula parcelas (mantém data-fim ou usa fim do ano)
+    function sincronizarPorFrequenciaOuData() {
+      if (_atualizandoRecorr) return;
+      const dataInicio = document.getElementById('cad-data').value;
+      if (!dataInicio) return;
+      const freq    = document.getElementById('cad-frequencia').value;
+      const dataFim = document.getElementById('cad-data-fim').value;
+      _atualizandoRecorr = true;
+      if (dataFim) {
+        document.getElementById('cad-max-parcelas').value = _contarParcelas(dataInicio, freq, dataFim);
+      } else {
+        const anoFim   = `${new Date(dataInicio + 'T00:00:00').getFullYear()}-12-31`;
+        const parcelas = _contarParcelas(dataInicio, freq, anoFim);
+        document.getElementById('cad-max-parcelas').value = parcelas;
+        document.getElementById('cad-data-fim').value     = _dataFimPorParcelas(dataInicio, freq, parcelas);
+      }
+      _atualizandoRecorr = false;
+    }
+
+    // Data de término mudou → recalcula parcelas
+    function sincronizarPorDataFim() {
+      if (_atualizandoRecorr) return;
+      const dataInicio = document.getElementById('cad-data').value;
+      const dataFim    = document.getElementById('cad-data-fim').value;
+      const freq       = document.getElementById('cad-frequencia').value;
+      if (!dataInicio || !dataFim) return;
+      _atualizandoRecorr = true;
+      document.getElementById('cad-max-parcelas').value = _contarParcelas(dataInicio, freq, dataFim);
+      _atualizandoRecorr = false;
+    }
+
+    // Nº de parcelas mudou → recalcula data de término
+    function sincronizarPorParcelas() {
+      if (_atualizandoRecorr) return;
+      const dataInicio = document.getElementById('cad-data').value;
+      const num        = parseInt(document.getElementById('cad-max-parcelas').value) || 1;
+      const freq       = document.getElementById('cad-frequencia').value;
+      if (!dataInicio) return;
+      _atualizandoRecorr = true;
+      document.getElementById('cad-data-fim').value = _dataFimPorParcelas(dataInicio, freq, num);
+      _atualizandoRecorr = false;
+    }
+
+    // Registrar listeners
+    document.getElementById('cad-frequencia').addEventListener('change', () => {
+      if (document.getElementById('check-recorrencia').checked) sincronizarPorFrequenciaOuData();
+    });
+    document.getElementById('cad-data').addEventListener('change', () => {
+      if (document.getElementById('check-recorrencia').checked) sincronizarPorFrequenciaOuData();
+    });
+    document.getElementById('cad-data-fim').addEventListener('change', sincronizarPorDataFim);
+    document.getElementById('cad-max-parcelas').addEventListener('change', sincronizarPorParcelas);
+
+    async function carregarCategorias() {
+      const r = await fetch(`${API}/agendas/${agendaSelecionada.id}/categorias`);
+      const d = await r.json();
+      const cats = d.sucesso ? d.categorias : [];
+      const sel  = document.getElementById('cad-cat');
+      const atual = sel.value;
+      sel.innerHTML = '<option value="Geral">Geral</option>' +
+        cats.map(c => `<option value="${c.nome}">${c.nome}</option>`).join('');
+      if (atual) sel.value = atual;
+    }
+
+    async function carregarEmpresas() {
+      const r = await fetch(`${API}/agendas/${agendaSelecionada.id}/empresas`);
+      const d = await r.json();
+      const emps = d.sucesso ? d.empresas : [];
+      const sel  = document.getElementById('cad-emp');
+      const atual = sel.value;
+      sel.innerHTML = '<option value="">— Nenhuma —</option>' +
+        emps.map(e => `<option value="${e.nome}">${e.nome}</option>`).join('');
+      if (atual) sel.value = atual;
+    }
+
+    function abrirGerenciadorEmpresas() {
+      atualizarListaEmpresasGerenciador();
+      document.getElementById('subModalEmpresas').style.display = 'block';
+    }
+
+    function fecharGerenciadorEmpresas() {
+      document.getElementById('subModalEmpresas').style.display = 'none';
+    }
+
+    async function atualizarListaEmpresasGerenciador() {
+      const r = await fetch(`${API}/agendas/${agendaSelecionada.id}/empresas`);
+      const d = await r.json();
+      const emps = d.sucesso ? d.empresas : [];
+      const lista = document.getElementById('lista-empresas-gerenciador');
+      lista.innerHTML = emps.length ? emps.map(e => `
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:5px 0; border-bottom:1px solid var(--cor-borda)">
+          <span style="font-size:13px; color:var(--cor-texto)">${e.nome}</span>
+          <button onclick="excluirEmpresa(${e.id})" style="background:none; border:none; color:#ef4444; cursor:pointer; font-size:14px">✕</button>
+        </div>`).join('') : '<p style="font-size:12px; color:var(--cor-texto-sec); text-align:center">Nenhuma empresa cadastrada.</p>';
+    }
+
+    async function addEmpresa() {
+      const nome = document.getElementById('nova-empresa').value.trim();
+      if (!nome) return;
+      const r = await fetch(`${API}/agendas/${agendaSelecionada.id}/empresas`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nome })
+      });
+      const d = await r.json();
+      if (d.sucesso) {
+        document.getElementById('nova-empresa').value = '';
+        await atualizarListaEmpresasGerenciador();
+        await carregarEmpresas();
+      }
+    }
+
+    async function excluirEmpresa(id) {
+      if (!confirm('Excluir empresa? Os lançamentos vinculados ficarão sem empresa.')) return;
+      await fetch(`${API}/empresas/${id}`, { method: 'DELETE' });
+      await atualizarListaEmpresasGerenciador();
+      await carregarEmpresas();
+    }
+
+    async function salvarConta() {
+      const descricao  = document.getElementById('cad-desc').value.trim();
+      const valor      = parseFloat(document.getElementById('cad-valor').value);
+      const data       = document.getElementById('cad-data').value;
+      const categoria  = document.getElementById('cad-cat').value || 'Geral';
+      const empresa    = document.getElementById('cad-emp').value || null;
+      const recorrente = document.getElementById('check-recorrencia').checked;
+      const frequencia = document.getElementById('cad-frequencia').value;
+      const dataFim    = document.getElementById('cad-data-fim').value;
+      const maxParc    = parseInt(document.getElementById('cad-max-parcelas').value) || 12;
+
+      if (!modoEdicaoRecorrente && !descricao) { mostrarToast('Informe a descrição.', 'erro'); return; }
+      if (!valor || valor <= 0) { mostrarToast('Informe um valor válido.', 'erro'); return; }
+      if (!data) { mostrarToast('Informe a data de vencimento.', 'erro'); return; }
+
+      if (modoEdicaoConta) {
+        // Edição: parcela restrita → só valor e data
+        //         pai (primeira parcela) → tudo + propaga desc/cat/emp ao grupo
+        //         normal → tudo sem propagar
+        let corpo;
+        if (modoEdicaoRecorrente) {
+          corpo = { valor, data };
+        } else if (modoEdicaoPai) {
+          const contaPai = dadosContas.find(x => x.id == idEdicaoConta);
+          corpo = { descricao, valor, data, categoria, empresa,
+                    propagarGrupo: true, recorrencia_id: contaPai?.recorrencia_id };
+        } else {
+          corpo = { descricao, valor, data, categoria, empresa, frequencia: 'Única' };
+        }
+        const r = await fetch(`${API}/contas/${idEdicaoConta}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(corpo)
+        });
+        const d = await r.json();
+        if (!d.sucesso) { mostrarToast(d.erro || 'Erro.', 'erro'); return; }
+        mostrarToast('Lançamento atualizado.');
+      } else {
+        // Criação (com ou sem recorrência)
+        let contas;
+        if (recorrente) {
+          contas = gerarParcelas({ descricao, valor, data, categoria, empresa, frequencia, status: 'pendente' }, dataFim, maxParc);
+        } else {
+          contas = [{ descricao, valor, data, categoria, empresa, frequencia: 'Única', status: 'pendente', recorrencia_id: null, eh_pai: 0 }];
+        }
+        const r = await fetch(`${API}/agendas/${agendaSelecionada.id}/contas`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ contas })
+        });
+        const d = await r.json();
+        if (!d.sucesso) { mostrarToast(d.erro || 'Erro.', 'erro'); return; }
+        mostrarToast(d.mensagem);
+      }
+
+      fecharModalConta();
+      await carregarContas();
+    }
+
+    // ── Lógica de recorrência ────────────────────────────────────
+    function gerarParcelas(dados, dataTermino, maxParcelas) {
+      const parcelas    = [];
+      const dataInicio  = new Date(dados.data + 'T00:00:00');
+      const dataLim     = dataTermino ? new Date(dataTermino + 'T00:00:00') : null;
+      const recId       = 'REC-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
+      const freq        = dados.frequencia || 'Mensal';
+      let contador      = 1;
+      let dataAtual     = new Date(dataInicio);
+
+      function proximaData(base, n) {
+        const d = new Date(base);
+        switch (freq) {
+          case 'Diária':    d.setDate(d.getDate() + n);        break;
+          case 'Semanal':   d.setDate(d.getDate() + n * 7);    break;
+          case 'Quinzenal': d.setDate(d.getDate() + n * 15);   break;
+          case 'Mensal': {
+            const dia = base.getDate();
+            d.setMonth(d.getMonth() + n);
+            // Corrige se o mês destino tem menos dias
+            const ultimo = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+            d.setDate(Math.min(dia, ultimo));
+            break;
+          }
+          case 'Semestral': {
+            const dia = base.getDate();
+            d.setMonth(d.getMonth() + n * 6);
+            const ultimo = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+            d.setDate(Math.min(dia, ultimo));
+            break;
+          }
+          case 'Anual': {
+            const dia = base.getDate();
+            d.setFullYear(d.getFullYear() + n);
+            const ultimo = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+            d.setDate(Math.min(dia, ultimo));
+            break;
+          }
+        }
+        return d;
+      }
+
+      while (contador <= maxParcelas) {
+        const dataParcela = proximaData(dataInicio, contador - 1);
+        if (dataLim && dataParcela > dataLim) break;
+
+        parcelas.push({
+          ...dados,
+          descricao:      `${dados.descricao} (${contador})`,
+          data:           dataParcela.toISOString().split('T')[0],
+          recorrencia_id: recId,
+          eh_pai:         contador === 1 ? 1 : 0
+        });
+        contador++;
+      }
+      return parcelas;
+    }
+
+    // ── Ações da lista ────────────────────────────────────────────
+    async function marcarComoLancado(id) {
+      if (!confirm('Registrar lançamento desta conta?')) return;
+      const r = await fetch(`${API}/contas/${id}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'lancado' })
+      });
+      const d = await r.json();
+      if (!d.sucesso) { mostrarToast(d.erro || 'Erro.', 'erro'); return; }
+      mostrarToast('Lançamento registrado.');
+      await carregarContas();
+    }
+
+    async function marcarComoPago(id) {
+      if (!confirm('Marcar esta conta como PAGO?')) return;
+      const r = await fetch(`${API}/contas/${id}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'pago' })
+      });
+      const d = await r.json();
+      if (!d.sucesso) { mostrarToast(d.erro || 'Erro.', 'erro'); return; }
+      mostrarToast('Conta marcada como paga.');
+      await carregarContas();
+    }
+
+    async function excluirConta(id) {
+      if (!confirm('Excluir este lançamento?')) return;
+      const r = await fetch(`${API}/contas/${id}`, { method: 'DELETE' });
+      const d = await r.json();
+      if (!d.sucesso) { mostrarToast(d.erro || 'Erro.', 'erro'); return; }
+      mostrarToast('Lançamento excluído.');
+      await carregarContas();
+    }
+
+    async function excluirGrupo(recorrenciaId) {
+      if (!confirm('Excluir TODAS as parcelas deste grupo recorrente? Esta ação não pode ser desfeita.')) return;
+      const r = await fetch(`${API}/contas/recorrencia/${encodeURIComponent(recorrenciaId)}`, { method: 'DELETE' });
+      const d = await r.json();
+      if (!d.sucesso) { mostrarToast(d.erro || 'Erro.', 'erro'); return; }
+      mostrarToast('Grupo excluído.');
+      await carregarContas();
+    }
+
+    // ── Gerenciador de categorias ─────────────────────────────────
+    function abrirGerenciador() {
+      atualizarListaCategoriasGerenciador();
+      document.getElementById('subModalCategorias').style.display = 'block';
+    }
+
+    function fecharGerenciador() {
+      document.getElementById('subModalCategorias').style.display = 'none';
+    }
+
+    async function atualizarListaCategoriasGerenciador() {
+      const r = await fetch(`${API}/agendas/${agendaSelecionada.id}/categorias`);
+      const d = await r.json();
+      const cats = d.sucesso ? d.categorias : [];
+      document.getElementById('lista-categorias-gerenciador').innerHTML =
+        cats.length
+          ? cats.map(c => `
+            <div class="list-manage-item">
+              <span>${c.nome}</span>
+              <button class="btn-del-list" onclick="excluirCategoria(${c.id})">🗑️</button>
+            </div>`).join('')
+          : '<p style="font-size:11px; color:var(--cor-texto-fraco); padding:6px">Nenhuma categoria.</p>';
+    }
+
+    async function addCategoria() {
+      const nome = document.getElementById('nova-categoria').value.trim();
+      if (!nome) return;
+      const r = await fetch(`${API}/agendas/${agendaSelecionada.id}/categorias`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nome })
+      });
+      const d = await r.json();
+      if (d.sucesso) {
+        document.getElementById('nova-categoria').value = '';
+        await atualizarListaCategoriasGerenciador();
+        await carregarCategorias();
+      }
+    }
+
+    async function excluirCategoria(id) {
+      if (!confirm('Excluir categoria? Os lançamentos vinculados voltarão para "Geral".')) return;
+      await fetch(`${API}/categorias/${id}`, { method: 'DELETE' });
+      await atualizarListaCategoriasGerenciador();
+      await carregarCategorias();
+    }
+
+    // ════════════════════════════════════════════════════════════
+    // MODAL: MEMBROS
+    // ════════════════════════════════════════════════════════════
+    async function abrirModalMembros() {
+      document.getElementById('modal-membros').classList.add('ativo');
+      const sel = document.getElementById('sel-usuario-membro');
+
+      // Carregar usuários disponíveis para o select
+      try {
+        const ru = await fetch(`${API}/usuarios`);
+        const du = await ru.json();
+        sel.innerHTML = '<option value="">Selecione...</option>' +
+          (du.usuarios || []).map(u => `<option value="${u.login}">${u.nome || u.login} (${u.login})</option>`).join('');
+      } catch (e) {
+        sel.innerHTML = '<option value="">Erro ao carregar usuários</option>';
+        console.error('[Membros] Erro ao buscar usuários:', e);
+      }
+
+      // Carregar membros atuais (sempre executa, independente do erro acima)
+      await atualizarListaMembros();
+    }
+
+    function fecharModalMembros() {
+      document.getElementById('modal-membros').classList.remove('ativo');
+    }
+
+    async function atualizarListaMembros() {
+      const lista = document.getElementById('lista-membros');
+      try {
+      const r = await fetch(`${API}/agendas/${agendaSelecionada.id}/membros`);
+      const d = await r.json();
+      if (!d.sucesso || d.membros.length === 0) {
+        lista.innerHTML = '<p style="text-align:center; padding:20px; color:var(--cor-texto-fraco); font-size:13px">Nenhum membro compartilhado.</p>';
+        return;
+      }
+      lista.innerHTML = d.membros.map(m => `
+        <div class="membro-item">
+          <div class="membro-info">
+            <strong>${m.nome || m.usuario}</strong>
+            <small>${m.usuario} &middot; Adicionado em ${new Date(m.adicionado_em).toLocaleDateString('pt-BR')}</small>
+          </div>
+          <div class="membro-acoes">
+            <select onchange="alterarPermissao('${m.usuario}', this.value)">
+              <option value="leitura" ${m.permissao==='leitura'?'selected':''}>Leitura</option>
+              <option value="edicao"  ${m.permissao==='edicao' ?'selected':''}>Edição</option>
+            </select>
+            <button class="btn btn-danger-sm" onclick="removerMembro('${m.usuario}')"><i class="fas fa-times"></i></button>
+          </div>
+        </div>`).join('');
+      } catch (e) {
+        lista.innerHTML = `<p style="text-align:center; padding:20px; color:#ef4444; font-size:13px">Erro ao carregar membros: ${e.message}</p>`;
+        console.error('[Membros] Erro:', e);
+      }
+    }
+
+    async function adicionarMembro() {
+      const usuario   = document.getElementById('sel-usuario-membro').value;
+      const permissao = document.getElementById('sel-permissao-membro').value;
+      if (!usuario) { mostrarToast('Selecione um usuário.', 'erro'); return; }
+      const r = await fetch(`${API}/agendas/${agendaSelecionada.id}/membros`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ usuario, permissao })
+      });
+      const d = await r.json();
+      if (!d.sucesso) { mostrarToast(d.erro || 'Erro.', 'erro'); return; }
+      mostrarToast('Membro adicionado.');
+      document.getElementById('sel-usuario-membro').value = '';
+      await atualizarListaMembros();
+    }
+
+    async function alterarPermissao(usuario, permissao) {
+      const r = await fetch(`${API}/agendas/${agendaSelecionada.id}/membros`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ usuario, permissao })
+      });
+      const d = await r.json();
+      if (!d.sucesso) mostrarToast(d.erro || 'Erro.', 'erro');
+      else mostrarToast('Permissão atualizada.');
+    }
+
+    async function removerMembro(usuario) {
+      if (!confirm(`Remover ${usuario} da agenda?`)) return;
+      const r = await fetch(`${API}/agendas/${agendaSelecionada.id}/membros/${usuario}`, { method: 'DELETE' });
+      const d = await r.json();
+      if (!d.sucesso) { mostrarToast(d.erro || 'Erro.', 'erro'); return; }
+      mostrarToast('Membro removido.');
+      await atualizarListaMembros();
+    }
+
+    // ════════════════════════════════════════════════════════════
+    // MODAL: LOGS
+    // ════════════════════════════════════════════════════════════
+    async function abrirModalLogs() {
+      document.getElementById('modal-logs').classList.add('ativo');
+      const r = await fetch(`${API}/agendas/${agendaSelecionada.id}/logs`);
+      const d = await r.json();
+      const tbody = document.getElementById('lista-logs');
+      if (!d.sucesso || d.logs.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:40px; color:var(--cor-texto-fraco)">Nenhum registro.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = d.logs.map(l => {
+        const data  = new Date(l.data_hora).toLocaleString('pt-BR');
+        let cls = 'badge-acao ';
+        if (l.acao === 'CRIAR')      cls += 'badge-criar';
+        else if (l.acao === 'ATUALIZAR') cls += 'badge-atualizar';
+        else if (l.acao === 'EXCLUIR')   cls += 'badge-excluir';
+        return `<tr>
+          <td style="white-space:nowrap">${data}</td>
+          <td><span class="${cls}">${l.acao}</span></td>
+          <td><strong>${l.descricao_conta ? l.descricao_conta.toUpperCase() : (l.conta_id ? 'ID:'+l.conta_id : '—')}</strong></td>
+          <td style="color:var(--cor-texto-fraco); font-style:italic">${l.detalhes}</td>
+          <td><small>${l.usuario}</small></td>
+        </tr>`;
+      }).join('');
+    }
+
+    function fecharModalLogs() {
+      document.getElementById('modal-logs').classList.remove('ativo');
+    }
+
+    // ════════════════════════════════════════════════════════════
+    // TOAST
+    // ════════════════════════════════════════════════════════════
+    let toastTimer = null;
+    function mostrarToast(msg, tipo = 'sucesso') {
+      const el = document.getElementById('toast');
+      el.textContent = msg;
+      el.className   = `fin-toast ativo ${tipo}`;
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => el.classList.remove('ativo'), 3000);
+    }
+  </script>
+</body>
+</html>

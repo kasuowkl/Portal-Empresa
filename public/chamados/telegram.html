@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<!--
+  ARQUIVO: public/chamados/telegram.html
+  VERSÃO:  1.0.0
+  DATA:    2026-03-06
+  DESCRIÇÃO: Configuração de notificações Telegram para o sistema de Chamados
+-->
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Telegram — Chamados</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/menu.css">
+    <style>
+        :root {
+            --bg: #0f172a; --card: #1e293b; --text: #f1f5f9;
+            --border: #334155; --primary: #1e40af; --telegram: #0088cc;
+            --success: #10b981; --warning: #f59e0b; --danger: #ef4444;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { background: var(--bg); color: var(--text); padding: 20px; padding-top: 80px; }
+        .container { max-width: 900px; margin: auto; }
+        .card { background: var(--card); padding: 25px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+        h3 { color: var(--telegram); margin-bottom: 18px; display: flex; align-items: center; gap: 8px; font-size: 1rem; }
+        input, textarea { width: 100%; padding: 10px 12px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-size: 0.875rem; }
+        input { margin-bottom: 12px; }
+        textarea { margin-bottom: 12px; resize: vertical; }
+        input:focus, textarea:focus { outline: 2px solid var(--telegram); border-color: var(--telegram); }
+        .btn { padding: 10px 16px; border: none; border-radius: 6px; font-weight: 700; cursor: pointer; color: white; font-size: 0.8rem; text-transform: uppercase; transition: opacity 0.2s; }
+        .btn:hover { opacity: 0.85; }
+        .status-group { display: flex; gap: 12px; flex-wrap: wrap; background: rgba(0,0,0,0.25); padding: 15px; border-radius: 8px; margin-bottom: 15px; }
+        .status-group label { display: flex; align-items: center; gap: 6px; font-size: 0.8rem; cursor: pointer; padding: 4px 6px; border-radius: 4px; transition: background 0.15s; }
+        .status-group label:hover { background: rgba(0,136,204,0.15); }
+        .status-group input[type="checkbox"] { width: 15px; height: 15px; margin: 0; cursor: pointer; accent-color: var(--telegram); flex-shrink: 0; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+        th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--border); }
+        th { font-size: 0.75rem; text-transform: uppercase; color: #64748b; font-weight: 700; background: rgba(0,0,0,0.15); }
+        td input { margin-bottom: 0; font-family: monospace; font-size: 0.8rem; }
+        .alerta { padding: 12px 16px; border-radius: 6px; margin-bottom: 16px; display: none; font-size: 0.875rem; }
+        .alerta.visivel { display: block; }
+        .alerta-sucesso { background: rgba(16,185,129,0.15); color: #10b981; border: 1px solid rgba(16,185,129,0.3); }
+        .alerta-erro { background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); }
+        #console-log {
+            background: #000; border-radius: 8px; padding: 12px 15px;
+            font-family: 'Courier New', monospace; font-size: 0.75rem;
+            color: #22c55e; max-height: 180px; overflow-y: auto;
+            border: 1px solid var(--border); white-space: pre-wrap; word-break: break-word;
+        }
+        .table-scroll { max-height: 400px; overflow-y: auto; border: 1px solid var(--border); border-radius: 6px; }
+    </style>
+</head>
+<body>
+    <div id="menu-container"></div>
+
+    <div class="container">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:10px;">
+            <h1 style="color:var(--telegram); display:flex; align-items:center; gap:10px; font-size:1.4rem;">
+                <i class="fab fa-telegram-plane"></i> Telegram — Chamados
+            </h1>
+            <a href="/chamados/configuracoes" class="btn" style="background:var(--primary); text-decoration:none; display:inline-block;">
+                ← VOLTAR
+            </a>
+        </div>
+
+        <div id="alerta-geral" class="alerta"></div>
+
+        <!-- Token + Gatilhos -->
+        <div class="card">
+            <h3><i class="fas fa-key"></i> Bot Token e Gatilhos de Notificação</h3>
+            <input type="text" id="tg-token" placeholder="Token do Bot (ex: 1234567890:AAF...)">
+            <p style="font-size:0.75rem; opacity:0.6; margin-bottom:10px;">
+                Selecione os eventos que dispararão notificações nos canais do setor:
+            </p>
+            <div class="status-group" id="status-checks">
+                <label><input type="checkbox" value="Aberto"> Novo Chamado</label>
+                <label><input type="checkbox" value="Em Atendimento"> Em Atendimento</label>
+                <label><input type="checkbox" value="Respondido"> Respondido</label>
+                <label><input type="checkbox" value="Finalizado"> Finalizado</label>
+                <label><input type="checkbox" value="Reaberto"> Reaberto</label>
+                <label><input type="checkbox" value="TRANSFERIDO"> Transferido</label>
+                <label><input type="checkbox" value="APROVACAO"> Aguard. Aprovação</label>
+                <label><input type="checkbox" value="APROVADO"> Aprovado</label>
+                <label><input type="checkbox" value="REPROVADO"> Reprovado</label>
+            </div>
+            <button onclick="salvarConfig()" class="btn" style="background:var(--success); width:100%;">
+                <i class="fas fa-save"></i> SALVAR CONFIGURAÇÕES
+            </button>
+        </div>
+
+        <!-- Canais por setor -->
+        <div class="card">
+            <h3><i class="fas fa-building"></i> Canais por Setor</h3>
+            <p style="font-size:0.75rem; opacity:0.6; margin-bottom:15px;">
+                Configure o Chat ID do Telegram para cada setor. Deixe em branco para não notificar aquele setor.
+                Use o <strong>@userinfobot</strong> para obter Chat IDs de grupos ou canais.
+            </p>
+            <div class="table-scroll">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Setor</th>
+                            <th>Chat ID do Canal / Grupo</th>
+                            <th style="text-align:right">Teste</th>
+                        </tr>
+                    </thead>
+                    <tbody id="lista-setores"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Broadcast -->
+        <div class="card">
+            <h3><i class="fas fa-bullhorn"></i> Comunicado Geral (Broadcast)</h3>
+            <p style="font-size:0.75rem; opacity:0.6; margin-bottom:10px;">
+                Envia uma mensagem para todos os setores que possuem Canal ID configurado.
+            </p>
+            <textarea id="msg-broadcast" rows="3" placeholder="Mensagem de aviso para todos os setores configurados..."></textarea>
+            <button onclick="enviarBroadcast()" class="btn" style="background:var(--warning); width:100%;">
+                <i class="fas fa-paper-plane"></i> DISPARAR AVISO GERAL
+            </button>
+        </div>
+
+        <!-- Console -->
+        <div id="console-log">Console iniciado. Aguardando comando...</div>
+    </div>
+
+    <script src="/js/menu.js"></script>
+    <script>
+    (function () {
+        let configAtual = {};
+        let setores = [];
+
+        function log(msg, tipo) {
+            const c = document.getElementById('console-log');
+            const cor = tipo === 'erro' ? '#f87171' : tipo === 'info' ? '#fbbf24' : '#22c55e';
+            c.innerHTML += `<span style="color:${cor}">[${new Date().toLocaleTimeString()}] > ${escHtml(msg)}</span>\n`;
+            c.scrollTop = c.scrollHeight;
+        }
+
+        function mostrarAlerta(msg, tipo) {
+            const el = document.getElementById('alerta-geral');
+            el.className = `alerta alerta-${tipo} visivel`;
+            el.textContent = msg;
+            setTimeout(() => el.classList.remove('visivel'), 5000);
+        }
+
+        async function sincronizar() {
+            try {
+                const [rCfg, rS] = await Promise.all([
+                    fetch('/api/chamados/telegram/config'),
+                    fetch('/api/chamados/setores')
+                ]);
+                if (!rCfg.ok) { window.location.href = '/chamados'; return; }
+                const { config } = await rCfg.json();
+                configAtual = config;
+                setores = rS.ok ? await rS.json() : [];
+
+                document.getElementById('tg-token').value = config['chamados_tg_token'] || '';
+                const statuses = JSON.parse(config['chamados_tg_statuses'] || '[]');
+                document.querySelectorAll('#status-checks input').forEach(cb => {
+                    cb.checked = statuses.includes(cb.value);
+                });
+
+                renderSetores();
+                log('Dados sincronizados.');
+            } catch (e) { log('Erro ao sincronizar: ' + e.message, 'erro'); }
+        }
+
+        function renderSetores() {
+            document.getElementById('lista-setores').innerHTML = setores.map(s => `
+                <tr>
+                    <td><strong>${escHtml(s.nome)}</strong></td>
+                    <td>
+                        <input type="text" class="input-chat-id" data-setor="${escHtml(s.nome)}"
+                            value="${escHtml(configAtual['chamados_tg_map_' + s.nome] || '')}"
+                            placeholder="-100xxxxxxxxxx">
+                    </td>
+                    <td style="text-align:right; white-space:nowrap;">
+                        <button onclick="testarSetor('${escHtml(s.nome)}')" class="btn"
+                            style="background:var(--telegram); padding:6px 14px; font-size:0.7rem;">
+                            <i class="fas fa-vial"></i> TESTAR
+                        </button>
+                    </td>
+                </tr>`).join('') ||
+                '<tr><td colspan="3" style="text-align:center; opacity:0.5; padding:20px;">Nenhum setor cadastrado</td></tr>';
+        }
+
+        window.salvarConfig = async function () {
+            log('Salvando configurações...', 'info');
+            const token = document.getElementById('tg-token').value.trim();
+            const statuses = Array.from(document.querySelectorAll('#status-checks input:checked')).map(cb => cb.value);
+            const mapping = {};
+            document.querySelectorAll('.input-chat-id').forEach(inp => {
+                const setor = inp.getAttribute('data-setor');
+                if (inp.value.trim()) mapping[setor] = inp.value.trim();
+            });
+            try {
+                const resp = await fetch('/api/chamados/telegram/config', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ token, statuses, mapping })
+                });
+                const dados = await resp.json();
+                if (resp.ok) {
+                    log('Configurações salvas com sucesso.');
+                    mostrarAlerta(dados.mensagem || 'Salvo!', 'sucesso');
+                    await sincronizar();
+                } else {
+                    log('Erro ao salvar: ' + (dados.erro || ''), 'erro');
+                    mostrarAlerta(dados.erro || 'Erro ao salvar', 'erro');
+                }
+            } catch (e) { log('Erro de comunicação: ' + e.message, 'erro'); }
+        };
+
+        window.testarSetor = async function (setor) {
+            const token = document.getElementById('tg-token').value.trim();
+            const input = document.querySelector(`.input-chat-id[data-setor="${escAttr(setor)}"]`);
+            const chatId = input ? input.value.trim() : '';
+            if (!token || !chatId) {
+                mostrarAlerta('Preencha o Token e o Chat ID do setor antes de testar.', 'erro');
+                return;
+            }
+            log('Testando canal do setor ' + setor + '...', 'info');
+            try {
+                const resp = await fetch('/api/chamados/telegram/teste', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ token, chatId, setor })
+                });
+                const dados = await resp.json();
+                if (resp.ok) log('Mensagem de teste enviada para ' + setor + '!');
+                else log('Erro no teste (' + setor + '): ' + (dados.erro || ''), 'erro');
+            } catch (e) { log('Falha no teste: ' + e.message, 'erro'); }
+        };
+
+        window.enviarBroadcast = async function () {
+            const mensagem = document.getElementById('msg-broadcast').value.trim();
+            if (!mensagem) { mostrarAlerta('Digite uma mensagem para o broadcast.', 'erro'); return; }
+            const canais = Array.from(document.querySelectorAll('.input-chat-id')).filter(i => i.value.trim()).length;
+            if (!canais) { mostrarAlerta('Nenhum canal configurado para enviar.', 'erro'); return; }
+            if (!confirm(`Enviar aviso geral para ${canais} canal(is)?`)) return;
+            log('Disparando broadcast para ' + canais + ' canal(is)...', 'info');
+            try {
+                const resp = await fetch('/api/chamados/telegram/broadcast', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ mensagem })
+                });
+                const dados = await resp.json();
+                if (resp.ok) {
+                    log('Broadcast enviado: ' + dados.enviados + '/' + dados.total + ' canais.');
+                    mostrarAlerta('Broadcast enviado para ' + dados.enviados + ' canal(is).', 'sucesso');
+                    document.getElementById('msg-broadcast').value = '';
+                } else {
+                    log('Erro no broadcast: ' + (dados.erro || ''), 'erro');
+                    mostrarAlerta(dados.erro || 'Erro no broadcast', 'erro');
+                }
+            } catch (e) { log('Falha no broadcast: ' + e.message, 'erro'); }
+        };
+
+        function escHtml(s) {
+            return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+        }
+        function escAttr(s) {
+            return String(s || '').replace(/"/g, '\\"');
+        }
+
+        sincronizar();
+    })();
+    </script>
+</body>
+</html>

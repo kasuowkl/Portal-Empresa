@@ -1,0 +1,17 @@
+# Dependências Node.js
+node_modules/
+
+# Variáveis de ambiente (contém senhas e segredos)
+.env
+.env.*
+
+# Logs do sistema
+logs/*.log
+
+# Arquivos de sistema
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+*.swp

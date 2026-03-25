@@ -1,0 +1,730 @@
+<!--
+  FRAGMENTO: public/fragmentos/notificacoes.html
+  VERSÃO:    1.1.0
+  DATA:      2026-03-17
+  DESCRIÇÃO: Configurações de notificações por e-mail — separadas por sistema
+-->
+
+<style>
+  /* ── Sub-abas internas ── */
+  .notif-abas {
+    display:       flex;
+    gap:           4px;
+    border-bottom: 1px solid var(--cor-borda);
+    margin-bottom: 20px;
+    flex-wrap:     wrap;
+  }
+  .notif-aba-btn {
+    display:       flex;
+    align-items:   center;
+    gap:           6px;
+    padding:       8px 14px;
+    background:    transparent;
+    border:        none;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    color:         var(--cor-texto-fraco);
+    font-size:     0.83rem;
+    font-weight:   500;
+    cursor:        pointer;
+    transition:    color 0.2s, border-color 0.2s;
+    white-space:   nowrap;
+  }
+  .notif-aba-btn:hover { color: var(--cor-texto); }
+  .notif-aba-btn.ativa {
+    color:        var(--cor-destaque);
+    border-color: var(--cor-destaque);
+  }
+  .notif-painel { display: none; }
+  .notif-painel.ativo { display: block; }
+
+  /* ── Itens de notificação ── */
+  .notif-secao {
+    background:    var(--cor-fundo);
+    border:        1px solid var(--cor-borda);
+    border-radius: 8px;
+    overflow:      hidden;
+    margin-bottom: 4px;
+  }
+  .notif-secao-header {
+    display:         flex;
+    align-items:     center;
+    justify-content: space-between;
+    padding:         10px 16px;
+    background:      var(--cor-fundo-3);
+    font-size:       0.8rem;
+    font-weight:     600;
+    color:           var(--cor-texto-fraco);
+    text-transform:  uppercase;
+    letter-spacing:  0.5px;
+  }
+  .notif-item {
+    display:     flex;
+    align-items: flex-start;
+    gap:         12px;
+    padding:     12px 16px;
+    border-top:  1px solid var(--cor-borda);
+    transition:  background 0.15s;
+  }
+  .notif-item:hover { background: rgba(78,154,241,0.04); }
+  .notif-item input[type="checkbox"] {
+    width:       16px;
+    height:      16px;
+    flex-shrink: 0;
+    margin-top:  2px;
+    accent-color: var(--cor-destaque);
+    cursor:      pointer;
+  }
+  .notif-item-info { flex: 1; }
+  .notif-item-info strong {
+    display:   block;
+    font-size: 0.88rem;
+    color:     var(--cor-texto);
+  }
+  .notif-item-info small {
+    font-size: 0.76rem;
+    color:     var(--cor-texto-fraco);
+  }
+
+  /* ── Link "selecionar todos" ── */
+  .notif-sel-todos {
+    background: none;
+    border:     none;
+    color:      var(--cor-destaque);
+    font-size:  0.75rem;
+    cursor:     pointer;
+    padding:    0;
+  }
+  .notif-sel-todos:hover { text-decoration: underline; }
+
+  /* ── Rodapé do formulário ── */
+  .notif-rodape {
+    display:         flex;
+    align-items:     center;
+    justify-content: space-between;
+    padding-top:     20px;
+    margin-top:      20px;
+    border-top:      1px solid var(--cor-borda);
+    flex-wrap:       wrap;
+    gap:             12px;
+  }
+  .notif-destino-grupo {
+    display:     flex;
+    align-items: center;
+    gap:         8px;
+    flex:        1;
+    min-width:   220px;
+  }
+  .notif-destino-grupo label {
+    font-size:   0.83rem;
+    color:       var(--cor-texto-fraco);
+    white-space: nowrap;
+  }
+  .notif-destino-grupo input {
+    flex:          1;
+    padding:       8px 12px;
+    background:    var(--cor-fundo-3);
+    border:        1px solid var(--cor-borda);
+    border-radius: 6px;
+    color:         var(--cor-texto);
+    font-size:     0.88rem;
+    outline:       none;
+  }
+  .notif-destino-grupo input:focus { border-color: var(--cor-destaque); }
+
+  /* ── Toggle global ── */
+  .notif-header {
+    display:         flex;
+    align-items:     center;
+    justify-content: space-between;
+    margin-bottom:   20px;
+    flex-wrap:       wrap;
+    gap:             12px;
+  }
+  .notif-header-info strong {
+    display:   block;
+    font-size: 0.95rem;
+    color:     var(--cor-texto);
+  }
+  .notif-header-info small {
+    font-size: 0.78rem;
+    color:     var(--cor-texto-fraco);
+  }
+</style>
+
+<!-- Cabeçalho com toggle geral -->
+<div class="notif-header">
+  <div class="notif-header-info">
+    <strong><i class="fas fa-bell" style="color:var(--cor-destaque);margin-right:6px"></i>Notificações por E-mail</strong>
+    <small>Selecione quais eventos disparam um e-mail para o endereço configurado abaixo</small>
+  </div>
+  <label class="toggle" title="Ativar/desativar todas as notificações">
+    <input type="checkbox" id="notif-email-ativo">
+    <span class="toggle-slider"></span>
+  </label>
+</div>
+
+<!-- Sub-abas por sistema -->
+<div class="notif-abas">
+  <button class="notif-aba-btn ativa" data-painel="portal">
+    <i class="fas fa-home"></i> Portal
+  </button>
+  <button class="notif-aba-btn" data-painel="chamados">
+    <i class="fas fa-ticket-alt"></i> Chamados
+  </button>
+  <button class="notif-aba-btn" data-painel="aprovacoes">
+    <i class="fas fa-check-square"></i> Aprovações
+  </button>
+  <button class="notif-aba-btn" data-painel="patrimonio">
+    <i class="fas fa-boxes"></i> Patrimônio
+  </button>
+  <button class="notif-aba-btn" data-painel="agenda">
+    <i class="fas fa-tasks"></i> Ag. Tarefas
+  </button>
+  <button class="notif-aba-btn" data-painel="financeiro">
+    <i class="fas fa-wallet"></i> Financeiro
+  </button>
+  <button class="notif-aba-btn" data-painel="contatos">
+    <i class="fas fa-address-book"></i> Contatos
+  </button>
+</div>
+
+<!-- ── PAINEL: PORTAL ── -->
+<div class="notif-painel ativo" id="notif-painel-portal">
+  <div class="notif-secao">
+    <div class="notif-secao-header">
+      Acesso
+      <button class="notif-sel-todos" data-grupo="portal-acesso">Selecionar todos</button>
+    </div>
+    <div class="notif-item">
+      <input type="checkbox" id="notif-portal-login" data-chave="portal.login">
+      <div class="notif-item-info">
+        <strong>Login realizado</strong>
+        <small>Enviado sempre que um usuário fizer login com sucesso</small>
+      </div>
+    </div>
+    <div class="notif-item">
+      <input type="checkbox" id="notif-portal-login_falha" data-chave="portal.login_falha">
+      <div class="notif-item-info">
+        <strong>Login com falha (senha incorreta)</strong>
+        <small>Enviado quando a senha informada estiver errada</small>
+      </div>
+    </div>
+    <div class="notif-item">
+      <input type="checkbox" id="notif-portal-usuario_bloqueado" data-chave="portal.usuario_bloqueado">
+      <div class="notif-item-info">
+        <strong>Usuário bloqueado</strong>
+        <small>Enviado quando um usuário bloqueado tenta fazer login</small>
+      </div>
+    </div>
+  </div>
+
+  <div class="notif-secao">
+    <div class="notif-secao-header">
+      Gestão de Usuários
+      <button class="notif-sel-todos" data-grupo="portal-usuarios">Selecionar todos</button>
+    </div>
+    <div class="notif-item">
+      <input type="checkbox" id="notif-portal-usuario_criado" data-chave="portal.usuario_criado">
+      <div class="notif-item-info">
+        <strong>Novo usuário criado</strong>
+        <small>Enviado quando um novo usuário for cadastrado no portal</small>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── PAINEL: CHAMADOS ── -->
+<div class="notif-painel" id="notif-painel-chamados">
+  <div class="notif-secao">
+    <div class="notif-secao-header">
+      Abertura
+      <button class="notif-sel-todos" data-grupo="chamados-abertura">Selecionar todos</button>
+    </div>
+    <div class="notif-item">
+      <input type="checkbox" id="notif-chamados-novo" data-chave="chamados.novo">
+      <div class="notif-item-info">
+        <strong>Novo chamado aberto</strong>
+        <small>Enviado quando um usuário abrir um novo chamado</small>
+      </div>
+    </div>
+  </div>
+
+  <div class="notif-secao">
+    <div class="notif-secao-header">
+      Andamento
+      <button class="notif-sel-todos" data-grupo="chamados-andamento">Selecionar todos</button>
+    </div>
+    <div class="notif-item">
+      <input type="checkbox" id="notif-chamados-atribuido" data-chave="chamados.atribuido">
+      <div class="notif-item-info">
+        <strong>Chamado aceito / atribuído</strong>
+        <small>Enviado quando um técnico aceitar e assumir o chamado</small>
+      </div>
+    </div>
+    <div class="notif-item">
+      <input type="checkbox" id="notif-chamados-nova_mensagem" data-chave="chamados.nova_mensagem">
+      <div class="notif-item-info">
+        <strong>Chamado respondido pelo técnico</strong>
+        <small>Enviado quando uma resposta for adicionada ao chamado</small>
+      </div>
+    </div>
+    <div class="notif-item">
+      <input type="checkbox" id="notif-chamados-transferido" data-chave="chamados.transferido">
+      <div class="notif-item-info">
+        <strong>Chamado transferido de setor</strong>
+        <small>Enviado quando o chamado for encaminhado para outro setor</small>
+      </div>
+    </div>
+    <div class="notif-item">
+      <input type="checkbox" id="notif-chamados-status_alterado" data-chave="chamados.status_alterado">
+      <div class="notif-item-info">
+        <strong>Status alterado</strong>
+        <small>Enviado sempre que o status do chamado mudar</small>
+      </div>
+    </div>
+  </div>
+
+  <div class="notif-secao">
+    <div class="notif-secao-header">
+      Encerramento
+      <button class="notif-sel-todos" data-grupo="chamados-encerramento">Selecionar todos</button>
+    </div>
+    <div class="notif-item">
+      <input type="checkbox" id="notif-chamados-concluido" data-chave="chamados.concluido">
+      <div class="notif-item-info">
+        <strong>Chamado finalizado</strong>
+        <small>Enviado quando o chamado for concluído pelo técnico</small>
+      </div>
+    </div>
+    <div class="notif-item">
+      <input type="checkbox" id="notif-chamados-reaberto" data-chave="chamados.reaberto">
+      <div class="notif-item-info">
+        <strong>Chamado reaberto</strong>
+        <small>Enviado quando um chamado finalizado for reaberto pelo solicitante</small>
+      </div>
+    </div>
+    <div class="notif-item">
+      <input type="checkbox" id="notif-chamados-cancelado" data-chave="chamados.cancelado">
+      <div class="notif-item-info">
+        <strong>Chamado cancelado</strong>
+        <small>Enviado quando um chamado for cancelado</small>
+      </div>
+    </div>
+  </div>
+
+  <div class="notif-secao">
+    <div class="notif-secao-header">
+      Aprovação Interna de Chamados
+      <button class="notif-sel-todos" data-grupo="chamados-aprovacao">Selecionar todos</button>
+    </div>
+    <div class="notif-item">
+      <input type="checkbox" id="notif-chamados-aprovacao_solicitada" data-chave="chamados.aprovacao_solicitada">
+      <div class="notif-item-info">
+        <strong>Aprovação solicitada</strong>
+        <small>Enviado ao aprovador quando uma aprovação interna for solicitada no chamado</small>
+      </div>
+    </div>
+    <div class="notif-item">
+      <input type="checkbox" id="notif-chamados-aprovacao_concluida" data-chave="chamados.aprovacao_concluida">
+      <div class="notif-item-info">
+        <strong>Aprovação concluída (aprovado/reprovado)</strong>
+        <small>Enviado quando o aprovador der sua decisão no chamado</small>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── PAINEL: APROVAÇÕES ── -->
+<div class="notif-painel" id="notif-painel-aprovacoes">
+  <div class="notif-secao">
+    <div class="notif-secao-header">
+      Ciclo de Vida
+      <button class="notif-sel-todos" data-grupo="aprovacoes-ciclo">Selecionar todos</button>
+    </div>
+    <div class="notif-item">
+      <input type="checkbox" id="notif-aprovacoes-nova_solicitacao" data-chave="aprovacoes.nova_solicitacao">
+      <div class="notif-item-info">
+        <strong>Nova solicitação criada</strong>
+        <small>Enviado aos aprovadores quando uma nova aprovação for criada</small>
+      </div>
+    </div>
+    <div class="notif-item">
+      <input type="checkbox" id="notif-aprovacoes-aprovada" data-chave="aprovacoes.aprovada">
+      <div class="notif-item-info">
+        <strong>Aprovação concluída — Aprovada</strong>
+        <small>Enviado ao criador quando a solicitação for aprovada</small>
+      </div>
+    </div>
+    <div class="notif-item">
+      <input type="checkbox" id="notif-aprovacoes-reprovada" data-chave="aprovacoes.reprovada">
+      <div class="notif-item-info">
+        <strong>Aprovação concluída — Reprovada</strong>
+        <small>Enviado ao criador quando a solicitação for reprovada</small>
+      </div>
+    </div>
+    <div class="notif-item">
+      <input type="checkbox" id="notif-aprovacoes-editada" data-chave="aprovacoes.editada">
+      <div class="notif-item-info">
+        <strong>Solicitação editada</strong>
+        <small>Enviado quando os dados de uma aprovação forem alterados</small>
+      </div>
+    </div>
+    <div class="notif-item">
+      <input type="checkbox" id="notif-aprovacoes-cancelada" data-chave="aprovacoes.cancelada">
+      <div class="notif-item-info">
+        <strong>Solicitação cancelada</strong>
+        <small>Enviado quando uma aprovação for cancelada pelo criador</small>
+      </div>
+    </div>
+  </div>
+
+  <div class="notif-secao">
+    <div class="notif-secao-header">
+      Lembretes
+      <button class="notif-sel-todos" data-grupo="aprovacoes-lembretes">Selecionar todos</button>
+    </div>
+    <div class="notif-item">
+      <input type="checkbox" id="notif-aprovacoes-lembrete_pendente" data-chave="aprovacoes.lembrete_pendente">
+      <div class="notif-item-info">
+        <strong>Lembrete de aprovação pendente</strong>
+        <small>Enviado periodicamente aos aprovadores enquanto houver decisões pendentes</small>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── PAINEL: PATRIMÔNIO ── -->
+<div class="notif-painel" id="notif-painel-patrimonio">
+  <div class="notif-secao">
+    <div class="notif-secao-header">
+      Movimentações
+      <button class="notif-sel-todos" data-grupo="patrimonio-mov">Selecionar todos</button>
+    </div>
+    <div class="notif-item">
+      <input type="checkbox" id="notif-patrimonio-cadastro" data-chave="patrimonio.cadastro">
+      <div class="notif-item-info">
+        <strong>Bem cadastrado</strong>
+        <small>Enviado quando um novo bem for registrado no patrimônio</small>
+      </div>
+    </div>
+    <div class="notif-item">
+      <input type="checkbox" id="notif-patrimonio-transferencia" data-chave="patrimonio.transferencia">
+      <div class="notif-item-info">
+        <strong>Transferência de bem</strong>
+        <small>Enviado quando um bem mudar de responsável ou setor</small>
+      </div>
+    </div>
+    <div class="notif-item">
+      <input type="checkbox" id="notif-patrimonio-avaria" data-chave="patrimonio.avaria">
+      <div class="notif-item-info">
+        <strong>Avaria ou sinistro</strong>
+        <small>Enviado quando uma avaria ou sinistro for registrado</small>
+      </div>
+    </div>
+    <div class="notif-item">
+      <input type="checkbox" id="notif-patrimonio-descarte" data-chave="patrimonio.descarte">
+      <div class="notif-item-info">
+        <strong>Bem descartado</strong>
+        <small>Enviado quando um bem for descartado do patrimônio</small>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── PAINEL: AGENDA DE TAREFAS ── -->
+<div class="notif-painel" id="notif-painel-agenda">
+  <div class="notif-secao">
+    <div class="notif-secao-header">
+      Tarefas
+      <button class="notif-sel-todos" data-grupo="agenda-tarefas">Selecionar todos</button>
+    </div>
+    <div class="notif-item">
+      <input type="checkbox" id="notif-agenda-tarefa_criada" data-chave="agenda.tarefa_criada">
+      <div class="notif-item-info">
+        <strong>Nova tarefa criada</strong>
+        <small>Enviado quando uma nova tarefa for adicionada a uma lista</small>
+      </div>
+    </div>
+    <div class="notif-item">
+      <input type="checkbox" id="notif-agenda-tarefa_concluida" data-chave="agenda.tarefa_concluida">
+      <div class="notif-item-info">
+        <strong>Tarefa concluída</strong>
+        <small>Enviado quando uma tarefa for marcada como concluída</small>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── PAINEL: FINANCEIRO ── -->
+<div class="notif-painel" id="notif-painel-financeiro">
+  <div class="notif-secao">
+    <div class="notif-secao-header">
+      Contas
+      <button class="notif-sel-todos" data-grupo="fin-contas">Selecionar todos</button>
+    </div>
+    <div class="notif-item">
+      <input type="checkbox" id="notif-financeiro-nova_conta" data-chave="financeiro.nova_conta">
+      <div class="notif-item-info">
+        <strong>Nova conta cadastrada</strong>
+        <small>Enviado quando uma nova conta for registrada na agenda financeira</small>
+      </div>
+    </div>
+    <div class="notif-item">
+      <input type="checkbox" id="notif-financeiro-lancamento" data-chave="financeiro.lancamento">
+      <div class="notif-item-info">
+        <strong>Lançamento registrado</strong>
+        <small>Enviado quando uma conta for marcada como lançada (pagamento em processamento)</small>
+      </div>
+    </div>
+    <div class="notif-item">
+      <input type="checkbox" id="notif-financeiro-conta_vencida" data-chave="financeiro.conta_vencida">
+      <div class="notif-item-info">
+        <strong>Conta vencida</strong>
+        <small>Enviado quando uma conta passar da data de vencimento sem quitação</small>
+      </div>
+    </div>
+  </div>
+
+  <div class="notif-secao">
+    <div class="notif-secao-header">
+      Lembretes de Vencimento
+      <button class="notif-sel-todos" data-grupo="fin-lembretes">Selecionar todos</button>
+    </div>
+    <div class="notif-item">
+      <input type="checkbox" id="notif-financeiro-lembrete_hoje" data-chave="financeiro.lembrete_hoje">
+      <div class="notif-item-info">
+        <strong>Vence hoje</strong>
+        <small>Enviado no dia do vencimento de contas pendentes</small>
+      </div>
+    </div>
+    <div class="notif-item">
+      <input type="checkbox" id="notif-financeiro-lembrete_7dias" data-chave="financeiro.lembrete_7dias">
+      <div class="notif-item-info">
+        <strong>Vence em 7 dias</strong>
+        <small>Enviado 7 dias antes do vencimento de contas pendentes</small>
+      </div>
+    </div>
+  </div>
+
+  <div class="notif-secao">
+    <div class="notif-secao-header">
+      Lembretes de Lançamento
+      <button class="notif-sel-todos" data-grupo="fin-lembretes-lanc">Selecionar todos</button>
+    </div>
+    <div class="notif-item">
+      <input type="checkbox" id="notif-financeiro-lembrete_lancamento" data-chave="financeiro.lembrete_lancamento">
+      <div class="notif-item-info">
+        <strong>Lembrete para lançar conta</strong>
+        <small>Enviado N dias antes do vencimento para lembrar de registrar o lançamento</small>
+      </div>
+    </div>
+    <div class="notif-item" style="background:var(--cor-fundo-3)">
+      <div class="notif-item-info" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+        <span style="font-size:0.83rem;color:var(--cor-texto-fraco)">
+          <i class="fas fa-clock" style="margin-right:4px"></i>Enviar lembrete
+        </span>
+        <div style="display:flex;align-items:center;gap:6px">
+          <input type="number" id="fin-dias-lembrete" min="1" max="60" value="3"
+            data-config="financeiro.dias_lembrete"
+            style="width:60px;padding:4px 8px;border-radius:5px;border:1px solid var(--cor-borda);
+                   background:var(--cor-fundo-2);color:var(--cor-texto);font-size:0.83rem;outline:none">
+          <span style="font-size:0.83rem;color:var(--cor-texto-fraco)">dias antes do vencimento</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Botão de teste -->
+  <div style="margin-top:16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+    <button id="btn-testar-financeiro" class="btn btn-sm"
+      onclick="testarNotifFinanceiro()"
+      style="width:auto;background:var(--cor-fundo-3);border:1px solid var(--cor-borda);color:var(--cor-texto)">
+      <i class="fas fa-paper-plane"></i> Testar e-mails Financeiro
+    </button>
+    <span id="fin-teste-msg" style="font-size:0.82rem;color:var(--cor-texto-fraco)"></span>
+  </div>
+</div>
+
+<!-- ── PAINEL: CONTATOS ── -->
+<div class="notif-painel" id="notif-painel-contatos">
+  <div class="notif-secao">
+    <div class="notif-secao-header">
+      Contatos
+      <button class="notif-sel-todos" data-grupo="contatos-lista">Selecionar todos</button>
+    </div>
+    <div class="notif-item">
+      <input type="checkbox" id="notif-contatos-novo_contato" data-chave="contatos.novo_contato">
+      <div class="notif-item-info">
+        <strong>Novo contato adicionado</strong>
+        <small>Enviado quando um novo contato for cadastrado em qualquer lista</small>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Rodapé: e-mail destino + botão salvar -->
+<div class="notif-rodape">
+  <div class="notif-destino-grupo">
+    <label for="notif-email-destino"><i class="fas fa-at"></i> Enviar para:</label>
+    <input type="email" id="notif-email-destino" placeholder="email@exemplo.com">
+  </div>
+  <div style="display:flex;gap:10px;align-items:center">
+    <span id="notif-msg" style="font-size:0.82rem;color:var(--cor-texto-fraco)"></span>
+    <button class="btn btn-primario btn-sm" onclick="notifSalvar()">
+      <i class="fas fa-save"></i> Salvar configurações
+    </button>
+  </div>
+</div>
+
+<script>
+(function () {
+  // ── Sub-abas ──────────────────────────────────────────────
+  document.querySelectorAll('.notif-aba-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      document.querySelectorAll('.notif-aba-btn').forEach(function (b) { b.classList.remove('ativa'); });
+      document.querySelectorAll('.notif-painel').forEach(function (p) { p.classList.remove('ativo'); });
+      btn.classList.add('ativa');
+      document.getElementById('notif-painel-' + btn.dataset.painel).classList.add('ativo');
+    });
+  });
+
+  // ── Selecionar todos por grupo ────────────────────────────
+  document.querySelectorAll('.notif-sel-todos').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var secao = btn.closest('.notif-secao');
+      var checks = secao.querySelectorAll('input[type="checkbox"]');
+      var todosAtivos = Array.from(checks).every(function (c) { return c.checked; });
+      checks.forEach(function (c) { c.checked = !todosAtivos; });
+      btn.textContent = todosAtivos ? 'Selecionar todos' : 'Desmarcar todos';
+    });
+  });
+
+  // ── Carregar configurações do servidor ────────────────────
+  async function notifCarregar() {
+    try {
+      var r = await fetch('/api/notificacoes');
+      if (!r.ok) return;
+      var data = await r.json();
+      if (!data.sucesso) return;
+
+      // Toggle geral
+      var toggleAtivo = document.getElementById('notif-email-ativo');
+      if (toggleAtivo) toggleAtivo.checked = data.emailAtivo;
+
+      // Destino
+      var inputDest = document.getElementById('notif-email-destino');
+      if (inputDest) inputDest.value = data.emailDestino || '';
+
+      // Checkboxes individuais
+      data.notificacoes.forEach(function (item) {
+        var el = document.querySelector('[data-chave="' + item.chave + '"]');
+        if (el) el.checked = item.ativo;
+      });
+    } catch (e) {
+      console.error('Erro ao carregar notificações:', e);
+    }
+
+    // Carregar configs numéricas (fin_dias_lembrete)
+    try {
+      var rc = await fetch('/api/financeiro/config');
+      if (rc.ok) {
+        var dc = await rc.json();
+        document.querySelectorAll('[data-config]').forEach(function (el) {
+          var val = dc.config && dc.config[el.dataset.config];
+          if (val) el.value = val;
+        });
+      }
+    } catch (e) { /* silencioso */ }
+  }
+
+  // ── Salvar ────────────────────────────────────────────────
+  window.notifSalvar = async function () {
+    var toggleAtivo = document.getElementById('notif-email-ativo');
+    var inputDest   = document.getElementById('notif-email-destino');
+    var msg         = document.getElementById('notif-msg');
+
+    var notificacoes = [];
+    document.querySelectorAll('[data-chave]').forEach(function (el) {
+      notificacoes.push({ chave: el.dataset.chave, ativo: el.checked });
+    });
+
+    try {
+      var r = await fetch('/api/notificacoes', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          emailAtivo:   toggleAtivo ? toggleAtivo.checked : false,
+          emailDestino: inputDest   ? inputDest.value.trim() : '',
+          notificacoes,
+        })
+      });
+      var data = await r.json();
+      if (data.sucesso) {
+        msg.style.color = '#4caf50';
+        msg.textContent = '\u2713 Salvo com sucesso!';
+      } else {
+        msg.style.color = '#f44336';
+        msg.textContent = data.erro || 'Erro ao salvar.';
+      }
+    } catch (e) {
+      msg.style.color = '#f44336';
+      msg.textContent = 'Erro de conexão.';
+    }
+
+    // Salvar configs numéricas (fin_dias_lembrete)
+    var configInputs = document.querySelectorAll('[data-config]');
+    if (configInputs.length > 0) {
+      var dias = parseInt(document.getElementById('fin-dias-lembrete')?.value);
+      if (!isNaN(dias) && dias >= 1) {
+        try {
+          await fetch('/api/financeiro/config', {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ dias_lembrete: dias })
+          });
+        } catch (e) { /* silencioso */ }
+      }
+    }
+
+    setTimeout(function () { msg.textContent = ''; }, 3000);
+  };
+
+  // ── Testar notificações financeiro ───────────────────────
+  window.testarNotifFinanceiro = function () {
+    var dest = document.getElementById('notif-email-destino')?.value.trim();
+    if (!dest) {
+      alert('Preencha o campo "Enviar para" antes de testar.');
+      return;
+    }
+    var btn = document.getElementById('btn-testar-financeiro');
+    var msg = document.getElementById('fin-teste-msg');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
+    msg.textContent = '';
+
+    fetch('/api/email/testar-financeiro', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ destino: dest }),
+    })
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        msg.style.color = d.sucesso ? '#4caf50' : '#f44336';
+        msg.textContent = d.mensagem || d.erro || 'Erro desconhecido.';
+      })
+      .catch(function () {
+        msg.style.color = '#f44336';
+        msg.textContent = 'Erro de conexão.';
+      })
+      .finally(function () {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-paper-plane"></i> Testar e-mails Financeiro';
+        setTimeout(function () { msg.textContent = ''; }, 5000);
+      });
+  };
+
+  // Carrega ao inicializar
+  notifCarregar();
+})();
+</script>

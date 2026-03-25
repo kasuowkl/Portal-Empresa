@@ -1,0 +1,575 @@
+<!-- FRAGMENTO: Domínio (AD) -->
+
+<!-- =============================================================== -->
+<!-- CONFIGURAÇÃO DO SERVIDOR AD                                      -->
+<!-- =============================================================== -->
+<div class="barra-acoes">
+  <h3><i class="fas fa-network-wired"></i> Configuração do Active Directory</h3>
+  <button class="btn btn-sm" onclick="toggleConfigAD()" id="btn-toggle-config-ad" style="width:auto;background:var(--cor-fundo-3);color:var(--cor-texto)">
+    <i class="fas fa-chevron-down" id="icone-toggle-config"></i>
+    <span id="texto-toggle-config">Mostrar configuração</span>
+  </button>
+</div>
+
+<div id="painel-config-ad" style="display:none">
+  <div id="alerta-config-ad" class="alerta" style="margin-bottom:14px"></div>
+
+  <div class="config-linha">
+    <div class="config-info">
+      <strong>Servidor AD (LDAP)</strong>
+      <small>Endereço IP ou hostname do controlador de domínio</small>
+    </div>
+    <div class="config-valor">
+      <input type="text" id="ad-servidor" placeholder="192.168.0.1 ou dc.empresa.local">
+    </div>
+  </div>
+
+  <div class="config-linha">
+    <div class="config-info">
+      <strong>Porta LDAP</strong>
+      <small>389 (LDAP padrão) ou 636 (LDAPS)</small>
+    </div>
+    <div class="config-valor">
+      <input type="number" id="ad-porta" placeholder="389" style="width:100px">
+    </div>
+  </div>
+
+  <div class="config-linha">
+    <div class="config-info">
+      <strong>Base DN</strong>
+      <small>Ex: DC=empresa,DC=local</small>
+    </div>
+    <div class="config-valor">
+      <input type="text" id="ad-basedn" placeholder="DC=empresa,DC=local">
+    </div>
+  </div>
+
+  <div class="config-linha">
+    <div class="config-info">
+      <strong>Domínio (NetBIOS)</strong>
+      <small>Ex: EMPRESA ou empresa.local</small>
+    </div>
+    <div class="config-valor">
+      <input type="text" id="ad-dominio" placeholder="EMPRESA">
+    </div>
+  </div>
+
+  <div class="config-linha">
+    <div class="config-info">
+      <strong>Usuário de serviço</strong>
+      <small>Login com permissão de leitura no AD</small>
+    </div>
+    <div class="config-valor">
+      <input type="text" id="ad-usuario-svc" placeholder="svc.portal">
+    </div>
+  </div>
+
+  <div class="config-linha">
+    <div class="config-info">
+      <strong>Senha do usuário de serviço</strong>
+      <small>Senha da conta de serviço LDAP</small>
+    </div>
+    <div class="config-valor">
+      <input type="password" id="ad-senha-svc" placeholder="••••••••">
+    </div>
+  </div>
+
+  <div style="display:flex;gap:10px;margin-top:20px;flex-wrap:wrap;padding-bottom:24px;border-bottom:1px solid var(--cor-borda)">
+    <button class="btn btn-primario btn-sm" onclick="salvarConfigAD()" style="width:auto">
+      <i class="fas fa-save"></i> Salvar configurações
+    </button>
+    <button class="btn btn-sm" id="btn-testar-ad" onclick="testarConexaoAD()" style="width:auto;background:var(--cor-fundo-3);color:var(--cor-texto)">
+      <i class="fas fa-plug"></i> Testar conexão
+    </button>
+  </div>
+</div>
+
+<!-- =============================================================== -->
+<!-- USUÁRIOS DO DOMÍNIO COM ACESSO AO PORTAL                        -->
+<!-- =============================================================== -->
+<div class="barra-acoes" style="margin-top:24px">
+  <h3><i class="fas fa-users-cog"></i> Usuários com Acesso ao Portal</h3>
+  <div style="display:flex;gap:8px;flex-wrap:wrap">
+    <button class="btn btn-sm" id="btn-sincronizar-ad" onclick="sincronizarAD()"
+            style="width:auto;background:var(--cor-fundo-3);color:var(--cor-texto)">
+      <i class="fas fa-sync-alt" id="ico-sinc"></i>
+      <i class="fas fa-spinner fa-spin" id="spin-sinc" style="display:none"></i>
+      Atualizar do AD
+    </button>
+    <button class="btn btn-primario btn-sm" onclick="abrirModalAD()" style="width:auto">
+      <i class="fas fa-search"></i> Buscar no AD
+    </button>
+  </div>
+</div>
+
+<div id="alerta-dominio-usuarios" class="alerta" style="margin-bottom:14px"></div>
+
+<!-- Filtro de pesquisa -->
+<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+  <div style="position:relative;flex:1;max-width:420px">
+    <i class="fas fa-search" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--cor-texto-fraco);font-size:0.82rem;pointer-events:none"></i>
+    <input type="text" id="filtro-dominio"
+           placeholder="Pesquisar por login, nome, e-mail ou departamento..."
+           oninput="filtrarTabelaDominio()"
+           style="width:100%;padding:7px 12px 7px 32px;background:var(--cor-fundo-3);border:1px solid var(--cor-borda);border-radius:7px;color:var(--cor-texto);font-size:0.85rem;outline:none">
+  </div>
+  <span id="dominio-contador" style="font-size:0.78rem;color:var(--cor-texto-fraco);white-space:nowrap"></span>
+</div>
+
+<div class="tabela-wrapper">
+  <table class="tabela">
+    <thead>
+      <tr>
+        <th>Login</th>
+        <th>Nome</th>
+        <th>E-mail</th>
+        <th>Departamento</th>
+        <th>Nível</th>
+        <th>Status</th>
+        <th class="col-acoes">Ações</th>
+      </tr>
+    </thead>
+    <tbody id="tbody-dominio">
+      <tr><td colspan="7" style="text-align:center;padding:24px;color:var(--cor-texto-fraco)">
+        <i class="fas fa-spinner fa-spin"></i> Carregando...
+      </td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- =============================================================== -->
+<!-- MODAL — BUSCAR USUÁRIOS NO AD                                    -->
+<!-- =============================================================== -->
+<div id="modal-ad" class="modal-overlay">
+  <div class="modal" style="max-width:680px;width:95vw">
+    <div class="modal-header">
+      <div class="modal-titulo">
+        <i class="fas fa-search"></i>
+        <span>Usuários do Active Directory</span>
+      </div>
+      <button class="modal-fechar" onclick="fecharModalAD()"><i class="fas fa-times"></i></button>
+    </div>
+
+    <div class="modal-corpo">
+      <!-- Nível e filtro -->
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;flex-wrap:wrap">
+        <label style="font-weight:600;white-space:nowrap;font-size:0.9em">Nível de acesso:</label>
+        <select id="ad-nivel-lote" style="width:150px">
+          <option value="usuario">Usuário</option>
+          <option value="admin">Administrador</option>
+        </select>
+        <input type="text" id="ad-busca-filtro" placeholder="Filtrar por nome ou login..."
+               style="flex:1;min-width:160px" oninput="filtrarListaAD()">
+      </div>
+
+      <!-- Contador de selecionados -->
+      <div id="ad-info-selecao" style="font-size:0.83em;color:var(--cor-texto-fraco);margin-bottom:8px">
+        0 usuários selecionados
+      </div>
+
+      <!-- Lista de usuários do AD -->
+      <div id="lista-ad-usuarios"
+           style="max-height:360px;overflow-y:auto;border:1px solid var(--cor-borda);border-radius:8px">
+        <div style="text-align:center;padding:32px;color:var(--cor-texto-fraco)">
+          <i class="fas fa-spinner fa-spin"></i> Buscando usuários no Active Directory...
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-rodape">
+      <button class="btn btn-sm" onclick="fecharModalAD()"
+              style="width:auto;background:var(--cor-fundo-3);color:var(--cor-texto)">Cancelar</button>
+      <button class="btn btn-primario btn-sm" onclick="adicionarSelecionados()" style="width:auto">
+        <i class="fas fa-user-plus"></i> Adicionar selecionados
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  let _todosAD      = [];
+  let _usuariosDom  = [];  // cache para filtro dinâmico
+
+  // ---- Init ----------------------------------------------------------------
+  carregarConfigAD();
+  carregarUsuariosDominio();
+
+  // ---- Painel de configuração toggle ---------------------------------------
+  window.toggleConfigAD = function () {
+    const painel = document.getElementById('painel-config-ad');
+    const icone  = document.getElementById('icone-toggle-config');
+    const texto  = document.getElementById('texto-toggle-config');
+    const aberto = painel.style.display !== 'none';
+    painel.style.display   = aberto ? 'none' : '';
+    icone.className        = aberto ? 'fas fa-chevron-down' : 'fas fa-chevron-up';
+    texto.textContent      = aberto ? 'Mostrar configuração' : 'Ocultar configuração';
+  };
+
+  // ---- Carregar configuração do AD -----------------------------------------
+  async function carregarConfigAD() {
+    try {
+      const resp = await fetch('/api/configuracoes/ad');
+      if (!resp.ok) return;
+      const { config } = await resp.json();
+      if (!config['ad_servidor']) return;
+      document.getElementById('ad-servidor').value    = config['ad_servidor']    || '';
+      document.getElementById('ad-porta').value       = config['ad_porta']       || '389';
+      document.getElementById('ad-basedn').value      = config['ad_basedn']      || '';
+      document.getElementById('ad-dominio').value     = config['ad_dominio']     || '';
+      document.getElementById('ad-usuario-svc').value = config['ad_usuario_svc'] || '';
+      document.getElementById('ad-senha-svc').value   = config['ad_senha_svc']   || '';
+    } catch (e) {}
+  }
+
+  // ---- Salvar configuração do AD -------------------------------------------
+  window.salvarConfigAD = async function () {
+    const configuracoes = {
+      ad_servidor:    document.getElementById('ad-servidor').value.trim(),
+      ad_porta:       document.getElementById('ad-porta').value.trim() || '389',
+      ad_basedn:      document.getElementById('ad-basedn').value.trim(),
+      ad_dominio:     document.getElementById('ad-dominio').value.trim(),
+      ad_usuario_svc: document.getElementById('ad-usuario-svc').value.trim(),
+      ad_senha_svc:   document.getElementById('ad-senha-svc').value
+    };
+
+    if (!configuracoes.ad_servidor || !configuracoes.ad_basedn || !configuracoes.ad_dominio) {
+      mostrarAlertaConfig('Preencha ao menos Servidor, Base DN e Domínio.', 'erro');
+      return;
+    }
+
+    try {
+      const resp  = await fetch('/api/configuracoes', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ grupo: 'ad', configuracoes })
+      });
+      const dados = await resp.json();
+      mostrarAlertaConfig(dados.mensagem || dados.erro, resp.ok ? 'sucesso' : 'erro');
+    } catch (e) {
+      mostrarAlertaConfig('Erro de comunicação com o servidor.', 'erro');
+    }
+  };
+
+  // ---- Testar conexão com o AD ---------------------------------------------
+  window.testarConexaoAD = async function () {
+    const btn = document.getElementById('btn-testar-ad');
+    btn.disabled   = true;
+    btn.innerHTML  = '<i class="fas fa-spinner fa-spin"></i> Testando...';
+    try {
+      const resp  = await fetch('/api/ad/testar', { method: 'POST' });
+      const dados = await resp.json();
+      mostrarAlertaConfig(dados.mensagem || dados.erro, resp.ok ? 'sucesso' : 'erro');
+    } catch (e) {
+      mostrarAlertaConfig('Não foi possível conectar ao servidor.', 'erro');
+    } finally {
+      btn.disabled  = false;
+      btn.innerHTML = '<i class="fas fa-plug"></i> Testar conexão';
+    }
+  };
+
+  // ---- Carregar usuários do domínio cadastrados ----------------------------
+  async function carregarUsuariosDominio() {
+    const tbody = document.getElementById('tbody-dominio');
+    try {
+      const resp  = await fetch('/api/ad/usuarios-portal');
+      if (resp.status === 401) { window.location.href = '/login.html'; return; }
+      const dados = await resp.json();
+
+      _usuariosDom = dados.usuarios || [];
+
+      if (_usuariosDom.length === 0) {
+        tbody.innerHTML = `
+          <tr><td colspan="7" class="sem-dados">
+            <i class="fas fa-users"></i>
+            Nenhum usuário do domínio com acesso. Use "Buscar no AD" para adicionar.
+          </td></tr>`;
+        atualizarContadorDominio(0, 0);
+        return;
+      }
+
+      renderizarTabelaDominio(_usuariosDom);
+    } catch (e) {
+      tbody.innerHTML = `
+        <tr><td colspan="7" class="sem-dados">
+          <i class="fas fa-exclamation-triangle"></i>Erro ao carregar usuários do domínio.
+        </td></tr>`;
+    }
+  }
+
+  // ---- Renderizar tabela (recebe lista filtrada ou completa) ---------------
+  function renderizarTabelaDominio(lista) {
+    const tbody = document.getElementById('tbody-dominio');
+
+    if (lista.length === 0) {
+      tbody.innerHTML = `
+        <tr><td colspan="7" class="sem-dados">
+          <i class="fas fa-search"></i> Nenhum usuário encontrado com esse filtro.
+        </td></tr>`;
+      atualizarContadorDominio(0, _usuariosDom.length);
+      return;
+    }
+
+    tbody.innerHTML = lista.map(u => `
+      <tr id="row-dom-${u.id}">
+        <td><code style="font-size:0.85em">${esc(u.login)}</code></td>
+        <td>${esc(u.nome) || '—'}</td>
+        <td style="font-size:0.82em;color:var(--cor-texto-fraco)">${esc(u.email) || '—'}</td>
+        <td style="font-size:0.82em;color:var(--cor-texto-fraco)">${esc(u.departamento) || '—'}</td>
+        <td>
+          <select onchange="alterarNivelDom(${u.id}, this.value)"
+                  style="font-size:0.83em;padding:3px 6px;border-radius:6px;background:var(--cor-fundo-3);color:var(--cor-texto);border:1px solid var(--cor-borda)">
+            <option value="usuario" ${u.nivel === 'usuario' ? 'selected' : ''}>Usuário</option>
+            <option value="gestor"  ${u.nivel === 'gestor'  ? 'selected' : ''}>Gestor</option>
+            <option value="admin"   ${u.nivel === 'admin'   ? 'selected' : ''}>Admin</option>
+          </select>
+        </td>
+        <td>
+          <span class="badge badge-${u.ativo ? 'ativo' : 'inativo'}">
+            ${u.ativo ? 'Ativo' : 'Bloqueado'}
+          </span>
+        </td>
+        <td class="col-acoes">
+          <button class="btn-icone ativar" title="${u.ativo ? 'Bloquear' : 'Ativar'}"
+                  onclick="toggleDom(${u.id}, ${!u.ativo})">
+            <i class="fas fa-${u.ativo ? 'ban' : 'check'}"></i>
+          </button>
+          <button class="btn-icone excluir" title="Remover acesso"
+                  onclick="removerDom(${u.id}, '${esc(u.login)}')">
+            <i class="fas fa-trash"></i>
+          </button>
+        </td>
+      </tr>
+    `).join('');
+
+    atualizarContadorDominio(lista.length, _usuariosDom.length);
+  }
+
+  // ---- Filtro dinâmico -----------------------------------------------------
+  window.filtrarTabelaDominio = function () {
+    const termo = document.getElementById('filtro-dominio').value.toLowerCase().trim();
+    if (!termo) {
+      renderizarTabelaDominio(_usuariosDom);
+      return;
+    }
+    const filtrados = _usuariosDom.filter(u =>
+      (u.login        || '').toLowerCase().includes(termo) ||
+      (u.nome         || '').toLowerCase().includes(termo) ||
+      (u.email        || '').toLowerCase().includes(termo) ||
+      (u.departamento || '').toLowerCase().includes(termo)
+    );
+    renderizarTabelaDominio(filtrados);
+  };
+
+  function atualizarContadorDominio(visiveis, total) {
+    const el = document.getElementById('dominio-contador');
+    if (!el) return;
+    el.textContent = visiveis === total
+      ? `${total} usuário(s)`
+      : `${visiveis} de ${total} usuário(s)`;
+  }
+
+  function esc(s) {
+    return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  // ---- Alterar nível de acesso (inline) ------------------------------------
+  window.alterarNivelDom = async function (id, nivel) {
+    try {
+      const resp  = await fetch(`/api/ad/usuarios/${id}`, {
+        method:  'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ nivel })
+      });
+      const dados = await resp.json();
+      mostrarAlertaUsuarios(dados.mensagem || dados.erro, resp.ok ? 'sucesso' : 'erro');
+    } catch (e) {
+      mostrarAlertaUsuarios('Erro de comunicação.', 'erro');
+    }
+  };
+
+  // ---- Ativar / Bloquear usuário -------------------------------------------
+  window.toggleDom = async function (id, ativo) {
+    try {
+      const resp  = await fetch(`/api/ad/usuarios/${id}/status`, {
+        method:  'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ ativo })
+      });
+      const dados = await resp.json();
+      mostrarAlertaUsuarios(dados.mensagem || dados.erro, resp.ok ? 'sucesso' : 'erro');
+      if (resp.ok) carregarUsuariosDominio();
+    } catch (e) {
+      mostrarAlertaUsuarios('Erro de comunicação.', 'erro');
+    }
+  };
+
+  // ---- Remover acesso ao portal --------------------------------------------
+  window.removerDom = async function (id, login) {
+    if (!confirm(`Remover acesso de "${login}"?\nO usuário não conseguirá mais fazer login no portal.`)) return;
+    try {
+      const resp  = await fetch(`/api/ad/usuarios/${id}`, { method: 'DELETE' });
+      const dados = await resp.json();
+      mostrarAlertaUsuarios(dados.mensagem || dados.erro, resp.ok ? 'sucesso' : 'erro');
+      if (resp.ok) carregarUsuariosDominio();
+    } catch (e) {
+      mostrarAlertaUsuarios('Erro de comunicação.', 'erro');
+    }
+  };
+
+  // ---- Sincronizar usuários com o AD ---------------------------------------
+  window.sincronizarAD = async function () {
+    const btn  = document.getElementById('btn-sincronizar-ad');
+    const ico  = document.getElementById('ico-sinc');
+    const spin = document.getElementById('spin-sinc');
+
+    btn.disabled        = true;
+    ico.style.display   = 'none';
+    spin.style.display  = '';
+
+    try {
+      const resp  = await fetch('/api/ad/usuarios/sincronizar', { method: 'POST' });
+      const dados = await resp.json();
+      mostrarAlertaUsuarios(dados.mensagem || dados.erro, resp.ok ? 'sucesso' : 'erro');
+      if (resp.ok) carregarUsuariosDominio();
+    } catch (e) {
+      mostrarAlertaUsuarios('Erro de comunicação com o servidor.', 'erro');
+    } finally {
+      btn.disabled       = false;
+      ico.style.display  = '';
+      spin.style.display = 'none';
+    }
+  };
+
+  // ---- Modal: Buscar no AD -------------------------------------------------
+  window.abrirModalAD = async function () {
+    _todosAD = [];
+    document.getElementById('ad-busca-filtro').value       = '';
+    document.getElementById('ad-info-selecao').textContent = '0 usuários selecionados';
+    document.getElementById('lista-ad-usuarios').innerHTML =
+      '<div style="text-align:center;padding:32px;color:var(--cor-texto-fraco)">' +
+      '<i class="fas fa-spinner fa-spin"></i> Buscando usuários no Active Directory...</div>';
+    document.getElementById('modal-ad').classList.add('visivel');
+
+    try {
+      const resp  = await fetch('/api/ad/buscar');
+      const dados = await resp.json();
+      if (!resp.ok) {
+        document.getElementById('lista-ad-usuarios').innerHTML =
+          `<div style="text-align:center;padding:32px;color:#f87171">` +
+          `<i class="fas fa-exclamation-triangle"></i> ${dados.erro || 'Erro ao buscar usuários.'}</div>`;
+        return;
+      }
+      _todosAD = dados.usuarios;
+      renderizarListaAD(_todosAD);
+    } catch (e) {
+      document.getElementById('lista-ad-usuarios').innerHTML =
+        '<div style="text-align:center;padding:32px;color:#f87171">' +
+        '<i class="fas fa-exclamation-triangle"></i> Não foi possível conectar ao AD.</div>';
+    }
+  };
+
+  window.fecharModalAD = function () {
+    document.getElementById('modal-ad').classList.remove('visivel');
+    _todosAD = [];
+  };
+
+  // ---- Filtrar lista do AD -------------------------------------------------
+  window.filtrarListaAD = function () {
+    const termo    = document.getElementById('ad-busca-filtro').value.toLowerCase();
+    const filtrados = _todosAD.filter(u =>
+      u.login.toLowerCase().includes(termo) ||
+      (u.nome || '').toLowerCase().includes(termo) ||
+      (u.departamento || '').toLowerCase().includes(termo)
+    );
+    renderizarListaAD(filtrados);
+  };
+
+  function renderizarListaAD(lista) {
+    const el = document.getElementById('lista-ad-usuarios');
+    if (lista.length === 0) {
+      el.innerHTML = '<div style="text-align:center;padding:24px;color:var(--cor-texto-fraco)">Nenhum usuário encontrado.</div>';
+      return;
+    }
+    el.innerHTML = lista.map(u => {
+      const nome  = (u.nome  || u.login).replace(/"/g, '&quot;');
+      const email = (u.email || '').replace(/"/g, '&quot;');
+      const depto = (u.departamento || '').replace(/"/g, '&quot;');
+      return `
+        <label style="display:flex;align-items:center;gap:12px;padding:10px 14px;border-bottom:1px solid var(--cor-borda);cursor:pointer">
+          <input type="checkbox"
+                 data-login="${u.login}"
+                 data-nome="${nome}"
+                 data-email="${email}"
+                 data-depto="${depto}"
+                 onchange="atualizarContadorAD()"
+                 style="width:16px;height:16px;flex-shrink:0;cursor:pointer">
+          <div style="flex:1;min-width:0">
+            <div style="font-weight:600;font-size:0.9em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${u.nome || u.login}</div>
+            <div style="font-size:0.8em;color:var(--cor-texto-fraco)">${u.login}${u.departamento ? ' · ' + u.departamento : ''}${u.email ? ' · ' + u.email : ''}</div>
+          </div>
+        </label>`;
+    }).join('');
+  }
+
+  // ---- Atualizar contador de selecionados ----------------------------------
+  window.atualizarContadorAD = function () {
+    const total = document.querySelectorAll('#lista-ad-usuarios input[type=checkbox]:checked').length;
+    document.getElementById('ad-info-selecao').textContent =
+      total === 0 ? '0 usuários selecionados' :
+      total === 1 ? '1 usuário selecionado' :
+      `${total} usuários selecionados`;
+  };
+
+  // ---- Adicionar usuários selecionados ao portal ---------------------------
+  window.adicionarSelecionados = async function () {
+    const checkboxes = document.querySelectorAll('#lista-ad-usuarios input[type=checkbox]:checked');
+    if (checkboxes.length === 0) {
+      mostrarAlertaUsuarios('Selecione ao menos um usuário na lista.', 'erro');
+      return;
+    }
+
+    const nivel    = document.getElementById('ad-nivel-lote').value;
+    const usuarios = Array.from(checkboxes).map(cb => ({
+      login:        cb.dataset.login,
+      nome:         cb.dataset.nome,
+      email:        cb.dataset.email,
+      departamento: cb.dataset.depto
+    }));
+
+    try {
+      const resp  = await fetch('/api/ad/usuarios/lote', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ usuarios, nivel })
+      });
+      const dados = await resp.json();
+      fecharModalAD();
+      mostrarAlertaUsuarios(dados.mensagem || dados.erro, resp.ok ? 'sucesso' : 'erro');
+      if (resp.ok) carregarUsuariosDominio();
+    } catch (e) {
+      mostrarAlertaUsuarios('Erro de comunicação.', 'erro');
+    }
+  };
+
+  // ---- Alertas -------------------------------------------------------------
+  function mostrarAlertaConfig(msg, classe) {
+    const el = document.getElementById('alerta-config-ad');
+    el.className   = `alerta alerta-${classe} visivel`;
+    el.textContent = msg;
+    setTimeout(() => el.classList.remove('visivel'), 5000);
+  }
+
+  function mostrarAlertaUsuarios(msg, classe) {
+    const el = document.getElementById('alerta-dominio-usuarios');
+    el.className   = `alerta alerta-${classe} visivel`;
+    el.textContent = msg;
+    setTimeout(() => el.classList.remove('visivel'), 5000);
+  }
+
+  // Fecha modal ao clicar fora
+  document.getElementById('modal-ad').addEventListener('click', function (e) {
+    if (e.target === this) fecharModalAD();
+  });
+})();
+</script>

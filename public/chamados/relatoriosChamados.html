@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<!--
+  ARQUIVO: public/chamados/relatoriosChamados.html
+  DESCRIÇÃO: Relatórios do Sistema de Chamados — Portal WKL
+-->
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📊 Relatórios — Chamados</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/menu.css">
+    <style>
+        :root {
+            --bg:      #0f172a;
+            --card:    #1e293b;
+            --card2:   #243044;
+            --text:    #f1f5f9;
+            --gray:    #94a3b8;
+            --border:  #334155;
+            --primary: #3b82f6;
+            --green:   #10b981;
+            --red:     #ef4444;
+            --amber:   #f59e0b;
+            --purple:  #a78bfa;
+            --cyan:    #06b6d4;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; min-height: 100vh; }
+        .page { max-width: 1400px; margin: 0 auto; padding: 24px 20px 60px; }
+
+        /* ── Cabeçalho ── */
+        .page-header {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 24px; flex-wrap: wrap; gap: 12px;
+        }
+        .page-header h1 { font-size: 1.5rem; color: var(--primary); display: flex; align-items: center; gap: 10px; }
+        .btn-voltar {
+            background: var(--card); border: 1px solid var(--border); color: var(--gray);
+            padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 0.85rem;
+            text-decoration: none; display: flex; align-items: center; gap: 6px;
+        }
+        .btn-voltar:hover { color: var(--text); border-color: var(--primary); }
+
+        /* ── Painel de Filtros ── */
+        .filtros-panel {
+            background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+            padding: 20px; margin-bottom: 24px;
+        }
+        .filtros-panel h3 { font-size: 0.8rem; font-weight: 900; text-transform: uppercase;
+            letter-spacing: 1px; color: var(--primary); margin-bottom: 16px; }
+
+        /* Período rápido */
+        .periodo-rapido { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+        .btn-periodo {
+            background: var(--card2); border: 1px solid var(--border); color: var(--gray);
+            padding: 6px 14px; border-radius: 20px; cursor: pointer; font-size: 0.8rem;
+            transition: all 0.2s;
+        }
+        .btn-periodo:hover, .btn-periodo.ativo { background: var(--primary); border-color: var(--primary); color: #fff; }
+
+        /* Grid de filtros */
+        .filtros-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px;
+            margin-bottom: 16px;
+        }
+        .filtro-group label { display: block; font-size: 0.72rem; font-weight: 700;
+            text-transform: uppercase; color: var(--gray); margin-bottom: 6px; }
+        .filtro-group input, .filtro-group select {
+            width: 100%; background: var(--bg); border: 1px solid var(--border);
+            border-radius: 8px; color: var(--text); padding: 9px 12px; font-size: 0.85rem; outline: none;
+        }
+        .filtro-group input:focus, .filtro-group select:focus { border-color: var(--primary); }
+
+        /* Status checkboxes */
+        .status-checks { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+        .status-check-label {
+            display: flex; align-items: center; gap: 6px; cursor: pointer;
+            background: var(--card2); border: 1px solid var(--border); border-radius: 6px;
+            padding: 5px 10px; font-size: 0.78rem;
+        }
+        .status-check-label:hover { border-color: var(--primary); }
+        .status-check-label input { accent-color: var(--primary); width: 14px; height: 14px; }
+
+        /* Tipo relatório */
+        .tipo-btns { display: flex; gap: 10px; }
+        .btn-tipo {
+            flex: 1; padding: 10px; background: var(--card2); border: 2px solid var(--border);
+            border-radius: 8px; color: var(--gray); cursor: pointer; text-align: center; font-size: 0.85rem;
+        }
+        .btn-tipo.ativo { border-color: var(--primary); color: var(--primary); background: rgba(59,130,246,0.1); }
+
+        /* Botão gerar */
+        .btn-gerar {
+            width: 100%; padding: 13px; background: var(--primary); border: none; border-radius: 8px;
+            color: #fff; font-size: 0.95rem; font-weight: 900; cursor: pointer; letter-spacing: 0.5px;
+            transition: background 0.2s; margin-top: 4px;
+        }
+        .btn-gerar:hover { background: #2563eb; }
+        .btn-gerar:disabled { background: #334155; color: var(--gray); cursor: not-allowed; }
+
+        /* ── Resultados ── */
+        #resultado { display: none; }
+        .resultado-header {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 20px; flex-wrap: wrap; gap: 10px;
+        }
+        .resultado-header h2 { font-size: 1.1rem; color: var(--text); }
+        .resultado-header span { font-size: 0.8rem; color: var(--gray); }
+        .btn-exportar {
+            background: var(--green); border: none; color: #fff; padding: 8px 18px;
+            border-radius: 8px; cursor: pointer; font-size: 0.82rem; font-weight: 700;
+        }
+        .btn-exportar:hover { background: #059669; }
+
+        /* ── Cards de totais ── */
+        .cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 24px; }
+        .card-stat {
+            background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+            padding: 16px; text-align: center;
+        }
+        .card-stat .val { font-size: 2rem; font-weight: 900; line-height: 1; }
+        .card-stat .lbl { font-size: 0.72rem; color: var(--gray); text-transform: uppercase;
+            letter-spacing: 0.5px; margin-top: 6px; }
+        .card-stat .sub { font-size: 0.7rem; color: var(--gray); margin-top: 4px; }
+        .c-total   .val { color: var(--primary); }
+        .c-abertos .val { color: var(--red); }
+        .c-atend   .val { color: #3b82f6; }
+        .c-resp    .val { color: var(--amber); }
+        .c-final   .val { color: var(--green); }
+        .c-reprov  .val { color: #ef4444; opacity: 0.7; }
+        .c-tempo   .val { color: var(--cyan); font-size: 1.4rem; }
+        .c-excluido .val { color: #64748b; }
+        .c-excluido { opacity: 0.75; }
+
+        /* ── Seção de gráfico/tabela ── */
+        .secao { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 20px; margin-bottom: 20px; }
+        .secao h3 { font-size: 0.75rem; font-weight: 900; text-transform: uppercase;
+            letter-spacing: 1px; color: var(--gray); margin-bottom: 16px; }
+
+        /* Gráfico de barras CSS */
+        .bar-chart { display: flex; flex-direction: column; gap: 10px; }
+        .bar-row { display: grid; grid-template-columns: 160px 1fr 60px; align-items: center; gap: 10px; }
+        .bar-label { font-size: 0.82rem; text-align: right; color: var(--text); white-space: nowrap;
+            overflow: hidden; text-overflow: ellipsis; }
+        .bar-track { background: rgba(255,255,255,0.05); border-radius: 4px; height: 20px; overflow: hidden; }
+        .bar-fill { height: 100%; border-radius: 4px; transition: width 0.6s ease; }
+        .bar-count { font-size: 0.82rem; font-weight: 700; color: var(--text); }
+
+        /* Tabelas */
+        .tbl-wrap { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.83rem; }
+        th { background: rgba(255,255,255,0.05); color: var(--gray); font-weight: 700;
+            text-transform: uppercase; font-size: 0.68rem; letter-spacing: 0.5px;
+            padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--border); }
+        td { padding: 10px 12px; border-bottom: 1px solid rgba(51,65,85,0.4); vertical-align: middle; }
+        tr:hover td { background: rgba(255,255,255,0.03); }
+        tr:last-child td { border-bottom: none; }
+        .td-num { text-align: right; font-variant-numeric: tabular-nums; }
+        .td-center { text-align: center; }
+
+        /* Taxa barra inline */
+        .taxa-bar { display: flex; align-items: center; gap: 8px; }
+        .taxa-track { flex: 1; background: rgba(255,255,255,0.05); border-radius: 3px; height: 6px; min-width: 60px; }
+        .taxa-fill  { height: 100%; border-radius: 3px; background: var(--green); }
+        .taxa-pct   { font-size: 0.75rem; color: var(--green); font-weight: 700; min-width: 36px; text-align: right; }
+
+        /* Badges */
+        .badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 0.7rem; font-weight: 700; }
+        .b-aberto    { background: rgba(239,68,68,0.15);   color: #ef4444; }
+        .b-atend     { background: rgba(59,130,246,0.15);  color: #3b82f6; }
+        .b-final     { background: rgba(16,185,129,0.15);  color: #10b981; }
+        .b-reprov    { background: rgba(239,68,68,0.25);   color: #fca5a5; }
+        .b-respondido{ background: rgba(245,158,11,0.15);  color: #f59e0b; }
+        .b-aprovado  { background: rgba(16,185,129,0.15);  color: #10b981; }
+        .b-aprovacao { background: rgba(139,92,246,0.15);  color: #a78bfa; }
+        .b-reaberto  { background: rgba(239,68,68,0.2);    color: #ef4444; }
+        .b-transferido{background: rgba(6,182,212,0.15);   color: #06b6d4; }
+        .b-excluido  { background: rgba(100,116,139,0.2);  color: #94a3b8; }
+        tr.row-excluido td { opacity: 0.55; text-decoration: line-through; }
+        tr.row-excluido td:first-child, tr.row-excluido td:nth-child(6) { text-decoration: none; }
+
+        /* Loading */
+        .loading { display: flex; align-items: center; justify-content: center; padding: 40px;
+            color: var(--gray); gap: 12px; font-size: 0.9rem; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .spinner { width: 20px; height: 20px; border: 2px solid var(--border);
+            border-top-color: var(--primary); border-radius: 50%; animation: spin 0.7s linear infinite; }
+
+        /* Sem dados */
+        .sem-dados { text-align: center; padding: 30px; color: var(--gray); font-size: 0.85rem; }
+
+        /* Paginação detalhada */
+        .paginacao { display: flex; align-items: center; justify-content: space-between;
+            margin-top: 16px; flex-wrap: wrap; gap: 10px; }
+        .paginacao span { font-size: 0.8rem; color: var(--gray); }
+        .pag-btns { display: flex; gap: 6px; }
+        .btn-pag {
+            background: var(--card2); border: 1px solid var(--border); color: var(--gray);
+            padding: 5px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem;
+        }
+        .btn-pag:hover { border-color: var(--primary); color: var(--text); }
+        .btn-pag:disabled { opacity: 0.3; cursor: not-allowed; }
+
+        @media (max-width: 640px) {
+            .filtros-grid { grid-template-columns: 1fr; }
+            .bar-row { grid-template-columns: 100px 1fr 50px; }
+        }
+    </style>
+</head>
+<body>
+<div id="menu-container"></div>
+<div class="page">
+
+    <!-- Cabeçalho -->
+    <div class="page-header">
+        <h1><i class="fas fa-chart-bar"></i> Relatórios de Chamados</h1>
+        <a href="/chamados" class="btn-voltar"><i class="fas fa-arrow-left"></i> Voltar</a>
+    </div>
+
+    <!-- Filtros -->
+    <div class="filtros-panel">
+        <h3><i class="fas fa-filter"></i> Filtros</h3>
+
+        <!-- Período rápido -->
+        <div class="periodo-rapido">
+            <button class="btn-periodo" onclick="setPeriodo('hoje',this)">Hoje</button>
+            <button class="btn-periodo" onclick="setPeriodo('semana',this)">Esta Semana</button>
+            <button class="btn-periodo ativo" onclick="setPeriodo('mes',this)">Este Mês</button>
+            <button class="btn-periodo" onclick="setPeriodo('trimestre',this)">Trimestre</button>
+            <button class="btn-periodo" onclick="setPeriodo('ano',this)">Este Ano</button>
+            <button class="btn-periodo" onclick="setPeriodo('custom',this)">Personalizado</button>
+        </div>
+
+        <!-- Datas customizadas -->
+        <div id="datas-custom" class="filtros-grid" style="display:none">
+            <div class="filtro-group">
+                <label>Data Início</label>
+                <input type="date" id="f-di">
+            </div>
+            <div class="filtro-group">
+                <label>Data Fim</label>
+                <input type="date" id="f-df">
+            </div>
+        </div>
+
+        <!-- Setor, Técnico, Tipo -->
+        <div class="filtros-grid">
+            <div class="filtro-group">
+                <label>Setor</label>
+                <select id="f-setor">
+                    <option value="">Todos os setores</option>
+                </select>
+            </div>
+            <div class="filtro-group">
+                <label>Técnico / Atendente</label>
+                <select id="f-tecnico">
+                    <option value="">Todos</option>
+                </select>
+            </div>
+            <div class="filtro-group">
+                <label>Tipo de Relatório</label>
+                <div class="tipo-btns">
+                    <button class="btn-tipo ativo" id="btn-resumido" onclick="setTipo('resumido')">
+                        <i class="fas fa-chart-pie"></i> Resumido
+                    </button>
+                    <button class="btn-tipo" id="btn-detalhado" onclick="setTipo('detalhado')">
+                        <i class="fas fa-list"></i> Detalhado
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Status -->
+        <div style="margin-bottom:12px;">
+            <div style="font-size:0.72rem;font-weight:700;text-transform:uppercase;color:var(--gray);margin-bottom:8px;">
+                Status (deixe todos desmarcados = todos)
+            </div>
+            <div class="status-checks">
+                <label class="status-check-label"><input type="checkbox" value="Aberto"> Aberto</label>
+                <label class="status-check-label"><input type="checkbox" value="Em Atendimento"> Em Atendimento</label>
+                <label class="status-check-label"><input type="checkbox" value="Respondido"> Respondido</label>
+                <label class="status-check-label"><input type="checkbox" value="Reaberto"> Reaberto</label>
+                <label class="status-check-label"><input type="checkbox" value="APROVADO"> Aprovado</label>
+                <label class="status-check-label"><input type="checkbox" value="APROVACAO"> Ag. Aprovação</label>
+                <label class="status-check-label"><input type="checkbox" value="TRANSFERIDO"> Transferido</label>
+                <label class="status-check-label"><input type="checkbox" value="Finalizado"> Finalizado</label>
+                <label class="status-check-label"><input type="checkbox" value="REPROVADO"> Reprovado</label>
+            </div>
+        </div>
+
+        <!-- Opções extras -->
+        <div style="display:flex;align-items:center;gap:16px;margin-bottom:12px;">
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:0.83rem;color:var(--gray);">
+                <input type="checkbox" id="f-excluidos" style="accent-color:#ef4444;width:15px;height:15px;">
+                <span>Incluir chamados excluídos</span>
+            </label>
+        </div>
+
+        <button class="btn-gerar" id="btn-gerar" onclick="gerarRelatorio()">
+            <i class="fas fa-sync-alt"></i> GERAR RELATÓRIO
+        </button>
+    </div>
+
+    <!-- Resultados -->
+    <div id="resultado"></div>
+
+</div>
+
+<script src="/js/menu.js"></script>
+<script>
+    // ── Estado ───────────────────────────────────────────────
+    let tipoAtual    = 'resumido';
+    let periodoAtual = 'mes';
+    let dadosDetalhados = [];
+    let paginaAtual     = 1;
+    const POR_PAGINA    = 50;
+
+    // ── Helpers de data ──────────────────────────────────────
+    function fmtDate(d) {
+        if (!d) return '—';
+        return new Date(d).toLocaleString('pt-BR', { dateStyle:'short', timeStyle:'short' });
+    }
+    function fmtDuracao(min) {
+        if (min == null || min < 0) return '—';
+        const h = Math.floor(min / 60), m = min % 60;
+        if (h === 0) return m + 'min';
+        if (h < 24)  return h + 'h ' + (m > 0 ? m + 'min' : '');
+        const d = Math.floor(h / 24), hr = h % 24;
+        return d + 'd ' + (hr > 0 ? hr + 'h' : '');
+    }
+    function hoje() { return new Date().toISOString().slice(0,10); }
+    function addDias(n) {
+        const d = new Date(); d.setDate(d.getDate() + n);
+        return d.toISOString().slice(0,10);
+    }
+    function inicioSemana() {
+        const d = new Date(), day = d.getDay();
+        d.setDate(d.getDate() - (day === 0 ? 6 : day - 1));
+        return d.toISOString().slice(0,10);
+    }
+    function inicioMes() { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-01`; }
+    function inicioTrimestre() {
+        const d = new Date(), m = d.getMonth(), q = Math.floor(m / 3) * 3;
+        return `${d.getFullYear()}-${String(q+1).padStart(2,'0')}-01`;
+    }
+    function inicioAno() { return `${new Date().getFullYear()}-01-01`; }
+
+    function setPeriodo(p, btn) {
+        periodoAtual = p;
+        document.querySelectorAll('.btn-periodo').forEach(b => b.classList.remove('ativo'));
+        btn.classList.add('ativo');
+        const custom = document.getElementById('datas-custom');
+        if (p === 'custom') { custom.style.display = 'grid'; return; }
+        custom.style.display = 'none';
+        const map = { hoje:[hoje(),hoje()], semana:[inicioSemana(),hoje()], mes:[inicioMes(),hoje()],
+                      trimestre:[inicioTrimestre(),hoje()], ano:[inicioAno(),hoje()] };
+        const [di, df] = map[p] || [inicioMes(), hoje()];
+        document.getElementById('f-di').value = di;
+        document.getElementById('f-df').value = df;
+    }
+
+    function setTipo(t) {
+        tipoAtual = t;
+        document.getElementById('btn-resumido').classList.toggle('ativo', t === 'resumido');
+        document.getElementById('btn-detalhado').classList.toggle('ativo', t === 'detalhado');
+    }
+
+    // ── Carregar selects ─────────────────────────────────────
+    async function carregarFiltros() {
+        const [rs, rt] = await Promise.all([
+            fetch('/api/chamados/setores').then(r => r.ok ? r.json() : []),
+            fetch('/api/chamados/tecnicos').then(r => r.ok ? r.json() : [])
+        ]);
+        const selSetor = document.getElementById('f-setor');
+        rs.forEach(s => { const o = document.createElement('option'); o.value = s.nome; o.textContent = s.nome; selSetor.appendChild(o); });
+        const selTec = document.getElementById('f-tecnico');
+        rt.forEach(t => { const o = document.createElement('option'); o.value = t.login; o.textContent = t.nome + ' (' + t.cargo + ')'; selTec.appendChild(o); });
+    }
+
+    // ── Gerar Relatório ──────────────────────────────────────
+    async function gerarRelatorio() {
+        const di     = document.getElementById('f-di').value;
+        const df     = document.getElementById('f-df').value;
+        const setor  = document.getElementById('f-setor').value;
+        const tec    = document.getElementById('f-tecnico').value;
+        const checks = Array.from(document.querySelectorAll('.status-checks input:checked')).map(c => c.value);
+
+        const inclExcluidos = document.getElementById('f-excluidos').checked;
+        const params = new URLSearchParams({ tipo: tipoAtual });
+        if (di) params.set('dataInicio', di);
+        if (df) params.set('dataFim', df);
+        if (setor) params.set('setor', setor);
+        if (tec)   params.set('tecnico', tec);
+        if (checks.length) params.set('status', checks.join(','));
+        if (inclExcluidos) params.set('incluirExcluidos', 'true');
+
+        const res = document.getElementById('resultado');
+        res.style.display = 'block';
+        res.innerHTML = '<div class="loading"><div class="spinner"></div> Gerando relatório...</div>';
+
+        const btn = document.getElementById('btn-gerar');
+        btn.disabled = true; btn.textContent = 'Aguarde...';
+
+        try {
+            const r = await fetch('/api/chamados/relatorios?' + params);
+            if (!r.ok) { const e = await r.json(); throw new Error(e.erro || 'Erro ' + r.status); }
+            const data = await r.json();
+            if (tipoAtual === 'detalhado') renderDetalhado(data, di, df);
+            else renderResumido(data, di, df);
+        } catch (e) {
+            res.innerHTML = '<div class="loading" style="color:#ef4444"><i class="fas fa-exclamation-triangle"></i> ' + escH(e.message) + '</div>';
+        } finally {
+            btn.disabled = false; btn.innerHTML = '<i class="fas fa-sync-alt"></i> GERAR RELATÓRIO';
+        }
+    }
+
+    function escH(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+    function periodoLabel() {
+        const di = document.getElementById('f-di').value;
+        const df = document.getElementById('f-df').value;
+        if (di && df) return di.split('-').reverse().join('/') + ' até ' + df.split('-').reverse().join('/');
+        if (di) return 'a partir de ' + di.split('-').reverse().join('/');
+        return 'Todos os períodos';
+    }
+
+    // ── Render Resumido ──────────────────────────────────────
+    function renderResumido(data, di, df) {
+        const r   = data.resumo || {};
+        const res = document.getElementById('resultado');
+
+        // ── Cards ──
+        const tempoFmt = fmtDuracao(r.tempo_medio_min);
+        const pctFinal = r.total_geral > 0 ? Math.round((r.total_finalizados / r.total_geral) * 100) : 0;
+
+        let html = `
+        <div class="resultado-header">
+            <div>
+                <h2>Relatório Resumido</h2>
+                <span><i class="fas fa-calendar"></i> ${escH(periodoLabel())}</span>
+            </div>
+        </div>
+        <div class="cards-grid">
+            <div class="card-stat c-total">
+                <div class="val">${r.total_geral || 0}</div>
+                <div class="lbl">Total de Chamados</div>
+            </div>
+            <div class="card-stat c-abertos">
+                <div class="val">${r.total_abertos || 0}</div>
+                <div class="lbl">Em Aberto</div>
+            </div>
+            <div class="card-stat c-atend">
+                <div class="val">${r.total_em_atendimento || 0}</div>
+                <div class="lbl">Em Atendimento</div>
+            </div>
+            <div class="card-stat c-resp">
+                <div class="val">${r.total_respondidos || 0}</div>
+                <div class="lbl">Respondidos</div>
+            </div>
+            <div class="card-stat c-final">
+                <div class="val">${r.total_finalizados || 0}</div>
+                <div class="lbl">Finalizados</div>
+                <div class="sub">${pctFinal}% do total</div>
+            </div>
+            <div class="card-stat c-reprov">
+                <div class="val">${r.total_reprovados || 0}</div>
+                <div class="lbl">Reprovados</div>
+            </div>
+            ${(r.total_excluidos > 0) ? `
+            <div class="card-stat c-excluido">
+                <div class="val">${r.total_excluidos}</div>
+                <div class="lbl">Excluídos</div>
+            </div>` : ''}
+            <div class="card-stat c-tempo">
+                <div class="val">${tempoFmt}</div>
+                <div class="lbl">Tempo Médio Resolução</div>
+                <div class="sub">chamados finalizados</div>
+            </div>
+        </div>`;
+
+        // ── Gráfico por Status ──
+        const porStatus = data.porStatus || [];
+        const maxStatus = porStatus.reduce((m, s) => Math.max(m, s.total), 1);
+        const statusColors = {
+            'Aberto':'#ef4444','Reaberto':'#ef4444','Em Atendimento':'#3b82f6',
+            'Respondido':'#f59e0b','Finalizado':'#10b981','REPROVADO':'#dc2626',
+            'APROVADO':'#10b981','APROVACAO':'#a78bfa','TRANSFERIDO':'#06b6d4'
+        };
+        html += `<div class="secao"><h3><i class="fas fa-chart-bar"></i> Distribuição por Status</h3>`;
+        if (porStatus.length) {
+            html += '<div class="bar-chart">';
+            porStatus.forEach(s => {
+                const pct = Math.round((s.total / maxStatus) * 100);
+                const cor = statusColors[s.status] || '#94a3b8';
+                html += `<div class="bar-row">
+                    <div class="bar-label">${escH(s.status)}</div>
+                    <div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${cor}"></div></div>
+                    <div class="bar-count">${s.total}</div>
+                </div>`;
+            });
+            html += '</div>';
+        } else { html += '<div class="sem-dados">Nenhum dado encontrado</div>'; }
+        html += '</div>';
+
+        // ── Tabela por Setor ──
+        const porSetor = data.porSetor || [];
+        const maxSetor = porSetor.reduce((m, s) => Math.max(m, s.total), 1);
+        html += `<div class="secao"><h3><i class="fas fa-building"></i> Chamados por Setor</h3>`;
+        if (porSetor.length) {
+            html += `<div class="tbl-wrap"><table>
+                <thead><tr>
+                    <th>Setor</th><th class="td-num">Total</th>
+                    <th class="td-num">Abertos</th><th class="td-num">Em Atend.</th>
+                    <th class="td-num">Finalizados</th><th class="td-num">Reprovados</th>
+                    <th class="td-num">T.Médio</th><th>Taxa Resolução</th>
+                </tr></thead><tbody>`;
+            porSetor.forEach(s => {
+                const taxa = s.total > 0 ? Math.round((s.finalizados / s.total) * 100) : 0;
+                html += `<tr>
+                    <td><strong>${escH(s.setor)}</strong></td>
+                    <td class="td-num"><strong>${s.total}</strong></td>
+                    <td class="td-num" style="color:#ef4444">${s.abertos}</td>
+                    <td class="td-num" style="color:#3b82f6">${s.em_atendimento}</td>
+                    <td class="td-num" style="color:#10b981">${s.finalizados}</td>
+                    <td class="td-num" style="color:#dc2626">${s.reprovados}</td>
+                    <td class="td-num" style="color:#06b6d4">${fmtDuracao(s.tempo_medio_min)}</td>
+                    <td>
+                        <div class="taxa-bar">
+                            <div class="taxa-track"><div class="taxa-fill" style="width:${taxa}%"></div></div>
+                            <span class="taxa-pct">${taxa}%</span>
+                        </div>
+                    </td>
+                </tr>`;
+            });
+            html += '</tbody></table></div>';
+        } else { html += '<div class="sem-dados">Nenhum dado encontrado</div>'; }
+        html += '</div>';
+
+        // ── Tabela por Técnico ──
+        const porTec = data.porTecnico || [];
+        html += `<div class="secao"><h3><i class="fas fa-user-cog"></i> Desempenho por Técnico / Atendente</h3>`;
+        if (porTec.length) {
+            html += `<div class="tbl-wrap"><table>
+                <thead><tr>
+                    <th>Técnico</th><th class="td-num">Total</th>
+                    <th class="td-num">Abertos</th><th class="td-num">Em Atend.</th>
+                    <th class="td-num">Finalizados</th>
+                    <th class="td-num">T.Médio Resolução</th><th>Taxa Resolução</th>
+                </tr></thead><tbody>`;
+            porTec.forEach(t => {
+                const taxa = t.total > 0 ? Math.round((t.finalizados / t.total) * 100) : 0;
+                html += `<tr>
+                    <td><strong>${escH(t.nome_atendedor)}</strong></td>
+                    <td class="td-num"><strong>${t.total}</strong></td>
+                    <td class="td-num" style="color:#ef4444">${t.abertos}</td>
+                    <td class="td-num" style="color:#3b82f6">${t.em_atendimento}</td>
+                    <td class="td-num" style="color:#10b981">${t.finalizados}</td>
+                    <td class="td-num" style="color:#06b6d4">${fmtDuracao(t.tempo_medio_min)}</td>
+                    <td>
+                        <div class="taxa-bar">
+                            <div class="taxa-track"><div class="taxa-fill" style="width:${taxa}%"></div></div>
+                            <span class="taxa-pct">${taxa}%</span>
+                        </div>
+                    </td>
+                </tr>`;
+            });
+            html += '</tbody></table></div>';
+        } else { html += '<div class="sem-dados">Nenhum dado encontrado</div>'; }
+        html += '</div>';
+
+        res.innerHTML = html;
+    }
+
+    // ── Render Detalhado ─────────────────────────────────────
+    function renderDetalhado(data, di, df) {
+        dadosDetalhados = data.chamados || [];
+        paginaAtual = 1;
+        renderPaginaDetalhada();
+    }
+
+    function badgeStatus(s) {
+        const map = {
+            'Aberto':'b-aberto','Reaberto':'b-reaberto','Em Atendimento':'b-atend',
+            'Respondido':'b-respondido','Finalizado':'b-final','REPROVADO':'b-reprov',
+            'APROVADO':'b-aprovado','APROVACAO':'b-aprovacao','TRANSFERIDO':'b-transferido'
+        };
+        return `<span class="badge ${map[s]||'b-atend'}">${escH(s)}</span>`;
+    }
+
+    function renderPaginaDetalhada() {
+        const total   = dadosDetalhados.length;
+        const inicio  = (paginaAtual - 1) * POR_PAGINA;
+        const fim     = Math.min(inicio + POR_PAGINA, total);
+        const pagina  = dadosDetalhados.slice(inicio, fim);
+        const totPag  = Math.max(1, Math.ceil(total / POR_PAGINA));
+        const res     = document.getElementById('resultado');
+
+        let html = `
+        <div class="resultado-header">
+            <div>
+                <h2>Relatório Detalhado</h2>
+                <span><i class="fas fa-calendar"></i> ${escH(periodoLabel())} &bull; ${total} chamado${total !== 1 ? 's' : ''}</span>
+            </div>
+            <button class="btn-exportar" onclick="exportarCSV()"><i class="fas fa-file-csv"></i> Exportar CSV</button>
+        </div>
+        <div class="secao">
+        <div class="tbl-wrap"><table>
+            <thead><tr>
+                <th>Protocolo</th><th>Setor</th><th>Assunto</th>
+                <th>Solicitante</th><th>Técnico</th><th>Status</th>
+                <th>Abertura</th><th>Últ. Atualiz.</th><th class="td-num">Duração</th>
+            </tr></thead><tbody>`;
+
+        if (!pagina.length) {
+            html += `<tr><td colspan="9" class="sem-dados">Nenhum chamado encontrado com os filtros selecionados</td></tr>`;
+        } else {
+            pagina.forEach(c => {
+                const isExcluido = c.excluido == 1;
+                const rowClass = isExcluido ? ' class="row-excluido"' : '';
+                const statusBadge = isExcluido
+                    ? `${badgeStatus(c.status)} <span class="badge b-excluido">excluído</span>`
+                    : badgeStatus(c.status);
+                html += `<tr${rowClass}>
+                    <td><strong style="color:var(--primary)">${escH(c.protocolo)}</strong></td>
+                    <td><span style="font-size:0.78rem">${escH(c.setor)}</span></td>
+                    <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${escH(c.assunto)}">${escH(c.assunto)}</td>
+                    <td style="font-size:0.8rem">${escH(c.nome_solicitante)}</td>
+                    <td style="font-size:0.8rem">${escH(c.nome_atendedor)}</td>
+                    <td>${statusBadge}</td>
+                    <td style="font-size:0.78rem;white-space:nowrap">${fmtDate(c.criado_em)}</td>
+                    <td style="font-size:0.78rem;white-space:nowrap">${isExcluido ? fmtDate(c.excluido_em) + ' <span style="color:#94a3b8;font-size:0.7rem">(excl.)</span>' : fmtDate(c.atualizado_em)}</td>
+                    <td class="td-num" style="color:var(--cyan);white-space:nowrap">${fmtDuracao(c.tempo_minutos)}</td>
+                </tr>`;
+            });
+        }
+
+        html += `</tbody></table></div>
+        <div class="paginacao">
+            <span>Página ${paginaAtual} de ${totPag} &bull; Exibindo ${inicio+1}–${fim} de ${total}</span>
+            <div class="pag-btns">
+                <button class="btn-pag" onclick="irPagina(1)" ${paginaAtual===1?'disabled':''}>«</button>
+                <button class="btn-pag" onclick="irPagina(${paginaAtual-1})" ${paginaAtual===1?'disabled':''}>‹ Anterior</button>
+                <button class="btn-pag" onclick="irPagina(${paginaAtual+1})" ${paginaAtual===totPag?'disabled':''}>Próxima ›</button>
+                <button class="btn-pag" onclick="irPagina(${totPag})" ${paginaAtual===totPag?'disabled':''}>»</button>
+            </div>
+        </div>
+        </div>`;
+
+        res.innerHTML = html;
+    }
+
+    function irPagina(p) {
+        paginaAtual = p;
+        renderPaginaDetalhada();
+        document.getElementById('resultado').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // ── Exportar CSV ─────────────────────────────────────────
+    function exportarCSV() {
+        if (!dadosDetalhados.length) return alert('Nenhum dado para exportar.');
+        const cols = ['protocolo','setor','assunto','nome_solicitante','nome_atendedor','status','criado_em','atualizado_em','tempo_minutos','excluido','excluido_em','excluido_por'];
+        const heads = ['Protocolo','Setor','Assunto','Solicitante','Técnico','Status','Abertura','Últ. Atualização','Duração (min)','Excluído','Data Exclusão','Excluído Por'];
+        const esc = v => '"' + String(v ?? '').replace(/"/g,'""') + '"';
+        const rows = [heads.join(';')].concat(dadosDetalhados.map(c =>
+            cols.map(col => {
+                if (col === 'criado_em' || col === 'atualizado_em' || col === 'excluido_em')
+                    return esc(c[col] ? new Date(c[col]).toLocaleString('pt-BR') : '');
+                if (col === 'excluido') return esc(c[col] == 1 ? 'Sim' : 'Não');
+                return esc(c[col]);
+            }).join(';')
+        ));
+        const blob = new Blob(['\uFEFF' + rows.join('\r\n')], { type:'text/csv;charset=utf-8;' });
+        const url  = URL.createObjectURL(blob);
+        const a    = document.createElement('a');
+        a.href = url;
+        a.download = 'chamados_' + new Date().toISOString().slice(0,10) + '.csv';
+        a.click();
+        URL.revokeObjectURL(url);
+    }
+
+    // ── Init ─────────────────────────────────────────────────
+    window.onload = async () => {
+        await carregarFiltros();
+        // Define mês atual como padrão
+        document.getElementById('f-di').value = inicioMes();
+        document.getElementById('f-df').value = hoje();
+        // Gera automaticamente
+        gerarRelatorio();
+    };
+</script>
+</body>
+</html>

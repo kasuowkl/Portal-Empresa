@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<!--
+  ARQUIVO: public/demo-mais-acoes.html
+  DESCRIÇÃO: Demonstração de layouts para o painel "Mais Ações" dos Chamados
+  TEMPORÁRIO — remover após escolha do layout
+-->
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Demo — Layout "Mais Ações"</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --fundo:    #0f1117;
+      --fundo-2:  #1a1d27;
+      --fundo-3:  #22263a;
+      --borda:    #2e3250;
+      --texto:    #e2e8f0;
+      --fraco:    #8892a4;
+      --azul:     #4e9af1;
+      --verde:    #10b981;
+      --laranja:  #f59e0b;
+      --roxo:     #8b5cf6;
+      --ciano:    #06b6d4;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--fundo);
+      color: var(--texto);
+      font-family: 'Segoe UI', sans-serif;
+      padding: 32px 24px 60px;
+    }
+
+    h1 { font-size: 22px; margin-bottom: 6px; }
+    .sub { font-size: 13px; color: var(--fraco); margin-bottom: 40px; }
+
+    /* grade de opções */
+    .grade {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 32px;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    @media (max-width: 800px) { .grade { grid-template-columns: 1fr; } }
+
+    /* cartão de opção */
+    .opcao {
+      background: var(--fundo-2);
+      border: 2px solid var(--borda);
+      border-radius: 14px;
+      overflow: hidden;
+      transition: border-color .2s;
+    }
+    .opcao:hover { border-color: #3e4570; }
+    .opcao-header {
+      padding: 16px 20px 12px;
+      border-bottom: 1px solid var(--borda);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .opcao-num {
+      width: 28px; height: 28px; border-radius: 50%;
+      font-size: 12px; font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .opcao-titulo { font-size: 15px; font-weight: 700; flex: 1; }
+    .tag-novo {
+      font-size: 10px; padding: 2px 8px; border-radius: 10px;
+      background: rgba(16,185,129,.15); color: var(--verde);
+      font-weight: 700; letter-spacing: .5px;
+    }
+    .opcao-body { padding: 20px; }
+    .opcao-desc { font-size: 12px; color: var(--fraco); margin-bottom: 16px; line-height: 1.5; }
+
+    /* campos genéricos */
+    .campo-label { font-size: 11px; font-weight: 700; letter-spacing: .8px; text-transform: uppercase; color: var(--fraco); margin-bottom: 6px; }
+    select, input, textarea {
+      width: 100%; background: var(--fundo-3); border: 1px solid var(--borda);
+      border-radius: 6px; padding: 8px 10px; font-size: 13px; color: var(--texto);
+      outline: none; font-family: inherit;
+    }
+    select:focus, input:focus, textarea:focus { border-color: var(--azul); }
+    textarea { resize: none; }
+    .btn {
+      width: 100%; padding: 10px; border: none; border-radius: 7px;
+      font-size: 12px; font-weight: 700; letter-spacing: .6px; text-transform: uppercase;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      gap: 7px; margin-top: 12px; transition: opacity .15s;
+    }
+    .btn:hover { opacity: .85; }
+    .btn-azul   { background: var(--ciano);   color: #000; }
+    .btn-roxo   { background: var(--roxo);    color: #fff; }
+    .btn-laranja{ background: var(--laranja); color: #000; }
+    .linha { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+    .bloco { margin-bottom: 12px; }
+
+    /* ──────────────────────────────────────────
+       OPÇÃO A — TABS
+    ────────────────────────────────────────── */
+    .tabs-row {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 16px;
+      background: var(--fundo-3);
+      border-radius: 8px;
+      padding: 4px;
+    }
+    .tab-btn {
+      flex: 1; padding: 8px 6px; border: none; border-radius: 6px;
+      font-size: 11px; font-weight: 700; cursor: pointer;
+      background: transparent; color: var(--fraco);
+      display: flex; align-items: center; justify-content: center;
+      gap: 5px; transition: all .15s; text-transform: uppercase; letter-spacing: .5px;
+    }
+    .tab-btn.ativo { background: var(--fundo-2); color: var(--texto); }
+    .tab-btn.ativo.t-azul   { color: var(--ciano); }
+    .tab-btn.ativo.t-roxo   { color: var(--roxo); }
+    .tab-btn.ativo.t-laranja{ color: var(--laranja); }
+    .tab-panel { display: none; animation: fadeIn .15s; }
+    .tab-panel.ativo { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+    /* ──────────────────────────────────────────
+       OPÇÃO B — CARDS CLICÁVEIS (escolha visual)
+    ────────────────────────────────────────── */
+    .cards-escolha {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    .card-escolha {
+      border: 1px solid var(--borda);
+      border-radius: 8px;
+      padding: 12px 14px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transition: all .15s;
+      background: var(--fundo-3);
+    }
+    .card-escolha:hover { border-color: #3e4570; }
+    .card-escolha.ativo-azul   { border-color: var(--ciano);   background: rgba(6,182,212,.07); }
+    .card-escolha.ativo-roxo   { border-color: var(--roxo);    background: rgba(139,92,246,.07); }
+    .card-escolha.ativo-laranja{ border-color: var(--laranja); background: rgba(245,158,11,.07); }
+    .card-escolha-ico {
+      width: 34px; height: 34px; border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; flex-shrink: 0;
+    }
+    .ic-azul    { background: rgba(6,182,212,.12);   color: var(--ciano); }
+    .ic-roxo    { background: rgba(139,92,246,.12);  color: var(--roxo); }
+    .ic-laranja { background: rgba(245,158,11,.12);  color: var(--laranja); }
+    .card-escolha-txt strong { font-size: 13px; display: block; }
+    .card-escolha-txt small  { font-size: 11px; color: var(--fraco); }
+    .card-escolha-seta { margin-left: auto; color: var(--fraco); font-size: 12px; transition: transform .15s; }
+    .card-escolha.aberto .card-escolha-seta { transform: rotate(90deg); }
+    .card-form {
+      display: none;
+      padding: 14px;
+      border: 1px solid var(--borda);
+      border-radius: 8px;
+      background: var(--fundo-2);
+      margin-top: 4px;
+      animation: fadeIn .15s;
+    }
+    .card-form.aberto { display: block; }
+
+    /* ──────────────────────────────────────────
+       OPÇÃO C — ACCORDION
+    ────────────────────────────────────────── */
+    .accordion-item {
+      border: 1px solid var(--borda);
+      border-radius: 8px;
+      margin-bottom: 8px;
+      overflow: hidden;
+    }
+    .accordion-head {
+      padding: 12px 16px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--fundo-3);
+      transition: background .15s;
+      user-select: none;
+    }
+    .accordion-head:hover { background: #272b40; }
+    .accordion-head.aberto { background: var(--fundo-2); }
+    .accordion-dot {
+      width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
+    }
+    .accordion-head span { flex: 1; font-size: 13px; font-weight: 600; }
+    .accordion-chevron { color: var(--fraco); font-size: 12px; transition: transform .2s; }
+    .accordion-head.aberto .accordion-chevron { transform: rotate(180deg); }
+    .accordion-body {
+      display: none;
+      padding: 16px;
+      border-top: 1px solid var(--borda);
+      animation: fadeIn .15s;
+    }
+    .accordion-body.aberto { display: block; }
+
+    /* ──────────────────────────────────────────
+       OPÇÃO D — BOTÕES PILL (seleção por pílula)
+    ────────────────────────────────────────── */
+    .pills-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+    .pill {
+      padding: 8px 14px;
+      border-radius: 20px;
+      border: 1.5px solid var(--borda);
+      background: var(--fundo-3);
+      font-size: 12px; font-weight: 600;
+      cursor: pointer;
+      display: flex; align-items: center; gap: 7px;
+      transition: all .15s; color: var(--fraco);
+    }
+    .pill:hover { border-color: #3e4570; color: var(--texto); }
+    .pill.ativo-azul    { border-color: var(--ciano);   color: var(--ciano);   background: rgba(6,182,212,.1); }
+    .pill.ativo-roxo    { border-color: var(--roxo);    color: var(--roxo);    background: rgba(139,92,246,.1); }
+    .pill.ativo-laranja { border-color: var(--laranja); color: var(--laranja); background: rgba(245,158,11,.1); }
+    .pill-panel { display: none; animation: fadeIn .15s; }
+    .pill-panel.ativo { display: block; }
+    .pill-panel-wrap {
+      background: var(--fundo-3);
+      border: 1px solid var(--borda);
+      border-radius: 10px;
+      padding: 16px;
+    }
+
+    /* marcador de seleção */
+    .badge-escolha {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 11px; padding: 3px 10px; border-radius: 10px;
+      margin-bottom: 12px; font-weight: 600;
+    }
+    .be-azul    { background: rgba(6,182,212,.12);   color: var(--ciano); }
+    .be-roxo    { background: rgba(139,92,246,.12);  color: var(--roxo); }
+    .be-laranja { background: rgba(245,158,11,.12);  color: var(--laranja); }
+  </style>
+</head>
+<body>
+
+<div style="max-width:1100px;margin:0 auto">
+  <h1><i class="fas fa-palette" style="color:var(--azul)"></i> Opções de Layout — "Mais Ações"</h1>
+  <p class="sub">Clique nos elementos de cada opção para ver o comportamento. Escolha o que preferir e me avise o número.</p>
+
+  <div class="grade">
+
+    <!-- ══════════════════════════════════
+         OPÇÃO A — TABS HORIZONTAIS
+    ══════════════════════════════════ -->
+    <div class="opcao">
+      <div class="opcao-header">
+        <div class="opcao-num" style="background:rgba(78,154,241,.15);color:var(--azul)">A</div>
+        <span class="opcao-titulo">Abas Horizontais</span>
+      </div>
+      <div class="opcao-body">
+        <p class="opcao-desc">Três abas no topo. Clicar em uma aba exibe seu formulário. Simples e compacto.</p>
+
+        <!-- tabs -->
+        <div class="tabs-row">
+          <button class="tab-btn t-azul ativo" onclick="abrirTab('a','transferir',this)">
+            <i class="fas fa-exchange-alt"></i> Transferir
+          </button>
+          <button class="tab-btn t-roxo" onclick="abrirTab('a','aprovacao',this)">
+            <i class="fas fa-gavel"></i> Aprovação
+          </button>
+          <button class="tab-btn t-laranja" onclick="abrirTab('a','vinculado',this)">
+            <i class="fas fa-link"></i> Vinculado
+          </button>
+        </div>
+
+        <div class="tab-panel ativo" id="a-transferir">
+          <div class="linha">
+            <div class="bloco"><div class="campo-label">Setor destino</div><select><option>2D SINOP</option></select></div>
+            <div class="bloco"><div class="campo-label">Motivo</div><input type="text" placeholder="Motivo da transferência..."></div>
+          </div>
+          <button class="btn btn-azul"><i class="fas fa-exchange-alt"></i> Transferir</button>
+        </div>
+
+        <div class="tab-panel" id="a-aprovacao">
+          <div class="linha">
+            <div class="bloco"><div class="campo-label">Aprovador</div><select><option>kasuowkl (kasuowkl)</option></select></div>
+            <div class="bloco"><div class="campo-label">Motivo</div><input type="text" placeholder="Motivo da aprovação..."></div>
+          </div>
+          <button class="btn btn-roxo"><i class="fas fa-gavel"></i> Solicitar</button>
+        </div>
+
+        <div class="tab-panel" id="a-vinculado">
+          <div class="linha">
+            <div class="bloco"><div class="campo-label">Setor destino</div><select><option>2D SINOP</option></select></div>
+            <div class="bloco"><div class="campo-label">Assunto</div><input type="text" placeholder="Descreva o que precisa..."></div>
+          </div>
+          <div class="bloco"><textarea rows="2" placeholder="Detalhamento (opcional)..."></textarea></div>
+          <button class="btn btn-laranja"><i class="fas fa-link"></i> Abrir Chamado Vinculado e Bloquear Este</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════
+         OPÇÃO B — CARDS CLICÁVEIS COM EXPANSÃO INLINE
+    ══════════════════════════════════ -->
+    <div class="opcao">
+      <div class="opcao-header">
+        <div class="opcao-num" style="background:rgba(16,185,129,.15);color:var(--verde)">B</div>
+        <span class="opcao-titulo">Cards com Expansão Inline</span>
+        <span class="tag-novo">POPULAR</span>
+      </div>
+      <div class="opcao-body">
+        <p class="opcao-desc">Três cards clicáveis. Ao clicar, o formulário abre abaixo do card selecionado. Apenas um por vez.</p>
+
+        <div class="cards-escolha">
+
+          <!-- card transferir -->
+          <div class="card-escolha" id="b-card-transferir" onclick="abrirCardB('transferir')">
+            <div class="card-escolha-ico ic-azul"><i class="fas fa-exchange-alt"></i></div>
+            <div class="card-escolha-txt">
+              <strong>Transferir Setor</strong>
+              <small>Encaminhar para outro departamento</small>
+            </div>
+            <i class="fas fa-chevron-right card-escolha-seta"></i>
+          </div>
+          <div class="card-form" id="b-form-transferir">
+            <div class="linha">
+              <div class="bloco"><div class="campo-label">Setor destino</div><select><option>2D SINOP</option></select></div>
+              <div class="bloco"><div class="campo-label">Motivo</div><input type="text" placeholder="Motivo da transferência..."></div>
+            </div>
+            <button class="btn btn-azul"><i class="fas fa-exchange-alt"></i> Transferir</button>
+          </div>
+
+          <!-- card aprovação -->
+          <div class="card-escolha" id="b-card-aprovacao" onclick="abrirCardB('aprovacao')">
+            <div class="card-escolha-ico ic-roxo"><i class="fas fa-gavel"></i></div>
+            <div class="card-escolha-txt">
+              <strong>Solicitar Aprovação</strong>
+              <small>Encaminhar para gestor aprovar</small>
+            </div>
+            <i class="fas fa-chevron-right card-escolha-seta"></i>
+          </div>
+          <div class="card-form" id="b-form-aprovacao">
+            <div class="linha">
+              <div class="bloco"><div class="campo-label">Aprovador</div><select><option>kasuowkl</option></select></div>
+              <div class="bloco"><div class="campo-label">Motivo</div><input type="text" placeholder="Motivo da aprovação..."></div>
+            </div>
+            <button class="btn btn-roxo"><i class="fas fa-gavel"></i> Solicitar</button>
+          </div>
+
+          <!-- card vinculado -->
+          <div class="card-escolha" id="b-card-vinculado" onclick="abrirCardB('vinculado')">
+            <div class="card-escolha-ico ic-laranja"><i class="fas fa-link"></i></div>
+            <div class="card-escolha-txt">
+              <strong>Chamado Vinculado</strong>
+              <small>Criar chamado filho e bloquear este</small>
+            </div>
+            <i class="fas fa-chevron-right card-escolha-seta"></i>
+          </div>
+          <div class="card-form" id="b-form-vinculado">
+            <div class="linha">
+              <div class="bloco"><div class="campo-label">Setor destino</div><select><option>2D SINOP</option></select></div>
+              <div class="bloco"><div class="campo-label">Assunto</div><input type="text" placeholder="Descreva o que precisa..."></div>
+            </div>
+            <div class="bloco"><textarea rows="2" placeholder="Detalhamento (opcional)..."></textarea></div>
+            <button class="btn btn-laranja"><i class="fas fa-link"></i> Abrir Chamado Vinculado e Bloquear Este</button>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════
+         OPÇÃO C — ACCORDION
+    ══════════════════════════════════ -->
+    <div class="opcao">
+      <div class="opcao-header">
+        <div class="opcao-num" style="background:rgba(245,158,11,.15);color:var(--laranja)">C</div>
+        <span class="opcao-titulo">Accordion (Sanfona)</span>
+      </div>
+      <div class="opcao-body">
+        <p class="opcao-desc">Cabeçalhos clicáveis que expandem/recolhem. Pode ter vários abertos ao mesmo tempo.</p>
+
+        <div class="accordion-item">
+          <div class="accordion-head" id="c-head-transferir" onclick="abrirAccordion('c','transferir')">
+            <div class="accordion-dot" style="background:var(--ciano)"></div>
+            <span><i class="fas fa-exchange-alt" style="margin-right:8px;color:var(--ciano)"></i> Transferir Setor</span>
+            <i class="fas fa-chevron-down accordion-chevron"></i>
+          </div>
+          <div class="accordion-body" id="c-body-transferir">
+            <div class="linha">
+              <div class="bloco"><div class="campo-label">Setor destino</div><select><option>2D SINOP</option></select></div>
+              <div class="bloco"><div class="campo-label">Motivo</div><input type="text" placeholder="Motivo da transferência..."></div>
+            </div>
+            <button class="btn btn-azul"><i class="fas fa-exchange-alt"></i> Transferir</button>
+          </div>
+        </div>
+
+        <div class="accordion-item">
+          <div class="accordion-head" id="c-head-aprovacao" onclick="abrirAccordion('c','aprovacao')">
+            <div class="accordion-dot" style="background:var(--roxo)"></div>
+            <span><i class="fas fa-gavel" style="margin-right:8px;color:var(--roxo)"></i> Solicitar Aprovação</span>
+            <i class="fas fa-chevron-down accordion-chevron"></i>
+          </div>
+          <div class="accordion-body" id="c-body-aprovacao">
+            <div class="linha">
+              <div class="bloco"><div class="campo-label">Aprovador</div><select><option>kasuowkl</option></select></div>
+              <div class="bloco"><div class="campo-label">Motivo</div><input type="text" placeholder="Motivo da aprovação..."></div>
+            </div>
+            <button class="btn btn-roxo"><i class="fas fa-gavel"></i> Solicitar</button>
+          </div>
+        </div>
+
+        <div class="accordion-item">
+          <div class="accordion-head" id="c-head-vinculado" onclick="abrirAccordion('c','vinculado')">
+            <div class="accordion-dot" style="background:var(--laranja)"></div>
+            <span><i class="fas fa-link" style="margin-right:8px;color:var(--laranja)"></i> Chamado Vinculado</span>
+            <i class="fas fa-chevron-down accordion-chevron"></i>
+          </div>
+          <div class="accordion-body" id="c-body-vinculado">
+            <div class="linha">
+              <div class="bloco"><div class="campo-label">Setor destino</div><select><option>2D SINOP</option></select></div>
+              <div class="bloco"><div class="campo-label">Assunto</div><input type="text" placeholder="Descreva o que precisa..."></div>
+            </div>
+            <div class="bloco"><textarea rows="2" placeholder="Detalhamento (opcional)..."></textarea></div>
+            <button class="btn btn-laranja"><i class="fas fa-link"></i> Abrir Chamado Vinculado e Bloquear Este</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════
+         OPÇÃO D — PÍLULAS DE SELEÇÃO
+    ══════════════════════════════════ -->
+    <div class="opcao">
+      <div class="opcao-header">
+        <div class="opcao-num" style="background:rgba(139,92,246,.15);color:var(--roxo)">D</div>
+        <span class="opcao-titulo">Pílulas de Seleção</span>
+      </div>
+      <div class="opcao-body">
+        <p class="opcao-desc">Botões pílula no topo para escolher a ação. O formulário aparece numa área destacada abaixo.</p>
+
+        <div class="pills-row">
+          <div class="pill" id="d-pill-transferir" onclick="abrirPill('transferir')">
+            <i class="fas fa-exchange-alt"></i> Transferir Setor
+          </div>
+          <div class="pill" id="d-pill-aprovacao" onclick="abrirPill('aprovacao')">
+            <i class="fas fa-gavel"></i> Solicitar Aprovação
+          </div>
+          <div class="pill" id="d-pill-vinculado" onclick="abrirPill('vinculado')">
+            <i class="fas fa-link"></i> Chamado Vinculado
+          </div>
+        </div>
+
+        <div class="pill-panel" id="d-panel-transferir">
+          <div class="pill-panel-wrap">
+            <div class="badge-escolha be-azul"><i class="fas fa-exchange-alt"></i> Transferir Setor</div>
+            <div class="linha">
+              <div class="bloco"><div class="campo-label">Setor destino</div><select><option>2D SINOP</option></select></div>
+              <div class="bloco"><div class="campo-label">Motivo</div><input type="text" placeholder="Motivo da transferência..."></div>
+            </div>
+            <button class="btn btn-azul"><i class="fas fa-exchange-alt"></i> Transferir</button>
+          </div>
+        </div>
+
+        <div class="pill-panel" id="d-panel-aprovacao">
+          <div class="pill-panel-wrap">
+            <div class="badge-escolha be-roxo"><i class="fas fa-gavel"></i> Solicitar Aprovação</div>
+            <div class="linha">
+              <div class="bloco"><div class="campo-label">Aprovador</div><select><option>kasuowkl</option></select></div>
+              <div class="bloco"><div class="campo-label">Motivo</div><input type="text" placeholder="Motivo da aprovação..."></div>
+            </div>
+            <button class="btn btn-roxo"><i class="fas fa-gavel"></i> Solicitar</button>
+          </div>
+        </div>
+
+        <div class="pill-panel" id="d-panel-vinculado">
+          <div class="pill-panel-wrap">
+            <div class="badge-escolha be-laranja"><i class="fas fa-link"></i> Chamado Vinculado</div>
+            <div class="linha">
+              <div class="bloco"><div class="campo-label">Setor destino</div><select><option>2D SINOP</option></select></div>
+              <div class="bloco"><div class="campo-label">Assunto</div><input type="text" placeholder="Descreva o que precisa..."></div>
+            </div>
+            <div class="bloco"><textarea rows="2" placeholder="Detalhamento (opcional)..."></textarea></div>
+            <button class="btn btn-laranja"><i class="fas fa-link"></i> Abrir Chamado Vinculado e Bloquear Este</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div><!-- /grade -->
+</div>
+
+<script>
+  // ── OPÇÃO A — tabs
+  function abrirTab(prefixo, aba, btn) {
+    document.querySelectorAll(`[id^="${prefixo}-"]`).forEach(p => p.classList.remove('ativo'));
+    document.getElementById(`${prefixo}-${aba}`).classList.add('ativo');
+    btn.closest('.tabs-row').querySelectorAll('.tab-btn').forEach(b => b.classList.remove('ativo'));
+    btn.classList.add('ativo');
+  }
+
+  // ── OPÇÃO B — cards inline
+  const bAberto = { transferir: false, aprovacao: false, vinculado: false };
+  function abrirCardB(key) {
+    const keys = ['transferir','aprovacao','vinculado'];
+    const cores = { transferir: 'ativo-azul', aprovacao: 'ativo-roxo', vinculado: 'ativo-laranja' };
+    keys.forEach(k => {
+      const card = document.getElementById(`b-card-${k}`);
+      const form = document.getElementById(`b-form-${k}`);
+      if (k === key) {
+        bAberto[k] = !bAberto[k];
+        form.classList.toggle('aberto', bAberto[k]);
+        card.classList.toggle(cores[k], bAberto[k]);
+        card.classList.toggle('aberto', bAberto[k]);
+      } else {
+        bAberto[k] = false;
+        form.classList.remove('aberto');
+        card.classList.remove(cores[k], 'aberto');
+      }
+    });
+  }
+
+  // ── OPÇÃO C — accordion (múltiplos)
+  const cAberto = {};
+  function abrirAccordion(prefixo, key) {
+    cAberto[key] = !cAberto[key];
+    document.getElementById(`c-head-${key}`).classList.toggle('aberto', cAberto[key]);
+    document.getElementById(`c-body-${key}`).classList.toggle('aberto', cAberto[key]);
+  }
+
+  // ── OPÇÃO D — pílulas
+  let dAtivo = null;
+  const dCores = { transferir: 'ativo-azul', aprovacao: 'ativo-roxo', vinculado: 'ativo-laranja' };
+  function abrirPill(key) {
+    ['transferir','aprovacao','vinculado'].forEach(k => {
+      document.getElementById(`d-pill-${k}`).classList.remove('ativo-azul','ativo-roxo','ativo-laranja');
+      document.getElementById(`d-panel-${k}`).classList.remove('ativo');
+    });
+    if (dAtivo === key) { dAtivo = null; return; }
+    dAtivo = key;
+    document.getElementById(`d-pill-${key}`).classList.add(dCores[key]);
+    document.getElementById(`d-panel-${key}`).classList.add('ativo');
+  }
+</script>
+</body>
+</html>

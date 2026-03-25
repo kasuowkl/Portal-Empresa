@@ -1,0 +1,215 @@
+<!-- FRAGMENTO: Serviços -->
+<div class="barra-acoes">
+  <h3><i class="fas fa-cogs"></i> Serviços</h3>
+  <button class="btn btn-primario btn-sm" onclick="abrirModalServico()">
+    <i class="fas fa-plus"></i> Novo Serviço
+  </button>
+</div>
+
+<div id="alerta-servicos" class="alerta" style="margin-bottom:14px"></div>
+
+<div class="tabela-wrapper">
+  <table class="tabela">
+    <thead>
+      <tr>
+        <th>Ícone</th>
+        <th>Nome</th>
+        <th>URL</th>
+        <th>Descrição</th>
+        <th style="text-align:center">Nova Aba</th>
+        <th>Status</th>
+        <th class="col-acoes">Ações</th>
+      </tr>
+    </thead>
+    <tbody id="tbody-servicos">
+      <tr><td colspan="7" style="text-align:center;padding:24px;color:var(--cor-texto-fraco)">
+        <i class="fas fa-spinner fa-spin"></i> Carregando...
+      </td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- Modal de serviço -->
+<div id="modal-servico" class="modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-titulo">
+        <i class="fas fa-cogs"></i>
+        <span id="modal-servico-titulo">Novo Serviço</span>
+      </div>
+      <button class="modal-fechar" onclick="fecharModalServico()"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-corpo">
+      <input type="hidden" id="servico-id">
+      <div class="form-grupo">
+        <label>Nome do serviço</label>
+        <input type="text" id="servico-nome" placeholder="Ex: Painel de Monitoramento">
+      </div>
+      <div class="form-grupo">
+        <label>URL de acesso</label>
+        <input type="text" id="servico-url" placeholder="Ex: http://192.168.0.80:8080">
+      </div>
+      <div class="form-grupo">
+        <label>Ícone <small style="color:var(--cor-texto-fraco)">(classe Font Awesome, ex: fa-server)</small></label>
+        <input type="text" id="servico-icone" placeholder="fa-cogs" oninput="atualizarPreviewServico()">
+      </div>
+      <div class="form-grupo">
+        <label>Descrição</label>
+        <input type="text" id="servico-descricao" placeholder="Breve descrição do serviço">
+      </div>
+      <div class="form-grupo" style="display:flex;align-items:center;gap:10px;margin-bottom:4px">
+        <input type="checkbox" id="servico-nova-aba" style="width:18px;height:18px;cursor:pointer;accent-color:var(--cor-destaque)">
+        <label for="servico-nova-aba" style="margin:0;cursor:pointer">Abrir em nova aba</label>
+      </div>
+      <div style="text-align:center;padding:14px 0;color:var(--cor-destaque)">
+        <i id="preview-servico-icone" class="fas fa-cogs" style="font-size:2rem"></i>
+        <div style="font-size:0.8em;color:var(--cor-texto-fraco);margin-top:4px">Preview do ícone</div>
+      </div>
+    </div>
+    <div class="modal-rodape">
+      <button class="btn btn-sm" onclick="fecharModalServico()" style="width:auto;background:var(--cor-fundo-3);color:var(--cor-texto)">Cancelar</button>
+      <button class="btn btn-primario btn-sm" onclick="salvarServico()" style="width:auto">
+        <i class="fas fa-save"></i> Salvar
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  carregarServicos();
+
+  function atualizarPreviewServico() {
+    const val = document.getElementById('servico-icone').value;
+    document.getElementById('preview-servico-icone').className = `fas ${val || 'fa-cogs'}`;
+  }
+  window.atualizarPreviewServico = atualizarPreviewServico;
+
+  async function carregarServicos() {
+    const tbody = document.getElementById('tbody-servicos');
+    try {
+      const resp  = await fetch('/api/servicos-admin');
+      if (resp.status === 401) { window.location.href = '/login.html'; return; }
+      const dados = await resp.json();
+
+      if (!dados.servicos || dados.servicos.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" class="sem-dados"><i class="fas fa-cogs"></i>Nenhum serviço cadastrado.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = dados.servicos.map(s => `
+        <tr>
+          <td style="text-align:center"><i class="fas ${s.icone}" style="font-size:1.3rem;color:var(--cor-destaque)"></i></td>
+          <td><strong>${s.nome}</strong></td>
+          <td><a href="${s.url}" target="_blank" style="font-size:0.82em">${s.url}</a></td>
+          <td style="color:var(--cor-texto-fraco);font-size:0.88em">${s.descricao || '—'}</td>
+          <td style="text-align:center">${s.nova_aba ? '<i class="fas fa-external-link-alt" title="Abre em nova aba" style="color:var(--cor-destaque);font-size:0.9rem"></i>' : '<span style="opacity:0.3">—</span>'}</td>
+          <td><span class="badge badge-${s.ativo ? 'ativo' : 'inativo'}">${s.ativo ? 'Ativo' : 'Inativo'}</span></td>
+          <td class="col-acoes">
+            <button class="btn-icone editar" title="Editar" onclick='editarServico(${JSON.stringify(s)})'><i class="fas fa-edit"></i></button>
+            <button class="btn-icone ativar" title="${s.ativo ? 'Desativar' : 'Ativar'}" onclick="toggleServico(${s.id}, ${!s.ativo})">
+              <i class="fas fa-${s.ativo ? 'eye-slash' : 'eye'}"></i>
+            </button>
+            <button class="btn-icone excluir" title="Excluir" onclick="excluirServico(${s.id}, '${s.nome}')"><i class="fas fa-trash"></i></button>
+          </td>
+        </tr>
+      `).join('');
+    } catch (e) {
+      tbody.innerHTML = '<tr><td colspan="7" class="sem-dados"><i class="fas fa-exclamation-triangle"></i>Erro ao carregar serviços.</td></tr>';
+    }
+  }
+
+  window.abrirModalServico = function () {
+    document.getElementById('servico-id').value          = '';
+    document.getElementById('servico-nome').value        = '';
+    document.getElementById('servico-url').value         = '';
+    document.getElementById('servico-icone').value       = '';
+    document.getElementById('servico-descricao').value   = '';
+    document.getElementById('servico-nova-aba').checked  = false;
+    document.getElementById('preview-servico-icone').className = 'fas fa-cogs';
+    document.getElementById('modal-servico-titulo').textContent = 'Novo Serviço';
+    document.getElementById('modal-servico').classList.add('visivel');
+  };
+
+  window.editarServico = function (s) {
+    document.getElementById('servico-id').value          = s.id;
+    document.getElementById('servico-nome').value        = s.nome;
+    document.getElementById('servico-url').value         = s.url;
+    document.getElementById('servico-icone').value       = s.icone;
+    document.getElementById('servico-descricao').value   = s.descricao || '';
+    document.getElementById('servico-nova-aba').checked  = !!s.nova_aba;
+    document.getElementById('preview-servico-icone').className = `fas ${s.icone}`;
+    document.getElementById('modal-servico-titulo').textContent = 'Editar Serviço';
+    document.getElementById('modal-servico').classList.add('visivel');
+  };
+
+  window.fecharModalServico = function () {
+    document.getElementById('modal-servico').classList.remove('visivel');
+  };
+
+  window.salvarServico = async function () {
+    const id        = document.getElementById('servico-id').value;
+    const nome      = document.getElementById('servico-nome').value.trim();
+    const url       = document.getElementById('servico-url').value.trim();
+    const icone     = document.getElementById('servico-icone').value.trim() || 'fa-cogs';
+    const descricao = document.getElementById('servico-descricao').value.trim();
+    const nova_aba  = document.getElementById('servico-nova-aba').checked;
+
+    if (!nome) { mostrarAlerta('Informe o nome do serviço.', 'erro'); return; }
+    if (!url)  { mostrarAlerta('Informe a URL do serviço.', 'erro'); return; }
+
+    try {
+      const resp = await fetch(id ? `/api/servicos/${id}` : '/api/servicos', {
+        method: id ? 'PUT' : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nome, url, icone, descricao, nova_aba })
+      });
+      const dados = await resp.json();
+      if (!resp.ok) { mostrarAlerta(dados.erro, 'erro'); return; }
+      fecharModalServico();
+      mostrarAlerta(dados.mensagem, 'sucesso');
+      carregarServicos();
+    } catch (e) {
+      mostrarAlerta('Erro de comunicação.', 'erro');
+    }
+  };
+
+  window.toggleServico = async function (id, ativo) {
+    try {
+      const resp  = await fetch(`/api/servicos/${id}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ativo })
+      });
+      const dados = await resp.json();
+      mostrarAlerta(dados.mensagem || dados.erro, resp.ok ? 'sucesso' : 'erro');
+      if (resp.ok) carregarServicos();
+    } catch (e) {
+      mostrarAlerta('Erro de comunicação.', 'erro');
+    }
+  };
+
+  window.excluirServico = async function (id, nome) {
+    if (!confirm(`Excluir o serviço "${nome}"?\nEsta ação não pode ser desfeita.`)) return;
+    try {
+      const resp  = await fetch(`/api/servicos/${id}`, { method: 'DELETE' });
+      const dados = await resp.json();
+      mostrarAlerta(dados.mensagem || dados.erro, resp.ok ? 'sucesso' : 'erro');
+      if (resp.ok) carregarServicos();
+    } catch (e) {
+      mostrarAlerta('Erro de comunicação.', 'erro');
+    }
+  };
+
+  function mostrarAlerta(msg, classe) {
+    const el = document.getElementById('alerta-servicos');
+    el.className = `alerta alerta-${classe} visivel`;
+    el.textContent = msg;
+    setTimeout(() => el.classList.remove('visivel'), 4000);
+  }
+
+  document.getElementById('modal-servico').addEventListener('click', function (e) {
+    if (e.target === this) fecharModalServico();
+  });
+})();
+</script>

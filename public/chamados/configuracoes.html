@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<!--
+  ARQUIVO: public/chamados/configuracoes.html
+  VERSÃO:  2.0.0
+  DATA:    2026-03-04
+  DESCRIÇÃO: Painel de configurações do sistema de Chamados — design original V7 adaptado
+-->
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⚙️ CONFIGURAÇÕES — Chamados</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/menu.css">
+    <style>
+        /* ===== CONFIGURACOES.CSS (original V7 adaptado) ===== */
+        :root {
+            --bg: #f8fafc; --card: #ffffff; --text: #1e293b;
+            --border: #cbd5e1; --primary: #1e40af; --success: #15803d; --danger: #b91c1c;
+        }
+        body.dark-mode {
+            --bg: #0f172a; --card: #1e293b; --text: #f1f5f9;
+            --border: #475569; --primary: #3b82f6;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { background: var(--bg); color: var(--text); padding: 20px; padding-top: 80px; }
+        .container { max-width: 1200px; margin: auto; }
+        .card { background: var(--card); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        .admin-grid { display: grid; grid-template-columns: 1fr 2fr; gap: 20px; }
+        @media (max-width: 800px) { .admin-grid { grid-template-columns: 1fr; } }
+        input, select { width: 100%; padding: 0.75rem; border-radius: 6px; border: 1px solid var(--border); margin-bottom: 12px; background: var(--bg); color: var(--text); font-size: 0.875rem; }
+        input:focus, select:focus { outline: 2px solid var(--primary); }
+        .btn { padding: 0.8rem 1.2rem; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; color: white; text-transform: uppercase; font-size: 0.75rem; }
+        .table-container { max-height: 400px; overflow-y: auto; border: 1px solid var(--border); border-radius: 6px; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid var(--border); }
+        th { background: rgba(0,0,0,0.05); font-weight: 700; font-size: 0.75rem; text-transform: uppercase; color: #64748b; }
+        .hidden { display: none !important; }
+        .action-btn { background: none; border: 1px solid var(--border); cursor: pointer; padding: 4px 8px; border-radius: 4px; color: var(--text); transition: 0.2s; }
+        .action-btn:hover { border-color: var(--primary); color: var(--primary); }
+        .matrix {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 10px; padding: 15px; background: rgba(0,0,0,0.07);
+            border-radius: 8px; margin-bottom: 15px; max-height: 280px;
+            overflow-y: auto; border: 1px solid var(--border);
+        }
+        .matrix label { display: flex; align-items: center; gap: 10px; font-size: 0.75rem; cursor: pointer; padding: 5px; border-radius: 4px; transition: 0.2s; }
+        .matrix label:hover { background: rgba(37,130,246,0.1); }
+        .matrix input[type="checkbox"] { width: 16px; height: 16px; margin: 0; cursor: pointer; flex-shrink: 0; }
+        .search-box { background: rgba(37,130,246,0.08); border: 1px solid var(--primary) !important; margin-bottom: 15px; font-weight: bold; }
+        .badge-cargo { font-size: 0.7rem; font-weight: 800; padding: 2px 8px; border-radius: 10px; }
+        .badge-ADMIN       { background: rgba(239,68,68,0.15);  color: #ef4444; }
+        .badge-GESTOR      { background: rgba(139,92,246,0.15); color: #8b5cf6; }
+        .badge-TECNICO     { background: rgba(59,130,246,0.15); color: #3b82f6; }
+        .badge-SOLICITANTE { background: rgba(100,116,139,0.15);color: #64748b; }
+        /* ===== INTEGRAÇÃO AD ===== */
+        --ad: #ff9d00;
+        .card-ad { border-color: rgba(255,157,0,0.3); }
+        .card-ad h3 { color: #ff9d00; }
+        #console-ad {
+            padding: 12px 15px; background: #000; border-radius: 8px;
+            font-family: 'Courier New', monospace; font-size: 0.75rem;
+            color: #22c55e; height: 100px; overflow-y: auto;
+            border: 1px solid #334155; white-space: pre-wrap; word-break: break-word;
+            margin-bottom: 15px;
+        }
+        .btn-ad { background: #ff9d00 !important; }
+    </style>
+</head>
+<body class="dark-mode">
+    <div id="menu-container"></div>
+
+    <div class="container">
+        <div style="display:flex; justify-content:space-between; margin-bottom:20px; align-items:center; flex-wrap:wrap; gap:10px;">
+            <h1>⚙️ Painel Central — Chamados</h1>
+            <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                <a href="/chamados/integracao" class="btn" style="background:#ff9d00; color:#0f172a; text-decoration:none; width:auto;">🔌 INTEGRAÇÃO AD</a>
+                <a href="/chamados/telegram" class="btn" style="background:#0088cc; text-decoration:none; width:auto;">🤖 TELEGRAM</a>
+                <a href="/chamados" class="btn" style="background:var(--primary); text-decoration:none; width:auto;">← VOLTAR AOS CHAMADOS</a>
+            </div>
+        </div>
+
+        <div class="admin-grid">
+
+            <!-- ===== SETORES ===== -->
+            <div class="card">
+                <h3 style="margin-bottom:15px;">📁 Setores</h3>
+                <input type="hidden" id="edit_depto_id">
+                <input type="text" id="new_depto_name" placeholder="Ex: TI, RH, Financeiro...">
+                <button onclick="saveDepto()" class="btn" style="background:var(--primary); width:100%;">SALVAR SETOR</button>
+                <div class="table-container" style="margin-top:15px;">
+                    <table>
+                        <tbody id="lista-deptos"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ===== ATRIBUIÇÃO DE PERFIL ===== -->
+            <div class="card">
+                <h3 style="margin-bottom:5px;">👤 Atribuição de Perfil</h3>
+                <p style="font-size:0.7rem; opacity:0.6; margin-bottom:15px;">Defina o cargo de cada usuário no sistema de Chamados. Portal admins são automaticamente ADMIN.</p>
+
+                <select id="u_login_select" onchange="preencherFormUser()">
+                    <option value="">Selecionar usuário do portal...</option>
+                </select>
+
+                <select id="u_cargo" onchange="toggleMatrix()">
+                    <option value="SOLICITANTE">Solicitante — só abre e acompanha</option>
+                    <option value="TECNICO">Técnico — aceita e finaliza chamados</option>
+                    <option value="GESTOR">Gestor — aprova, reabre e gerencia</option>
+                    <option value="ADMIN">Administrador — acesso total</option>
+                </select>
+
+                <div id="matrix-container" class="hidden">
+                    <p style="font-size:0.7rem; font-weight:bold; margin:0 0 10px; color:var(--primary);">SETORES QUE ESTE USUÁRIO ATENDE (deixe em branco para todos):</p>
+                    <div id="matrix-setores" class="matrix"></div>
+                </div>
+
+                <button onclick="saveUser()" class="btn" style="background:var(--success); width:100%;">SALVAR PERFIL</button>
+            </div>
+        </div>
+
+        <!-- ===== TABELA DE USUÁRIOS ===== -->
+        <div class="card">
+            <h3 style="margin-bottom:15px;">📋 Usuários e Perfis Configurados</h3>
+            <input type="text" id="user_search" class="search-box" placeholder="🔍 Pesquisar por nome ou login..." oninput="renderUsuarios()">
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Nome / Login</th>
+                            <th>Nível Portal</th>
+                            <th>Cargo Chamados</th>
+                            <th>Setores Atendidos</th>
+                            <th style="text-align:right">Ação</th>
+                        </tr>
+                    </thead>
+                    <tbody id="lista-usuarios"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ===== USUÁRIOS DO DOMÍNIO (AD) ===== -->
+        <div class="card card-ad">
+            <h3 style="margin-bottom:5px;">🔌 Usuários do Domínio (Active Directory)</h3>
+            <p style="font-size:0.7rem; opacity:0.6; margin-bottom:15px;">
+                Os departamentos dos usuários de domínio do portal são usados para criar setores automaticamente.<br>
+                Para adicionar ou importar usuários do AD, use o <a href="/configuracoes" target="_blank" style="color:#ff9d00;">Painel de Configurações do Portal</a>.
+            </p>
+
+            <div style="display:flex; gap:10px; margin-bottom:15px; flex-wrap:wrap; align-items:center;">
+                <button onclick="sincronizarSetoresDominio()" class="btn btn-ad">
+                    ⚡ SINCRONIZAR SETORES DOS DEPARTAMENTOS
+                </button>
+                <a href="/configuracoes" target="_blank" class="btn" style="background:var(--primary); text-decoration:none; width:auto; display:inline-block;">
+                    🔗 GERENCIAR USUÁRIOS AD
+                </a>
+                <button onclick="document.getElementById('console-ad').innerHTML=''" class="btn" style="background:#334155; width:auto;">
+                    🧹 LIMPAR LOG
+                </button>
+            </div>
+
+            <div id="console-ad">Aguardando comando...</div>
+
+            <input type="text" id="dom_search" placeholder="🔍 Pesquisar por nome, login ou departamento..." oninput="renderDominio()" class="search-box">
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Nome / Login</th>
+                            <th>E-mail</th>
+                            <th>Departamento</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="lista-dominio"></tbody>
+                </table>
+            </div>
+        </div>
+
+    </div><!-- /.container -->
+
+    <script src="/js/menu.js"></script>
+    <script>
+        let todosUsuarios    = [];
+        let todosPerfis      = [];
+        let setores          = [];
+        let usuariosDominio  = [];
+
+        // ── Carregamento ────────────────────────────────────────
+        async function sincronizar() {
+            try {
+                // Verifica permissão de ADMIN
+                const rMe = await fetch('/api/chamados/meu-perfil');
+                if (!rMe.ok) { window.location.href = '/login.html'; return; }
+                const me = await rMe.json();
+                if (me.cargo !== 'ADMIN') { window.location.href = '/chamados'; return; }
+
+                const [rU, rP, rS, rD] = await Promise.all([
+                    fetch('/api/chamados/usuarios-portal'),
+                    fetch('/api/chamados/perfis'),
+                    fetch('/api/chamados/setores'),
+                    fetch('/api/chamados/usuarios-dominio')
+                ]);
+                todosUsuarios   = rU.ok ? await rU.json() : [];
+                todosPerfis     = rP.ok ? await rP.json() : [];
+                setores         = rS.ok ? await rS.json() : [];
+                usuariosDominio = rD.ok ? await rD.json() : [];
+                render();
+                renderDominio();
+            } catch (e) { console.error('Erro ao sincronizar:', e); }
+        }
+
+        function render() {
+            renderSetores();
+            renderSelectUsuarios();
+            renderMatrizSetores();
+            renderUsuarios();
+        }
+
+        function renderSetores() {
+            document.getElementById('lista-deptos').innerHTML = setores.map(d => `
+                <tr>
+                    <td>${escHtml(d.nome)}</td>
+                    <td style="text-align:right">
+                        <button class="action-btn" onclick="prepareEditD(${d.id}, ${JSON.stringify(d.nome)})" title="Editar">✎</button>
+                        <button class="action-btn" onclick="delD(${d.id})" title="Excluir">✖</button>
+                    </td>
+                </tr>`).join('') ||
+                '<tr><td colspan="2" style="text-align:center; opacity:0.5; padding:20px;">Nenhum setor cadastrado</td></tr>';
+        }
+
+        function renderSelectUsuarios() {
+            document.getElementById('u_login_select').innerHTML =
+                '<option value="">Selecionar usuário do portal...</option>' +
+                todosUsuarios.map(u =>
+                    `<option value="${escHtml(u.login)}">${escHtml(u.nome || u.login)} (${escHtml(u.login)})</option>`
+                ).join('');
+        }
+
+        function renderMatrizSetores() {
+            document.getElementById('matrix-setores').innerHTML = setores.map(d =>
+                `<label>
+                    <input type="checkbox" name="perm" value="${escHtml(d.nome)}">
+                    <span>${escHtml(d.nome)}</span>
+                </label>`
+            ).join('');
+        }
+
+        function renderUsuarios() {
+            const search = (document.getElementById('user_search')?.value || '').toLowerCase();
+            const filtrados = todosUsuarios.filter(u =>
+                (u.nome || '').toLowerCase().includes(search) || u.login.toLowerCase().includes(search)
+            );
+            document.getElementById('lista-usuarios').innerHTML = filtrados.map(u => {
+                const perfil       = todosPerfis.find(p => p.login === u.login);
+                const cargo        = perfil?.cargo || 'SOLICITANTE';
+                const setoresTexto = (perfil?.setores || []).join(', ') || '—';
+                return `<tr>
+                    <td>${escHtml(u.nome || u.login)}<br><small style="opacity:0.55">${escHtml(u.login)}</small></td>
+                    <td><small>${escHtml(u.nivel || '—')}</small></td>
+                    <td><span class="badge-cargo badge-${cargo}">${cargo}</span></td>
+                    <td style="font-size:0.75rem; opacity:0.8;">${escHtml(setoresTexto)}</td>
+                    <td style="text-align:right">
+                        <button class="action-btn" onclick="prepareEditU(${JSON.stringify(u.login)})">✎ Editar</button>
+                    </td>
+                </tr>`;
+            }).join('') ||
+                '<tr><td colspan="5" style="text-align:center; opacity:0.5; padding:20px;">Nenhum usuário encontrado</td></tr>';
+        }
+
+        // ── Salvar Setor ─────────────────────────────────────────
+        async function saveDepto() {
+            const id   = document.getElementById('edit_depto_id').value;
+            const nome = document.getElementById('new_depto_name').value.toUpperCase().trim();
+            if (!nome) return;
+
+            const url    = id ? `/api/chamados/setores/${id}` : '/api/chamados/setores';
+            const method = id ? 'PUT' : 'POST';
+            const r = await fetch(url, {
+                method, headers: {'Content-Type':'application/json'},
+                body: JSON.stringify({ nome })
+            });
+            if (!r.ok) { const e = await r.json(); return alert(e.erro || 'Erro ao salvar setor'); }
+            document.getElementById('edit_depto_id').value = '';
+            document.getElementById('new_depto_name').value = '';
+            await sincronizar();
+        }
+
+        // ── Salvar Perfil de Usuário ─────────────────────────────
+        async function saveUser() {
+            const login     = document.getElementById('u_login_select').value;
+            const cargo     = document.getElementById('u_cargo').value;
+            const setoresArr = Array.from(document.querySelectorAll('input[name="perm"]:checked')).map(c => c.value);
+            if (!login) return alert('Selecione um usuário!');
+            const r = await fetch(`/api/chamados/perfis/${encodeURIComponent(login)}`, {
+                method: 'PUT', headers: {'Content-Type':'application/json'},
+                body: JSON.stringify({ cargo, setores: setoresArr })
+            });
+            if (!r.ok) { const e = await r.json(); return alert(e.erro); }
+            resetUserForm();
+            await sincronizar();
+            alert('Perfil salvo com sucesso!');
+        }
+
+        // ── Preencher formulário ao selecionar usuário ───────────
+        function preencherFormUser() {
+            const login = document.getElementById('u_login_select').value;
+            if (!login) return;
+            const perfil = todosPerfis.find(p => p.login === login);
+            document.getElementById('u_cargo').value = perfil?.cargo || 'SOLICITANTE';
+            toggleMatrix();
+            document.querySelectorAll('input[name="perm"]').forEach(c => {
+                c.checked = (perfil?.setores || []).includes(c.value);
+            });
+        }
+
+        function prepareEditD(id, nome) {
+            document.getElementById('edit_depto_id').value = id;
+            document.getElementById('new_depto_name').value = nome;
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function prepareEditU(login) {
+            document.getElementById('u_login_select').value = login;
+            preencherFormUser();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function resetUserForm() {
+            document.getElementById('u_login_select').value = '';
+            document.getElementById('u_cargo').value = 'SOLICITANTE';
+            toggleMatrix();
+            document.querySelectorAll('input[name="perm"]').forEach(c => c.checked = false);
+        }
+
+        async function delD(id) {
+            if (!confirm('Excluir este setor?\nChamados existentes neste setor não serão afetados.')) return;
+            const r = await fetch(`/api/chamados/setores/${id}`, { method: 'DELETE' });
+            if (!r.ok) { const e = await r.json(); return alert(e.erro); }
+            await sincronizar();
+        }
+
+        function toggleMatrix() {
+            const cargo = document.getElementById('u_cargo').value;
+            document.getElementById('matrix-container').classList.toggle('hidden', cargo === 'SOLICITANTE');
+        }
+
+        function escHtml(s) {
+            return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+        }
+
+        // ── Domínio AD ───────────────────────────────────────────
+        function renderDominio() {
+            const search = (document.getElementById('dom_search')?.value || '').toLowerCase();
+            const filtrados = usuariosDominio.filter(u =>
+                (u.nome  || '').toLowerCase().includes(search) ||
+                u.login.toLowerCase().includes(search) ||
+                (u.departamento || '').toLowerCase().includes(search)
+            );
+            document.getElementById('lista-dominio').innerHTML = filtrados.map(u => `
+                <tr>
+                    <td>${escHtml(u.nome || u.login)}<br><small style="opacity:0.55">${escHtml(u.login)}</small></td>
+                    <td style="font-size:0.75rem">${escHtml(u.email || '—')}</td>
+                    <td style="font-size:0.75rem; font-weight:bold;">${escHtml(u.departamento || '—')}</td>
+                    <td><span class="badge-cargo" style="${u.ativo ? 'background:rgba(16,185,129,0.15);color:#10b981' : 'background:rgba(239,68,68,0.15);color:#ef4444'}">${u.ativo ? 'ATIVO' : 'INATIVO'}</span></td>
+                </tr>`
+            ).join('') ||
+                '<tr><td colspan="4" style="text-align:center;opacity:0.5;padding:20px;">Nenhum usuário de domínio cadastrado no portal</td></tr>';
+        }
+
+        function logAD(msg, tipo) {
+            const el = document.getElementById('console-ad');
+            if (!el) return;
+            const cor = tipo === 'error' ? '#f87171' : tipo === 'info' ? '#60a5fa' : '#22c55e';
+            el.innerHTML += `<span style="color:${cor}">[${new Date().toLocaleTimeString()}] > ${msg}</span>\n`;
+            el.scrollTop = el.scrollHeight;
+        }
+
+        async function sincronizarSetoresDominio() {
+            logAD('Iniciando sincronização de setores...', 'info');
+            const r = await fetch('/api/chamados/sincronizar-setores-dominio', { method: 'POST' });
+            if (!r.ok) {
+                const e = await r.json();
+                return logAD('ERRO: ' + (e.erro || 'Falha desconhecida'), 'error');
+            }
+            const data = await r.json();
+            if (data.criados > 0) {
+                logAD(`✅ ${data.criados} setor(es) novo(s) criado(s) de ${data.total} departamento(s) encontrado(s).`);
+            } else {
+                logAD(`ℹ️ Nenhum setor novo. Todos os ${data.total} departamento(s) já existem como setores.`, 'info');
+            }
+            await sincronizar();
+        }
+
+        window.onload = sincronizar;
+    </script>
+</body>
+</html>

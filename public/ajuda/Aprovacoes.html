@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<!--
+  ARQUIVO: public/ajuda/Aprovacoes.html
+  VERSÃO:  1.0.0
+  DATA:    2026-03-24
+  DESCRIÇÃO: Documentação do módulo de Aprovações
+-->
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ajuda — Aprovações</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/menu.css">
+  <style>
+    .doc-layout {
+      display: flex;
+      max-width: 1100px;
+      margin: 32px auto;
+      padding: 0 24px;
+      gap: 32px;
+    }
+    .doc-sidebar { width: 220px; flex-shrink: 0; }
+    .doc-sidebar-sticky {
+      position: sticky;
+      top: calc(var(--altura-menu) + 20px);
+    }
+    .doc-sidebar h4 {
+      font-size: 11px; letter-spacing: 1.4px; text-transform: uppercase;
+      color: var(--cor-texto-fraco); margin-bottom: 12px;
+    }
+    .doc-sidebar a {
+      display: block; padding: 6px 12px; font-size: 13px;
+      color: var(--cor-texto-fraco); border-left: 2px solid var(--cor-borda);
+      text-decoration: none; transition: all .15s;
+    }
+    .doc-sidebar a:hover { color: #8b5cf6; border-left-color: #8b5cf6; }
+    .doc-conteudo { flex: 1; min-width: 0; }
+    .doc-breadcrumb { font-size: 12px; color: var(--cor-texto-fraco); margin-bottom: 24px; }
+    .doc-breadcrumb a { color: var(--cor-destaque); text-decoration: none; }
+    .doc-breadcrumb span { margin: 0 6px; }
+    .doc-titulo {
+      font-size: 26px; font-weight: 700; margin-bottom: 6px;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .doc-titulo i { color: #8b5cf6; }
+    .doc-subtitulo { color: var(--cor-texto-fraco); font-size: 14px; margin-bottom: 36px; }
+    .doc-secao {
+      margin-bottom: 40px;
+      scroll-margin-top: calc(var(--altura-menu) + 16px);
+    }
+    .doc-secao h2 {
+      font-size: 18px; font-weight: 600; margin-bottom: 16px;
+      padding-bottom: 8px; border-bottom: 1px solid var(--cor-borda);
+      display: flex; align-items: center; gap: 10px;
+    }
+    .doc-secao h2 i { color: #8b5cf6; font-size: 16px; }
+    .doc-secao p, .doc-secao li {
+      font-size: 14px; color: var(--cor-texto-fraco); line-height: 1.7; margin-bottom: 8px;
+    }
+    .doc-secao ul, .doc-secao ol { padding-left: 20px; margin-bottom: 12px; }
+    .doc-secao strong { color: var(--cor-texto); }
+    .doc-card {
+      background: var(--cor-fundo-2); border: 1px solid var(--cor-borda);
+      border-radius: 8px; padding: 16px 20px; margin-bottom: 12px;
+    }
+    .doc-card h4 { font-size: 14px; margin-bottom: 6px; color: var(--cor-texto); }
+    .doc-card p { margin: 0; }
+    .doc-info {
+      background: rgba(139,92,246,0.08); border-left: 3px solid #8b5cf6;
+      border-radius: 0 8px 8px 0; padding: 12px 16px; margin-bottom: 16px;
+      font-size: 13px; color: var(--cor-texto-fraco);
+    }
+    .doc-warn {
+      background: rgba(245,158,11,0.08); border-left: 3px solid #f59e0b;
+      border-radius: 0 8px 8px 0; padding: 12px 16px; margin-bottom: 16px;
+      font-size: 13px; color: var(--cor-texto-fraco);
+    }
+    .passo { display: flex; gap: 14px; margin-bottom: 14px; align-items: flex-start; }
+    .passo-num {
+      width: 28px; height: 28px; border-radius: 50%; background: #8b5cf6;
+      color: #fff; font-size: 12px; font-weight: 700;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .passo-txt { font-size: 14px; color: var(--cor-texto-fraco); line-height: 1.6; }
+    .passo-txt strong { color: var(--cor-texto); }
+    .perm-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 16px; }
+    .perm-table th {
+      background: var(--cor-fundo-3); padding: 8px 12px; text-align: left;
+      font-weight: 600; color: var(--cor-texto); border-bottom: 1px solid var(--cor-borda);
+    }
+    .perm-table td { padding: 8px 12px; border-bottom: 1px solid var(--cor-borda); color: var(--cor-texto-fraco); }
+    .sim { color: #10b981; font-weight: 700; }
+    .nao { color: #ef4444; }
+    .badge-status {
+      display: inline-block; padding: 2px 10px; border-radius: 20px;
+      font-size: 11px; font-weight: 700;
+    }
+    .b-pendente  { background: rgba(245,158,11,0.15); color: #f59e0b; }
+    .b-aprovado  { background: rgba(16,185,129,0.15); color: #10b981; }
+    .b-reprovado { background: rgba(239,68,68,0.15);  color: #ef4444; }
+    .b-cancelado { background: rgba(148,163,184,0.2); color: #94a3b8; }
+    .consenso-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 12px 0;
+    }
+    @media (max-width: 700px) {
+      .doc-layout { flex-direction: column; }
+      .doc-sidebar { width: 100%; }
+      .doc-sidebar-sticky { position: static; }
+      .consenso-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div id="menu-container"></div>
+
+  <div class="doc-layout">
+
+    <aside class="doc-sidebar">
+      <div class="doc-sidebar-sticky">
+        <h4>Nesta página</h4>
+        <a href="#visao-geral">Visão Geral</a>
+        <a href="#criar">Criar Solicitação</a>
+        <a href="#consenso">Tipos de Consenso</a>
+        <a href="#aprovar">Aprovar / Reprovar</a>
+        <a href="#editar">Editar Solicitação</a>
+        <a href="#anexos">Anexos</a>
+        <a href="#relatorios">Relatórios</a>
+        <a href="#notificacoes">Notificações</a>
+        <a href="#permissoes">Permissões</a>
+        <a href="#logs">Logs de Auditoria</a>
+        <br>
+        <a href="/ajuda/Ajuda.html" style="color:var(--cor-destaque); font-size:12px; border:none; padding-left:0">
+          ← Voltar à Ajuda
+        </a>
+      </div>
+    </aside>
+
+    <main class="doc-conteudo">
+
+      <div class="doc-breadcrumb">
+        <a href="/ajuda/Ajuda.html">Ajuda</a>
+        <span>›</span> Aprovações
+      </div>
+
+      <div class="doc-titulo">
+        <i class="fas fa-file-signature"></i> Aprovações
+      </div>
+      <div class="doc-subtitulo">
+        Gerencie solicitações de aprovação com múltiplos aprovadores, tipos de consenso configuráveis e acompanhamento em tempo real.
+      </div>
+
+      <!-- VISÃO GERAL -->
+      <section class="doc-secao" id="visao-geral">
+        <h2><i class="fas fa-eye"></i> Visão Geral</h2>
+        <p>O módulo de <strong>Aprovações</strong> permite criar solicitações formais que precisam ser votadas por um ou mais aprovadores antes de serem concluídas. O resultado é calculado automaticamente com base no <strong>tipo de consenso</strong> definido na criação.</p>
+        <p>Cada solicitação passa pelos seguintes status:</p>
+        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px">
+          <span class="badge-status b-pendente">Pendente</span>
+          <span style="color:var(--cor-texto-fraco); align-self:center">→</span>
+          <span class="badge-status b-aprovado">Aprovado</span>
+          <span style="color:var(--cor-texto-fraco); align-self:center">ou</span>
+          <span class="badge-status b-reprovado">Reprovado</span>
+          <span style="color:var(--cor-texto-fraco); align-self:center">ou</span>
+          <span class="badge-status b-cancelado">Cancelado</span>
+        </div>
+        <div class="doc-info">
+          <i class="fas fa-info-circle" style="color:#8b5cf6; margin-right:6px"></i>
+          Acesse o módulo pelo menu <strong>Sistemas → Aprovações</strong> ou diretamente em <strong>/aprovacoes</strong>.
+        </div>
+      </section>
+
+      <!-- CRIAR SOLICITAÇÃO -->
+      <section class="doc-secao" id="criar">
+        <h2><i class="fas fa-plus-circle"></i> Criar Solicitação</h2>
+        <div class="passo"><div class="passo-num">1</div><div class="passo-txt">Clique no botão <strong>+ Nova Solicitação</strong>.</div></div>
+        <div class="passo"><div class="passo-num">2</div><div class="passo-txt">Preencha o <strong>Título</strong> e o <strong>Objetivo / Descrição</strong> da solicitação.</div></div>
+        <div class="passo"><div class="passo-num">3</div><div class="passo-txt">Selecione o <strong>Tipo de Consenso</strong> (unanimidade, maioria simples, maioria qualificada ou quórum mínimo).</div></div>
+        <div class="passo"><div class="passo-num">4</div><div class="passo-txt">Adicione os <strong>aprovadores</strong> pelo seletor de chips — digite o nome ou login para buscar usuários em tempo real e clique para adicionar.</div></div>
+        <div class="passo"><div class="passo-num">5</div><div class="passo-txt">Anexe arquivos se necessário e clique em <strong>Enviar para Aprovação</strong>.</div></div>
+        <div class="doc-info">
+          <i class="fas fa-info-circle" style="color:#8b5cf6; margin-right:6px"></i>
+          Ao enviar, cada aprovador recebe uma <strong>notificação por e-mail</strong> informando que há uma solicitação aguardando sua resposta.
+        </div>
+      </section>
+
+      <!-- TIPOS DE CONSENSO -->
+      <section class="doc-secao" id="consenso">
+        <h2><i class="fas fa-balance-scale"></i> Tipos de Consenso</h2>
+        <p>O tipo de consenso define como o resultado é calculado a partir dos votos dos aprovadores:</p>
+        <div class="consenso-grid">
+          <div class="doc-card">
+            <h4><i class="fas fa-users" style="color:#8b5cf6; margin-right:6px"></i> Unanimidade</h4>
+            <p>Todos os aprovadores precisam votar <strong>Aprovado</strong>. Um único voto reprovado encerra a solicitação como Reprovada.</p>
+          </div>
+          <div class="doc-card">
+            <h4><i class="fas fa-chart-bar" style="color:#3b82f6; margin-right:6px"></i> Maioria Simples</h4>
+            <p>Mais de 50% dos aprovadores precisam votar <strong>Aprovado</strong>. Maioria de Reprovados encerra como Reprovada.</p>
+          </div>
+          <div class="doc-card">
+            <h4><i class="fas fa-chart-pie" style="color:#10b981; margin-right:6px"></i> Maioria Qualificada</h4>
+            <p>Pelo menos <strong>2/3 (67%)</strong> dos aprovadores precisam votar Aprovado para a solicitação ser aprovada.</p>
+          </div>
+          <div class="doc-card">
+            <h4><i class="fas fa-check-double" style="color:#f59e0b; margin-right:6px"></i> Quórum Mínimo</h4>
+            <p>A solicitação é aprovada assim que <strong>qualquer aprovador</strong> votar Aprovado — sem necessidade de unanimidade.</p>
+          </div>
+        </div>
+        <div class="doc-info">
+          <i class="fas fa-info-circle" style="color:#8b5cf6; margin-right:6px"></i>
+          O resultado é calculado automaticamente após cada voto. Quando o resultado já é matematicamente definido (ex: reprovação na unanimidade), a solicitação é encerrada imediatamente.
+        </div>
+      </section>
+
+      <!-- APROVAR / REPROVAR -->
+      <section class="doc-secao" id="aprovar">
+        <h2><i class="fas fa-vote-yea"></i> Aprovar / Reprovar</h2>
+        <p>Aprovadores que receberam uma solicitação podem votar diretamente no painel de aprovações:</p>
+        <div class="passo"><div class="passo-num">1</div><div class="passo-txt">Acesse <strong>/aprovacoes</strong> e localize a solicitação com status <span class="badge-status b-pendente">Pendente</span>.</div></div>
+        <div class="passo"><div class="passo-num">2</div><div class="passo-txt">Clique na solicitação para abrir os detalhes.</div></div>
+        <div class="passo"><div class="passo-num">3</div><div class="passo-txt">Clique em <strong>Aprovar</strong> ou <strong>Reprovar</strong>. Pode adicionar uma observação antes de confirmar.</div></div>
+        <div class="doc-warn">
+          <i class="fas fa-exclamation-triangle" style="color:#f59e0b; margin-right:6px"></i>
+          O voto é <strong>definitivo</strong> — não é possível alterar após confirmar.
+        </div>
+        <p>O status é atualizado em tempo real. O criador da solicitação recebe um e-mail a cada voto registrado.</p>
+      </section>
+
+      <!-- EDITAR SOLICITAÇÃO -->
+      <section class="doc-secao" id="editar">
+        <h2><i class="fas fa-edit"></i> Editar Solicitação</h2>
+        <p>O <strong>criador</strong> da solicitação pode editar enquanto o status ainda é <span class="badge-status b-pendente">Pendente</span>:</p>
+        <ul>
+          <li>Alterar o <strong>título</strong> e o <strong>objetivo</strong></li>
+          <li>Adicionar ou remover <strong>aprovadores</strong> (desde que nenhum tenha votado ainda)</li>
+          <li>Adicionar ou remover <strong>anexos</strong></li>
+        </ul>
+        <div class="doc-warn">
+          <i class="fas fa-exclamation-triangle" style="color:#f59e0b; margin-right:6px"></i>
+          Após qualquer aprovador ter votado, a lista de aprovadores não pode mais ser alterada. Título e objetivo ainda podem ser editados.
+        </div>
+        <p>Para <strong>cancelar</strong> uma solicitação, clique no botão <strong>Cancelar Solicitação</strong> no painel de detalhes. O cancelamento é disponível apenas para o criador enquanto a solicitação estiver Pendente.</p>
+      </section>
+
+      <!-- ANEXOS -->
+      <section class="doc-secao" id="anexos">
+        <h2><i class="fas fa-paperclip"></i> Anexos</h2>
+        <p>É possível anexar arquivos à solicitação no momento da criação ou durante a edição (enquanto Pendente).</p>
+        <ul>
+          <li>Todos os aprovadores e o criador podem <strong>visualizar e baixar</strong> os anexos</li>
+          <li>O criador pode <strong>remover</strong> anexos enquanto a solicitação estiver Pendente</li>
+          <li>Os anexos ficam disponíveis no painel de detalhes da solicitação</li>
+        </ul>
+        <div class="doc-info">
+          <i class="fas fa-info-circle" style="color:#8b5cf6; margin-right:6px"></i>
+          O total de anexos é exibido no card da solicitação na listagem.
+        </div>
+      </section>
+
+      <!-- RELATÓRIOS -->
+      <section class="doc-secao" id="relatorios">
+        <h2><i class="fas fa-chart-bar"></i> Relatórios</h2>
+        <p>Acesse os relatórios clicando em <strong>Relatórios</strong> na barra de ferramentas do módulo. Disponível para todos os usuários autenticados.</p>
+        <div class="doc-card">
+          <h4><i class="fas fa-chart-pie" style="color:#8b5cf6; margin-right:6px"></i> Relatório Resumido</h4>
+          <p>Cards com totais (Total, Pendentes, Aprovadas, Reprovadas, Canceladas, Tempo Médio) e gráficos de distribuição por status e tipo de consenso.</p>
+        </div>
+        <div class="doc-card">
+          <h4><i class="fas fa-list" style="color:#8b5cf6; margin-right:6px"></i> Relatório Detalhado</h4>
+          <p>Tabela completa com todas as solicitações do período, filtros por coluna (título, criador, status, consenso), ordenação e exportação CSV.</p>
+        </div>
+        <p>Use os <strong>filtros de período</strong> (Hoje, Semana, Mês, Trimestre, Ano, Personalizado) e o filtro por <strong>Criador</strong> para segmentar os resultados.</p>
+      </section>
+
+      <!-- NOTIFICAÇÕES -->
+      <section class="doc-secao" id="notificacoes">
+        <h2><i class="fas fa-bell"></i> Notificações</h2>
+        <p>O sistema envia e-mails automáticos nos seguintes eventos (quando configurado em <strong>Configurações → Email SMTP → Aprovações</strong>):</p>
+        <table class="perm-table">
+          <thead>
+            <tr><th>Evento</th><th>Destinatário</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Nova solicitação criada</td><td>Todos os aprovadores</td></tr>
+            <tr><td>Voto registrado (aprovado/reprovado)</td><td>Criador da solicitação</td></tr>
+            <tr><td>Solicitação concluída (aprovada/reprovada)</td><td>Criador + todos os aprovadores</td></tr>
+            <tr><td>Solicitação cancelada</td><td>Todos os aprovadores</td></tr>
+            <tr><td>Solicitação editada</td><td>Aprovadores que ainda não votaram</td></tr>
+          </tbody>
+        </table>
+        <p>Configure os eventos e destinatários em <strong>Configurações → Email (SMTP) → Aprovações</strong>.</p>
+      </section>
+
+      <!-- PERMISSÕES -->
+      <section class="doc-secao" id="permissoes">
+        <h2><i class="fas fa-shield-alt"></i> Permissões</h2>
+        <table class="perm-table">
+          <thead>
+            <tr><th>Ação</th><th>Usuário</th><th>Aprovador</th><th>Criador</th><th>Admin</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Visualizar solicitações</td>         <td class="sim">✓</td><td class="sim">✓</td><td class="sim">✓</td><td class="sim">✓</td></tr>
+            <tr><td>Criar solicitação</td>               <td class="sim">✓</td><td class="sim">✓</td><td class="sim">✓</td><td class="sim">✓</td></tr>
+            <tr><td>Votar (aprovar/reprovar)</td>        <td class="nao">—</td><td class="sim">✓</td><td class="nao">—</td><td class="sim">✓</td></tr>
+            <tr><td>Editar solicitação (Pendente)</td>   <td class="nao">—</td><td class="nao">—</td><td class="sim">✓</td><td class="sim">✓</td></tr>
+            <tr><td>Cancelar solicitação</td>            <td class="nao">—</td><td class="nao">—</td><td class="sim">✓</td><td class="sim">✓</td></tr>
+            <tr><td>Excluir solicitação</td>             <td class="nao">—</td><td class="nao">—</td><td class="nao">—</td><td class="sim">✓</td></tr>
+            <tr><td>Ver relatórios</td>                  <td class="sim">✓</td><td class="sim">✓</td><td class="sim">✓</td><td class="sim">✓</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- LOGS -->
+      <section class="doc-secao" id="logs">
+        <h2><i class="fas fa-history"></i> Logs de Auditoria</h2>
+        <p>Todas as ações no módulo Aprovações são registradas automaticamente.</p>
+        <table class="perm-table">
+          <thead>
+            <tr><th>Ação</th><th>O que é registrado</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Solicitação criada</td><td>Título, tipo de consenso e aprovadores</td></tr>
+            <tr><td>Solicitação editada</td><td>Título da solicitação</td></tr>
+            <tr><td>Voto registrado</td><td>Solicitação, votante e decisão</td></tr>
+            <tr><td>Solicitação concluída</td><td>Resultado final e solicitação</td></tr>
+            <tr><td>Solicitação cancelada</td><td>Título da solicitação</td></tr>
+            <tr><td>Solicitação excluída</td><td>Título da solicitação</td></tr>
+          </tbody>
+        </table>
+        <p>Para consultar os logs, acesse <strong>Configurações → Logs</strong> e filtre por <strong>Sistema: Aprovações</strong>.</p>
+      </section>
+
+    </main>
+  </div>
+
+  <script src="/js/menu.js"></script>
+</body>
+</html>

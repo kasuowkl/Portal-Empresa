@@ -1,0 +1,953 @@
+<!DOCTYPE html>
+<!--
+  ARQUIVO: public/ajuda/Ajuda.html
+  VERSÃO:  1.5.0
+  DATA:    2026-03-10
+  DESCRIÇÃO: Hub central de ajuda e documentação do Portal WKL
+-->
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portal WKL — Ajuda</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/menu.css">
+  <style>
+    .ajuda-hero {
+      background: linear-gradient(135deg, var(--cor-fundo-2), var(--cor-fundo-3));
+      padding: 60px 40px;
+      text-align: center;
+      border-bottom: 1px solid var(--cor-borda);
+    }
+    .ajuda-hero i {
+      font-size: 48px;
+      color: var(--cor-destaque);
+      margin-bottom: 16px;
+    }
+    .ajuda-hero h1 {
+      font-size: 28px;
+      margin-bottom: 8px;
+      color: var(--cor-texto);
+    }
+    .ajuda-hero p {
+      color: var(--cor-texto-fraco);
+      font-size: 15px;
+    }
+    .ajuda-container {
+      max-width: 960px;
+      margin: 40px auto;
+      padding: 0 24px;
+    }
+    .ajuda-secao-titulo {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--cor-texto-fraco);
+      margin-bottom: 20px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--cor-borda);
+    }
+    .ajuda-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 20px;
+      margin-bottom: 48px;
+    }
+    .ajuda-card {
+      background: var(--cor-fundo-2);
+      border: 1px solid var(--cor-borda);
+      border-radius: var(--raio);
+      padding: 28px 24px;
+      text-decoration: none;
+      color: var(--cor-texto);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      transition: border-color .2s, transform .15s, box-shadow .2s;
+      cursor: pointer;
+    }
+    .ajuda-card:hover {
+      border-color: var(--cor-destaque);
+      transform: translateY(-3px);
+      box-shadow: 0 8px 24px rgba(78, 154, 241, 0.15);
+      text-decoration: none;
+      color: var(--cor-texto);
+    }
+    .ajuda-card-icone {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+    }
+    .ajuda-card h3 {
+      font-size: 16px;
+      font-weight: 600;
+    }
+    .ajuda-card p {
+      font-size: 13px;
+      color: var(--cor-texto-fraco);
+      line-height: 1.5;
+    }
+    .ajuda-card .card-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 4px;
+    }
+    .tag {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 20px;
+      background: rgba(78, 154, 241, 0.12);
+      color: var(--cor-destaque);
+      border: 1px solid rgba(78, 154, 241, 0.25);
+    }
+    .ajuda-card .card-seta {
+      margin-top: auto;
+      font-size: 12px;
+      color: var(--cor-destaque);
+      font-weight: 600;
+    }
+    /* cores dos ícones por módulo */
+    .ic-portal    { background: rgba(78,154,241,0.15);  color: #4e9af1; }
+    .ic-tarefas   { background: rgba(139,92,246,0.15);  color: #8b5cf6; }
+    .ic-financ    { background: rgba(16,185,129,0.15);  color: #10b981; }
+    .ic-config    { background: rgba(245,158,11,0.15);  color: #f59e0b; }
+    .ic-chamados  { background: rgba(239,68,68,0.15);   color: #ef4444; }
+    .ic-linux     { background: rgba(234,179,8,0.15);   color: #ca8a04; }
+    .ic-patrim    { background: rgba(245,158,11,0.15);  color: #f59e0b; }
+    .ic-contatos  { background: rgba(120,214,200,0.15); color: #78d6c8; }
+    /* Bloco de novidades */
+    .novidades-bloco {
+      background: var(--cor-fundo-2);
+      border: 1px solid var(--cor-borda);
+      border-left: 3px solid var(--cor-destaque);
+      border-radius: 8px;
+      padding: 20px 24px;
+      margin-bottom: 48px;
+    }
+    .novidades-bloco h3 { font-size: 13px; font-weight: 700; color: var(--cor-destaque); margin-bottom: 14px; text-transform: uppercase; letter-spacing: 1px; }
+    .novidade-item { display: flex; gap: 12px; margin-bottom: 10px; align-items: flex-start; }
+    .novidade-modulo {
+      font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 20px;
+      white-space: nowrap; flex-shrink: 0; margin-top: 2px;
+    }
+    .nm-chamados  { background: rgba(239,68,68,0.15);  color: #ef4444; }
+    .nm-portal    { background: rgba(78,154,241,0.15);  color: #4e9af1; }
+    .nm-manut     { background: rgba(245,158,11,0.15);  color: #f59e0b; }
+    .nm-patrim    { background: rgba(245,158,11,0.15);  color: #f59e0b; }
+    .nm-financ    { background: rgba(16,185,129,0.15);  color: #10b981; }
+    .nm-contatos  { background: rgba(120,214,200,0.15); color: #78d6c8; }
+    .nm-logs      { background: rgba(107,114,128,0.15); color: #9ca3af; }
+    .ic-manut     { background: rgba(245,158,11,0.15);  color: #f59e0b; }
+    .novidade-desc { font-size: 13px; color: var(--cor-texto-fraco); line-height: 1.5; }
+    .novidade-desc strong { color: var(--cor-texto); }
+    .btn-saiba-mais {
+      display: inline-flex; align-items: center; gap: 5px;
+      margin-top: 6px; font-size: 11px; font-weight: 600;
+      color: var(--cor-destaque); background: none; border: none;
+      cursor: pointer; padding: 0; transition: opacity .15s;
+      text-decoration: none;
+    }
+    .btn-saiba-mais:hover { opacity: 0.75; }
+    .btn-saiba-mais i { font-size: 10px; transition: transform .2s; }
+    .btn-saiba-mais.aberto i { transform: rotate(90deg); }
+    /* Collapse */
+    .novidade-detalhe {
+      display: none;
+      margin-top: 10px;
+      background: var(--cor-fundo-3);
+      border: 1px solid var(--cor-borda);
+      border-radius: 8px;
+      padding: 14px 16px;
+      font-size: 13px;
+      color: var(--cor-texto-fraco);
+      line-height: 1.7;
+    }
+    .novidade-detalhe.aberto { display: block; }
+    .novidade-detalhe ul { padding-left: 18px; margin: 6px 0; }
+    .novidade-detalhe li { margin-bottom: 4px; }
+    .novidade-detalhe strong { color: var(--cor-texto); }
+    .novidade-detalhe .det-tag {
+      display: inline-block; font-size: 11px; padding: 2px 8px;
+      border-radius: 20px; margin: 2px 2px 2px 0;
+      background: rgba(78,154,241,0.12); color: var(--cor-destaque);
+      border: 1px solid rgba(78,154,241,0.25);
+    }
+    /* Modal de novidade */
+    #nov-modal-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.65); z-index: 2000;
+      align-items: center; justify-content: center;
+      padding: 20px;
+    }
+    #nov-modal-overlay.visivel { display: flex; }
+    #nov-modal {
+      background: var(--cor-fundo-2); border: 1px solid var(--cor-borda);
+      border-radius: 12px; max-width: 600px; width: 100%;
+      max-height: 80vh; overflow-y: auto;
+    }
+    .nov-modal-header {
+      display: flex; align-items: flex-start; justify-content: space-between;
+      gap: 12px; padding: 20px 24px 14px;
+      border-bottom: 1px solid var(--cor-borda); position: sticky; top: 0;
+      background: var(--cor-fundo-2); z-index: 1;
+    }
+    .nov-modal-header h3 { font-size: 16px; font-weight: 700; color: var(--cor-texto); margin: 0; }
+    .nov-modal-fechar {
+      background: none; border: none; color: var(--cor-texto-fraco);
+      font-size: 18px; cursor: pointer; padding: 0 4px; flex-shrink: 0;
+    }
+    .nov-modal-fechar:hover { color: var(--cor-texto); }
+    .nov-modal-corpo {
+      padding: 20px 24px 24px;
+      font-size: 13.5px; color: var(--cor-texto-fraco); line-height: 1.75;
+    }
+    .nov-modal-corpo h4 {
+      font-size: 13px; font-weight: 700; color: var(--cor-destaque);
+      margin: 18px 0 8px; text-transform: uppercase; letter-spacing: 0.8px;
+    }
+    .nov-modal-corpo h4:first-child { margin-top: 0; }
+    .nov-modal-corpo ul { padding-left: 18px; margin: 6px 0 12px; }
+    .nov-modal-corpo li { margin-bottom: 5px; }
+    .nov-modal-corpo strong { color: var(--cor-texto); }
+    .nov-modal-corpo .tag-list { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
+    .nov-modal-corpo .det-tag {
+      display: inline-block; font-size: 11px; padding: 3px 10px; border-radius: 20px;
+      background: rgba(78,154,241,0.12); color: var(--cor-destaque);
+      border: 1px solid rgba(78,154,241,0.25);
+    }
+    .nov-modal-corpo .det-tag.verde { background: rgba(16,185,129,0.12); color: #10b981; border-color: rgba(16,185,129,0.25); }
+    .nov-modal-corpo .det-tag.laranja { background: rgba(245,158,11,0.12); color: #f59e0b; border-color: rgba(245,158,11,0.25); }
+    .nov-modal-corpo .det-tag.vermelho { background: rgba(239,68,68,0.12); color: #ef4444; border-color: rgba(239,68,68,0.25); }
+    .nov-modal-nota {
+      background: rgba(78,154,241,0.07); border-left: 3px solid var(--cor-destaque);
+      border-radius: 0 6px 6px 0; padding: 10px 14px; margin-top: 14px;
+      font-size: 12.5px;
+    }
+    .nov-modal-aviso {
+      background: rgba(245,158,11,0.08); border-left: 3px solid #f59e0b;
+      border-radius: 0 6px 6px 0; padding: 10px 14px; margin-top: 10px;
+      font-size: 12.5px;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="menu-container"></div>
+
+  <div class="ajuda-hero">
+    <i class="fas fa-life-ring"></i>
+    <h1>Central de Ajuda</h1>
+    <p>Selecione um módulo abaixo para ver a documentação completa.</p>
+  </div>
+
+  <div class="ajuda-container">
+
+    <!-- Modal de detalhes -->
+    <div id="nov-modal-overlay">
+      <div id="nov-modal">
+        <div class="nov-modal-header">
+          <h3 id="nov-modal-titulo"></h3>
+          <button class="nov-modal-fechar" onclick="fecharModal()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="nov-modal-corpo" id="nov-modal-corpo"></div>
+      </div>
+    </div>
+
+    <!-- Bloco de novidades recentes -->
+    <div class="novidades-bloco">
+      <h3>✨ Novidades recentes — mar/2026</h3>
+
+      <div class="novidade-item">
+        <span class="novidade-modulo nm-patrim">Patrimônio</span>
+        <div class="novidade-desc">
+          <strong>Controle de Acesso por Usuário</strong> — administradores definem quem pode <em>visualizar</em> ou <em>editar</em> o módulo de Patrimônio. Usuários sem permissão veem uma mensagem de acesso negado. Gerencie as permissões pelo ícone ⚙️ na tela de patrimônio (admin).
+          <br><button class="btn-saiba-mais" onclick="abrirModal('patrim_acesso')"><i class="fas fa-chevron-right"></i> Saiba mais</button>
+        </div>
+      </div>
+
+      <div class="novidade-item">
+        <span class="novidade-modulo nm-patrim">Patrimônio</span>
+        <div class="novidade-desc">
+          <strong>Categorias e Unidades dinâmicas + Registro Rápido</strong> — adicione e remova opções de Categoria e Tipo/Unidade diretamente na tela com o botão ⚙️. Novo botão <em>Novo Registro</em> na listagem abre o histórico sem precisar entrar no formulário de edição.
+          <br><button class="btn-saiba-mais" onclick="abrirModal('patrim_melhorias')"><i class="fas fa-chevron-right"></i> Saiba mais</button>
+        </div>
+      </div>
+
+      <div class="novidade-item">
+        <span class="novidade-modulo nm-manut">Manutenção</span>
+        <div class="novidade-desc">
+          <strong>Limpeza de Patrimônio</strong> — novo botão <em>Patrimônio</em> na seção de Limpeza de Dados por Sistema, permitindo apagar todos os bens e histórico cadastrados sem afetar outros módulos.
+          <br><button class="btn-saiba-mais" onclick="abrirModal('manutencao')"><i class="fas fa-chevron-right"></i> Ver detalhes de Manutenção</button>
+        </div>
+      </div>
+
+      <div class="novidade-item">
+        <span class="novidade-modulo" style="background:rgba(245,158,11,0.15);color:#f59e0b">Patrimônio</span>
+        <div class="novidade-desc">
+          <strong>Gestão de Patrimônio</strong> — novo módulo para controle completo de bens: cadastro com fotos, histórico de movimentações, geração de termos formais (Entrega, Transferência, Devolução, Descarte…), categorias e unidades configuráveis diretamente na tela.
+          <br><a class="btn-saiba-mais" href="/ajuda/Patrimonio.html"><i class="fas fa-chevron-right"></i> Ver documentação completa</a>
+        </div>
+      </div>
+
+      <div class="novidade-item">
+        <span class="novidade-modulo nm-manut">Portal</span>
+        <div class="novidade-desc">
+          <strong>Aba Manutenção</strong> — nova aba nas Configurações com: Backup/Restore do banco (JSON), Limpeza de dados por sistema com filtro de usuário específico, Transferência de agendas entre usuários e Reset Completo preservando o admin.
+          <br><button class="btn-saiba-mais" onclick="abrirModal('manutencao')"><i class="fas fa-chevron-right"></i> Saiba mais</button>
+        </div>
+      </div>
+
+      <div class="novidade-item">
+        <span class="novidade-modulo nm-portal">Portal</span>
+        <div class="novidade-desc">
+          <strong>Serviços Disponíveis</strong> — nova seção na página inicial do portal exibindo serviços cadastrados em cards. Gerenciamento completo (criar, editar, ativar/desativar) na aba <em>Serviços</em> das Configurações.
+          <br><button class="btn-saiba-mais" onclick="abrirModal('servicos')"><i class="fas fa-chevron-right"></i> Saiba mais</button>
+        </div>
+      </div>
+
+      <div class="novidade-item">
+        <span class="novidade-modulo nm-chamados">Chamados</span>
+        <div class="novidade-desc">
+          <strong>Notificações Telegram</strong> — envio automático para grupos do Telegram por setor a cada mudança de status configurada. Configure em <em>Configurações dos Chamados → 🤖 TELEGRAM</em>.
+          <br><button class="btn-saiba-mais" onclick="abrirModal('telegram')"><i class="fas fa-chevron-right"></i> Saiba mais</button>
+        </div>
+      </div>
+
+      <div class="novidade-item">
+        <span class="novidade-modulo nm-chamados">Chamados</span>
+        <div class="novidade-desc">
+          <strong>Restrição de setor para TECNICO</strong> — técnico só pode finalizar, transferir e solicitar aprovação de chamados do seu próprio setor (ou que esteja atendendo diretamente).
+          <br><button class="btn-saiba-mais" onclick="abrirModal('setor')"><i class="fas fa-chevron-right"></i> Saiba mais</button>
+        </div>
+      </div>
+
+      <div class="novidade-item">
+        <span class="novidade-modulo nm-chamados">Chamados</span>
+        <div class="novidade-desc">
+          <strong>Chamado Vinculado</strong> — crie um chamado em outro setor vinculado ao atual. O chamado pai é bloqueado automaticamente e desbloqueado quando o vínculo é finalizado.
+          <br><button class="btn-saiba-mais" onclick="abrirModal('vinculado')"><i class="fas fa-chevron-right"></i> Saiba mais</button>
+        </div>
+      </div>
+
+      <div class="novidade-item">
+        <span class="novidade-modulo nm-chamados">Chamados</span>
+        <div class="novidade-desc">
+          <strong>Relatórios</strong> — painel completo com filtros por período, setor, técnico e status. Tipos Resumido (cards + gráficos) e Detalhado (tabela paginada + exportação CSV).
+          <br><button class="btn-saiba-mais" onclick="abrirModal('relatorios')"><i class="fas fa-chevron-right"></i> Saiba mais</button>
+        </div>
+      </div>
+
+      <div class="novidade-item">
+        <span class="novidade-modulo nm-chamados">Chamados</span>
+        <div class="novidade-desc">
+          <strong>Exclusão lógica (Soft Delete)</strong> — chamados excluídos são preservados no banco e podem ser consultados nos relatórios com o filtro "Incluir excluídos".
+          <br><button class="btn-saiba-mais" onclick="abrirModal('softdelete')"><i class="fas fa-chevron-right"></i> Saiba mais</button>
+        </div>
+      </div>
+
+      <div class="novidade-item">
+        <span class="novidade-modulo nm-contatos">Contatos</span>
+        <div class="novidade-desc">
+          <strong>Agenda de Contatos</strong> — novo módulo para gerenciar contatos profissionais com campos completos (telefone, e-mail, empresa, redes sociais), listas compartilháveis, exportação CSV e VCF, importação em lote e filtros avançados.
+          <br><a class="btn-saiba-mais" href="/ajuda/Contatos.html"><i class="fas fa-chevron-right"></i> Ver documentação completa</a>
+        </div>
+      </div>
+
+      <div class="novidade-item">
+        <span class="novidade-modulo nm-portal">Email (SMTP)</span>
+        <div class="novidade-desc">
+          <strong>Notificações por e-mail completas</strong> — a aba Email (SMTP) ganhou sub-abas por módulo (Portal, Chamados, Patrimônio, Ag. Tarefas, Financeiro, Contatos). Em cada sub-aba é possível ativar eventos individualmente e escolher destinatários por chips clicáveis.
+          <br><button class="btn-saiba-mais" onclick="abrirModal('email_smtp')"><i class="fas fa-chevron-right"></i> Saiba mais</button>
+        </div>
+      </div>
+
+      <div class="novidade-item">
+        <span class="novidade-modulo nm-financ">Financeiro</span>
+        <div class="novidade-desc">
+          <strong>Lembretes agendados de contas</strong> — dois novos eventos no Financeiro: <em>Lembrar contas do dia</em> e <em>Lembrar contas dos próximos 7 dias</em>, enviados automaticamente às 08:00 todos os dias com a listagem das contas pendentes.
+          <br><button class="btn-saiba-mais" onclick="abrirModal('fin_lembretes')"><i class="fas fa-chevron-right"></i> Saiba mais</button>
+        </div>
+      </div>
+
+      <div class="novidade-item">
+        <span class="novidade-modulo nm-logs">Logs</span>
+        <div class="novidade-desc">
+          <strong>Logs de todos os módulos</strong> — a página de Logs agora registra e exibe ações de todos os sistemas (Chamados, Financeiro, Patrimônio, Agenda, Contatos). Novos filtros: sistema, busca em detalhes, paginação e badges coloridos por módulo/ação.
+          <br><button class="btn-saiba-mais" onclick="abrirModal('logs_melhorias')"><i class="fas fa-chevron-right"></i> Saiba mais</button>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="ajuda-secao-titulo">Módulos do Portal</div>
+
+    <div class="ajuda-grid">
+
+      <a href="/ajuda/Portal.html" class="ajuda-card">
+        <div class="ajuda-card-icone ic-portal">
+          <i class="fas fa-home"></i>
+        </div>
+        <h3>Portal WKL</h3>
+        <p>Login, navegação, sistemas, serviços, configurações e manutenção do banco.</p>
+        <div class="card-tags">
+          <span class="tag">Login</span>
+          <span class="tag">Sistemas</span>
+          <span class="tag">Serviços</span>
+          <span class="tag">Manutenção</span>
+        </div>
+        <span class="card-seta">Ver documentação →</span>
+      </a>
+
+      <a href="/ajuda/AgendaTarefa.html" class="ajuda-card">
+        <div class="ajuda-card-icone ic-tarefas">
+          <i class="fas fa-tasks"></i>
+        </div>
+        <h3>Agenda de Tarefas</h3>
+        <p>Criação de listas, gerenciamento de tarefas, visualização Kanban e compartilhamento.</p>
+        <div class="card-tags">
+          <span class="tag">Listas</span>
+          <span class="tag">Tarefas</span>
+          <span class="tag">Kanban</span>
+          <span class="tag">Compartilhar</span>
+        </div>
+        <span class="card-seta">Ver documentação →</span>
+      </a>
+
+      <a href="/ajuda/AgendaFinanceira.html" class="ajuda-card">
+        <div class="ajuda-card-icone ic-financ">
+          <i class="fas fa-wallet"></i>
+        </div>
+        <h3>Agenda Financeira</h3>
+        <p>Lançamentos, recorrência mensal, categorias, empresas, calendário e auditoria.</p>
+        <div class="card-tags">
+          <span class="tag">Lançamentos</span>
+          <span class="tag">Recorrência</span>
+          <span class="tag">Categorias</span>
+          <span class="tag">Empresas</span>
+        </div>
+        <span class="card-seta">Ver documentação →</span>
+      </a>
+
+      <a href="/ajuda/Chamados.html" class="ajuda-card">
+        <div class="ajuda-card-icone ic-chamados">
+          <i class="fas fa-headset"></i>
+        </div>
+        <h3>Chamados</h3>
+        <p>Abertura, atendimento, aprovações, chamados vinculados, relatórios, TV monitor e integração com Active Directory.</p>
+        <div class="card-tags">
+          <span class="tag">Atendimento</span>
+          <span class="tag">Vinculado</span>
+          <span class="tag">Relatórios</span>
+          <span class="tag">Notificações</span>
+          <span class="tag">TV Monitor</span>
+          <span class="tag">AD</span>
+        </div>
+        <span class="card-seta">Ver documentação →</span>
+      </a>
+
+
+      <a href="/ajuda/Patrimonio.html" class="ajuda-card">
+        <div class="ajuda-card-icone ic-patrim">
+          <i class="fas fa-box-open"></i>
+        </div>
+        <h3>Gestão de Patrimônio</h3>
+        <p>Cadastro de bens, localização, histórico de movimentações, termos formais e categorias configuráveis.</p>
+        <div class="card-tags">
+          <span class="tag">Bens</span>
+          <span class="tag">Histórico</span>
+          <span class="tag">Termos</span>
+          <span class="tag">Ocorrências</span>
+        </div>
+        <span class="card-seta">Ver documentação →</span>
+      </a>
+
+      <a href="/ajuda/Contatos.html" class="ajuda-card">
+        <div class="ajuda-card-icone ic-contatos">
+          <i class="fas fa-address-book"></i>
+        </div>
+        <h3>Agenda de Contatos</h3>
+        <p>Contatos profissionais com listas, compartilhamento, exportação CSV/VCF e importação em lote.</p>
+        <div class="card-tags">
+          <span class="tag">Contatos</span>
+          <span class="tag">Listas</span>
+          <span class="tag">Exportar</span>
+          <span class="tag">Importar</span>
+        </div>
+        <span class="card-seta">Ver documentação →</span>
+      </a>
+
+      <a href="/ajuda/Instalacao.html" class="ajuda-card">
+        <div class="ajuda-card-icone ic-linux">
+          <i class="fab fa-linux"></i>
+        </div>
+        <h3>Instalação Linux</h3>
+        <p>Guia completo para instalar e configurar o Portal WKL em servidores Ubuntu/Debian com PM2, Nginx e SQL Server.</p>
+        <div class="card-tags">
+          <span class="tag">Ubuntu</span>
+          <span class="tag">PM2</span>
+          <span class="tag">Nginx</span>
+          <span class="tag">Node.js</span>
+          <span class="tag">Deploy</span>
+        </div>
+        <span class="card-seta">Ver documentação →</span>
+      </a>
+
+    </div>
+
+    <div class="ajuda-secao-titulo">Acesso rápido aos módulos</div>
+
+    <div style="display:flex; gap:12px; flex-wrap:wrap; margin-bottom:40px">
+      <a href="/portal" style="display:flex; align-items:center; gap:8px; padding:10px 18px; background:var(--cor-fundo-2); border:1px solid var(--cor-borda); border-radius:8px; font-size:13px; color:var(--cor-texto); text-decoration:none">
+        <i class="fas fa-home" style="color:#4e9af1"></i> Portal
+      </a>
+      <a href="/agenda" style="display:flex; align-items:center; gap:8px; padding:10px 18px; background:var(--cor-fundo-2); border:1px solid var(--cor-borda); border-radius:8px; font-size:13px; color:var(--cor-texto); text-decoration:none">
+        <i class="fas fa-tasks" style="color:#8b5cf6"></i> Agenda de Tarefas
+      </a>
+      <a href="/agendaFinanceira" style="display:flex; align-items:center; gap:8px; padding:10px 18px; background:var(--cor-fundo-2); border:1px solid var(--cor-borda); border-radius:8px; font-size:13px; color:var(--cor-texto); text-decoration:none">
+        <i class="fas fa-wallet" style="color:#10b981"></i> Agenda Financeira
+      </a>
+      <a href="/chamados" style="display:flex; align-items:center; gap:8px; padding:10px 18px; background:var(--cor-fundo-2); border:1px solid var(--cor-borda); border-radius:8px; font-size:13px; color:var(--cor-texto); text-decoration:none">
+        <i class="fas fa-headset" style="color:#ef4444"></i> Chamados
+      </a>
+      <a href="/patrimonio" style="display:flex; align-items:center; gap:8px; padding:10px 18px; background:var(--cor-fundo-2); border:1px solid var(--cor-borda); border-radius:8px; font-size:13px; color:var(--cor-texto); text-decoration:none">
+        <i class="fas fa-box-open" style="color:#f59e0b"></i> Patrimônio
+      </a>
+      <a href="/contatos" style="display:flex; align-items:center; gap:8px; padding:10px 18px; background:var(--cor-fundo-2); border:1px solid var(--cor-borda); border-radius:8px; font-size:13px; color:var(--cor-texto); text-decoration:none">
+        <i class="fas fa-address-book" style="color:#78d6c8"></i> Contatos
+      </a>
+    </div>
+
+  </div>
+
+  <script src="/js/menu.js"></script>
+  <script>
+    const CONTEUDO_MODAL = {
+      manutencao: {
+        titulo: '🔧 Aba Manutenção — Portal WKL',
+        corpo: `
+          <h4><i class="fas fa-download" style="color:#4e9af1;margin-right:6px"></i>Backup do Banco</h4>
+          <ul>
+            <li>Exporta <strong>todas as tabelas</strong> do banco (Portal, Chamados, Tarefas, Financeiro) em um único arquivo <strong>.json</strong>.</li>
+            <li>O download inicia automaticamente ao clicar no botão.</li>
+            <li>O nome do arquivo inclui a data: <code>backup_portal_2026-03-06.json</code>.</li>
+            <li>Recomendado antes de qualquer operação de limpeza ou atualização.</li>
+          </ul>
+
+          <h4><i class="fas fa-upload" style="color:#7c3aed;margin-right:6px"></i>Restaurar Banco</h4>
+          <ul>
+            <li>Selecione um arquivo <strong>.json</strong> gerado pelo Backup desta ferramenta.</li>
+            <li>O sistema desabilita as FK constraints temporariamente, apaga os dados atuais e reinserid tudo com os IDs originais.</li>
+            <li>Requer <strong>confirmação antes</strong> de prosseguir. Irreversível.</li>
+          </ul>
+
+          <h4><i class="fas fa-broom" style="color:#10b981;margin-right:6px"></i>Limpeza de Dados por Sistema</h4>
+          <ul>
+            <li>Remove dados operacionais sem apagar usuários, sistemas/serviços ou configurações.</li>
+            <li>Ao clicar em um sistema, um modal permite escolher: <strong>Todos os usuários</strong> ou <strong>Usuário específico</strong>.</li>
+            <li>Sistemas disponíveis:</li>
+          </ul>
+          <div class="tag-list">
+            <span class="det-tag vermelho">Chamados</span>
+            <span class="det-tag laranja">Agenda Tarefas</span>
+            <span class="det-tag verde">Agenda Financeira</span>
+            <span class="det-tag">Logs de Atividade</span>
+            <span class="det-tag laranja">Patrimônio</span>
+            <span class="det-tag vermelho">Limpar Tudo</span>
+          </div>
+
+          <h4><i class="fas fa-exchange-alt" style="color:#3b82f6;margin-right:6px"></i>Transferência de Agendas</h4>
+          <ul>
+            <li>Transfere a <strong>propriedade</strong> das agendas de um usuário para outro.</li>
+            <li>Selecione o usuário <strong>origem</strong> e o <strong>destino</strong> a partir da lista de todos os usuários ativos (locais + domínio).</li>
+            <li>Escolha quais sistemas transferir: <strong>Agenda Tarefas</strong> e/ou <strong>Agenda Financeira</strong>.</li>
+            <li>Útil quando um colaborador sai da empresa.</li>
+          </ul>
+
+          <h4><i class="fas fa-power-off" style="color:#e94560;margin-right:6px"></i>Reset Completo</h4>
+          <ul>
+            <li>Remove <strong>todos os dados operacionais</strong>: chamados, tarefas, financeiro, logs e usuários não-admin.</li>
+            <li><strong>Preservados:</strong> usuário admin (login: <code>admin</code> / senha: <code>admin</code>), sistemas, serviços e configurações.</li>
+            <li>Requer <strong>duas confirmações</strong> consecutivas.</li>
+          </ul>
+          <div class="nov-modal-aviso"><i class="fas fa-exclamation-triangle" style="color:#f59e0b;margin-right:6px"></i>Sempre gere um Backup antes de executar qualquer operação destrutiva.</div>
+        `
+      },
+      servicos: {
+        titulo: '🔗 Serviços Disponíveis — Portal WKL',
+        corpo: `
+          <h4><i class="fas fa-home" style="color:#4e9af1;margin-right:6px"></i>Página Inicial</h4>
+          <ul>
+            <li>Nova seção <strong>"Serviços Disponíveis"</strong> na página inicial do portal, abaixo de "Sistemas".</li>
+            <li>Exibe os serviços em cards com ícone (Font Awesome), nome e descrição — mesmo layout dos sistemas.</li>
+            <li>A seção <strong>só aparece</strong> quando há ao menos um serviço ativo cadastrado.</li>
+            <li>Cada card pode abrir o link na <strong>mesma aba</strong> ou em <strong>nova aba</strong>, conforme configurado.</li>
+          </ul>
+
+          <h4><i class="fas fa-cogs" style="color:#06b6d4;margin-right:6px"></i>Gerenciamento (Admin)</h4>
+          <ul>
+            <li>Acesse em <strong>Configurações → Serviços</strong>.</li>
+            <li>Crie, edite, ative/desative e exclua serviços.</li>
+            <li>Campos disponíveis: <strong>Nome</strong>, <strong>URL</strong>, <strong>Ícone</strong> (classe Font Awesome com preview ao vivo), <strong>Descrição</strong> e <strong>Abrir em nova aba</strong>.</li>
+            <li>Serviços inativos não aparecem na página inicial, mas permanecem cadastrados.</li>
+          </ul>
+          <div class="tag-list">
+            <span class="det-tag">Nome</span>
+            <span class="det-tag">URL</span>
+            <span class="det-tag">Ícone Font Awesome</span>
+            <span class="det-tag">Descrição</span>
+            <span class="det-tag verde">Nova Aba</span>
+            <span class="det-tag laranja">Ativo / Inativo</span>
+          </div>
+          <div class="nov-modal-nota"><i class="fas fa-info-circle" style="color:var(--cor-destaque);margin-right:6px"></i>A diferença entre <strong>Sistemas</strong> e <strong>Serviços</strong> é semântica — use Sistemas para ferramentas principais e Serviços para recursos auxiliares.</div>
+        `
+      },
+      telegram: {
+        titulo: '🤖 Notificações Telegram — Chamados',
+        corpo: `
+          <h4><i class="fab fa-telegram-plane" style="color:#0088cc;margin-right:6px"></i>Como Funciona</h4>
+          <ul>
+            <li>Cada <strong>setor</strong> pode ter um grupo do Telegram associado via <strong>Chat ID</strong>.</li>
+            <li>Quando um chamado muda para um status configurado, uma mensagem é enviada automaticamente ao grupo do setor correspondente.</li>
+            <li>As notificações são <strong>assíncronas</strong> — o sistema não trava se o Telegram estiver indisponível.</li>
+          </ul>
+
+          <h4><i class="fas fa-sliders-h" style="color:#4e9af1;margin-right:6px"></i>Configuração</h4>
+          <ul>
+            <li>Acesse em <strong>Configurações dos Chamados → 🤖 TELEGRAM</strong>.</li>
+            <li>Cole o <strong>Token do Bot</strong> (obtido via @BotFather no Telegram).</li>
+            <li>Marque os <strong>status que geram notificação</strong>.</li>
+            <li>Para cada setor, informe o <strong>Chat ID</strong> do grupo.</li>
+            <li>Clique em <strong>SALVAR CONFIGURAÇÕES</strong> antes de testar.</li>
+          </ul>
+
+          <h4>Status disponíveis para notificação</h4>
+          <div class="tag-list">
+            <span class="det-tag">Aberto</span>
+            <span class="det-tag laranja">Em Atendimento</span>
+            <span class="det-tag">Respondido</span>
+            <span class="det-tag verde">Finalizado</span>
+            <span class="det-tag laranja">Reaberto</span>
+            <span class="det-tag">TRANSFERIDO</span>
+            <span class="det-tag laranja">APROVACAO</span>
+            <span class="det-tag verde">APROVADO</span>
+            <span class="det-tag vermelho">REPROVADO</span>
+          </div>
+
+          <h4><i class="fas fa-broadcast-tower" style="color:#0088cc;margin-right:6px"></i>Funcionalidades Extras</h4>
+          <ul>
+            <li><strong>TESTAR</strong> por setor — envia uma mensagem de teste para confirmar o Chat ID.</li>
+            <li><strong>Broadcast</strong> — envia uma mensagem manual para <em>todos</em> os grupos configurados de uma vez.</li>
+          </ul>
+          <div class="nov-modal-nota"><i class="fas fa-info-circle" style="color:var(--cor-destaque);margin-right:6px"></i>Setores sem Chat ID configurado não recebem notificações. Erros são registrados no log do servidor sem afetar o sistema.</div>
+        `
+      },
+      setor: {
+        titulo: '🔒 Restrição de Setor para TECNICO — Chamados',
+        corpo: `
+          <h4><i class="fas fa-shield-alt" style="color:#4e9af1;margin-right:6px"></i>O que mudou</h4>
+          <p>Técnicos com setores configurados não podem mais realizar certas ações em chamados de outros setores, mesmo que consigam visualizá-los.</p>
+
+          <h4><i class="fas fa-check-circle" style="color:#10b981;margin-right:6px"></i>Regras por ação</h4>
+          <ul>
+            <li><strong>Finalizar chamado:</strong> permitido somente se o chamado for do setor do técnico <em>ou</em> se o próprio técnico estiver como atendedor.</li>
+            <li><strong>Transferir setor:</strong> permitido somente se o chamado for do setor do técnico.</li>
+            <li><strong>Solicitar aprovação:</strong> permitido somente se o chamado for do setor do técnico.</li>
+            <li><strong>Aceitar chamado:</strong> o botão só aparece para chamados do setor do técnico (comportamento já existente).</li>
+          </ul>
+
+          <h4><i class="fas fa-users" style="color:#8b5cf6;margin-right:6px"></i>Quem não tem restrição</h4>
+          <ul>
+            <li><strong>ADMIN</strong> — acesso total, sem limitação de setor.</li>
+            <li><strong>GESTOR</strong> — acesso total nos seus setores, sem restrição para essas ações.</li>
+            <li><strong>TECNICO sem setor configurado</strong> — sem restrição (vê e age em tudo).</li>
+          </ul>
+          <div class="nov-modal-nota"><i class="fas fa-info-circle" style="color:var(--cor-destaque);margin-right:6px"></i>Configure os setores do técnico em <strong>Configurações → Perfis de Usuário</strong>.</div>
+        `
+      },
+      vinculado: {
+        titulo: '🔗 Chamado Vinculado — Chamados',
+        corpo: `
+          <h4><i class="fas fa-link" style="color:#06b6d4;margin-right:6px"></i>Conceito</h4>
+          <p>Quando o atendimento depende de uma ação em <strong>outro setor</strong>, crie um chamado vinculado. O chamado original fica <strong>bloqueado</strong> até que o vínculo seja resolvido.</p>
+
+          <h4><i class="fas fa-list-ol" style="color:#4e9af1;margin-right:6px"></i>Como criar</h4>
+          <ul>
+            <li>Abra o chamado pai → clique em <strong>🛠️ MAIS AÇÕES</strong>.</li>
+            <li>Seção <strong>🔗 Abrir Chamado Vinculado</strong>: selecione o <strong>setor destino</strong> e preencha o assunto.</li>
+            <li>Confirme clicando em <strong>🔗 ABRIR CHAMADO VINCULADO E BLOQUEAR ESTE</strong>.</li>
+          </ul>
+
+          <h4><i class="fas fa-cogs" style="color:#f59e0b;margin-right:6px"></i>Comportamento</h4>
+          <ul>
+            <li>O chamado pai exibe o indicador <strong>🔒 BLOQUEADO</strong> — apenas mensagens são permitidas.</li>
+            <li>O chamado filho recebe um protocolo próprio no setor destino (ex: <code>COM-001</code>).</li>
+            <li>O filho exibe um banner com link para o chamado pai e o <strong>histórico completo do pai</strong> — para contexto do técnico do setor destino.</li>
+            <li>Ao <strong>finalizar o filho</strong>, o pai é desbloqueado automaticamente e o histórico registra a conclusão do vínculo.</li>
+          </ul>
+
+          <h4><i class="fas fa-ban" style="color:#ef4444;margin-right:6px"></i>Restrições</h4>
+          <ul>
+            <li>Não é possível vincular um chamado que já está bloqueado.</li>
+            <li>Não é possível vincular um chamado que já é filho de outro.</li>
+            <li>Não é possível vincular chamados encerrados ou excluídos.</li>
+          </ul>
+        `
+      },
+      relatorios: {
+        titulo: '📊 Relatórios — Chamados',
+        corpo: `
+          <h4><i class="fas fa-filter" style="color:#4e9af1;margin-right:6px"></i>Filtros Disponíveis</h4>
+          <div class="tag-list">
+            <span class="det-tag">Período rápido</span>
+            <span class="det-tag">Datas personalizadas</span>
+            <span class="det-tag">Setor</span>
+            <span class="det-tag">Técnico / Atendente</span>
+            <span class="det-tag">Status (múltiplo)</span>
+            <span class="det-tag laranja">Incluir excluídos</span>
+          </div>
+          <ul style="margin-top:8px">
+            <li><strong>Períodos rápidos:</strong> Hoje, Esta Semana, Este Mês, Trimestre, Este Ano.</li>
+            <li>GESTOR vê apenas os chamados dos seus setores; ADMIN vê tudo.</li>
+          </ul>
+
+          <h4><i class="fas fa-chart-pie" style="color:#3b82f6;margin-right:6px"></i>Tipo Resumido</h4>
+          <ul>
+            <li><strong>Cards de totais:</strong> Total, Abertos, Em Atendimento, Respondidos, Finalizados, Reprovados, Excluídos, Tempo Médio de Resolução.</li>
+            <li><strong>Gráfico de barras CSS</strong> por status (visual, sem biblioteca externa).</li>
+            <li><strong>Tabela por setor</strong> com contagens e taxa de resolução (%).</li>
+            <li><strong>Tabela por técnico</strong> com desempenho individual.</li>
+          </ul>
+
+          <h4><i class="fas fa-list" style="color:#10b981;margin-right:6px"></i>Tipo Detalhado</h4>
+          <ul>
+            <li>Lista todos os chamados paginados em <strong>50 por página</strong>.</li>
+            <li>Colunas: Protocolo, Setor, Assunto, Solicitante, Técnico, Status, Abertura, Fechamento, Duração.</li>
+            <li>Chamados excluídos aparecem com <strong>linha riscada</strong> e badge <em>excluído</em>.</li>
+            <li>Botão <strong>Exportar CSV</strong> — gera arquivo UTF-8 BOM compatível com Excel com todos os campos.</li>
+          </ul>
+          <div class="nov-modal-nota"><i class="fas fa-info-circle" style="color:var(--cor-destaque);margin-right:6px"></i>Acesse em <strong>/chamados/relatorios</strong> ou pelo botão <strong>📊 RELATÓRIOS</strong> na tela principal.</div>
+        `
+      },
+      patrim_acesso: {
+        titulo: '🔐 Controle de Acesso — Patrimônio',
+        corpo: `
+          <h4><i class="fas fa-lock" style="color:#f59e0b;margin-right:6px"></i>Níveis de Permissão</h4>
+          <div class="tag-list">
+            <span class="det-tag laranja">Visualizar</span>
+            <span class="det-tag verde">Editar</span>
+            <span class="det-tag vermelho">Admin (bypass total)</span>
+          </div>
+          <ul style="margin-top:8px">
+            <li><strong>Visualizar:</strong> acesso somente leitura — pode ver a listagem e o histórico, mas não cria, edita ou exclui bens.</li>
+            <li><strong>Editar:</strong> acesso completo — pode cadastrar, editar, excluir bens e registrar ocorrências.</li>
+            <li><strong>Admin:</strong> sempre tem acesso total, independente de estar na tabela de permissões.</li>
+            <li>Usuários sem nenhuma permissão cadastrada recebem mensagem de <strong>acesso negado</strong>.</li>
+          </ul>
+
+          <h4><i class="fas fa-cog" style="color:#4e9af1;margin-right:6px"></i>Gerenciar Permissões (Admin)</h4>
+          <ul>
+            <li>Na tela de Patrimônio, clique no botão <strong>⚙️</strong> (canto superior direito, visível apenas para admin).</li>
+            <li>O modal lista todos os usuários com permissão cadastrada.</li>
+            <li>Para adicionar: digite o login no campo de busca (com autocomplete) e selecione o nível.</li>
+            <li>Para alterar o nível: remova o usuário e adicione novamente com o novo nível.</li>
+            <li>Para remover: clique no ícone de lixeira na linha do usuário.</li>
+          </ul>
+
+          <h4><i class="fas fa-eye" style="color:#6b7280;margin-right:6px"></i>Comportamento na Interface</h4>
+          <ul>
+            <li>Usuário <strong>Visualizar</strong>: botão "Novo Bem" oculto, ações de editar/excluir ocultas, formulário em modo leitura, campo de título exibe "Visualizar Bem".</li>
+            <li>Usuário <strong>Editar</strong>: acesso completo à interface.</li>
+          </ul>
+          <div class="nov-modal-nota"><i class="fas fa-info-circle" style="color:var(--cor-destaque);margin-right:6px"></i>Permissões são independentes por módulo — um usuário pode ter acesso ao Patrimônio e não aos Chamados, por exemplo.</div>
+        `
+      },
+      patrim_melhorias: {
+        titulo: '⚙️ Melhorias no Patrimônio',
+        corpo: `
+          <h4><i class="fas fa-sliders-h" style="color:#f59e0b;margin-right:6px"></i>Categorias e Unidades Dinâmicas</h4>
+          <ul>
+            <li>Os selects de <strong>Categoria</strong> e <strong>Tipo/Unidade</strong> no formulário de bem agora são carregados do banco de dados.</li>
+            <li>Ao lado de cada select, há um botão <strong>⚙️</strong> que abre um painel para gerenciar as opções.</li>
+            <li>No painel: adicione novas opções pelo campo de texto + botão adicionar; exclua opções existentes pelo ícone de lixeira.</li>
+            <li>As alterações ficam disponíveis imediatamente para todos os usuários com acesso editar.</li>
+          </ul>
+          <div class="tag-list">
+            <span class="det-tag laranja">Informática</span>
+            <span class="det-tag">Móveis</span>
+            <span class="det-tag">Veículos</span>
+            <span class="det-tag">Máquinas</span>
+            <span class="det-tag">Ferramentas</span>
+            <span class="det-tag">Outros</span>
+          </div>
+
+          <h4><i class="fas fa-bolt" style="color:#4e9af1;margin-right:6px"></i>Registro Rápido de Ocorrência</h4>
+          <ul>
+            <li>Na listagem de bens, cada linha tem um botão <strong>Novo Registro</strong> (ícone <i class="fas fa-plus"></i>).</li>
+            <li>Ao clicar, o modal de histórico abre diretamente sem precisar entrar no formulário de edição do bem.</li>
+            <li>Após salvar, a listagem é atualizada automaticamente.</li>
+            <li>Tipos de evento que geram <strong>Termo Formal</strong> exibem a opção "Abrir termo após salvar" diretamente no modal.</li>
+          </ul>
+          <div class="nov-modal-nota"><i class="fas fa-info-circle" style="color:var(--cor-destaque);margin-right:6px"></i>O Registro Rápido está disponível apenas para usuários com nível <strong>Editar</strong>.</div>
+        `
+      },
+      email_smtp: {
+        titulo: '📧 Notificações por E-mail (SMTP)',
+        corpo: `
+          <h4><i class="fas fa-envelope" style="color:#f59e0b;margin-right:6px"></i>Visão Geral</h4>
+          <p>O sistema de e-mail foi reestruturado com <strong>sub-abas por módulo</strong>. Cada módulo tem seus próprios eventos configuráveis, com toggle individual e seleção de destinatários por chips clicáveis.</p>
+
+          <h4><i class="fas fa-cog" style="color:#4e9af1;margin-right:6px"></i>Sub-abas disponíveis</h4>
+          <div class="tag-list">
+            <span class="det-tag">Configuração</span>
+            <span class="det-tag">Portal</span>
+            <span class="det-tag vermelho">Chamados</span>
+            <span class="det-tag laranja">Patrimônio</span>
+            <span class="det-tag">Ag. Tarefas</span>
+            <span class="det-tag verde">Financeiro</span>
+            <span class="det-tag">Contatos</span>
+          </div>
+
+          <h4><i class="fas fa-toggle-on" style="color:#10b981;margin-right:6px"></i>Como configurar</h4>
+          <ul>
+            <li>Acesse <strong>Configurações → Email (SMTP) → Configuração</strong> e preencha os dados do servidor (host, porta, usuário, senha, e-mail destino padrão).</li>
+            <li>Ative o toggle <strong>Ativar envio de e-mails</strong> e clique em <strong>Salvar</strong>.</li>
+            <li>Navegue para cada sub-aba (ex: Chamados) e ative os eventos desejados.</li>
+            <li>Clique nos <strong>chips de destinatário</strong> para ativar/desativar quem recebe cada e-mail (chip azul = ativo).</li>
+            <li>Clique em <strong>Salvar</strong> na sub-aba para persistir as configurações.</li>
+          </ul>
+
+          <h4><i class="fas fa-users" style="color:#8b5cf6;margin-right:6px"></i>Tipos de destinatário</h4>
+          <ul>
+            <li><strong>Criado por</strong> — usuário que criou o item (chamado, conta, bem, etc.)</li>
+            <li><strong>Email padrão</strong> — endereço configurado em Configuração SMTP</li>
+            <li><strong>Técnicos do setor</strong> — técnicos vinculados ao setor do chamado</li>
+            <li><strong>Gestores do setor</strong> — gestores vinculados ao setor do chamado</li>
+            <li><strong>Solicitante</strong> — quem abriu o chamado</li>
+            <li><strong>Aprovador</strong> — gestor designado para aprovar o chamado</li>
+            <li><strong>Técnico responsável</strong> — técnico que está atendendo o chamado</li>
+            <li><strong>Administradores</strong> — todos os usuários com nível admin</li>
+          </ul>
+          <div class="nov-modal-nota"><i class="fas fa-info-circle" style="color:var(--cor-destaque);margin-right:6px"></i>Use o botão <strong>Enviar e-mail de teste</strong> na sub-aba Configuração para verificar se as credenciais SMTP estão corretas antes de ativar os eventos.</div>
+        `
+      },
+      fin_lembretes: {
+        titulo: '⏰ Lembretes Agendados — Financeiro',
+        corpo: `
+          <h4><i class="fas fa-clock" style="color:#10b981;margin-right:6px"></i>Como Funciona</h4>
+          <p>Dois novos eventos de notificação são disparados <strong>automaticamente às 08:00</strong> todos os dias pelo servidor:</p>
+          <ul>
+            <li><strong>Lembrar contas do dia</strong> — lista todas as contas que vencem <em>hoje</em> e ainda estão pendentes.</li>
+            <li><strong>Lembrar contas dos próximos 7 dias</strong> — lista todas as contas que vencem nos próximos 7 dias e ainda estão pendentes.</li>
+          </ul>
+          <p>O e-mail contém uma tabela com <strong>descrição, valor, vencimento e categoria</strong> de cada conta.</p>
+
+          <h4><i class="fas fa-cog" style="color:#4e9af1;margin-right:6px"></i>Como Ativar</h4>
+          <ul>
+            <li>Acesse <strong>Configurações → Email (SMTP) → Financeiro</strong>.</li>
+            <li>Seção <strong>Lembretes agendados</strong>: marque os checkboxes desejados.</li>
+            <li>Selecione os destinatários pelos chips (<strong>Criado por</strong>, <strong>Email padrão</strong> ou <strong>Administradores</strong>).</li>
+            <li>Clique em <strong>Salvar</strong>.</li>
+          </ul>
+
+          <h4><i class="fas fa-info-circle" style="color:#f59e0b;margin-right:6px"></i>Observações</h4>
+          <ul>
+            <li>O lembrete <strong>não é enviado</strong> se não houver contas pendentes para o período.</li>
+            <li>O horário de 08:00 é baseado no <strong>relógio do servidor</strong>.</li>
+            <li>Contas com status <strong>pago</strong> são ignoradas.</li>
+          </ul>
+        `
+      },
+      logs_melhorias: {
+        titulo: '📋 Melhorias nos Logs de Atividade',
+        corpo: `
+          <h4><i class="fas fa-layer-group" style="color:#4e9af1;margin-right:6px"></i>Cobertura Completa</h4>
+          <p>Agora <strong>todos os módulos</strong> registram suas ações na página de Logs:</p>
+          <div class="tag-list">
+            <span class="det-tag">Portal (Login/Logout)</span>
+            <span class="det-tag vermelho">Chamados</span>
+            <span class="det-tag verde">Financeiro</span>
+            <span class="det-tag laranja">Patrimônio</span>
+            <span class="det-tag">Ag. Tarefas</span>
+            <span class="det-tag">Contatos</span>
+          </div>
+
+          <h4><i class="fas fa-filter" style="color:#10b981;margin-right:6px"></i>Novos Filtros</h4>
+          <ul>
+            <li><strong>Usuário</strong> — filtra por login (busca parcial)</li>
+            <li><strong>Buscar nos detalhes</strong> — busca livre no texto do evento</li>
+            <li><strong>Ação</strong> — Login, Logout, Criação, Edição, Exclusão</li>
+            <li><strong>Sistema</strong> — filtra por módulo (Portal, Chamados, Financeiro, etc.)</li>
+            <li><strong>Data inicial / Data final</strong> — intervalo de datas</li>
+          </ul>
+
+          <h4><i class="fas fa-palette" style="color:#8b5cf6;margin-right:6px"></i>Visual Aprimorado</h4>
+          <ul>
+            <li>Badges coloridos por <strong>tipo de ação</strong> (verde para Criação, roxo para Edição, vermelho para Exclusão, etc.).</li>
+            <li>Badges coloridos por <strong>sistema</strong> (cada módulo tem sua cor).</li>
+            <li><strong>Paginação</strong> com 100 registros por página e navegação Anterior/Próxima.</li>
+            <li>Contador total de registros encontrados com os filtros aplicados.</li>
+          </ul>
+          <div class="nov-modal-nota"><i class="fas fa-info-circle" style="color:var(--cor-destaque);margin-right:6px"></i>Acesse em <strong>Configurações → Logs</strong>. Disponível apenas para administradores.</div>
+        `
+      },
+      softdelete: {
+        titulo: '🗑️ Exclusão Lógica (Soft Delete) — Chamados',
+        corpo: `
+          <h4><i class="fas fa-eye-slash" style="color:#6b7280;margin-right:6px"></i>Como Funciona</h4>
+          <ul>
+            <li>Ao excluir um chamado, ele <strong>não é removido do banco</strong> — apenas marcado como excluído.</li>
+            <li>O chamado <strong>desaparece da listagem normal</strong> para todos os usuários.</li>
+            <li>O histórico registra <strong>quem excluiu</strong> e quando.</li>
+            <li>Exclusão disponível apenas para <strong>ADMIN</strong>.</li>
+          </ul>
+
+          <h4><i class="fas fa-search" style="color:#4e9af1;margin-right:6px"></i>Consultando Excluídos</h4>
+          <ul>
+            <li>Nos <strong>Relatórios</strong>, marque a opção <strong>"Incluir chamados excluídos"</strong>.</li>
+            <li>No relatório <strong>Detalhado</strong>, chamados excluídos aparecem com linha riscada e badge <em>excluído</em>.</li>
+            <li>O <strong>CSV exportado</strong> também inclui os dados de exclusão (data e responsável).</li>
+            <li>Os totais no <strong>Resumido</strong> incluem um card específico de excluídos.</li>
+          </ul>
+
+          <h4><i class="fas fa-shield-alt" style="color:#10b981;margin-right:6px"></i>Por que Soft Delete?</h4>
+          <ul>
+            <li>Preserva o <strong>histórico completo</strong> de atendimentos para auditoria.</li>
+            <li>Evita perda acidental de dados por exclusão indevida.</li>
+            <li>Permite rastrear quem excluiu e quando, sem perder o conteúdo.</li>
+          </ul>
+          <div class="nov-modal-aviso"><i class="fas fa-exclamation-triangle" style="color:#f59e0b;margin-right:6px"></i>Chamados excluídos logicamente ainda ocupam espaço no banco. Para removê-los definitivamente, use a <strong>Limpeza de Dados</strong> na aba Manutenção.</div>
+        `
+      }
+    };
+
+    window.abrirModal = function (chave) {
+      const info = CONTEUDO_MODAL[chave];
+      if (!info) return;
+      document.getElementById('nov-modal-titulo').textContent = info.titulo;
+      document.getElementById('nov-modal-corpo').innerHTML = info.corpo;
+      document.getElementById('nov-modal-overlay').classList.add('visivel');
+      document.body.style.overflow = 'hidden';
+    };
+
+    window.fecharModal = function () {
+      document.getElementById('nov-modal-overlay').classList.remove('visivel');
+      document.body.style.overflow = '';
+    };
+
+    document.getElementById('nov-modal-overlay').addEventListener('click', function (e) {
+      if (e.target === this) fecharModal();
+    });
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') fecharModal();
+    });
+  </script>
+</body>
+</html>

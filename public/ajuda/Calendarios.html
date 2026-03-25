@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<!--
+  ARQUIVO: public/ajuda/Calendarios.html
+  VERSÃO:  1.0.0
+  DATA:    2026-03-24
+  DESCRIÇÃO: Documentação do módulo Agenda de Calendários
+-->
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ajuda — Calendários</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/menu.css">
+  <style>
+    .doc-layout {
+      display: flex;
+      max-width: 1100px;
+      margin: 32px auto;
+      padding: 0 24px;
+      gap: 32px;
+    }
+    .doc-sidebar { width: 220px; flex-shrink: 0; }
+    .doc-sidebar-sticky {
+      position: sticky;
+      top: calc(var(--altura-menu) + 20px);
+    }
+    .doc-sidebar h4 {
+      font-size: 11px; letter-spacing: 1.4px; text-transform: uppercase;
+      color: var(--cor-texto-fraco); margin-bottom: 12px;
+    }
+    .doc-sidebar a {
+      display: block; padding: 6px 12px; font-size: 13px;
+      color: var(--cor-texto-fraco); border-left: 2px solid var(--cor-borda);
+      text-decoration: none; transition: all .15s;
+    }
+    .doc-sidebar a:hover { color: #3b82f6; border-left-color: #3b82f6; }
+    .doc-conteudo { flex: 1; min-width: 0; }
+    .doc-breadcrumb { font-size: 12px; color: var(--cor-texto-fraco); margin-bottom: 24px; }
+    .doc-breadcrumb a { color: var(--cor-destaque); text-decoration: none; }
+    .doc-breadcrumb span { margin: 0 6px; }
+    .doc-titulo {
+      font-size: 26px; font-weight: 700; margin-bottom: 6px;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .doc-titulo i { color: #3b82f6; }
+    .doc-subtitulo { color: var(--cor-texto-fraco); font-size: 14px; margin-bottom: 36px; }
+    .doc-secao {
+      margin-bottom: 40px;
+      scroll-margin-top: calc(var(--altura-menu) + 16px);
+    }
+    .doc-secao h2 {
+      font-size: 18px; font-weight: 600; margin-bottom: 16px;
+      padding-bottom: 8px; border-bottom: 1px solid var(--cor-borda);
+      display: flex; align-items: center; gap: 10px;
+    }
+    .doc-secao h2 i { color: #3b82f6; font-size: 16px; }
+    .doc-secao p, .doc-secao li {
+      font-size: 14px; color: var(--cor-texto-fraco); line-height: 1.7; margin-bottom: 8px;
+    }
+    .doc-secao ul, .doc-secao ol { padding-left: 20px; margin-bottom: 12px; }
+    .doc-secao strong { color: var(--cor-texto); }
+    .doc-card {
+      background: var(--cor-fundo-2); border: 1px solid var(--cor-borda);
+      border-radius: 8px; padding: 16px 20px; margin-bottom: 12px;
+    }
+    .doc-card h4 { font-size: 14px; margin-bottom: 6px; color: var(--cor-texto); }
+    .doc-card p { margin: 0; }
+    .doc-info {
+      background: rgba(59,130,246,0.08); border-left: 3px solid #3b82f6;
+      border-radius: 0 8px 8px 0; padding: 12px 16px; margin-bottom: 16px;
+      font-size: 13px; color: var(--cor-texto-fraco);
+    }
+    .doc-warn {
+      background: rgba(245,158,11,0.08); border-left: 3px solid #f59e0b;
+      border-radius: 0 8px 8px 0; padding: 12px 16px; margin-bottom: 16px;
+      font-size: 13px; color: var(--cor-texto-fraco);
+    }
+    .passo { display: flex; gap: 14px; margin-bottom: 14px; align-items: flex-start; }
+    .passo-num {
+      width: 28px; height: 28px; border-radius: 50%; background: #3b82f6;
+      color: #fff; font-size: 12px; font-weight: 700;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .passo-txt { font-size: 14px; color: var(--cor-texto-fraco); line-height: 1.6; }
+    .passo-txt strong { color: var(--cor-texto); }
+    .perm-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 16px; }
+    .perm-table th {
+      background: var(--cor-fundo-3); padding: 8px 12px; text-align: left;
+      font-weight: 600; color: var(--cor-texto); border-bottom: 1px solid var(--cor-borda);
+    }
+    .perm-table td { padding: 8px 12px; border-bottom: 1px solid var(--cor-borda); color: var(--cor-texto-fraco); }
+    .sim { color: #10b981; font-weight: 700; }
+    .nao { color: #ef4444; }
+    .caldav-steps {
+      background: var(--cor-fundo-2); border: 1px solid var(--cor-borda);
+      border-radius: 10px; padding: 20px 24px; margin-bottom: 16px;
+    }
+    .caldav-steps h4 { font-size: 14px; font-weight: 700; color: var(--cor-texto); margin-bottom: 14px; }
+    @media (max-width: 700px) {
+      .doc-layout { flex-direction: column; }
+      .doc-sidebar { width: 100%; }
+      .doc-sidebar-sticky { position: static; }
+    }
+  </style>
+</head>
+<body>
+  <div id="menu-container"></div>
+
+  <div class="doc-layout">
+
+    <aside class="doc-sidebar">
+      <div class="doc-sidebar-sticky">
+        <h4>Nesta página</h4>
+        <a href="#visao-geral">Visão Geral</a>
+        <a href="#interface">Interface</a>
+        <a href="#calendarios">Criar Calendários</a>
+        <a href="#eventos">Criar Eventos</a>
+        <a href="#recorrencia">Recorrência</a>
+        <a href="#compartilhar">Compartilhar</a>
+        <a href="#google">Sync Google Calendar</a>
+        <a href="#lembretes">Lembretes</a>
+        <a href="#permissoes">Permissões</a>
+        <a href="#logs">Logs de Auditoria</a>
+        <br>
+        <a href="/ajuda/Ajuda.html" style="color:var(--cor-destaque); font-size:12px; border:none; padding-left:0">
+          ← Voltar à Ajuda
+        </a>
+      </div>
+    </aside>
+
+    <main class="doc-conteudo">
+
+      <div class="doc-breadcrumb">
+        <a href="/ajuda/Ajuda.html">Ajuda</a>
+        <span>›</span> Calendários
+      </div>
+
+      <div class="doc-titulo">
+        <i class="fas fa-calendar-alt"></i> Agenda de Calendários
+      </div>
+      <div class="doc-subtitulo">
+        Organize eventos em múltiplos calendários coloridos, compartilhe com a equipe e sincronize com o Google Calendar via CalDAV.
+      </div>
+
+      <!-- VISÃO GERAL -->
+      <section class="doc-secao" id="visao-geral">
+        <h2><i class="fas fa-eye"></i> Visão Geral</h2>
+        <p>A <strong>Agenda de Calendários</strong> é um organizador de eventos estilo Google Calendar integrado ao Portal WKL. Você pode criar múltiplos calendários com cores distintas, compartilhá-los com outros usuários e sincronizar com o Google Calendar através do protocolo CalDAV.</p>
+        <p>Recursos principais:</p>
+        <ul>
+          <li>Visualização por <strong>Mês, Semana, Dia e Lista</strong></li>
+          <li><strong>Drag & drop</strong> para mover eventos no calendário</li>
+          <li><strong>Redimensionar</strong> eventos arrastando a borda inferior</li>
+          <li>Múltiplos calendários com <strong>cores independentes</strong></li>
+          <li><strong>Eventos recorrentes</strong> (diário, semanal, mensal, anual)</li>
+          <li><strong>Lembretes automáticos</strong> por e-mail</li>
+          <li><strong>Sincronização bidirecional</strong> com Google Calendar via CalDAV</li>
+        </ul>
+        <div class="doc-info">
+          <i class="fas fa-info-circle" style="color:#3b82f6; margin-right:6px"></i>
+          Acesse pelo menu <strong>Calendários</strong> no topo ou diretamente em <strong>/agendaCalendarios</strong>.
+        </div>
+      </section>
+
+      <!-- INTERFACE -->
+      <section class="doc-secao" id="interface">
+        <h2><i class="fas fa-desktop"></i> Interface</h2>
+        <p>A tela é dividida em duas áreas principais:</p>
+        <div class="doc-card">
+          <h4><i class="fas fa-sidebar" style="color:#3b82f6; margin-right:6px"></i> Barra Lateral (esquerda)</h4>
+          <p>Exibe o mini-calendário de navegação, a lista de <strong>Meus Calendários</strong> (com checkbox para mostrar/ocultar cada um), calendários <strong>Compartilhados</strong> e a seção de integração com o <strong>Google Calendar</strong>.</p>
+        </div>
+        <div class="doc-card">
+          <h4><i class="fas fa-calendar" style="color:#3b82f6; margin-right:6px"></i> Área Principal (direita)</h4>
+          <p>Exibe o calendário com os eventos. Use a barra de ferramentas no topo para navegar entre datas (botões ← e →), voltar para Hoje, e alternar entre as visualizações <strong>Mês, Semana, Dia</strong> e <strong>Lista</strong>.</p>
+        </div>
+        <p>Clique em qualquer <strong>data vazia</strong> para criar um novo evento. Clique em um <strong>evento existente</strong> para ver detalhes ou editar.</p>
+      </section>
+
+      <!-- CRIAR CALENDÁRIOS -->
+      <section class="doc-secao" id="calendarios">
+        <h2><i class="fas fa-folder-plus"></i> Criar Calendários</h2>
+        <div class="passo"><div class="passo-num">1</div><div class="passo-txt">Na sidebar, clique em <strong>+ Novo</strong> ao lado de "Meus Calendários".</div></div>
+        <div class="passo"><div class="passo-num">2</div><div class="passo-txt">Informe o <strong>nome</strong>, uma <strong>cor</strong> e uma descrição opcional.</div></div>
+        <div class="passo"><div class="passo-num">3</div><div class="passo-txt">Clique em <strong>Criar</strong>. O calendário aparece imediatamente na sidebar.</div></div>
+
+        <p>Para <strong>editar</strong> um calendário, clique no ícone de lápis ao lado do nome na sidebar.</p>
+        <p>Para <strong>excluir</strong> um calendário, clique no ícone de lixeira. Todos os eventos do calendário serão removidos.</p>
+        <div class="doc-warn">
+          <i class="fas fa-exclamation-triangle" style="color:#f59e0b; margin-right:6px"></i>
+          A exclusão de um calendário remove <strong>todos os eventos</strong> vinculados a ele permanentemente.
+        </div>
+      </section>
+
+      <!-- CRIAR EVENTOS -->
+      <section class="doc-secao" id="eventos">
+        <h2><i class="fas fa-calendar-plus"></i> Criar e Editar Eventos</h2>
+        <p><strong>Criar evento:</strong></p>
+        <div class="passo"><div class="passo-num">1</div><div class="passo-txt">Clique em uma data no calendário ou no botão <strong>+ Novo Evento</strong>.</div></div>
+        <div class="passo"><div class="passo-num">2</div><div class="passo-txt">Preencha o <strong>título</strong>, <strong>data/hora de início e fim</strong>, e selecione o <strong>calendário</strong> de destino.</div></div>
+        <div class="passo"><div class="passo-num">3</div><div class="passo-txt">Opcionalmente, adicione uma <strong>descrição</strong>, marque como <strong>dia inteiro</strong> e configure a <strong>recorrência</strong>.</div></div>
+        <div class="passo"><div class="passo-num">4</div><div class="passo-txt">Clique em <strong>Salvar</strong>. Se o Google Calendar estiver conectado, o evento é sincronizado automaticamente.</div></div>
+
+        <p><strong>Editar evento:</strong> clique no evento no calendário para abrir o painel de detalhes, depois clique em <strong>Editar</strong>.</p>
+        <p><strong>Mover evento:</strong> arraste o evento para outra data/horário (drag & drop). Disponível nas visualizações Semana e Dia.</p>
+        <p><strong>Redimensionar evento:</strong> nas visualizações Semana e Dia, arraste a borda inferior do evento para estender ou reduzir a duração.</p>
+        <p><strong>Excluir evento:</strong> abra o painel de detalhes e clique em <strong>Excluir</strong>.</p>
+      </section>
+
+      <!-- RECORRÊNCIA -->
+      <section class="doc-secao" id="recorrencia">
+        <h2><i class="fas fa-redo"></i> Eventos Recorrentes</h2>
+        <p>Ao criar ou editar um evento, selecione a <strong>recorrência</strong>:</p>
+        <ul>
+          <li><strong>Diária</strong> — repete todos os dias</li>
+          <li><strong>Semanal</strong> — repete toda semana no mesmo dia</li>
+          <li><strong>Mensal</strong> — repete todo mês na mesma data</li>
+          <li><strong>Anual</strong> — repete todo ano na mesma data</li>
+        </ul>
+        <p>Defina opcionalmente uma <strong>data de término</strong> para a recorrência. Se não definida, o evento repete indefinidamente.</p>
+        <div class="doc-info">
+          <i class="fas fa-info-circle" style="color:#3b82f6; margin-right:6px"></i>
+          Ao editar um evento recorrente, você pode escolher alterar apenas <strong>esta ocorrência</strong> ou <strong>todas as ocorrências</strong> futuras.
+        </div>
+      </section>
+
+      <!-- COMPARTILHAR -->
+      <section class="doc-secao" id="compartilhar">
+        <h2><i class="fas fa-user-friends"></i> Compartilhar Calendários</h2>
+        <p>O dono de um calendário pode compartilhá-lo com outros usuários do portal:</p>
+        <div class="passo"><div class="passo-num">1</div><div class="passo-txt">Clique no ícone de compartilhamento ao lado do calendário na sidebar.</div></div>
+        <div class="passo"><div class="passo-num">2</div><div class="passo-txt">Digite o login do usuário, selecione a permissão e clique em <strong>Adicionar</strong>.</div></div>
+        <div class="passo"><div class="passo-num">3</div><div class="passo-txt">O calendário aparecerá na seção <strong>Compartilhados</strong> do outro usuário.</div></div>
+        <table class="perm-table" style="margin-top:12px">
+          <thead>
+            <tr><th>Permissão</th><th>O que pode fazer</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>Edição</strong></td><td>Criar, editar e excluir eventos do calendário</td></tr>
+            <tr><td><strong>Leitura</strong></td><td>Visualizar eventos do calendário</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- GOOGLE CALENDAR -->
+      <section class="doc-secao" id="google">
+        <h2><i class="fab fa-google"></i> Sincronização com Google Calendar</h2>
+        <p>A integração usa o protocolo <strong>CalDAV</strong> com autenticação por <strong>Senha de App</strong> do Google — sem necessidade de OAuth ou Google Cloud Console.</p>
+
+        <div class="caldav-steps">
+          <h4>Configuração (1 vez por usuário)</h4>
+          <div class="passo"><div class="passo-num">1</div><div class="passo-txt">Acesse <strong>myaccount.google.com/apppasswords</strong> com sua conta Google.</div></div>
+          <div class="passo"><div class="passo-num">2</div><div class="passo-txt">Crie uma <strong>Senha de App</strong> para "Calendário" (ou "Outro"). Copie a senha gerada (16 caracteres).</div></div>
+          <div class="passo"><div class="passo-num">3</div><div class="passo-txt">No Portal, na sidebar de Calendários, clique em <strong>Conectar Google Calendar</strong>.</div></div>
+          <div class="passo"><div class="passo-num">4</div><div class="passo-txt">Informe seu <strong>e-mail Google</strong> e a <strong>Senha de App</strong> e clique em <strong>Conectar</strong>.</div></div>
+        </div>
+
+        <div class="doc-warn">
+          <i class="fas fa-exclamation-triangle" style="color:#f59e0b; margin-right:6px"></i>
+          As <strong>Senhas de App</strong> só funcionam com contas Google que têm <strong>verificação em duas etapas ativada</strong>. Caso contrário, a opção não estará disponível no painel do Google.
+        </div>
+
+        <p>Após conectar:</p>
+        <ul>
+          <li>Eventos criados no Portal são <strong>enviados automaticamente</strong> para o Google Calendar</li>
+          <li>A sincronização do Google para o Portal ocorre <strong>a cada 30 minutos</strong> automaticamente</li>
+          <li>Use o botão <strong>Sincronizar Agora</strong> na sidebar para forçar uma sincronização imediata</li>
+          <li>Para desconectar, clique em <strong>Desconectar</strong> na seção Google Calendar da sidebar</li>
+        </ul>
+        <div class="doc-info">
+          <i class="fas fa-info-circle" style="color:#3b82f6; margin-right:6px"></i>
+          A senha de app é armazenada de forma <strong>criptografada</strong> (AES-256) no banco de dados do Portal.
+        </div>
+      </section>
+
+      <!-- LEMBRETES -->
+      <section class="doc-secao" id="lembretes">
+        <h2><i class="fas fa-bell"></i> Lembretes por E-mail</h2>
+        <p>O sistema envia lembretes automáticos por e-mail para eventos próximos. Os lembretes são processados <strong>a cada hora</strong> e enviados para o dono e os membros com edição do calendário.</p>
+        <ul>
+          <li>Eventos nas próximas <strong>24 horas</strong> recebem lembrete automático</li>
+          <li>Cada evento recebe <strong>apenas um lembrete</strong> (não repete)</li>
+        </ul>
+        <p>Configure os eventos de e-mail em <strong>Configurações → Email (SMTP) → Calendários</strong>.</p>
+      </section>
+
+      <!-- PERMISSÕES -->
+      <section class="doc-secao" id="permissoes">
+        <h2><i class="fas fa-shield-alt"></i> Permissões</h2>
+        <table class="perm-table">
+          <thead>
+            <tr><th>Ação</th><th>Leitura</th><th>Edição</th><th>Dono</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Visualizar eventos</td>           <td class="sim">✓</td><td class="sim">✓</td><td class="sim">✓</td></tr>
+            <tr><td>Criar eventos</td>                <td class="nao">—</td><td class="sim">✓</td><td class="sim">✓</td></tr>
+            <tr><td>Editar eventos</td>               <td class="nao">—</td><td class="sim">✓</td><td class="sim">✓</td></tr>
+            <tr><td>Excluir eventos</td>              <td class="nao">—</td><td class="sim">✓</td><td class="sim">✓</td></tr>
+            <tr><td>Editar calendário</td>            <td class="nao">—</td><td class="nao">—</td><td class="sim">✓</td></tr>
+            <tr><td>Excluir calendário</td>           <td class="nao">—</td><td class="nao">—</td><td class="sim">✓</td></tr>
+            <tr><td>Gerenciar membros</td>            <td class="nao">—</td><td class="nao">—</td><td class="sim">✓</td></tr>
+            <tr><td>Configurar CalDAV/Google</td>     <td class="nao">—</td><td class="nao">—</td><td class="sim">✓ (pessoal)</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- LOGS -->
+      <section class="doc-secao" id="logs">
+        <h2><i class="fas fa-history"></i> Logs de Auditoria</h2>
+        <p>Ações registradas automaticamente pelo módulo de Calendários:</p>
+        <table class="perm-table">
+          <thead>
+            <tr><th>Ação</th><th>O que é registrado</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Calendário criado</td><td>Nome e cor do calendário</td></tr>
+            <tr><td>Calendário editado</td><td>Nome do calendário</td></tr>
+            <tr><td>Calendário excluído</td><td>Nome do calendário</td></tr>
+            <tr><td>Evento criado</td><td>Título, calendário e data</td></tr>
+            <tr><td>Evento editado</td><td>Título e calendário</td></tr>
+            <tr><td>Evento excluído</td><td>Título e calendário</td></tr>
+            <tr><td>Google conectado</td><td>E-mail configurado</td></tr>
+            <tr><td>Google desconectado</td><td>—</td></tr>
+            <tr><td>Sincronização executada</td><td>Número de eventos importados</td></tr>
+          </tbody>
+        </table>
+        <p>Para consultar os logs, acesse <strong>Configurações → Logs</strong> e filtre por <strong>Sistema: Calendários</strong>.</p>
+      </section>
+
+    </main>
+  </div>
+
+  <script src="/js/menu.js"></script>
+</body>
+</html>

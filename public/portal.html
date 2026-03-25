@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<!--
+  ARQUIVO: public/portal.html
+  VERSÃO:  1.0.0
+  DATA:    2026-03-02
+  DESCRIÇÃO: Página principal do Portal — exibe sistemas disponíveis
+
+  HISTÓRICO:
+  1.0.0 - 2026-03-02 - Versão inicial
+-->
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portal WKL — Sistemas</title>
+
+  <!-- Ícones Font Awesome (via CDN) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <!-- Estilos -->
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/menu.css">
+</head>
+<body>
+
+  <!-- O menu será injetado aqui automaticamente pelo menu.js -->
+  <div id="menu-container"></div>
+
+  <!-- Conteúdo principal -->
+  <div class="container">
+
+    <!-- Saudação ao usuário -->
+    <div id="saudacao">
+      <div class="pagina-titulo" id="titulo-boas-vindas">Bem-vindo ao Portal</div>
+      <div class="pagina-subtitulo">Selecione um sistema para acessar</div>
+    </div>
+
+    <!-- Seção de Sistemas -->
+    <div class="card">
+      <div class="card-titulo">
+        <i class="fas fa-th-large"></i> Sistemas Disponíveis
+      </div>
+
+      <!-- Mensagem enquanto carrega -->
+      <div id="carregando-sistemas" style="color: var(--cor-texto-fraco); padding: 20px 0;">
+        <i class="fas fa-spinner fa-spin"></i> Carregando sistemas...
+      </div>
+
+      <!-- Mensagem de erro ao carregar -->
+      <div id="erro-sistemas" class="alerta alerta-erro" style="display:none;">
+        <i class="fas fa-exclamation-circle"></i>
+        Não foi possível carregar os sistemas.
+      </div>
+
+      <!-- Grade de sistemas (preenchida pelo JS) -->
+      <div class="grid-sistemas" id="grade-sistemas"></div>
+    </div>
+
+    <!-- Seção de Serviços -->
+    <div class="card" id="secao-servicos" style="display:none">
+      <div class="card-titulo">
+        <i class="fas fa-cogs"></i> Serviços Disponíveis
+      </div>
+
+      <div id="carregando-servicos" style="color: var(--cor-texto-fraco); padding: 20px 0;">
+        <i class="fas fa-spinner fa-spin"></i> Carregando serviços...
+      </div>
+
+      <div id="erro-servicos" class="alerta alerta-erro" style="display:none;">
+        <i class="fas fa-exclamation-circle"></i>
+        Não foi possível carregar os serviços.
+      </div>
+
+      <div class="grid-sistemas" id="grade-servicos"></div>
+    </div>
+
+    <!-- Rodapé -->
+    <div class="rodape">
+      Portal WKL &copy; 2026 &mdash; Sistemas e Serviços
+    </div>
+
+  </div>
+
+  <!-- Menu compartilhado (carrega e preenche #menu-container) -->
+  <script src="/js/menu.js"></script>
+
+  <script>
+    // --------------------------------------------------------
+    // CARREGA OS SISTEMAS E SERVIÇOS AO ABRIR A PÁGINA
+    // --------------------------------------------------------
+    document.addEventListener('DOMContentLoaded', function () {
+      carregarSistemas();
+      carregarServicos();
+    });
+
+    async function carregarSistemas() {
+      const grade      = document.getElementById('grade-sistemas');
+      const carregando = document.getElementById('carregando-sistemas');
+      const erroDiv    = document.getElementById('erro-sistemas');
+
+      try {
+        const resposta = await fetch('/sistemas');
+
+        // Sessão expirada
+        if (resposta.status === 401) {
+          window.location.href = '/login.html';
+          return;
+        }
+
+        const dados = await resposta.json();
+
+        // Esconde o indicador de carregando
+        carregando.style.display = 'none';
+
+        if (!dados.sistemas || dados.sistemas.length === 0) {
+          grade.innerHTML = `
+            <div style="color: var(--cor-texto-fraco); padding: 20px 0; grid-column: 1/-1;">
+              <i class="fas fa-info-circle"></i>
+              Nenhum sistema cadastrado ainda.
+            </div>`;
+          return;
+        }
+
+        // Monta um card para cada sistema
+        dados.sistemas.forEach(function (sistema) {
+          const card = document.createElement('a');
+          card.href      = sistema.url;
+          card.target    = sistema.nova_aba ? '_blank' : '_self';
+          card.className = 'sistema-card';
+          card.title     = sistema.descricao || sistema.nome;
+
+          card.innerHTML = `
+            <i class="fas ${sistema.icone || 'fa-window-maximize'}"></i>
+            <strong>${sistema.nome}</strong>
+            <small>${sistema.descricao || ''}</small>
+          `;
+
+          grade.appendChild(card);
+        });
+
+      } catch (erro) {
+        carregando.style.display = 'none';
+        erroDiv.style.display    = 'block';
+        console.error('Erro ao carregar sistemas:', erro);
+      }
+    }
+
+    async function carregarServicos() {
+      const secao      = document.getElementById('secao-servicos');
+      const grade      = document.getElementById('grade-servicos');
+      const carregando = document.getElementById('carregando-servicos');
+      const erroDiv    = document.getElementById('erro-servicos');
+
+      try {
+        const resposta = await fetch('/servicos');
+        if (resposta.status === 401) { window.location.href = '/login.html'; return; }
+
+        const dados = await resposta.json();
+        carregando.style.display = 'none';
+
+        if (!dados.servicos || dados.servicos.length === 0) {
+          // Nenhum serviço cadastrado — mantém a seção oculta
+          return;
+        }
+
+        secao.style.display = 'block';
+
+        dados.servicos.forEach(function (servico) {
+          const card = document.createElement('a');
+          card.href      = servico.url;
+          card.target    = servico.nova_aba ? '_blank' : '_self';
+          card.className = 'sistema-card';
+          card.title     = servico.descricao || servico.nome;
+
+          card.innerHTML = `
+            <i class="fas ${servico.icone || 'fa-cogs'}"></i>
+            <strong>${servico.nome}</strong>
+            <small>${servico.descricao || ''}</small>
+          `;
+
+          grade.appendChild(card);
+        });
+
+      } catch (erro) {
+        carregando.style.display = 'none';
+        erroDiv.style.display    = 'block';
+        console.error('Erro ao carregar serviços:', erro);
+      }
+    }
+
+    // --------------------------------------------------------
+    // ATUALIZA A SAUDAÇÃO COM O NOME DO USUÁRIO
+    // O menu.js já busca /sessao, mas pode demorar um momento.
+    // Aguarda o usuário ser carregado e então atualiza o título.
+    // --------------------------------------------------------
+    function atualizarSaudacao() {
+      if (window.usuarioLogado) {
+        const primeiroNome = window.usuarioLogado.nome.split(' ')[0];
+        const hora         = new Date().getHours();
+        let saudacao       = 'Bom dia';
+        if (hora >= 12 && hora < 18) saudacao = 'Boa tarde';
+        if (hora >= 18)              saudacao = 'Boa noite';
+
+        document.getElementById('titulo-boas-vindas').textContent =
+          saudacao + ', ' + primeiroNome + '!';
+      } else {
+        // Tenta novamente após o menu terminar de carregar
+        setTimeout(atualizarSaudacao, 300);
+      }
+    }
+
+    // Inicia verificação da saudação após breve espera
+    setTimeout(atualizarSaudacao, 400);
+  </script>
+
+</body>
+</html>
