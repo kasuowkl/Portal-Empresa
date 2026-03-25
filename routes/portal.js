@@ -19,6 +19,7 @@ const ad             = require('../lib/ad');
 const verificarLogin        = require('../middleware/verificarLogin');
 const { enviarNotificacao, enviarEmailTeste } = require('../services/emailService');
 const { enviarLembreteHoje, enviarLembrete7Dias, enviarLembreteLancamento, enviarContasVencidas } = require('../services/cronFinanceiro');
+const { registrarLog } = require('../services/logService');
 const router                = express.Router();
 
 // ============================================================
@@ -1368,6 +1369,7 @@ router.get('/api/manutencao/backup', verificarLogin, verificarAdmin, async (req,
     }
 
     logAtividade.info(`Backup do banco realizado — por: "${admin}"`);
+    registrarLog(pool, { usuario: admin, ip: req.ip, acao: 'MANUTENCAO', sistema: 'portal', detalhes: 'Backup do banco realizado' });
 
     const nomeArquivo = `backup_portal_${new Date().toISOString().slice(0,10)}.json`;
     res.setHeader('Content-Disposition', `attachment; filename="${nomeArquivo}"`);
@@ -1452,6 +1454,7 @@ router.post('/api/manutencao/restore', verificarLogin, verificarAdmin, async (re
 
     await transaction.commit();
     logAtividade.info(`Restore do banco realizado — por: "${admin}"`);
+    registrarLog(pool, { usuario: admin, ip: req.ip, acao: 'MANUTENCAO', sistema: 'portal', detalhes: 'Restore do banco realizado' });
     res.json({ sucesso: true, mensagem: 'Banco restaurado com sucesso.' });
 
   } catch (erro) {
@@ -1552,6 +1555,7 @@ router.post('/api/manutencao/limpar', verificarLogin, verificarAdmin, async (req
 
     const label = u ? ` do usuário "${u}"` : '';
     logAtividade.info(`Limpeza de dados — sistema: "${sistema}"${label} — por: "${admin}"`);
+    registrarLog(pool, { usuario: admin, ip: req.ip, acao: 'MANUTENCAO', sistema: 'portal', detalhes: `Limpeza de dados: "${sistema}"${label}` });
     res.json({ sucesso: true, mensagem: `Dados de "${sistema}"${label} removidos com sucesso.` });
   } catch (erro) {
     logErro.error(`Erro ao limpar dados (${sistema}): ${erro.message}`);
@@ -1609,6 +1613,7 @@ router.post('/api/manutencao/transferir', verificarLogin, verificarAdmin, async 
     }
 
     logAtividade.info(`Transferência de agendas: "${origem}" → "${destino}" — por: "${admin}"`);
+    registrarLog(pool, { usuario: admin, ip: req.ip, acao: 'MANUTENCAO', sistema: 'portal', detalhes: `Transferência de agendas: "${origem}" → "${destino}"` });
     res.json({ sucesso: true, mensagem: 'Transferência concluída. ' + transferidos.join(' | ') });
   } catch (erro) {
     logErro.error(`Erro na transferência: ${erro.message}`);
@@ -1672,6 +1677,7 @@ router.post('/api/manutencao/reset', verificarLogin, verificarAdmin, async (req,
     }
 
     logAtividade.info(`Reset completo do portal — por: "${admin}"`);
+    registrarLog(pool, { usuario: admin, ip: req.ip, acao: 'MANUTENCAO', sistema: 'portal', detalhes: 'Reset completo do portal realizado' });
     res.json({ sucesso: true, mensagem: 'Portal resetado. Apenas o usuário admin foi preservado.' });
   } catch (erro) {
     logErro.error(`Erro no reset: ${erro.message}`);

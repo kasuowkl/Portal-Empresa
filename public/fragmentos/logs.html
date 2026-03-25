@@ -80,7 +80,10 @@
 .log-acao-badge.CRIACAO  { background:#1a2a3a; color:#4e9af1; }
 .log-acao-badge.EDICAO   { background:#2a1a3a; color:#ab5cf7; }
 .log-acao-badge.EXCLUSAO { background:#3a1a1a; color:#e94560; }
-.log-acao-badge.ACESSO   { background:#1a2a2a; color:#78d6c8; }
+.log-acao-badge.ACESSO        { background:#1a2a2a; color:#78d6c8; }
+.log-acao-badge.MANUTENCAO    { background:#2a1f10; color:#f59e0b; }
+.log-acao-badge.SINCRONIZACAO { background:#1a2a2a; color:#06b6d4; }
+.log-acao-badge.EMAIL         { background:#1a2a1a; color:#4caf50; }
 
 .log-sistema-badge {
   display: inline-flex; align-items: center; gap: 4px;
@@ -93,7 +96,9 @@
 .log-sistema-badge.financeiro { color: #4caf50; }
 .log-sistema-badge.patrimonio { color: #ff9800; }
 .log-sistema-badge.agenda     { color: #ab5cf7; }
-.log-sistema-badge.contatos   { color: #78d6c8; }
+.log-sistema-badge.contatos    { color: #78d6c8; }
+.log-sistema-badge.calendarios { color: #4e9af1; }
+.log-sistema-badge.aprovacoes  { color: #10b981; }
 
 .log-detalhes { color: var(--cor-texto); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .log-ip       { color: var(--cor-texto-fraco); font-size: .72rem; text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -139,6 +144,9 @@
     <option value="CRIACAO">Criação</option>
     <option value="EDICAO">Edição</option>
     <option value="EXCLUSAO">Exclusão</option>
+    <option value="MANUTENCAO">Manutenção</option>
+    <option value="SINCRONIZACAO">Sincronização</option>
+    <option value="EMAIL">Email</option>
   </select>
   <select class="filtro-sistema" id="filtro-sistema" onchange="carregarLogs(1)">
     <option value="todos">Todos os sistemas</option>
@@ -148,6 +156,8 @@
     <option value="patrimonio">📦 Patrimônio</option>
     <option value="agenda">✅ Ag. Tarefas</option>
     <option value="contatos">📒 Contatos</option>
+    <option value="aprovacoes">✔ Aprovações</option>
+    <option value="calendarios">📅 Calendários</option>
   </select>
   <input class="filtro-data" type="date" id="filtro-de"  onchange="carregarLogs(1)" title="Data inicial">
   <input class="filtro-data" type="date" id="filtro-ate" onchange="carregarLogs(1)" title="Data final">
@@ -181,20 +191,25 @@
 <script>
 (function () {
   const ICONES_SISTEMA = {
-    portal: '<i class="fas fa-key"></i>',
-    chamados: '<i class="fas fa-ticket-alt"></i>',
-    financeiro: '<i class="fas fa-dollar-sign"></i>',
-    patrimonio: '<i class="fas fa-boxes"></i>',
-    agenda: '<i class="fas fa-check-square"></i>',
-    contatos: '<i class="fas fa-address-book"></i>',
+    portal:      '<i class="fas fa-key"></i>',
+    chamados:    '<i class="fas fa-ticket-alt"></i>',
+    financeiro:  '<i class="fas fa-dollar-sign"></i>',
+    patrimonio:  '<i class="fas fa-boxes"></i>',
+    agenda:      '<i class="fas fa-check-square"></i>',
+    contatos:    '<i class="fas fa-address-book"></i>',
+    aprovacoes:  '<i class="fas fa-check-circle"></i>',
+    calendarios: '<i class="fas fa-calendar-alt"></i>',
   };
   const ICONES_ACAO = {
-    LOGIN:    '<i class="fas fa-sign-in-alt"></i>',
-    LOGOUT:   '<i class="fas fa-sign-out-alt"></i>',
-    CRIACAO:  '<i class="fas fa-plus-circle"></i>',
-    EDICAO:   '<i class="fas fa-edit"></i>',
-    EXCLUSAO: '<i class="fas fa-trash-alt"></i>',
-    ACESSO:   '<i class="fas fa-eye"></i>',
+    LOGIN:         '<i class="fas fa-sign-in-alt"></i>',
+    LOGOUT:        '<i class="fas fa-sign-out-alt"></i>',
+    CRIACAO:       '<i class="fas fa-plus-circle"></i>',
+    EDICAO:        '<i class="fas fa-edit"></i>',
+    EXCLUSAO:      '<i class="fas fa-trash-alt"></i>',
+    ACESSO:        '<i class="fas fa-eye"></i>',
+    MANUTENCAO:    '<i class="fas fa-tools"></i>',
+    SINCRONIZACAO: '<i class="fas fa-sync-alt"></i>',
+    EMAIL:         '<i class="fas fa-envelope"></i>',
   };
 
   let paginaAtual = 1;

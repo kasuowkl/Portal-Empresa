@@ -687,6 +687,7 @@ router.get('/api/chamados/relatorios', verificarLogin, async (req, res) => {
           SUM(CASE WHEN c.status = 'Respondido'      THEN 1 ELSE 0 END)   AS total_respondidos,
           SUM(CASE WHEN c.status = 'Finalizado'      THEN 1 ELSE 0 END)   AS total_finalizados,
           SUM(CASE WHEN c.status = 'REPROVADO'       THEN 1 ELSE 0 END)   AS total_reprovados,
+          SUM(CASE WHEN c.status = 'APROVADO'        THEN 1 ELSE 0 END)   AS total_aprovados,
           SUM(CASE WHEN c.status = 'APROVACAO'       THEN 1 ELSE 0 END)   AS total_aprovacao,
           SUM(CASE WHEN ISNULL(c.excluido,0)=1       THEN 1 ELSE 0 END)   AS total_excluidos,
           AVG(CASE WHEN c.status = 'Finalizado'

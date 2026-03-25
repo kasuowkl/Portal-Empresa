@@ -10,6 +10,7 @@ const sql = require('mssql');
 const path = require('path');
 const verificarLogin = require('../middleware/verificarLogin');
 const caldavService = require('../services/caldavService');
+const { registrarLog } = require('../services/logService');
 const router = express.Router();
 
 // ============================================================
@@ -92,6 +93,7 @@ router.post('/api/calendarios/agendas', verificarLogin, async (req, res) => {
         VALUES (@nome, @descricao, @cor, @dono)
       `);
     const agenda = { ...result.recordset[0], permissao: 'dono' };
+    registrarLog(pool, { usuario, ip: req.ip, acao: 'CRIACAO', sistema: 'calendarios', detalhes: `Calendário criado: "${nome.trim()}"` });
 
     // Criar calendário no Google (fire-and-forget)
     caldavService.criarCalendarioGoogle(usuario, pool, nome.trim(), cor || '#3b82f6').then(async (resultGoogle) => {
@@ -136,6 +138,7 @@ router.patch('/api/calendarios/agendas/:id', verificarLogin, async (req, res) =>
         SET nome = @nome, descricao = @descricao, cor = @cor
         WHERE id = @id
       `);
+    registrarLog(pool, { usuario, ip: req.ip, acao: 'EDICAO', sistema: 'calendarios', detalhes: `Calendário #${id} editado` });
     res.json({ sucesso: true });
   } catch (erro) {
     console.error('[Calendarios] Erro ao editar agenda:', erro.message);
@@ -164,6 +167,7 @@ router.delete('/api/calendarios/agendas/:id', verificarLogin, async (req, res) =
         DELETE FROM cal_membros WHERE agenda_id = @id;
         DELETE FROM cal_agendas WHERE id = @id;
       `);
+    registrarLog(pool, { usuario, ip: req.ip, acao: 'EXCLUSAO', sistema: 'calendarios', detalhes: `Calendário #${id} excluído` });
     res.json({ sucesso: true });
   } catch (erro) {
     console.error('[Calendarios] Erro ao deletar agenda:', erro.message);
@@ -242,6 +246,7 @@ router.post('/api/calendarios/eventos', verificarLogin, async (req, res) => {
       `);
 
     const evento = result.recordset[0];
+    registrarLog(pool, { usuario, ip: req.ip, acao: 'CRIACAO', sistema: 'calendarios', detalhes: `Evento criado: "${titulo?.trim() || 'Sem título'}"` });
 
     // Buscar google_cal_path da agenda
     const agendaInfo = await pool.request()
@@ -307,6 +312,8 @@ router.patch('/api/calendarios/eventos/:id', verificarLogin, async (req, res) =>
         WHERE id = @id
       `);
 
+    registrarLog(pool, { usuario, ip: req.ip, acao: 'EDICAO', sistema: 'calendarios', detalhes: `Evento #${id} editado: "${titulo?.trim()}"` });
+
     // Sincronizar com Google (fire-and-forget com catch)
     caldavService.editarEventoGoogle(usuario, pool, { id, titulo, inicio, fim })
       .catch(err => console.error('[Calendarios] Erro sync Google (editar):', err.message));
@@ -344,6 +351,7 @@ router.delete('/api/calendarios/eventos/:id', verificarLogin, async (req, res) =
     await pool.request()
       .input('id', sql.Int, id)
       .query('DELETE FROM cal_eventos WHERE id = @id');
+    registrarLog(pool, { usuario, ip: req.ip, acao: 'EXCLUSAO', sistema: 'calendarios', detalhes: `Evento #${id} excluído` });
 
     // Sincronizar com Google (fire-and-forget com catch)
     if (uid_caldav) {
@@ -401,6 +409,7 @@ router.post('/api/calendarios/caldav/configurar', verificarLogin, async (req, re
     }
 
     const resultado = await caldavService.salvarConfiguracaoCaldav(pool, usuario, email_google, senha_app);
+    registrarLog(pool, { usuario, ip: req.ip, acao: 'EDICAO', sistema: 'calendarios', detalhes: `Google Calendar configurado: ${email_google}` });
     res.json(resultado);
   } catch (erro) {
     console.error('[Calendarios] Erro ao configurar CalDAV:', erro.message);
@@ -416,6 +425,7 @@ router.post('/api/calendarios/caldav/sincronizar', verificarLogin, async (req, r
 
   try {
     const resultado = await caldavService.sincronizarDoGoogle(usuario, pool, agenda_ids);
+    registrarLog(pool, { usuario, ip: req.ip, acao: 'SINCRONIZACAO', sistema: 'calendarios', detalhes: 'Sincronização com Google Calendar realizada' });
     res.json(resultado);
   } catch (erro) {
     console.error('[Calendarios] Erro ao sincronizar:', erro.message);
@@ -435,6 +445,7 @@ router.post('/api/calendarios/ical/sincronizar', verificarLogin, async (req, res
 
   try {
     const resultado = await caldavService.sincronizarViaIcal(usuario, pool, url, nome, cor);
+    registrarLog(pool, { usuario, ip: req.ip, acao: 'SINCRONIZACAO', sistema: 'calendarios', detalhes: `Sincronização iCal: "${nome || url}"` });
     res.json(resultado);
   } catch (erro) {
     console.error('[Calendarios] Erro ao sincronizar iCal:', erro.message);
@@ -449,6 +460,7 @@ router.delete('/api/calendarios/caldav/desconectar', verificarLogin, async (req,
 
   try {
     const resultado = await caldavService.desconectarCaldav(pool, usuario);
+    registrarLog(pool, { usuario, ip: req.ip, acao: 'EXCLUSAO', sistema: 'calendarios', detalhes: 'Google Calendar desconectado' });
     res.json(resultado);
   } catch (erro) {
     res.status(500).json({ erro: 'Erro ao desconectar.' });

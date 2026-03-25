@@ -127,6 +127,7 @@ router.put('/api/agenda/listas/:id', verificarLogin, async (req, res) => {
       .input('descricao', sql.VarChar, (descricao || '').trim())
       .input('cor',       sql.VarChar, cor || '#3b82f6')
       .query('UPDATE agenda_listas SET nome=@nome, descricao=@descricao, cor=@cor WHERE id=@id');
+    registrarLog(pool, { usuario, ip: req.ip, acao: 'EDICAO', sistema: 'agenda', detalhes: `Lista #${id} editada: "${nome.trim()}"` });
     res.json({ sucesso: true, mensagem: 'Lista atualizada.' });
   } catch (erro) {
     logErro.error(`Erro ao editar lista: ${erro.message}`);
@@ -240,6 +241,7 @@ router.post('/api/agenda/listas/:id/membros', verificarLogin, async (req, res) =
       }
     })();
 
+    registrarLog(pool, { usuario, ip: req.ip, acao: 'EDICAO', sistema: 'agenda', detalhes: `Membro "${novo}" adicionado/atualizado na lista #${id}` });
     res.json({ sucesso: true, mensagem: 'Membro adicionado.' });
   } catch (erro) {
     logErro.error(`Erro ao adicionar membro: ${erro.message}`);
@@ -265,6 +267,7 @@ router.delete('/api/agenda/listas/:id/membros/:membro', verificarLogin, async (r
       .input('lista_id', sql.Int,     id)
       .input('usuario',  sql.VarChar, membro)
       .query('DELETE FROM agenda_membros WHERE lista_id=@lista_id AND usuario=@usuario');
+    registrarLog(pool, { usuario, ip: req.ip, acao: 'EXCLUSAO', sistema: 'agenda', detalhes: `Membro "${membro}" removido da lista #${id}` });
     res.json({ sucesso: true, mensagem: 'Membro removido.' });
   } catch (erro) {
     logErro.error(`Erro ao remover membro: ${erro.message}`);
@@ -379,6 +382,7 @@ router.put('/api/agenda/tarefas/:id', verificarLogin, async (req, res) => {
                   prioridade=@prioridade, status=@status, categoria_id=@categoria_id,
                   atualizado_em=GETDATE()
               WHERE id=@id`);
+    registrarLog(pool, { usuario, ip: req.ip, acao: 'EDICAO', sistema: 'agenda', detalhes: `Tarefa #${id} editada: "${titulo.trim()}"` });
     res.json({ sucesso: true, mensagem: 'Tarefa atualizada.' });
   } catch (erro) {
     logErro.error(`Erro ao editar tarefa: ${erro.message}`);

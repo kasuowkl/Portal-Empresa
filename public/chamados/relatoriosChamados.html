@@ -128,8 +128,9 @@
         .c-atend   .val { color: #3b82f6; }
         .c-resp    .val { color: var(--amber); }
         .c-final   .val { color: var(--green); }
-        .c-reprov  .val { color: #ef4444; opacity: 0.7; }
-        .c-tempo   .val { color: var(--cyan); font-size: 1.4rem; }
+        .c-reprov   .val { color: #ef4444; opacity: 0.7; }
+        .c-aprovado .val { color: #10b981; }
+        .c-tempo    .val { color: var(--cyan); font-size: 1.4rem; }
         .c-excluido .val { color: #64748b; }
         .c-excluido { opacity: 0.75; }
 
@@ -215,7 +216,7 @@
     <!-- Cabeçalho -->
     <div class="page-header">
         <h1><i class="fas fa-chart-bar"></i> Relatórios de Chamados</h1>
-        <a href="/chamados" class="btn-voltar"><i class="fas fa-arrow-left"></i> Voltar</a>
+        <a href="/chamados" class="btn-voltar"><i class="fas fa-arrow-left"></i> Chamados</a>
     </div>
 
     <!-- Filtros -->
@@ -454,10 +455,6 @@
                 <div class="val">${r.total_em_atendimento || 0}</div>
                 <div class="lbl">Em Atendimento</div>
             </div>
-            <div class="card-stat c-resp">
-                <div class="val">${r.total_respondidos || 0}</div>
-                <div class="lbl">Respondidos</div>
-            </div>
             <div class="card-stat c-final">
                 <div class="val">${r.total_finalizados || 0}</div>
                 <div class="lbl">Finalizados</div>
@@ -467,11 +464,14 @@
                 <div class="val">${r.total_reprovados || 0}</div>
                 <div class="lbl">Reprovados</div>
             </div>
-            ${(r.total_excluidos > 0) ? `
+            <div class="card-stat c-aprovado">
+                <div class="val">${r.total_aprovados || 0}</div>
+                <div class="lbl">Aprovados</div>
+            </div>
             <div class="card-stat c-excluido">
-                <div class="val">${r.total_excluidos}</div>
+                <div class="val">${r.total_excluidos || 0}</div>
                 <div class="lbl">Excluídos</div>
-            </div>` : ''}
+            </div>
             <div class="card-stat c-tempo">
                 <div class="val">${tempoFmt}</div>
                 <div class="lbl">Tempo Médio Resolução</div>

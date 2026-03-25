@@ -7,6 +7,7 @@
  */
 
 const nodemailer = require('nodemailer');
+const { registrarLog } = require('./logService');
 
 // ============================================================
 // TRANSPORTER — lê configuração do banco (com fallback p/ .env)
@@ -649,11 +650,32 @@ async function enviarNotificacao(pool, tipo, dados) {
     if (info.response) {
       console.log(`[EMAIL SERVICE] Resposta SMTP: ${info.response}`);
     }
+
+    const sistemaLog = tipo.split('.')[0];
+    const destinatariosStr = Array.from(destinatariosSet).join(', ');
+    registrarLog(pool, {
+      usuario: dados.usuario || 'sistema',
+      ip: null,
+      acao: 'EMAIL',
+      sistema: sistemaLog,
+      detalhes: `Email enviado [${tipo}] → ${destinatariosStr}`
+    });
+
     return true;
 
   } catch (err) {
     console.error(`❌ [EMAIL SERVICE] FALHA ao enviar "${tipo}": ${err.message}`);
     console.error(`[EMAIL SERVICE] Stack: ${err.stack}`);
+
+    const sistemaLog = tipo.split('.')[0];
+    registrarLog(pool, {
+      usuario: dados.usuario || 'sistema',
+      ip: null,
+      acao: 'EMAIL',
+      sistema: sistemaLog,
+      detalhes: `FALHA ao enviar email [${tipo}]: ${err.message}`
+    });
+
     return false;
   }
 }
@@ -708,6 +730,13 @@ async function enviarEmailTeste(pool, usuario, destinoOverride) {
   });
 
   console.log(`[Email] Teste enviado: ${info.messageId}`);
+  registrarLog(pool, {
+    usuario,
+    ip: null,
+    acao: 'EMAIL',
+    sistema: 'portal',
+    detalhes: `Email de teste enviado → ${destino}`
+  });
   return info;
 }
 
