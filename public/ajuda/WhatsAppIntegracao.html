@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<!--
+  ARQUIVO: public/ajuda/WhatsAppIntegracao.html
+  VERSÃO:  1.0.0
+  DATA:    2026-03-26
+  DESCRIÇÃO: Documentação técnica — como a integração WhatsApp foi construída
+             e como integrar novos sistemas/módulos ao bot.
+-->
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ajuda — Integração WhatsApp: Guia Técnico</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/menu.css">
+  <style>
+    .doc-layout {
+      display: flex;
+      max-width: 1140px;
+      margin: 32px auto;
+      padding: 0 24px;
+      gap: 32px;
+    }
+    .doc-sidebar { width: 230px; flex-shrink: 0; }
+    .doc-sidebar-sticky {
+      position: sticky;
+      top: calc(var(--altura-menu) + 20px);
+    }
+    .doc-sidebar h4 {
+      font-size: 11px; letter-spacing: 1.4px; text-transform: uppercase;
+      color: var(--cor-texto-fraco); margin-bottom: 12px;
+    }
+    .doc-sidebar a {
+      display: block; padding: 6px 12px; font-size: 13px;
+      color: var(--cor-texto-fraco); border-left: 2px solid var(--cor-borda);
+      text-decoration: none; transition: all .15s;
+    }
+    .doc-sidebar a:hover { color: #00a884; border-left-color: #00a884; }
+    .doc-sidebar .nav-group { margin-top: 16px; }
+    .doc-conteudo { flex: 1; min-width: 0; }
+    .doc-breadcrumb { font-size: 12px; color: var(--cor-texto-fraco); margin-bottom: 24px; }
+    .doc-breadcrumb a { color: var(--cor-destaque); text-decoration: none; }
+    .doc-breadcrumb span { margin: 0 6px; }
+    .doc-titulo {
+      font-size: 26px; font-weight: 700; margin-bottom: 6px;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .doc-titulo i { color: #00a884; }
+    .doc-subtitulo { color: var(--cor-texto-fraco); font-size: 14px; margin-bottom: 36px; }
+
+    /* Seção */
+    .doc-secao {
+      margin-bottom: 44px;
+      scroll-margin-top: calc(var(--altura-menu) + 16px);
+    }
+    .doc-secao h2 {
+      font-size: 18px; font-weight: 600; margin-bottom: 16px;
+      padding-bottom: 8px; border-bottom: 1px solid var(--cor-borda);
+      display: flex; align-items: center; gap: 10px;
+    }
+    .doc-secao h2 i { color: #00a884; font-size: 16px; }
+    .doc-secao h3 {
+      font-size: 15px; font-weight: 600; color: var(--cor-texto);
+      margin: 22px 0 10px; display: flex; align-items: center; gap: 8px;
+    }
+    .doc-secao h3 i { color: #00a884; font-size: 13px; }
+    .doc-secao p, .doc-secao li {
+      font-size: 14px; color: var(--cor-texto-fraco); line-height: 1.75; margin-bottom: 8px;
+    }
+    .doc-secao ul, .doc-secao ol { padding-left: 20px; margin-bottom: 12px; }
+    .doc-secao strong { color: var(--cor-texto); }
+
+    /* Alertas */
+    .doc-info {
+      background: rgba(0,168,132,0.08); border-left: 3px solid #00a884;
+      border-radius: 0 8px 8px 0; padding: 12px 16px; margin: 14px 0;
+      font-size: 13px; color: var(--cor-texto-fraco);
+    }
+    .doc-warn {
+      background: rgba(245,158,11,0.08); border-left: 3px solid #f59e0b;
+      border-radius: 0 8px 8px 0; padding: 12px 16px; margin: 14px 0;
+      font-size: 13px; color: var(--cor-texto-fraco);
+    }
+    .doc-tip {
+      background: rgba(99,102,241,0.08); border-left: 3px solid #6366f1;
+      border-radius: 0 8px 8px 0; padding: 12px 16px; margin: 14px 0;
+      font-size: 13px; color: var(--cor-texto-fraco);
+    }
+
+    /* Código */
+    pre {
+      background: #0d1117;
+      border: 1px solid var(--cor-borda);
+      border-radius: 8px;
+      padding: 16px 20px;
+      overflow-x: auto;
+      font-size: 13px;
+      line-height: 1.6;
+      margin: 12px 0 18px;
+      color: #e6edf3;
+    }
+    pre .c  { color: #8b949e; }   /* comentário */
+    pre .k  { color: #ff7b72; }   /* keyword */
+    pre .s  { color: #a5d6ff; }   /* string */
+    pre .f  { color: #d2a8ff; }   /* função */
+    pre .v  { color: #79c0ff; }   /* variável */
+    pre .n  { color: #ffa657; }   /* número/chave */
+    code {
+      background: var(--cor-fundo-3); color: #f59e0b;
+      padding: 1px 6px; border-radius: 4px;
+      font-size: 12px; font-family: monospace;
+    }
+
+    /* Fluxo */
+    .fluxo { display: flex; flex-direction: column; gap: 0; margin: 16px 0; }
+    .fluxo-item {
+      display: flex; gap: 14px; align-items: flex-start;
+    }
+    .fluxo-left {
+      display: flex; flex-direction: column; align-items: center; width: 32px; flex-shrink: 0;
+    }
+    .fluxo-circulo {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: #00a884; color: #fff;
+      font-size: 13px; font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .fluxo-linha {
+      width: 2px; flex: 1; background: var(--cor-borda); min-height: 20px;
+    }
+    .fluxo-body {
+      flex: 1; padding: 4px 0 20px;
+    }
+    .fluxo-body strong { color: var(--cor-texto); font-size: 14px; display: block; margin-bottom: 4px; }
+    .fluxo-body p { font-size: 13px; color: var(--cor-texto-fraco); margin: 0; line-height: 1.6; }
+    .fluxo-body code { font-size: 11px; }
+
+    /* Arquivo referência */
+    .arquivo-ref {
+      background: var(--cor-fundo-2); border: 1px solid var(--cor-borda);
+      border-radius: 8px; padding: 10px 16px; margin: 8px 0;
+      display: flex; align-items: center; gap: 10px; font-size: 13px;
+    }
+    .arquivo-ref i { color: #f59e0b; }
+    .arquivo-ref .path { font-family: monospace; color: var(--cor-texto); }
+    .arquivo-ref .desc { color: var(--cor-texto-fraco); font-size: 12px; }
+
+    /* Tabela */
+    .doc-table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 12px 0 20px; }
+    .doc-table th {
+      background: var(--cor-fundo-3); padding: 8px 12px; text-align: left;
+      font-weight: 600; color: var(--cor-texto); border-bottom: 1px solid var(--cor-borda);
+    }
+    .doc-table td { padding: 8px 12px; border-bottom: 1px solid var(--cor-borda); color: var(--cor-texto-fraco); vertical-align: top; }
+    .doc-table td:first-child { font-family: monospace; color: #f59e0b; white-space: nowrap; }
+    .doc-table tr:last-child td { border-bottom: none; }
+    .doc-table tr:hover td { background: var(--cor-fundo-3); }
+
+    /* Badge */
+    .badge {
+      display: inline-block; padding: 2px 8px; border-radius: 20px;
+      font-size: 11px; font-weight: 700;
+    }
+    .b-portal  { background: rgba(99,102,241,0.15); color: #818cf8; }
+    .b-bot     { background: rgba(245,158,11,0.15);  color: #f59e0b; }
+    .b-wa      { background: rgba(0,168,132,0.15);   color: #00a884; }
+    .b-novo    { background: rgba(239,68,68,0.15);   color: #f87171; }
+
+    @media (max-width: 700px) {
+      .doc-layout { flex-direction: column; }
+      .doc-sidebar { width: 100%; }
+      .doc-sidebar-sticky { position: static; }
+    }
+  </style>
+</head>
+<body>
+  <div id="menu-container"></div>
+
+  <div class="doc-layout">
+
+    <aside class="doc-sidebar">
+      <div class="doc-sidebar-sticky">
+        <h4>Como foi feito</h4>
+        <a href="#visao-tecnica">Visão técnica</a>
+        <a href="#autenticacao-impl">Autenticação (impl.)</a>
+        <a href="#middleware">Middleware Portal</a>
+        <a href="#endpoint-lookup">Endpoint por número</a>
+        <a href="#fluxo-aprovacoes">Fluxo de aprovações</a>
+        <a href="#arquivos-chave">Arquivos alterados</a>
+
+        <div class="nav-group">
+          <h4>Como integrar outro sistema</h4>
+          <a href="#passo-a-passo">Passo a passo</a>
+          <a href="#portal-api">1. Expor API no Portal</a>
+          <a href="#portal-api-fn">2. Criar função em portalApi.js</a>
+          <a href="#handler-cmd">3. Adicionar comando no bot</a>
+          <a href="#exemplo-chamados">Exemplo: Chamados</a>
+        </div>
+
+        <br>
+        <a href="/ajuda/WhatsApp.html" style="color:var(--cor-destaque);font-size:12px;border:none;padding-left:0">
+          ← Documentação de uso
+        </a>
+        <a href="/ajuda/Ajuda.html" style="color:var(--cor-destaque);font-size:12px;border:none;padding-left:0">
+          ← Central de Ajuda
+        </a>
+      </div>
+    </aside>
+
+    <main class="doc-conteudo">
+
+      <div class="doc-breadcrumb">
+        <a href="/ajuda/Ajuda.html">Ajuda</a>
+        <span>›</span>
+        <a href="/ajuda/WhatsApp.html">Integração WhatsApp</a>
+        <span>›</span> Guia Técnico
+      </div>
+
+      <div class="doc-titulo">
+        <i class="fas fa-code"></i> Integração WhatsApp — Guia Técnico
+      </div>
+      <div class="doc-subtitulo">
+        Como a integração foi construída, quais arquivos foram criados/alterados e como adicionar novos sistemas ao bot.
+      </div>
+
+      <!-- ══════════════════════════════════════════════════ -->
+      <!-- PARTE 1 — COMO FOI FEITO                          -->
+      <!-- ══════════════════════════════════════════════════ -->
+
+      <section class="doc-secao" id="visao-tecnica">
+        <h2><i class="fas fa-sitemap"></i> Visão técnica da integração</h2>
+        <p>A integração foi construída em <strong>duas camadas</strong>: modificações no <strong>Portal WKL</strong> para aceitar chamadas de serviços externos, e a criação do <strong>serviço WhatsApp Bot</strong> que consome essas APIs.</p>
+
+        <p>O princípio central é simples: o Portal já tinha todas as regras de negócio (aprovações, usuários, permissões). A integração apenas <em>reutilizou</em> as APIs existentes, adicionando um mecanismo de autenticação para serviços externos e um novo endpoint de busca por número.</p>
+
+        <table class="doc-table">
+          <thead>
+            <tr><th>Camada</th><th>Responsabilidade</th><th>Tecnologia</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Portal WKL <span class="badge b-portal">3000</span></td>
+              <td>Regras de negócio, banco de dados, autenticação, APIs REST</td>
+              <td>Node.js + Express + SQL Server</td>
+            </tr>
+            <tr>
+              <td>WhatsApp UI <span class="badge b-wa">3001</span></td>
+              <td>Conexão com WhatsApp, recepção e envio de mensagens</td>
+              <td>Baileys (lib WhatsApp Web) + Socket.IO</td>
+            </tr>
+            <tr>
+              <td>WhatsApp Bot <span class="badge b-bot">3002</span></td>
+              <td>Interpretação de comandos, chamadas ao Portal, respostas</td>
+              <td>Node.js + Express + Axios</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- AUTENTICAÇÃO -->
+      <section class="doc-secao" id="autenticacao-impl">
+        <h2><i class="fas fa-key"></i> Como a autenticação funciona</h2>
+        <p>O Portal usa sessões de browser para autenticar usuários normais. Para o bot acessar as APIs sem uma sessão, foi criado um mecanismo de <strong>chave de API compartilhada</strong>.</p>
+
+        <h3><i class="fas fa-exchange-alt"></i> O protocolo</h3>
+        <p>O bot faz chamadas HTTP ao Portal enviando dois elementos:</p>
+        <ol>
+          <li>Header <code>x-api-key: &lt;chave&gt;</code> — prova que é um serviço autorizado</li>
+          <li>Query param <code>_whatsapp_login=&lt;login&gt;</code> — informa qual usuário está agindo</li>
+        </ol>
+
+        <p>Exemplo de chamada feita pelo bot para listar aprovações:</p>
+        <pre><span class="c">// services/portalApi.js — bot chama o Portal assim:</span>
+GET http://portal:3000/api/aprovacoes
+  ?_whatsapp_login=joao.silva
+  Headers: { <span class="s">'x-api-key'</span>: <span class="s">'wkl-whatsapp-2026'</span> }</pre>
+
+        <p>O Portal verifica a chave e, se válida, injeta o usuário informado na sessão temporária para processar a requisição normalmente — usando as mesmas regras de negócio do browser.</p>
+      </section>
+
+      <!-- MIDDLEWARE -->
+      <section class="doc-secao" id="middleware">
+        <h2><i class="fas fa-shield-alt"></i> Middleware do Portal — verificarLogin.js</h2>
+        <p>O arquivo <code>middleware/verificarLogin.js</code> foi atualizado para a <strong>versão 1.1.0</strong>, adicionando suporte a serviços externos.</p>
+
+        <div class="arquivo-ref">
+          <i class="fas fa-file-code"></i>
+          <div>
+            <div class="path">portal/middleware/verificarLogin.js</div>
+            <div class="desc">Alterado — versão 1.1.0 — adicionado bloco de API key</div>
+          </div>
+        </div>
+
+        <pre><span class="k">function</span> <span class="f">verificarLogin</span>(req, res, next) {
+  <span class="c">// 1. Sessão normal de browser — funciona como antes</span>
+  <span class="k">if</span> (req.session && req.session.usuario) {
+    <span class="k">return</span> next();
+  }
+
+  <span class="c">// 2. NOVO — Acesso por serviço externo via API key</span>
+  <span class="k">const</span> <span class="v">apiKey</span>       = req.headers[<span class="s">'x-api-key'</span>];
+  <span class="k">const</span> <span class="v">serviceLogin</span> = req.query._whatsapp_login || req.body?._whatsapp_login;
+  <span class="k">const</span> <span class="v">chaveCorreta</span> = process.env.WHATSAPP_API_KEY;
+
+  <span class="k">if</span> (apiKey && chaveCorreta && apiKey === chaveCorreta && serviceLogin) {
+    <span class="c">// Injeta usuário temporário na sessão para essa requisição</span>
+    req.session.usuario = { usuario: serviceLogin, nivel: <span class="s">'usuario'</span> };
+    <span class="k">return</span> next();
+  }
+
+  <span class="c">// 3. Sem sessão e sem API key válida — redireciona ao login</span>
+  req.session.redirectAfterLogin = req.originalUrl;
+  res.redirect(<span class="s">'/login.html'</span>);
+}</pre>
+
+        <div class="doc-info">
+          <i class="fas fa-lightbulb" style="color:#00a884; margin-right:6px"></i>
+          <strong>Por que injetar na sessão?</strong> Toda a lógica do Portal (filtros de aprovação, permissões, logs) usa <code>req.session.usuario</code>. Injetando ali, o bot reutiliza 100% das regras existentes sem precisar duplicar código.
+        </div>
+      </section>
+
+      <!-- ENDPOINT POR NÚMERO -->
+      <section class="doc-secao" id="endpoint-lookup">
+        <h2><i class="fas fa-search"></i> Endpoint de busca por número — /api/usuarios/por-whatsapp</h2>
+        <p>Para que o bot identifique o usuário automaticamente pelo número do WhatsApp, foi criado um novo endpoint no Portal que <strong>não usa o middleware padrão</strong> (só valida a API key, sem precisar de <code>_whatsapp_login</code>).</p>
+
+        <div class="arquivo-ref">
+          <i class="fas fa-file-code"></i>
+          <div>
+            <div class="path">portal/routes/portal.js</div>
+            <div class="desc">Alterado — novo endpoint GET /api/usuarios/por-whatsapp/:numero</div>
+          </div>
+        </div>
+
+        <pre><span class="c">// Endpoint exclusivo para o bot — só valida a API key</span>
+router.<span class="f">get</span>(<span class="s">'/api/usuarios/por-whatsapp/:numero'</span>, <span class="k">async</span> (req, res) => {
+  <span class="k">const</span> <span class="v">apiKey</span> = req.headers[<span class="s">'x-api-key'</span>];
+  <span class="k">const</span> <span class="v">chave</span>  = process.env.WHATSAPP_API_KEY;
+  <span class="k">if</span> (!chave || !apiKey || apiKey !== chave)
+    <span class="k">return</span> res.status(<span class="n">401</span>).json({ erro: <span class="s">'Não autorizado.'</span> });
+
+  <span class="k">const</span> <span class="v">numero</span> = req.params.numero.<span class="f">replace</span>(/\D/g, <span class="s">''</span>);
+
+  <span class="c">// Busca em usuarios locais E usuarios de domínio</span>
+  <span class="k">const</span> <span class="v">resultado</span> = <span class="k">await</span> pool.request()
+    .<span class="f">input</span>(<span class="s">'whatsapp'</span>, sql.VarChar, numero)
+    .<span class="f">query</span>(`
+      SELECT TOP 1 usuario AS login, nome, nivel
+      FROM usuarios WHERE whatsapp = @whatsapp AND ativo = 1
+      UNION ALL
+      SELECT TOP 1 login, nome, 'usuario' AS nivel
+      FROM usuarios_dominio WHERE whatsapp = @whatsapp AND ativo = 1
+    `);
+
+  <span class="k">if</span> (!resultado.recordset.length)
+    <span class="k">return</span> res.status(<span class="n">404</span>).json({ erro: <span class="s">'Não encontrado.'</span> });
+
+  res.<span class="f">json</span>(resultado.recordset[<span class="n">0</span>]);
+  <span class="c">// Retorna: { login, nome, nivel }</span>
+});</pre>
+      </section>
+
+      <!-- FLUXO APROVAÇÕES -->
+      <section class="doc-secao" id="fluxo-aprovacoes">
+        <h2><i class="fas fa-random"></i> Fluxo completo — Aprovações pelo WhatsApp</h2>
+
+        <div class="fluxo">
+          <div class="fluxo-item">
+            <div class="fluxo-left"><div class="fluxo-circulo">1</div><div class="fluxo-linha"></div></div>
+            <div class="fluxo-body">
+              <strong>Usuário envia mensagem no WhatsApp</strong>
+              <p>Ex: <code>aprovar 42</code> — o WhatsApp entrega ao número da empresa.</p>
+            </div>
+          </div>
+          <div class="fluxo-item">
+            <div class="fluxo-left"><div class="fluxo-circulo">2</div><div class="fluxo-linha"></div></div>
+            <div class="fluxo-body">
+              <strong>WhatsApp UI (3001) recebe via Baileys</strong>
+              <p>O evento <code>messages.upsert</code> do Baileys dispara. O serviço extrai <code>jid</code>, <code>texto</code> e <code>nome</code> e faz POST para o Bot.</p>
+              <p>Arquivo: <code>services/whatsapp.js</code> — função <code>iniciarWhatsApp()</code></p>
+            </div>
+          </div>
+          <div class="fluxo-item">
+            <div class="fluxo-left"><div class="fluxo-circulo">3</div><div class="fluxo-linha"></div></div>
+            <div class="fluxo-body">
+              <strong>Bot (3002) recebe em <code>POST /api/mensagem-recebida</code></strong>
+              <p>Chama <code>processarMensagem()</code> do <code>messageHandler.js</code>.</p>
+            </div>
+          </div>
+          <div class="fluxo-item">
+            <div class="fluxo-left"><div class="fluxo-circulo">4</div><div class="fluxo-linha"></div></div>
+            <div class="fluxo-body">
+              <strong>Auto-login pelo número</strong>
+              <p>Se a sessão não tem login, o bot extrai o número do JID (<code>559291002823@s.whatsapp.net</code> → <code>559291002823</code>) e chama <code>GET /api/usuarios/por-whatsapp/559291002823</code> no Portal com a API key. Recebe <code>{ login, nome, nivel }</code>.</p>
+            </div>
+          </div>
+          <div class="fluxo-item">
+            <div class="fluxo-left"><div class="fluxo-circulo">5</div><div class="fluxo-linha"></div></div>
+            <div class="fluxo-body">
+              <strong>Interpretação do comando</strong>
+              <p><code>messageHandler.js</code> identifica o comando <code>aprovar</code> com ID <code>42</code> e chama <code>responderAprovacao(42, 'joao.silva', 'Aprovado', null)</code>.</p>
+            </div>
+          </div>
+          <div class="fluxo-item">
+            <div class="fluxo-left"><div class="fluxo-circulo">6</div><div class="fluxo-linha"></div></div>
+            <div class="fluxo-body">
+              <strong>Bot chama o Portal</strong>
+              <p><code>PUT /api/aprovacoes/42/responder</code> com body <code>{ decisao: 'Aprovado', _whatsapp_login: 'joao.silva' }</code> e header <code>x-api-key</code>. O Portal valida, injeta a sessão e executa a aprovação normalmente.</p>
+            </div>
+          </div>
+          <div class="fluxo-item">
+            <div class="fluxo-left"><div class="fluxo-circulo">7</div><div class="fluxo-linha"></div></div>
+            <div class="fluxo-body">
+              <strong>Bot envia resposta ao usuário</strong>
+              <p>Faz POST para <code>WhatsApp UI: /api/mensagens/enviar</code> com o JID e a mensagem de confirmação. O WhatsApp UI entrega via Baileys.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ARQUIVOS CHAVE -->
+      <section class="doc-secao" id="arquivos-chave">
+        <h2><i class="fas fa-folder-open"></i> Arquivos criados e alterados</h2>
+
+        <h3><i class="fas fa-building"></i> Portal WKL</h3>
+        <div class="arquivo-ref">
+          <i class="fas fa-edit" style="color:#f59e0b"></i>
+          <div>
+            <div class="path">middleware/verificarLogin.js</div>
+            <div class="desc">Alterado v1.1.0 — adicionado suporte a x-api-key + _whatsapp_login para serviços externos</div>
+          </div>
+        </div>
+        <div class="arquivo-ref">
+          <i class="fas fa-edit" style="color:#f59e0b"></i>
+          <div>
+            <div class="path">routes/portal.js</div>
+            <div class="desc">Alterado — novo endpoint GET /api/usuarios/por-whatsapp/:numero + campo whatsapp no CRUD de usuários</div>
+          </div>
+        </div>
+        <div class="arquivo-ref">
+          <i class="fas fa-edit" style="color:#f59e0b"></i>
+          <div>
+            <div class="path">criarBancoPortal.js</div>
+            <div class="desc">Alterado v2.2.0 — migração para adicionar coluna whatsapp VARCHAR(20) em usuarios e usuarios_dominio</div>
+          </div>
+        </div>
+        <div class="arquivo-ref">
+          <i class="fas fa-edit" style="color:#f59e0b"></i>
+          <div>
+            <div class="path">public/fragmentos/usuarios-locais.html</div>
+            <div class="desc">Alterado — campo WhatsApp adicionado ao modal de criar/editar usuário</div>
+          </div>
+        </div>
+
+        <h3><i class="fab fa-whatsapp"></i> Serviço WhatsApp</h3>
+        <div class="arquivo-ref">
+          <i class="fas fa-file-plus" style="color:#00a884"></i>
+          <div>
+            <div class="path">services/portalApi.js</div>
+            <div class="desc">Criado — cliente HTTP do Portal: busca usuário por número, lista/detalha/responde aprovações</div>
+          </div>
+        </div>
+        <div class="arquivo-ref">
+          <i class="fas fa-file-plus" style="color:#00a884"></i>
+          <div>
+            <div class="path">services/messageHandler.js</div>
+            <div class="desc">Criado — interpretador de comandos WhatsApp: auto-login, menu, aprovações</div>
+          </div>
+        </div>
+        <div class="arquivo-ref">
+          <i class="fas fa-file-plus" style="color:#00a884"></i>
+          <div>
+            <div class="path">whatsapp-portal.js</div>
+            <div class="desc">Criado — servidor Bot (porta 3002): recebe mensagens do UI, serve tela de aprovações e painel admin</div>
+          </div>
+        </div>
+        <div class="arquivo-ref">
+          <i class="fas fa-edit" style="color:#f59e0b"></i>
+          <div>
+            <div class="path">services/whatsapp.js</div>
+            <div class="desc">Alterado — corrigido mapeamento @lid → @s.whatsapp.net via remoteJidAlt, porta BOT_URL padrão</div>
+          </div>
+        </div>
+      </section>
+
+
+      <!-- ══════════════════════════════════════════════════ -->
+      <!-- PARTE 2 — COMO INTEGRAR NOVO SISTEMA              -->
+      <!-- ══════════════════════════════════════════════════ -->
+
+      <section class="doc-secao" id="passo-a-passo">
+        <h2><i class="fas fa-plug"></i> Como integrar outro sistema ao bot</h2>
+        <p>O bot foi projetado para ser extensível. Para integrar um novo módulo do Portal (ex: Chamados, Tarefas, Patrimônio), siga os 3 passos abaixo.</p>
+
+        <div class="doc-tip">
+          <i class="fas fa-info-circle" style="color:#6366f1; margin-right:6px"></i>
+          O padrão da integração é sempre o mesmo: <strong>Portal expõe API → portalApi.js cria função → messageHandler.js cria comando</strong>.
+        </div>
+      </section>
+
+      <!-- PASSO 1 -->
+      <section class="doc-secao" id="portal-api">
+        <h2><i class="fas fa-server"></i> Passo 1 — Expor a API no Portal</h2>
+        <p>O Portal precisa ter rotas REST que o bot possa chamar. As rotas já protegidas pelo <code>verificarLogin</code> funcionam automaticamente com a API key — não é necessário criar novas rotas, apenas garantir que aceitam o parâmetro <code>_whatsapp_login</code>.</p>
+
+        <h3><i class="fas fa-check-circle"></i> Verificar se a rota já funciona</h3>
+        <p>Teste via curl se a rota aceita a chave de API:</p>
+        <pre>curl -H <span class="s">"x-api-key: wkl-whatsapp-2026"</span> \
+  <span class="s">"http://localhost:3000/api/sua-rota?_whatsapp_login=admin"</span></pre>
+
+        <p>Se retornar dados (não redirecionar para login), a rota já está pronta.</p>
+
+        <h3><i class="fas fa-plus-circle"></i> Se precisar criar uma rota nova</h3>
+        <p>Adicione em <code>routes/portal.js</code> usando o mesmo padrão das outras rotas:</p>
+
+        <pre><span class="c">// GET /api/chamados/meus — Lista chamados do usuário logado</span>
+router.<span class="f">get</span>(<span class="s">'/api/chamados/meus'</span>, verificarLogin, <span class="k">async</span> (req, res) => {
+  <span class="k">const</span> <span class="v">pool</span>  = req.app.locals.pool;
+  <span class="k">const</span> <span class="v">login</span> = req.session.usuario.usuario; <span class="c">// vem da sessão (ou da injeção via API key)</span>
+
+  <span class="k">const</span> <span class="v">resultado</span> = <span class="k">await</span> pool.request()
+    .<span class="f">input</span>(<span class="s">'login'</span>, sql.VarChar, login)
+    .<span class="f">query</span>(<span class="s">'SELECT id, titulo, status FROM chamados WHERE criado_por = @login AND excluido = 0'</span>);
+
+  res.<span class="f">json</span>({ chamados: resultado.recordset });
+});</pre>
+
+        <div class="doc-info">
+          <i class="fas fa-lightbulb" style="color:#00a884; margin-right:6px"></i>
+          <code>req.session.usuario.usuario</code> funciona tanto para browser (sessão real) quanto para o bot (sessão injetada pelo middleware). Não é necessário código especial.
+        </div>
+      </section>
+
+      <!-- PASSO 2 -->
+      <section class="doc-secao" id="portal-api-fn">
+        <h2><i class="fas fa-code"></i> Passo 2 — Criar função em portalApi.js</h2>
+        <p>Adicione uma função no arquivo <code>services/portalApi.js</code> do serviço WhatsApp para chamar a rota do Portal:</p>
+
+        <div class="arquivo-ref">
+          <i class="fas fa-file-code"></i>
+          <div>
+            <div class="path">whatsApp/services/portalApi.js</div>
+            <div class="desc">Adicionar as novas funções no final, antes do module.exports</div>
+          </div>
+        </div>
+
+        <pre><span class="c">// ── Exemplo: Chamados ──────────────────────────────────</span>
+
+<span class="k">async function</span> <span class="f">listarMeusChamados</span>(login) {
+  <span class="k">const</span> { <span class="v">data</span> } = <span class="k">await</span> api.<span class="f">get</span>(<span class="s">'/api/chamados/meus'</span>, {
+    params: { _whatsapp_login: login }
+  });
+  <span class="k">return</span> data.chamados || [];
+}
+
+<span class="k">async function</span> <span class="f">abrirChamado</span>(login, titulo, descricao) {
+  <span class="k">const</span> { <span class="v">data</span> } = <span class="k">await</span> api.<span class="f">post</span>(<span class="s">'/api/chamados'</span>, {
+    titulo,
+    descricao,
+    _whatsapp_login: login   <span class="c">// no body para POST</span>
+  }, {
+    headers: { <span class="s">'x-api-key'</span>: KEY }
+  });
+  <span class="k">return</span> data;
+}
+
+<span class="c">// Adicionar no module.exports:</span>
+module.exports = {
+  buscarContatosPortal,
+  buscarUsuarioPorWhatsapp,
+  listarPendentes,
+  listarAprovacoes,
+  listarTodasPendentes,
+  detalharAprovacao,
+  responderAprovacao,
+  <span class="n">listarMeusChamados</span>,   <span class="c">// ← novo</span>
+  <span class="n">abrirChamado</span>,          <span class="c">// ← novo</span>
+};</pre>
+
+        <div class="doc-warn">
+          <i class="fas fa-exclamation-triangle" style="color:#f59e0b; margin-right:6px"></i>
+          Para chamadas GET, passe <code>_whatsapp_login</code> nos <strong>params</strong>. Para POST/PUT, passe no <strong>body</strong>. O middleware do Portal lê dos dois lugares.
+        </div>
+      </section>
+
+      <!-- PASSO 3 -->
+      <section class="doc-secao" id="handler-cmd">
+        <h2><i class="fas fa-terminal"></i> Passo 3 — Adicionar comando em messageHandler.js</h2>
+        <p>Importe as novas funções e adicione os blocos de comando no <code>services/messageHandler.js</code>:</p>
+
+        <div class="arquivo-ref">
+          <i class="fas fa-file-code"></i>
+          <div>
+            <div class="path">whatsApp/services/messageHandler.js</div>
+            <div class="desc">Alterar o require e adicionar blocos de comando</div>
+          </div>
+        </div>
+
+        <pre><span class="c">// 1. Adicionar no require do topo:</span>
+<span class="k">const</span> {
+  listarPendentes, listarAprovacoes, detalharAprovacao, responderAprovacao,
+  buscarUsuarioPorWhatsapp,
+  <span class="n">listarMeusChamados</span>,  <span class="c">// ← novo</span>
+  <span class="n">abrirChamado</span>,         <span class="c">// ← novo</span>
+} = <span class="f">require</span>(<span class="s">'./portalApi'</span>);
+
+<span class="c">// 2. Adicionar 'chamados' e 'abrir' na lista de comandos autenticados:</span>
+<span class="k">const</span> <span class="v">comandosAutenticados</span> = [
+  <span class="s">'1'</span>, <span class="s">'2'</span>, <span class="s">'3'</span>, <span class="s">'4'</span>, <span class="s">'5'</span>, <span class="s">'6'</span>, <span class="s">'7'</span>,
+  <span class="s">'pendentes'</span>, <span class="s">'detalhar'</span>, <span class="s">'aprovar'</span>, <span class="s">'reprovar'</span>,
+  <span class="n">'chamados'</span>, <span class="n">'abrir'</span>,     <span class="c">// ← novos</span>
+];
+
+<span class="c">// 3. Adicionar os blocos de comando antes do catch final:</span>
+
+<span class="c">// ══ Listar meus chamados ══════════════════════════</span>
+<span class="k">if</span> (acao === <span class="s">'chamados'</span>) {
+  <span class="k">const</span> <span class="v">lista</span> = <span class="k">await</span> <span class="f">listarMeusChamados</span>(sessao.login);
+  <span class="k">if</span> (!lista.length) <span class="k">return</span> <span class="f">reply</span>(<span class="s">'Você não tem chamados abertos.\n\nDigite *0* para o menu.'</span>);
+
+  <span class="k">const</span> <span class="v">linhas</span> = lista.<span class="f">map</span>((c, i) =>
+    <span class="s">`${i + 1}. *#${c.id}* — ${c.titulo}\n   Status: ${c.status}`</span>
+  ).<span class="f">join</span>(<span class="s">'\n\n'</span>);
+
+  <span class="k">return</span> <span class="f">reply</span>(<span class="s">`*Meus Chamados (${lista.length}):*\n\n${linhas}\n\nDigite *0* para o menu.`</span>);
+}
+
+<span class="c">// ══ Abrir chamado ════════════════════════════════</span>
+<span class="k">if</span> (acao === <span class="s">'abrir'</span>) {
+  <span class="c">// Espera: "abrir Título do chamado | Descrição"</span>
+  <span class="k">const</span> <span class="v">texto</span>    = partes.<span class="f">slice</span>(<span class="n">1</span>).<span class="f">join</span>(<span class="s">' '</span>);
+  <span class="k">const</span> [<span class="v">titulo</span>, <span class="v">desc</span>] = texto.<span class="f">split</span>(<span class="s">'|'</span>).<span class="f">map</span>(s => s.<span class="f">trim</span>());
+  <span class="k">if</span> (!titulo) <span class="k">return</span> <span class="f">reply</span>(<span class="s">'Informe o título: *abrir Título | Descrição*'</span>);
+
+  <span class="k">const</span> <span class="v">res</span> = <span class="k">await</span> <span class="f">abrirChamado</span>(sessao.login, titulo, desc || <span class="s">''</span>);
+  <span class="k">return</span> <span class="f">reply</span>(<span class="s">`✅ Chamado *#${res.id}* aberto com sucesso!\n\nDigite *chamados* para ver seus chamados.`</span>);
+}</pre>
+
+        <h3><i class="fas fa-list-ul"></i> Atualize também o menu</h3>
+        <p>Adicione a nova opção ao texto do menu principal em <code>services/botConfig.js</code> (campo <code>menuPrincipal</code>) ou no painel admin em <strong>http://servidor:3002/admin</strong>.</p>
+      </section>
+
+      <!-- EXEMPLO CHAMADOS -->
+      <section class="doc-secao" id="exemplo-chamados">
+        <h2><i class="fas fa-ticket-alt"></i> Exemplo completo — Módulo Chamados</h2>
+        <p>Resumo das mudanças necessárias para integrar o módulo de Chamados ao bot:</p>
+
+        <table class="doc-table">
+          <thead>
+            <tr><th>Arquivo</th><th>O que fazer</th><th>Onde</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>routes/portal.js <span class="badge b-portal">Portal</span></td>
+              <td>Verificar se <code>GET /api/chamados</code> já aceita <code>_whatsapp_login</code>. Se não, adicionar rota específica.</td>
+              <td>Portal WKL</td>
+            </tr>
+            <tr>
+              <td>services/portalApi.js <span class="badge b-bot">Bot</span></td>
+              <td>Criar funções <code>listarMeusChamados(login)</code>, <code>abrirChamado(login, titulo, desc)</code>, etc.</td>
+              <td>WhatsApp</td>
+            </tr>
+            <tr>
+              <td>services/messageHandler.js <span class="badge b-bot">Bot</span></td>
+              <td>Importar as funções, adicionar comandos no array <code>comandosAutenticados</code> e criar os blocos <code>if (acao === ...)</code>.</td>
+              <td>WhatsApp</td>
+            </tr>
+            <tr>
+              <td>Admin → Configurações <span class="badge b-wa">Bot Admin</span></td>
+              <td>Adicionar as novas opções ao texto do <code>menuPrincipal</code>.</td>
+              <td>http://servidor:3002/admin</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="doc-info">
+          <i class="fas fa-lightbulb" style="color:#00a884; margin-right:6px"></i>
+          <strong>Dica:</strong> Comece sempre pelo mais simples — listar registros. Depois evolua para criar, atualizar e fechar. Teste cada comando no WhatsApp antes de avançar para o próximo.
+        </div>
+
+        <div class="doc-tip">
+          <i class="fas fa-code-branch" style="color:#6366f1; margin-right:6px"></i>
+          <strong>Padrão de nomenclatura recomendado para comandos:</strong><br>
+          Use verbos simples em português: <code>chamados</code>, <code>abrir</code>, <code>fechar</code>, <code>tarefas</code>, <code>nova</code>. Evite comandos longos — o usuário digita pelo celular.
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <script src="/js/portal-core.js"></script>
+  <script>carregarMenu();</script>
+</body>
+</html>
