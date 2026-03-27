@@ -1,5 +1,8 @@
 /* ── aprovacoes-wa.js ── */
 
+// URL base do bot admin (porta 3210)
+const WA_BOT_BASE = window.location.protocol + '//' + window.location.hostname + ':3210';
+
 let aprovacoes  = [];
 let aprAtual    = null; // aprovação selecionada nos modais
 
@@ -63,7 +66,7 @@ async function carregar() {
   try {
     const params = new URLSearchParams();
     if (aprovador) params.set('aprovador', aprovador);
-    const res  = await fetch('/api/aprovacoes?' + params.toString());
+    const res  = await fetch(WA_BOT_BASE + '/api/aprovacoes?' + params.toString());
     aprovacoes = await res.json();
 
     if (!Array.isArray(aprovacoes)) {
@@ -164,7 +167,7 @@ document.getElementById('btn-confirmar-apr').addEventListener('click', async () 
   btn.disabled = true;
   btn.textContent = 'Aguarde...';
   try {
-    const res = await fetch(`/api/aprovacoes/${aprAtual.id}/aprovar`, {
+    const res = await fetch(`${WA_BOT_BASE}/api/aprovacoes/${aprAtual.id}/aprovar`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ login: getLogin() }),
@@ -212,7 +215,7 @@ document.getElementById('btn-confirmar-rep').addEventListener('click', async () 
   btn.disabled = true;
   btn.textContent = 'Aguarde...';
   try {
-    const res = await fetch(`/api/aprovacoes/${aprAtual.id}/reprovar`, {
+    const res = await fetch(`${WA_BOT_BASE}/api/aprovacoes/${aprAtual.id}/reprovar`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ login: getLogin(), motivo }),
@@ -255,7 +258,7 @@ document.getElementById('btn-confirmar-notif').addEventListener('click', async (
   btn.disabled = true;
   btn.textContent = 'Enviando...';
   try {
-    const res = await fetch(`/api/aprovacoes/${aprAtual.id}/notificar`, {
+    const res = await fetch(`${WA_BOT_BASE}/api/aprovacoes/${aprAtual.id}/notificar`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ numero, mensagem }),
