@@ -1,0 +1,23 @@
+{
+  "name": "whatsapp-portal",
+  "version": "1.0.0",
+  "description": "Portal WhatsApp com integração de aprovações",
+  "main": "whatsApp.js",
+  "scripts": {
+    "start": "node whatsApp.js",
+    "dev": "nodemon whatsApp.js"
+  },
+  "dependencies": {
+    "@whiskeysockets/baileys": "^6.7.16",
+    "axios": "^1.7.2",
+    "dotenv": "^16.4.5",
+    "express": "^4.18.3",
+    "multer": "^2.1.1",
+    "pino": "^9.3.2",
+    "qrcode": "^1.5.4",
+    "socket.io": "^4.7.5"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.4"
+  }
+}

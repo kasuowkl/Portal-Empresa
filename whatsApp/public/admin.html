@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin — WhatsApp Portal Bot</title>
+  <style>
+    :root {
+      --bg:       #0b141a;
+      --panel:    #111b21;
+      --surface:  #1f2c34;
+      --surface2: #2a3942;
+      --border:   #2a3942;
+      --text:     #e9edef;
+      --text2:    #aebac1;
+      --muted:    #667781;
+      --green:    #00a884;
+      --green-d:  #005c4b;
+      --blue:     #53bdeb;
+      --red:      #f15c6d;
+      --yellow:   #f5c842;
+      --orange:   #f5a623;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── Header ─────────────────────────────────── */
+    .header {
+      background: var(--panel);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-shrink: 0;
+    }
+    .header h1 { font-size: 1.1rem; font-weight: 600; }
+    .header .status {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: .85rem;
+      color: var(--text2);
+    }
+    .header .dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--red);
+    }
+    .header .dot.on { background: var(--green); }
+
+    /* ── Tabs ────────────────────────────────────── */
+    .tabs {
+      display: flex;
+      background: var(--panel);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .tab {
+      padding: 12px 24px;
+      cursor: pointer;
+      color: var(--text2);
+      border-bottom: 2px solid transparent;
+      font-size: .95rem;
+      transition: all .2s;
+    }
+    .tab:hover { color: var(--text); background: var(--surface); }
+    .tab.active { color: var(--green); border-bottom-color: var(--green); }
+
+    /* ── Content ─────────────────────────────────── */
+    .content { flex: 1; overflow: hidden; }
+    .tab-panel { display: none; height: 100%; overflow-y: auto; padding: 24px; }
+    .tab-panel.active { display: block; }
+
+    /* ── Config Tab ──────────────────────────────── */
+    .config-group {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+    .config-group label {
+      display: block;
+      font-size: .85rem;
+      color: var(--green);
+      margin-bottom: 6px;
+      font-weight: 600;
+    }
+    .config-group .desc {
+      font-size: .8rem;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+    .config-group textarea {
+      width: 100%;
+      background: var(--surface);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px 12px;
+      font-family: 'Cascadia Code', 'Fira Code', monospace;
+      font-size: .85rem;
+      resize: vertical;
+      min-height: 60px;
+      line-height: 1.5;
+    }
+    .config-group textarea:focus {
+      outline: none;
+      border-color: var(--green);
+    }
+    .config-group input[type="text"] {
+      width: 100%;
+      background: var(--surface);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 8px 12px;
+      font-size: .85rem;
+    }
+    .config-group input:focus { outline: none; border-color: var(--green); }
+
+    .btn-bar {
+      display: flex;
+      gap: 12px;
+      margin-top: 20px;
+      position: sticky;
+      bottom: 0;
+      background: var(--bg);
+      padding: 16px 0;
+    }
+    .btn {
+      padding: 10px 24px;
+      border: none;
+      border-radius: 6px;
+      font-size: .9rem;
+      cursor: pointer;
+      font-weight: 500;
+      transition: opacity .2s;
+    }
+    .btn:hover { opacity: .85; }
+    .btn-primary { background: var(--green); color: #fff; }
+    .btn-danger  { background: var(--red); color: #fff; }
+    .btn-secondary { background: var(--surface2); color: var(--text); }
+
+    /* ── Logs Tab ────────────────────────────────── */
+    .logs-toolbar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+    .filter-chip {
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: .8rem;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text2);
+      transition: all .2s;
+      user-select: none;
+    }
+    .filter-chip.active { border-color: var(--green); color: var(--green); background: var(--green-d); }
+    .filter-chip:hover { border-color: var(--text2); }
+
+    .logs-container {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      height: calc(100vh - 220px);
+      overflow-y: auto;
+      font-family: 'Cascadia Code', 'Fira Code', monospace;
+      font-size: .8rem;
+      line-height: 1.7;
+      padding: 12px;
+    }
+    .log-entry {
+      padding: 2px 0;
+      border-bottom: 1px solid #ffffff08;
+      display: flex;
+      gap: 8px;
+    }
+    .log-ts   { color: var(--muted); white-space: nowrap; flex-shrink: 0; }
+    .log-cat  { font-weight: 600; white-space: nowrap; flex-shrink: 0; min-width: 70px; }
+    .log-msg  { word-break: break-word; }
+
+    .cat-msg    { color: var(--blue); }
+    .cat-envio  { color: var(--green); }
+    .cat-auth   { color: var(--yellow); }
+    .cat-api    { color: var(--orange); }
+    .cat-erro   { color: var(--red); }
+    .cat-config { color: #c084fc; }
+    .cat-conexao { color: var(--text2); }
+
+    /* ── Sessoes Tab ─────────────────────────────── */
+    .sessoes-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--panel);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .sessoes-table th,
+    .sessoes-table td {
+      padding: 10px 16px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+      font-size: .85rem;
+    }
+    .sessoes-table th {
+      background: var(--surface);
+      color: var(--green);
+      font-weight: 600;
+    }
+    .sessoes-table td { color: var(--text2); }
+
+    /* ── Toast ────────────────────────────────────── */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-size: .9rem;
+      z-index: 999;
+      transition: opacity .3s;
+      opacity: 0;
+      pointer-events: none;
+    }
+    .toast.show { opacity: 1; pointer-events: auto; }
+    .toast.success { background: var(--green-d); color: var(--text); border: 1px solid var(--green); }
+    .toast.error   { background: #3b1a1a; color: var(--red); border: 1px solid var(--red); }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <h1>WhatsApp Portal — Admin</h1>
+    <div class="status">
+      <div class="dot" id="ws-dot"></div>
+      <span id="ws-status">Desconectado</span>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" data-tab="config">Configuracoes</div>
+    <div class="tab" data-tab="logs">Logs</div>
+    <div class="tab" data-tab="sessoes">Sessoes Ativas</div>
+  </div>
+
+  <div class="content">
+
+    <!-- ── CONFIG TAB ──────────────────────────── -->
+    <div class="tab-panel active" id="panel-config">
+      <div class="config-group">
+        <label>Saudacao</label>
+        <div class="desc">Mensagem de boas-vindas. Variaveis: {periodo}, {nome}</div>
+        <textarea id="cfg-saudacao" rows="2"></textarea>
+      </div>
+
+      <div class="config-group">
+        <label>Menu Principal</label>
+        <div class="desc">Menu exibido apos saudacao para usuarios vinculados</div>
+        <textarea id="cfg-menuPrincipal" rows="14"></textarea>
+      </div>
+
+      <div class="config-group">
+        <label>Numero nao vinculado</label>
+        <div class="desc">Mensagem quando o numero nao esta cadastrado no Portal</div>
+        <textarea id="cfg-naoVinculado" rows="2"></textarea>
+      </div>
+
+      <div class="config-group">
+        <label>Nenhuma pendente</label>
+        <div class="desc">Quando nao ha aprovacoes pendentes</div>
+        <textarea id="cfg-nenhumaPendente" rows="2"></textarea>
+      </div>
+
+      <div class="config-group">
+        <label>Nenhuma aprovada</label>
+        <textarea id="cfg-nenhumaAprovada" rows="2"></textarea>
+      </div>
+
+      <div class="config-group">
+        <label>Nenhuma reprovada</label>
+        <textarea id="cfg-nenhumaReprovada" rows="2"></textarea>
+      </div>
+
+      <div class="config-group">
+        <label>Aprovacao com sucesso</label>
+        <div class="desc">Variaveis: {id}, {status}</div>
+        <textarea id="cfg-aprovadoSucesso" rows="2"></textarea>
+      </div>
+
+      <div class="config-group">
+        <label>Reprovacao com sucesso</label>
+        <div class="desc">Variaveis: {id}, {motivo}, {status}</div>
+        <textarea id="cfg-reprovadoSucesso" rows="2"></textarea>
+      </div>
+
+      <div class="config-group">
+        <label>Erro generico</label>
+        <div class="desc">Variaveis: {detalhe}</div>
+        <textarea id="cfg-erroGenerico" rows="2"></textarea>
+      </div>
+
+      <div class="config-group">
+        <label>Palavras-chave de saudacao</label>
+        <div class="desc">Lista separada por virgula</div>
+        <input type="text" id="cfg-saudacoes" />
+      </div>
+
+      <div class="config-group" style="border-color: var(--red);">
+        <label style="color: var(--red);">Manutencao</label>
+        <div class="desc">Limpa sessoes Signal corrompidas (resolve "Aguardando mensagem"). Nao precisa rescanear QR.</div>
+        <button class="btn btn-danger" id="btn-limpar-sessoes" style="margin-top:8px">Limpar Sessoes Corrompidas</button>
+      </div>
+
+      <div class="btn-bar">
+        <button class="btn btn-primary" id="btn-salvar">Salvar</button>
+        <button class="btn btn-danger" id="btn-restaurar">Restaurar Padrao</button>
+      </div>
+    </div>
+
+    <!-- ── LOGS TAB ────────────────────────────── -->
+    <div class="tab-panel" id="panel-logs">
+      <div class="logs-toolbar">
+        <div class="filter-chip active" data-cat="msg">msg</div>
+        <div class="filter-chip active" data-cat="envio">envio</div>
+        <div class="filter-chip active" data-cat="auth">auth</div>
+        <div class="filter-chip active" data-cat="api">api</div>
+        <div class="filter-chip active" data-cat="erro">erro</div>
+        <div class="filter-chip active" data-cat="config">config</div>
+        <div class="filter-chip active" data-cat="conexao">conexao</div>
+        <button class="btn btn-secondary" id="btn-pausar">Pausar</button>
+        <button class="btn btn-danger" id="btn-limpar-logs">Limpar</button>
+      </div>
+      <div class="logs-container" id="logs-container"></div>
+    </div>
+
+    <!-- ── SESSOES TAB ─────────────────────────── -->
+    <div class="tab-panel" id="panel-sessoes">
+      <div style="margin-bottom: 12px;">
+        <button class="btn btn-secondary" id="btn-refresh-sessoes">Atualizar</button>
+      </div>
+      <table class="sessoes-table">
+        <thead>
+          <tr>
+            <th>JID (WhatsApp)</th>
+            <th>Login Portal</th>
+            <th>Nome</th>
+          </tr>
+        </thead>
+        <tbody id="sessoes-body"></tbody>
+      </table>
+    </div>
+
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // URL base do bot admin (porta 3210) — independente de onde esta página for servida
+    window.WA_ADMIN_BASE = window.location.protocol + '//' + window.location.hostname + ':3210';
+    document.write('<scr' + 'ipt src="' + WA_ADMIN_BASE + '/socket.io/socket.io.js"><\/scr' + 'ipt>');
+  </script>
+  <script>
+    // ── State ─────────────────────────────────────
+    const WA_ADMIN_BASE = window.WA_ADMIN_BASE || '';
+    let pausado = false;
+    const filtros = new Set(['msg', 'envio', 'auth', 'api', 'erro', 'config', 'conexao']);
+    const logsEl = document.getElementById('logs-container');
+
+    // ── Socket.IO ─────────────────────────────────
+    const socket = io(WA_ADMIN_BASE);
+    const dot = document.getElementById('ws-dot');
+    const statusEl = document.getElementById('ws-status');
+
+    socket.on('connect', () => {
+      dot.classList.add('on');
+      statusEl.textContent = 'Conectado';
+    });
+    socket.on('disconnect', () => {
+      dot.classList.remove('on');
+      statusEl.textContent = 'Desconectado';
+    });
+
+    socket.on('logs:buffer', (entries) => {
+      logsEl.innerHTML = '';
+      entries.forEach(addLogEntry);
+      scrollLogs();
+    });
+
+    socket.on('logs:new', (entry) => {
+      addLogEntry(entry);
+      if (!pausado) scrollLogs();
+    });
+
+    // ── Tabs ──────────────────────────────────────
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+        tab.classList.add('active');
+        document.getElementById('panel-' + tab.dataset.tab).classList.add('active');
+        if (tab.dataset.tab === 'sessoes') carregarSessoes();
+      });
+    });
+
+    // ── Config ────────────────────────────────────
+    const CONFIG_FIELDS = [
+      'saudacao', 'menuPrincipal', 'naoVinculado', 'nenhumaPendente',
+      'nenhumaAprovada', 'nenhumaReprovada', 'aprovadoSucesso',
+      'reprovadoSucesso', 'erroGenerico'
+    ];
+
+    async function carregarConfig() {
+      try {
+        const res = await fetch(WA_ADMIN_BASE + '/api/admin/config');
+        const cfg = await res.json();
+        CONFIG_FIELDS.forEach(f => {
+          const el = document.getElementById('cfg-' + f);
+          if (el) el.value = cfg[f] || '';
+        });
+        document.getElementById('cfg-saudacoes').value = (cfg.saudacoes || []).join(', ');
+      } catch (e) {
+        toast('Erro ao carregar config: ' + e.message, 'error');
+      }
+    }
+
+    document.getElementById('btn-salvar').addEventListener('click', async () => {
+      const cfg = {};
+      CONFIG_FIELDS.forEach(f => {
+        const el = document.getElementById('cfg-' + f);
+        if (el) cfg[f] = el.value;
+      });
+      cfg.saudacoes = document.getElementById('cfg-saudacoes').value
+        .split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
+
+      try {
+        const res = await fetch(WA_ADMIN_BASE + '/api/admin/config', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(cfg),
+        });
+        const data = await res.json();
+        if (data.sucesso) toast('Configuracoes salvas!', 'success');
+        else toast('Erro: ' + (data.erro || 'desconhecido'), 'error');
+      } catch (e) {
+        toast('Erro ao salvar: ' + e.message, 'error');
+      }
+    });
+
+    document.getElementById('btn-restaurar').addEventListener('click', async () => {
+      if (!confirm('Restaurar todas as configuracoes ao padrao?')) return;
+      try {
+        const res = await fetch(WA_ADMIN_BASE + '/api/admin/config/reset', { method: 'POST' });
+        const data = await res.json();
+        if (data.sucesso) {
+          toast('Configuracoes restauradas!', 'success');
+          carregarConfig();
+        }
+      } catch (e) {
+        toast('Erro: ' + e.message, 'error');
+      }
+    });
+
+    // ── Logs ──────────────────────────────────────
+    function addLogEntry(entry) {
+      if (!filtros.has(entry.categoria)) return;
+      const div = document.createElement('div');
+      div.className = 'log-entry';
+      div.dataset.cat = entry.categoria;
+
+      const ts = new Date(entry.ts).toLocaleTimeString('pt-BR');
+      div.innerHTML = `
+        <span class="log-ts">${ts}</span>
+        <span class="log-cat cat-${entry.categoria}">[${entry.categoria}]</span>
+        <span class="log-msg">${escapeHtml(entry.mensagem)}</span>
+      `;
+      logsEl.appendChild(div);
+
+      // Limita DOM a 1000 entradas
+      while (logsEl.children.length > 1000) logsEl.removeChild(logsEl.firstChild);
+    }
+
+    function scrollLogs() {
+      logsEl.scrollTop = logsEl.scrollHeight;
+    }
+
+    function escapeHtml(str) {
+      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    // Filtros
+    document.querySelectorAll('.filter-chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        const cat = chip.dataset.cat;
+        chip.classList.toggle('active');
+        if (filtros.has(cat)) filtros.delete(cat);
+        else filtros.add(cat);
+        // Re-render
+        document.querySelectorAll('.log-entry').forEach(el => {
+          el.style.display = filtros.has(el.dataset.cat) ? '' : 'none';
+        });
+      });
+    });
+
+    document.getElementById('btn-pausar').addEventListener('click', function() {
+      pausado = !pausado;
+      this.textContent = pausado ? 'Continuar' : 'Pausar';
+      this.classList.toggle('btn-primary', pausado);
+      this.classList.toggle('btn-secondary', !pausado);
+    });
+
+    document.getElementById('btn-limpar-logs').addEventListener('click', async () => {
+      logsEl.innerHTML = '';
+      await fetch(WA_ADMIN_BASE + '/api/admin/logs', { method: 'DELETE' }).catch(() => {});
+    });
+
+    // ── Sessoes ───────────────────────────────────
+    async function carregarSessoes() {
+      try {
+        const res = await fetch(WA_ADMIN_BASE + '/api/admin/sessoes');
+        const lista = await res.json();
+        const body = document.getElementById('sessoes-body');
+        if (!lista.length) {
+          body.innerHTML = '<tr><td colspan="3" style="text-align:center;color:var(--muted)">Nenhuma sessao ativa</td></tr>';
+          return;
+        }
+        body.innerHTML = lista.map(s => `
+          <tr>
+            <td>${escapeHtml(s.jid)}</td>
+            <td>${s.login ? escapeHtml(s.login) : '<span style="color:var(--red)">nao vinculado</span>'}</td>
+            <td>${escapeHtml(s.nome || '—')}</td>
+          </tr>
+        `).join('');
+      } catch (e) {
+        toast('Erro ao carregar sessoes: ' + e.message, 'error');
+      }
+    }
+
+    document.getElementById('btn-refresh-sessoes').addEventListener('click', carregarSessoes);
+
+    // ── Toast ─────────────────────────────────────
+    function toast(msg, tipo = 'success') {
+      const el = document.getElementById('toast');
+      el.textContent = msg;
+      el.className = 'toast show ' + tipo;
+      setTimeout(() => el.classList.remove('show'), 3000);
+    }
+
+    // ── Limpar sessoes ──────────────────────────────
+    document.getElementById('btn-limpar-sessoes').addEventListener('click', async () => {
+      if (!confirm('Limpar sessoes Signal corrompidas?\nO WhatsApp vai reconectar automaticamente (sem novo QR).')) return;
+      try {
+        const res = await fetch(WA_ADMIN_BASE + '/api/admin/limpar-sessoes', { method: 'POST' });
+        const data = await res.json();
+        if (data.sucesso) toast(`Sessoes limpas! ${data.removidos} arquivos removidos. Reconectando...`, 'success');
+        else toast('Erro: ' + (data.erro || 'desconhecido'), 'error');
+      } catch (e) {
+        toast('Erro: ' + e.message, 'error');
+      }
+    });
+
+    // ── Init ──────────────────────────────────────
+    carregarConfig();
+  </script>
+</body>
+</html>

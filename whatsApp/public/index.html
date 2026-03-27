@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WhatsApp Portal — WKL</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+  <!-- QR OVERLAY -->
+  <div id="qr-overlay" class="overlay">
+    <div class="qr-box">
+      <div class="qr-logo">💬 WhatsApp Portal</div>
+      <p class="qr-sub">Escaneie o QR Code para conectar</p>
+      <div class="qr-img-wrap"><img id="qr-img" src="" alt="QR Code" /></div>
+      <p class="qr-hint">WhatsApp → Dispositivos vinculados → Vincular dispositivo</p>
+      <div id="qr-status">Aguardando QR Code...</div>
+    </div>
+  </div>
+
+  <!-- MODAL CONFIGURAÇÕES -->
+  <div id="modal-config" class="overlay hidden">
+    <div class="modal-box">
+      <div class="modal-hdr">
+        <span>⚙️ Configurações</span>
+        <button class="btn-icon" data-fechar="modal-config">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="cfg-row">
+          <span class="cfg-label">Status</span>
+          <span id="cfg-status">—</span>
+        </div>
+        <hr>
+        <div class="cfg-row col">
+          <span class="cfg-label">Desconectar sessão</span>
+          <span class="cfg-desc">Remove a sessão salva. Será necessário escanear o QR Code novamente.</span>
+          <button id="btn-desconectar" class="btn-danger" disabled>Desconectar e limpar sessão</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL NOVA CONVERSA -->
+  <div id="modal-novo-chat" class="overlay hidden">
+    <div class="modal-box modal-wide">
+      <div class="modal-hdr">
+        <span>✏️ Nova conversa</span>
+        <button class="btn-icon" data-fechar="modal-novo-chat">✕</button>
+      </div>
+      <div class="modal-body">
+        <input id="inp-busca-contato" class="inp-full" type="text" placeholder="Buscar na agenda do Portal..." />
+        <div id="lista-contatos-portal" class="lista-contatos">
+          <div class="hint-load">Digite para buscar ou aguarde o carregamento...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL PREVIEW DE ARQUIVO -->
+  <div id="modal-arquivo" class="overlay hidden">
+    <div class="modal-box">
+      <div class="modal-hdr">
+        <span>📎 Enviar arquivo</span>
+        <button class="btn-icon" id="btn-cancelar-arquivo">✕</button>
+      </div>
+      <div class="modal-body" id="preview-area"></div>
+      <div class="modal-footer">
+        <input id="inp-legenda" class="inp-full" type="text" placeholder="Legenda (opcional)..." />
+        <button id="btn-confirmar-envio" class="btn-primary">Enviar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- APP -->
+  <div class="app">
+
+    <!-- PAINEL ESQUERDO -->
+    <div class="panel-left">
+      <div class="p-header">
+        <span class="p-title">💬 WhatsApp Portal</span>
+        <div class="p-actions">
+          <div id="status-dot" class="dot off" title="Desconectado"></div>
+          <button class="btn-icon" id="btn-novo-chat" title="Nova conversa">✏</button>
+          <a class="btn-icon" href="/aprovacoesWhatsApp.html" title="Aprovações" style="text-decoration:none">🔔</a>
+          <button class="btn-icon" id="btn-config" title="Configurações">⚙</button>
+        </div>
+      </div>
+      <div class="p-search">
+        <input id="inp-busca" type="text" placeholder="Buscar conversa..." />
+      </div>
+      <div id="lista-chats" class="lista-chats">
+        <div class="empty-hint">Nenhuma conversa ainda.</div>
+      </div>
+    </div>
+
+    <!-- PAINEL DIREITO -->
+    <div class="panel-right">
+
+      <div id="chat-vazio" class="chat-vazio">
+        <div class="chat-vazio-inner">
+          <div class="vazio-icon">💬</div>
+          <h2>WhatsApp Portal</h2>
+          <p>Selecione uma conversa ou inicie uma nova</p>
+          <button id="btn-novo-chat-2" class="btn-primary">✏ Nova conversa</button>
+        </div>
+      </div>
+
+      <div id="chat-ativo" class="chat-ativo hidden">
+
+        <div class="chat-topbar">
+          <div class="ct-avatar" id="ct-avatar">
+            <img id="ct-avatar-img" src="" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+            <span id="ct-avatar-inicial"></span>
+          </div>
+          <div class="ct-info">
+            <div class="ct-nome" id="ct-nome">—</div>
+            <div class="ct-numero" id="ct-numero">—</div>
+          </div>
+          <div id="ct-status" class="ct-status"></div>
+        </div>
+
+        <div id="chat-feed" class="chat-feed"></div>
+
+        <!-- Barra de reply -->
+        <div id="reply-bar" class="reply-bar hidden">
+          <div class="reply-content">
+            <span class="reply-label">Respondendo a</span>
+            <div id="reply-texto" class="reply-texto"></div>
+          </div>
+          <button id="btn-cancelar-reply" class="btn-icon">✕</button>
+        </div>
+
+        <div class="chat-footer">
+          <label class="btn-icon btn-attach" title="Anexar arquivo">
+            📎
+            <input type="file" id="inp-file" hidden accept="image/*,video/*,audio/*,.pdf,.doc,.docx,.xls,.xlsx,.zip">
+          </label>
+          <textarea id="inp-msg" rows="1" placeholder="Digite uma mensagem..."></textarea>
+          <button id="btn-enviar" class="btn-send" title="Enviar">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+              <path d="M1.101 21.757L23.8 12.028 1.101 2.3l.011 7.912 13.623 1.816-13.623 1.817-.011 7.912z"/>
+            </svg>
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // URL base do servidor WhatsApp (porta 3200) — independente de onde esta página for servida
+    window.WA_BASE = window.location.protocol + '//' + window.location.hostname + ':3200';
+    document.write('<scr' + 'ipt src="' + WA_BASE + '/socket.io/socket.io.js"><\/scr' + 'ipt>');
+  </script>
+  <script src="/whatsapp/js/app.js"></script>
+</body>
+</html>

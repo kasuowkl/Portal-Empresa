@@ -132,6 +132,10 @@ app.use('/', rotasAprovacoes);
 const rotasCalendarios = require('./routes/calendarios');
 app.use('/', rotasCalendarios);
 
+// Rotas do WhatsApp: GET /whatsapp | /whatsapp/admin | /whatsapp/aprovacoes
+const rotasWhatsapp = require('./routes/whatsapp');
+app.use('/', rotasWhatsapp);
+
 // ============================================================
 // TRATAMENTO DE ERROS GERAIS
 // ============================================================

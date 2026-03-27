@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aprovações — WhatsApp Portal</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    /* ── Layout geral ── */
+    body { background: var(--bg); color: var(--txt); font-family: inherit; margin: 0; min-height: 100vh; }
+
+    .apr-topbar {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 20px; background: var(--panel); border-bottom: 1px solid var(--border);
+      position: sticky; top: 0; z-index: 10;
+    }
+    .apr-topbar a { color: var(--green); text-decoration: none; font-size: 20px; }
+    .apr-topbar h1 { flex: 1; margin: 0; font-size: 17px; font-weight: 600; }
+    .apr-login-area { display: flex; align-items: center; gap: 8px; }
+    .apr-login-area label { font-size: 12px; color: var(--txt-sub); }
+    .apr-login-area input {
+      background: var(--bg-msg); border: 1px solid var(--border); color: var(--txt);
+      border-radius: 6px; padding: 5px 10px; font-size: 13px; width: 140px;
+    }
+    .apr-login-area input:focus { outline: none; border-color: var(--green); }
+
+    /* ── Stats ── */
+    .apr-stats {
+      display: flex; gap: 12px; padding: 16px 20px; flex-wrap: wrap;
+    }
+    .stat-card {
+      flex: 1; min-width: 120px; background: var(--panel); border-radius: 10px;
+      padding: 14px 16px; text-align: center; border: 1px solid var(--border);
+    }
+    .stat-card .num { font-size: 28px; font-weight: 700; line-height: 1; }
+    .stat-card .lbl { font-size: 12px; color: var(--txt-sub); margin-top: 4px; }
+    .stat-card.pendente .num { color: #f0b429; }
+    .stat-card.aprovada .num { color: var(--green); }
+    .stat-card.reprovada .num { color: #e74c3c; }
+
+    /* ── Filtros ── */
+    .apr-filtros {
+      display: flex; gap: 10px; padding: 0 20px 16px; align-items: center; flex-wrap: wrap;
+    }
+    .apr-filtros input {
+      background: var(--bg-msg); border: 1px solid var(--border); color: var(--txt);
+      border-radius: 8px; padding: 8px 14px; font-size: 13px; flex: 1; min-width: 160px;
+    }
+    .apr-filtros input:focus { outline: none; border-color: var(--green); }
+    .btn-refresh {
+      background: var(--panel); border: 1px solid var(--border); color: var(--txt);
+      border-radius: 8px; padding: 8px 14px; font-size: 13px; cursor: pointer;
+      transition: background .15s;
+    }
+    .btn-refresh:hover { background: var(--hover); }
+
+    /* ── Cards ── */
+    .apr-lista {
+      padding: 0 20px 40px; display: flex; flex-direction: column; gap: 12px;
+    }
+    .apr-card {
+      background: var(--panel); border: 1px solid var(--border); border-radius: 10px;
+      overflow: hidden; transition: border-color .15s;
+    }
+    .apr-card:hover { border-color: var(--green); }
+    .apr-card-hdr {
+      display: flex; align-items: center; gap: 10px;
+      padding: 14px 16px 10px; border-bottom: 1px solid var(--border);
+    }
+    .apr-id {
+      background: #f0b42922; color: #f0b429; border-radius: 6px;
+      padding: 3px 8px; font-size: 12px; font-weight: 700; white-space: nowrap;
+    }
+    .apr-titulo { flex: 1; font-weight: 600; font-size: 14px; }
+    .apr-status-badge {
+      font-size: 11px; border-radius: 20px; padding: 3px 10px; font-weight: 600;
+    }
+    .apr-status-badge.Pendente  { background: #f0b42922; color: #f0b429; }
+    .apr-status-badge.Aprovado  { background: #00a88422; color: var(--green); }
+    .apr-status-badge.Reprovado { background: #e74c3c22; color: #e74c3c; }
+
+    .apr-card-body { padding: 10px 16px; display: flex; gap: 20px; flex-wrap: wrap; }
+    .apr-info { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 160px; }
+    .apr-info-row { display: flex; gap: 6px; font-size: 12px; }
+    .apr-info-row .k { color: var(--txt-sub); min-width: 80px; }
+    .apr-info-row .v { color: var(--txt); }
+
+    .apr-aprovadores { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+    .apr-aprovador-chip {
+      display: flex; align-items: center; gap: 5px;
+      background: var(--bg-msg); border-radius: 20px; padding: 4px 10px; font-size: 12px;
+    }
+    .apr-aprovador-chip .dot { width: 8px; height: 8px; border-radius: 50%; }
+    .dot-pendente  { background: #f0b429; }
+    .dot-aprovado  { background: var(--green); }
+    .dot-reprovado { background: #e74c3c; }
+
+    .apr-card-footer {
+      padding: 10px 16px; display: flex; gap: 8px; flex-wrap: wrap;
+      border-top: 1px solid var(--border);
+    }
+    .btn-apr  { background: #00a88422; color: var(--green); border: 1px solid #00a88440; border-radius: 7px; padding: 7px 14px; font-size: 13px; cursor: pointer; transition: background .15s; }
+    .btn-apr:hover  { background: #00a88440; }
+    .btn-rep  { background: #e74c3c22; color: #e74c3c;    border: 1px solid #e74c3c40; border-radius: 7px; padding: 7px 14px; font-size: 13px; cursor: pointer; transition: background .15s; }
+    .btn-rep:hover  { background: #e74c3c40; }
+    .btn-notif { background: #3498db22; color: #3498db;   border: 1px solid #3498db40; border-radius: 7px; padding: 7px 14px; font-size: 13px; cursor: pointer; transition: background .15s; }
+    .btn-notif:hover { background: #3498db40; }
+
+    /* ── Empty / Loading ── */
+    .apr-empty { text-align: center; color: var(--txt-sub); padding: 60px 20px; font-size: 14px; }
+
+    /* ── Overlay / Modals ── */
+    .overlay { position: fixed; inset: 0; background: rgba(0,0,0,.7); display: flex; align-items: center; justify-content: center; z-index: 100; }
+    .overlay.hidden { display: none; }
+    .modal-box { background: var(--panel); border-radius: 12px; width: 90%; max-width: 480px; overflow: hidden; border: 1px solid var(--border); }
+    .modal-hdr { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; border-bottom: 1px solid var(--border); font-weight: 600; font-size: 15px; }
+    .modal-body { padding: 18px; display: flex; flex-direction: column; gap: 14px; }
+    .modal-footer { padding: 14px 18px; border-top: 1px solid var(--border); display: flex; gap: 10px; justify-content: flex-end; }
+
+    .apr-detalhe-box { background: var(--bg-msg); border-radius: 8px; padding: 12px; font-size: 13px; }
+    .apr-detalhe-box .titulo { font-weight: 600; margin-bottom: 8px; color: var(--txt); }
+    .apr-detalhe-box .row { display: flex; gap: 6px; color: var(--txt-sub); margin-top: 3px; font-size: 12px; }
+    .apr-detalhe-box .row .k { min-width: 90px; }
+
+    .inp-confirm { background: var(--bg-msg); border: 1px solid var(--border); color: var(--txt); border-radius: 8px; padding: 10px 14px; font-size: 14px; width: 100%; box-sizing: border-box; }
+    .inp-confirm:focus { outline: none; border-color: var(--green); }
+    .inp-confirm.err { border-color: #e74c3c; }
+
+    textarea.inp-confirm { resize: vertical; min-height: 80px; font-family: inherit; }
+
+    .hint-txt { font-size: 12px; color: var(--txt-sub); }
+    .warn-txt  { font-size: 12px; color: #f0b429; background: #f0b42915; border-radius: 6px; padding: 8px 12px; }
+
+    .btn-primary   { background: var(--green); color: #000; border: none; border-radius: 8px; padding: 10px 18px; font-size: 14px; font-weight: 600; cursor: pointer; opacity: .4; transition: opacity .15s; }
+    .btn-primary:not(:disabled) { opacity: 1; cursor: pointer; }
+    .btn-primary:disabled { cursor: not-allowed; opacity: .35; }
+
+    .btn-danger    { background: #e74c3c; color: #fff; border: none; border-radius: 8px; padding: 10px 18px; font-size: 14px; font-weight: 600; cursor: pointer; opacity: .4; transition: opacity .15s; }
+    .btn-danger:not(:disabled) { opacity: 1; }
+    .btn-danger:disabled { cursor: not-allowed; opacity: .35; }
+
+    .btn-cancel    { background: var(--bg-msg); color: var(--txt); border: 1px solid var(--border); border-radius: 8px; padding: 10px 18px; font-size: 14px; cursor: pointer; }
+    .btn-cancel:hover { background: var(--hover); }
+
+    .btn-blue { background: #3498db; color: #fff; border: none; border-radius: 8px; padding: 10px 18px; font-size: 14px; font-weight: 600; cursor: pointer; }
+    .btn-blue:disabled { opacity: .35; cursor: not-allowed; }
+
+    .notif-preview {
+      background: var(--bg-msg); border-radius: 8px; padding: 12px 14px;
+      font-size: 12px; white-space: pre-wrap; color: var(--txt); line-height: 1.5;
+      max-height: 200px; overflow-y: auto; border: 1px solid var(--border);
+    }
+    .inp-label { font-size: 12px; color: var(--txt-sub); margin-bottom: -8px; }
+
+    /* Toast */
+    #toast {
+      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+      background: #1f2c34; color: var(--txt); border-radius: 10px; padding: 12px 20px;
+      font-size: 13px; z-index: 999; border: 1px solid var(--border);
+      opacity: 0; transition: opacity .25s; pointer-events: none;
+    }
+    #toast.show { opacity: 1; }
+    #toast.ok  { border-color: var(--green); color: var(--green); }
+    #toast.err { border-color: #e74c3c;    color: #e74c3c; }
+  </style>
+</head>
+<body>
+
+  <!-- TOP BAR -->
+  <div class="apr-topbar">
+    <a href="/" title="Voltar">←</a>
+    <h1>🔔 Aprovações WhatsApp</h1>
+    <div class="apr-login-area">
+      <label for="inp-login-global">Agindo como:</label>
+      <input id="inp-login-global" type="text" placeholder="seu.login" autocomplete="off">
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <div class="apr-stats">
+    <div class="stat-card pendente">
+      <div class="num" id="stat-pendente">—</div>
+      <div class="lbl">Pendentes</div>
+    </div>
+    <div class="stat-card aprovada">
+      <div class="num" id="stat-aprovada">—</div>
+      <div class="lbl">Aprovadas hoje</div>
+    </div>
+    <div class="stat-card reprovada">
+      <div class="num" id="stat-reprovada">—</div>
+      <div class="lbl">Reprovadas hoje</div>
+    </div>
+  </div>
+
+  <!-- FILTROS -->
+  <div class="apr-filtros">
+    <input id="inp-busca-apr" type="text" placeholder="Buscar por título ou solicitante..." />
+    <input id="inp-filtro-aprovador" type="text" placeholder="Filtrar por aprovador..." />
+    <button class="btn-refresh" id="btn-refresh">↻ Atualizar</button>
+  </div>
+
+  <!-- LISTA -->
+  <div class="apr-lista" id="apr-lista">
+    <div class="apr-empty">Carregando aprovações...</div>
+  </div>
+
+  <!-- ── MODAL: APROVAR ── -->
+  <div id="modal-aprovar" class="overlay hidden">
+    <div class="modal-box">
+      <div class="modal-hdr">
+        <span>✅ Confirmar Aprovação</span>
+        <button class="btn-icon" onclick="fecharModal('modal-aprovar')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="apr-detalhe-box" id="apr-detalhe-aprovar"></div>
+        <div class="warn-txt" id="apr-warn-login-apr">⚠️ Defina seu login no topo da página antes de aprovar.</div>
+        <div>
+          <div class="inp-label">Para confirmar, digite o número da aprovação:</div>
+          <input id="inp-confirm-apr" class="inp-confirm" type="text" placeholder="Ex: 123" autocomplete="off">
+        </div>
+        <div class="hint-txt">A aprovação só será registrada após a confirmação do ID.</div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancel" onclick="fecharModal('modal-aprovar')">Cancelar</button>
+        <button class="btn-primary" id="btn-confirmar-apr" disabled>✅ Confirmar Aprovação</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── MODAL: REPROVAR ── -->
+  <div id="modal-reprovar" class="overlay hidden">
+    <div class="modal-box">
+      <div class="modal-hdr">
+        <span>❌ Reprovar Aprovação</span>
+        <button class="btn-icon" onclick="fecharModal('modal-reprovar')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="apr-detalhe-box" id="apr-detalhe-reprovar"></div>
+        <div class="warn-txt" id="apr-warn-login-rep">⚠️ Defina seu login no topo da página antes de reprovar.</div>
+        <div>
+          <div class="inp-label">Motivo da reprovação (obrigatório):</div>
+          <textarea id="inp-motivo-rep" class="inp-confirm" placeholder="Descreva o motivo da reprovação..."></textarea>
+        </div>
+        <div>
+          <div class="inp-label">Para confirmar, digite <strong>REPROVAR</strong>:</div>
+          <input id="inp-confirm-rep" class="inp-confirm" type="text" placeholder="REPROVAR" autocomplete="off">
+        </div>
+        <div class="hint-txt">A reprovação é irreversível. O motivo ficará registrado no Portal.</div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancel" onclick="fecharModal('modal-reprovar')">Cancelar</button>
+        <button class="btn-danger" id="btn-confirmar-rep" disabled>❌ Confirmar Reprovação</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── MODAL: NOTIFICAR ── -->
+  <div id="modal-notificar" class="overlay hidden">
+    <div class="modal-box">
+      <div class="modal-hdr">
+        <span>📱 Notificar via WhatsApp</span>
+        <button class="btn-icon" onclick="fecharModal('modal-notificar')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="apr-detalhe-box" id="apr-detalhe-notif"></div>
+        <div>
+          <div class="inp-label">Número WhatsApp do aprovador:</div>
+          <input id="inp-numero-notif" class="inp-confirm" type="text" placeholder="Ex: 11999998888" autocomplete="off">
+        </div>
+        <div>
+          <div class="inp-label">Mensagem (editável):</div>
+          <textarea id="inp-msg-notif" class="inp-confirm" style="min-height:160px;font-size:12px;"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancel" onclick="fecharModal('modal-notificar')">Cancelar</button>
+        <button class="btn-blue" id="btn-confirmar-notif">📱 Enviar Notificação</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div id="toast"></div>
+
+  <script src="/js/aprovacoes-wa.js"></script>
+</body>
+</html>
