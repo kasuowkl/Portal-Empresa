@@ -8,10 +8,42 @@
 const express        = require('express');
 const sql            = require('mssql');
 const path           = require('path');
+const http           = require('http');
 const verificarLogin   = require('../middleware/verificarLogin');
 const { registrarLog } = require('../services/logService');
 const { enviarNotificacao } = require('../services/emailService');
 const router           = express.Router();
+
+const WHATSAPP_URL = process.env.WHATSAPP_URL || 'http://localhost:3001';
+
+// Envia mensagem WhatsApp via serviço interno (sem dependência de axios)
+function notificarWhatsApp(numero, mensagem) {
+  const body = JSON.stringify({ numero, mensagem });
+  const url  = new URL(`${WHATSAPP_URL}/api/notificar`);
+  const opts = {
+    hostname: url.hostname, port: url.port || 3001,
+    path: url.pathname, method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body) }
+  };
+  return new Promise((resolve) => {
+    const req = http.request(opts, resolve);
+    req.on('error', () => resolve(null));
+    req.write(body);
+    req.end();
+  });
+}
+
+async function buscarWhatsApp(pool, login) {
+  if (!login) return null;
+  try {
+    const r = await pool.request().input('login', sql.VarChar, login).query(`
+      SELECT whatsapp FROM usuarios       WHERE usuario = @login AND ativo = 1 AND whatsapp IS NOT NULL
+      UNION ALL
+      SELECT whatsapp FROM usuarios_dominio WHERE login = @login AND ativo = 1 AND whatsapp IS NOT NULL
+    `);
+    return r.recordset[0]?.whatsapp || null;
+  } catch { return null; }
+}
 
 // ── Helpers de e-mail ─────────────────────────────────────────
 async function buscarEmail(pool, login) {
@@ -233,6 +265,26 @@ router.post('/api/aprovacoes', verificarLogin, async (req, res) => {
     montarDadosNotif(pool, aprovacaoId).then(d => {
       if (d) enviarNotificacao(pool, 'aprovacoes.nova_solicitacao', d).catch(() => {});
     }).catch(() => {});
+
+    // Notificação WhatsApp para cada aprovador com número cadastrado
+    if (Array.isArray(aprovadores) && aprovadores.length) {
+      const portalBase = process.env.PORTAL_URL || `http://localhost:${process.env.PORTA_APP || 3000}`;
+      const msg =
+        `*Portal WKL — Nova Aprovação Pendente* 🔔\n\n` +
+        `Você tem uma solicitação aguardando sua resposta:\n\n` +
+        `*#${aprovacaoId}* — ${titulo.trim()}\n` +
+        `Solicitante: ${nome}\n\n` +
+        `Para responder, envie:\n` +
+        `✅ *aprovar ${aprovacaoId}*\n` +
+        `❌ *reprovar ${aprovacaoId} [motivo]*\n\n` +
+        `Portal: ${portalBase}/aprovacoes`;
+
+      for (const aprLogin of aprovadores) {
+        buscarWhatsApp(pool, aprLogin).then(numero => {
+          if (numero) notificarWhatsApp(numero, msg).catch(() => {});
+        }).catch(() => {});
+      }
+    }
 
     res.json({ sucesso: true, id: aprovacaoId });
   } catch (erro) {
