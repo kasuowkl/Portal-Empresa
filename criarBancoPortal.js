@@ -19,6 +19,7 @@
  * 2.0.0 - 2026-03-16 - Colunas tipo_consenso e consenso_valor em aprovacoes
  * 2.1.0 - 2026-03-23 - Adicionadas tabelas do módulo Calendários (cal_agendas, cal_membros, cal_eventos, cal_caldav_config)
  * 2.2.0 - 2026-03-26 - Coluna whatsapp em usuarios_dominio e usuarios (integração WhatsApp)
+ * 2.3.0 - 2026-03-26 - Coluna visivel_usuarios em sistemas (controle de visibilidade por nível)
  */
 
 require('dotenv').config();
@@ -925,6 +926,13 @@ async function criarTabelas(pool) {
       ALTER TABLE usuarios ADD whatsapp VARCHAR(20) NULL
   `);
   console.log('  Coluna whatsapp em usuarios_dominio/usuarios — OK');
+
+  // Coluna visivel_usuarios em sistemas
+  await pool.request().query(`
+    IF NOT EXISTS (SELECT * FROM sys.columns WHERE Name = N'visivel_usuarios' AND Object_ID = Object_ID(N'sistemas'))
+      ALTER TABLE sistemas ADD visivel_usuarios BIT NOT NULL DEFAULT 1
+  `);
+  console.log('  Coluna visivel_usuarios (sistemas) — OK');
 }
 
 // ============================================================
