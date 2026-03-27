@@ -52,6 +52,10 @@
         <label>Senha <small id="senha-hint" style="color:var(--cor-texto-fraco);font-size:0.8em"></small></label>
         <input type="password" id="usuario-senha" placeholder="Digite a senha">
       </div>
+      <div class="form-grupo">
+        <label>WhatsApp <small style="color:var(--cor-texto-fraco);font-size:0.8em">(somente números, ex: 5511999990000)</small></label>
+        <input type="text" id="usuario-whatsapp" placeholder="Ex: 5511999990000" maxlength="20">
+      </div>
       <div class="form-grupo-select" style="margin-top:4px">
         <label>Nível de acesso</label>
         <select id="usuario-nivel">
@@ -107,24 +111,26 @@
   }
 
   window.abrirModalUsuario = function () {
-    document.getElementById('usuario-id').value    = '';
-    document.getElementById('usuario-nome').value  = '';
-    document.getElementById('usuario-login').value = '';
+    document.getElementById('usuario-id').value       = '';
+    document.getElementById('usuario-nome').value     = '';
+    document.getElementById('usuario-login').value    = '';
     document.getElementById('usuario-login').disabled = false;
-    document.getElementById('usuario-senha').value = '';
-    document.getElementById('usuario-nivel').value = 'usuario';
+    document.getElementById('usuario-senha').value    = '';
+    document.getElementById('usuario-whatsapp').value = '';
+    document.getElementById('usuario-nivel').value    = 'usuario';
     document.getElementById('modal-usuario-titulo').textContent = 'Novo Usuário';
     document.getElementById('senha-hint').textContent = '';
     document.getElementById('modal-usuario').classList.add('visivel');
   };
 
   window.editarUsuario = function (u) {
-    document.getElementById('usuario-id').value    = u.id;
-    document.getElementById('usuario-nome').value  = u.nome;
-    document.getElementById('usuario-login').value = u.usuario;
+    document.getElementById('usuario-id').value       = u.id;
+    document.getElementById('usuario-nome').value     = u.nome;
+    document.getElementById('usuario-login').value    = u.usuario;
     document.getElementById('usuario-login').disabled = true;
-    document.getElementById('usuario-senha').value = '';
-    document.getElementById('usuario-nivel').value = u.nivel;
+    document.getElementById('usuario-senha').value    = '';
+    document.getElementById('usuario-whatsapp').value = u.whatsapp || '';
+    document.getElementById('usuario-nivel').value    = u.nivel;
     document.getElementById('modal-usuario-titulo').textContent = 'Editar Usuário';
     document.getElementById('senha-hint').textContent = '(deixe em branco para manter)';
     document.getElementById('modal-usuario').classList.add('visivel');
@@ -135,11 +141,12 @@
   };
 
   window.salvarUsuario = async function () {
-    const id    = document.getElementById('usuario-id').value;
-    const nome  = document.getElementById('usuario-nome').value.trim();
-    const login = document.getElementById('usuario-login').value.trim();
-    const senha = document.getElementById('usuario-senha').value;
-    const nivel = document.getElementById('usuario-nivel').value;
+    const id       = document.getElementById('usuario-id').value;
+    const nome     = document.getElementById('usuario-nome').value.trim();
+    const login    = document.getElementById('usuario-login').value.trim();
+    const senha    = document.getElementById('usuario-senha').value;
+    const whatsapp = document.getElementById('usuario-whatsapp').value.replace(/\D/g, '');
+    const nivel    = document.getElementById('usuario-nivel').value;
 
     if (!nome) { mostrarAlerta('Informe o nome completo.', 'erro'); return; }
 
@@ -149,7 +156,7 @@
         resp = await fetch(`/api/usuarios/${id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ nome, nivel, senha })
+          body: JSON.stringify({ nome, nivel, senha, whatsapp })
         });
       } else {
         if (!login) { mostrarAlerta('Informe o login.', 'erro'); return; }
@@ -157,7 +164,7 @@
         resp = await fetch('/api/usuarios', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ nome, usuario: login, senha, nivel })
+          body: JSON.stringify({ nome, usuario: login, senha, nivel, whatsapp })
         });
       }
 

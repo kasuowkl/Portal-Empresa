@@ -299,7 +299,7 @@ router.get('/api/usuarios', verificarLogin, verificarAdmin, async (req, res) => 
 
   try {
     const resultado = await pool.request()
-      .query('SELECT id, nome, usuario, nivel, ativo, criado_em FROM usuarios ORDER BY nome');
+      .query('SELECT id, nome, usuario, nivel, ativo, criado_em, whatsapp FROM usuarios ORDER BY nome');
     res.json({ sucesso: true, usuarios: resultado.recordset });
   } catch (erro) {
     logErro.error(`Erro ao listar usuários: ${erro.message}`);
@@ -313,7 +313,7 @@ router.post('/api/usuarios', verificarLogin, verificarAdmin, async (req, res) =>
   const logAtividade = req.app.locals.logAtividade;
   const logErro      = req.app.locals.logErro;
   const admin        = req.session.usuario.usuario;
-  const { nome, usuario, senha, nivel } = req.body;
+  const { nome, usuario, senha, nivel, whatsapp } = req.body;
 
   if (!nome || !usuario || !senha || !nivel) {
     return res.status(400).json({ erro: 'Preencha todos os campos.' });
@@ -327,9 +327,10 @@ router.post('/api/usuarios', verificarLogin, verificarAdmin, async (req, res) =>
       .input('usuario',   sql.VarChar, usuario.trim().toLowerCase())
       .input('senhaHash', sql.VarChar, senhaHash)
       .input('nivel',     sql.VarChar, nivel)
+      .input('whatsapp',  sql.VarChar, (whatsapp || '').replace(/\D/g, '') || null)
       .query(`
-        INSERT INTO usuarios (nome, usuario, senha_hash, nivel, ativo)
-        VALUES (@nome, @usuario, @senhaHash, @nivel, 1)
+        INSERT INTO usuarios (nome, usuario, senha_hash, nivel, ativo, whatsapp)
+        VALUES (@nome, @usuario, @senhaHash, @nivel, 1, @whatsapp)
       `);
 
     logAtividade.info(`Usuário criado: "${usuario}" — por: "${admin}"`);
@@ -351,11 +352,13 @@ router.put('/api/usuarios/:id', verificarLogin, verificarAdmin, async (req, res)
   const logErro      = req.app.locals.logErro;
   const admin        = req.session.usuario.usuario;
   const id           = parseInt(req.params.id);
-  const { nome, nivel, senha } = req.body;
+  const { nome, nivel, senha, whatsapp } = req.body;
 
   if (!nome || !nivel) {
     return res.status(400).json({ erro: 'Nome e nível são obrigatórios.' });
   }
+
+  const wa = (whatsapp || '').replace(/\D/g, '') || null;
 
   try {
     if (senha && senha.trim()) {
@@ -365,13 +368,15 @@ router.put('/api/usuarios/:id', verificarLogin, verificarAdmin, async (req, res)
         .input('nome',      sql.VarChar, nome.trim())
         .input('nivel',     sql.VarChar, nivel)
         .input('senhaHash', sql.VarChar, senhaHash)
-        .query('UPDATE usuarios SET nome = @nome, nivel = @nivel, senha_hash = @senhaHash WHERE id = @id');
+        .input('whatsapp',  sql.VarChar, wa)
+        .query('UPDATE usuarios SET nome = @nome, nivel = @nivel, senha_hash = @senhaHash, whatsapp = @whatsapp WHERE id = @id');
     } else {
       await pool.request()
-        .input('id',    sql.Int,     id)
-        .input('nome',  sql.VarChar, nome.trim())
-        .input('nivel', sql.VarChar, nivel)
-        .query('UPDATE usuarios SET nome = @nome, nivel = @nivel WHERE id = @id');
+        .input('id',       sql.Int,     id)
+        .input('nome',     sql.VarChar, nome.trim())
+        .input('nivel',    sql.VarChar, nivel)
+        .input('whatsapp', sql.VarChar, wa)
+        .query('UPDATE usuarios SET nome = @nome, nivel = @nivel, whatsapp = @whatsapp WHERE id = @id');
     }
 
     logAtividade.info(`Usuário id=${id} editado — por: "${admin}"`);
