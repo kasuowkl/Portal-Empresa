@@ -645,9 +645,10 @@ router.put('/api/aprovacoes/:id/responder', verificarLogin, async (req, res) => 
     }
 
     // Registra no log da aprovação
+    const viaWpp  = req.body._whatsapp_login ? ' (via WhatsApp)' : '';
     const acaoLog = decisao === 'Aprovado'
-      ? `${nome} aprovou`
-      : `${nome} reprovou${motivo ? ` — ${motivo}` : ''}`;
+      ? `${nome} aprovou${viaWpp}`
+      : `${nome} reprovou${viaWpp}${motivo ? ` — ${motivo}` : ''}`;
     await pool.request()
       .input('aprovacao_id', sql.Int,     id)
       .input('usuario',      sql.VarChar, login)
