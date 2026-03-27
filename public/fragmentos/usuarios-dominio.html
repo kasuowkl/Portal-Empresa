@@ -124,13 +124,14 @@
         <th>Nome</th>
         <th>E-mail</th>
         <th>Departamento</th>
+        <th>WhatsApp</th>
         <th>Nível</th>
         <th>Status</th>
         <th class="col-acoes">Ações</th>
       </tr>
     </thead>
     <tbody id="tbody-dominio">
-      <tr><td colspan="7" style="text-align:center;padding:24px;color:var(--cor-texto-fraco)">
+      <tr><td colspan="8" style="text-align:center;padding:24px;color:var(--cor-texto-fraco)">
         <i class="fas fa-spinner fa-spin"></i> Carregando...
       </td></tr>
     </tbody>
@@ -280,7 +281,7 @@
 
       if (_usuariosDom.length === 0) {
         tbody.innerHTML = `
-          <tr><td colspan="7" class="sem-dados">
+          <tr><td colspan="8" class="sem-dados">
             <i class="fas fa-users"></i>
             Nenhum usuário do domínio com acesso. Use "Buscar no AD" para adicionar.
           </td></tr>`;
@@ -291,7 +292,7 @@
       renderizarTabelaDominio(_usuariosDom);
     } catch (e) {
       tbody.innerHTML = `
-        <tr><td colspan="7" class="sem-dados">
+        <tr><td colspan="8" class="sem-dados">
           <i class="fas fa-exclamation-triangle"></i>Erro ao carregar usuários do domínio.
         </td></tr>`;
     }
@@ -303,7 +304,7 @@
 
     if (lista.length === 0) {
       tbody.innerHTML = `
-        <tr><td colspan="7" class="sem-dados">
+        <tr><td colspan="8" class="sem-dados">
           <i class="fas fa-search"></i> Nenhum usuário encontrado com esse filtro.
         </td></tr>`;
       atualizarContadorDominio(0, _usuariosDom.length);
@@ -316,6 +317,18 @@
         <td>${esc(u.nome) || '—'}</td>
         <td style="font-size:0.82em;color:var(--cor-texto-fraco)">${esc(u.email) || '—'}</td>
         <td style="font-size:0.82em;color:var(--cor-texto-fraco)">${esc(u.departamento) || '—'}</td>
+        <td id="wa-cell-${u.id}">
+          ${u.whatsapp
+            ? `<span style="font-size:0.82em;color:#25d366;cursor:pointer;display:flex;align-items:center;gap:5px"
+                     title="Clique para editar" onclick="editarWhatsAppDom(${u.id}, '${esc(u.whatsapp)}')">
+                 <i class="fab fa-whatsapp"></i> ${esc(u.whatsapp)}
+               </span>`
+            : `<span style="font-size:0.8em;color:var(--cor-texto-fraco);cursor:pointer"
+                     title="Clique para cadastrar" onclick="editarWhatsAppDom(${u.id}, '')">
+                 <i class="fas fa-plus" style="font-size:0.75em"></i> cadastrar
+               </span>`
+          }
+        </td>
         <td>
           <select onchange="alterarNivelDom(${u.id}, this.value)"
                   style="font-size:0.83em;padding:3px 6px;border-radius:6px;background:var(--cor-fundo-3);color:var(--cor-texto);border:1px solid var(--cor-borda)">
@@ -356,7 +369,8 @@
       (u.login        || '').toLowerCase().includes(termo) ||
       (u.nome         || '').toLowerCase().includes(termo) ||
       (u.email        || '').toLowerCase().includes(termo) ||
-      (u.departamento || '').toLowerCase().includes(termo)
+      (u.departamento || '').toLowerCase().includes(termo) ||
+      (u.whatsapp     || '').includes(termo)
     );
     renderizarTabelaDominio(filtrados);
   };
@@ -547,6 +561,55 @@
       fecharModalAD();
       mostrarAlertaUsuarios(dados.mensagem || dados.erro, resp.ok ? 'sucesso' : 'erro');
       if (resp.ok) carregarUsuariosDominio();
+    } catch (e) {
+      mostrarAlertaUsuarios('Erro de comunicação.', 'erro');
+    }
+  };
+
+  // ---- Edição inline de WhatsApp -------------------------------------------
+  window.editarWhatsAppDom = function (id, valorAtual) {
+    const cell = document.getElementById(`wa-cell-${id}`);
+    if (!cell) return;
+    cell.innerHTML = `
+      <div style="display:flex;align-items:center;gap:4px">
+        <input id="wa-inp-${id}" type="text" value="${esc(valorAtual)}"
+               placeholder="Ex: 11999998888" maxlength="20"
+               style="width:120px;font-size:0.82em;padding:3px 6px;border-radius:5px;
+                      background:var(--cor-fundo-3);border:1px solid var(--cor-borda);color:var(--cor-texto)"
+               onkeydown="if(event.key==='Enter')salvarWhatsAppDom(${id});if(event.key==='Escape')carregarUsuariosDominio()">
+        <button class="btn-icone" title="Salvar" onclick="salvarWhatsAppDom(${id})"
+                style="color:var(--cor-primaria)"><i class="fas fa-check"></i></button>
+        <button class="btn-icone" title="Cancelar" onclick="carregarUsuariosDominio()"
+                style="color:var(--cor-texto-fraco)"><i class="fas fa-times"></i></button>
+      </div>`;
+    document.getElementById(`wa-inp-${id}`)?.focus();
+  };
+
+  window.salvarWhatsAppDom = async function (id) {
+    const inp = document.getElementById(`wa-inp-${id}`);
+    if (!inp) return;
+    const numero = inp.value.replace(/\D/g, '');
+    try {
+      const resp = await fetch(`/api/ad/usuarios/${id}/whatsapp`, {
+        method:  'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ whatsapp: numero }),
+      });
+      const dados = await resp.json();
+      mostrarAlertaUsuarios(resp.ok ? 'WhatsApp atualizado.' : (dados.erro || 'Erro ao salvar.'), resp.ok ? 'sucesso' : 'erro');
+      // Atualiza cache local sem recarregar tudo
+      const u = _usuariosDom.find(x => x.id === id);
+      if (u) u.whatsapp = numero;
+      const cell = document.getElementById(`wa-cell-${id}`);
+      if (cell) cell.innerHTML = numero
+        ? `<span style="font-size:0.82em;color:#25d366;cursor:pointer;display:flex;align-items:center;gap:5px"
+                 title="Clique para editar" onclick="editarWhatsAppDom(${id}, '${numero}')">
+             <i class="fab fa-whatsapp"></i> ${numero}
+           </span>`
+        : `<span style="font-size:0.8em;color:var(--cor-texto-fraco);cursor:pointer"
+                 title="Clique para cadastrar" onclick="editarWhatsAppDom(${id}, '')">
+             <i class="fas fa-plus" style="font-size:0.75em"></i> cadastrar
+           </span>`;
     } catch (e) {
       mostrarAlertaUsuarios('Erro de comunicação.', 'erro');
     }

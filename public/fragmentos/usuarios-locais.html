@@ -14,6 +14,7 @@
       <tr>
         <th>Nome</th>
         <th>Usuário</th>
+        <th>WhatsApp</th>
         <th>Nível</th>
         <th>Status</th>
         <th>Criado em</th>
@@ -21,7 +22,7 @@
       </tr>
     </thead>
     <tbody id="tbody-usuarios">
-      <tr><td colspan="6" style="text-align:center;padding:24px;color:var(--cor-texto-fraco)">
+      <tr><td colspan="7" style="text-align:center;padding:24px;color:var(--cor-texto-fraco)">
         <i class="fas fa-spinner fa-spin"></i> Carregando...
       </td></tr>
     </tbody>
@@ -52,6 +53,10 @@
         <label>Senha <small id="senha-hint" style="color:var(--cor-texto-fraco);font-size:0.8em"></small></label>
         <input type="password" id="usuario-senha" placeholder="Digite a senha">
       </div>
+      <div class="form-grupo">
+        <label>WhatsApp <small style="color:var(--cor-texto-fraco);font-size:0.8em">(somente números, com DDI)</small></label>
+        <input type="text" id="usuario-whatsapp" placeholder="Ex: 5511999998888">
+      </div>
       <div class="form-grupo-select" style="margin-top:4px">
         <label>Nível de acesso</label>
         <select id="usuario-nivel">
@@ -81,7 +86,7 @@
       const dados = await resp.json();
 
       if (!dados.usuarios || dados.usuarios.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" class="sem-dados"><i class="fas fa-users"></i>Nenhum usuário cadastrado.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7" class="sem-dados"><i class="fas fa-users"></i>Nenhum usuário cadastrado.</td></tr>';
         return;
       }
 
@@ -89,6 +94,11 @@
         <tr>
           <td>${u.nome}</td>
           <td><code style="font-size:0.85em">${u.usuario}</code></td>
+          <td style="font-size:0.82em">
+            ${u.whatsapp
+              ? `<span style="color:#25d366"><i class="fab fa-whatsapp"></i> ${u.whatsapp}</span>`
+              : `<span style="color:var(--cor-texto-fraco)">—</span>`}
+          </td>
           <td><span class="badge badge-${u.nivel === 'admin' ? 'admin' : 'usuario'}">${u.nivel}</span></td>
           <td><span class="badge badge-${u.ativo ? 'ativo' : 'inativo'}">${u.ativo ? 'Ativo' : 'Bloqueado'}</span></td>
           <td>${new Date(u.criado_em).toLocaleDateString('pt-BR')}</td>
@@ -102,29 +112,31 @@
         </tr>
       `).join('');
     } catch (e) {
-      tbody.innerHTML = '<tr><td colspan="6" class="sem-dados"><i class="fas fa-exclamation-triangle"></i>Erro ao carregar usuários.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="7" class="sem-dados"><i class="fas fa-exclamation-triangle"></i>Erro ao carregar usuários.</td></tr>';
     }
   }
 
   window.abrirModalUsuario = function () {
-    document.getElementById('usuario-id').value    = '';
-    document.getElementById('usuario-nome').value  = '';
-    document.getElementById('usuario-login').value = '';
+    document.getElementById('usuario-id').value       = '';
+    document.getElementById('usuario-nome').value     = '';
+    document.getElementById('usuario-login').value    = '';
     document.getElementById('usuario-login').disabled = false;
-    document.getElementById('usuario-senha').value = '';
-    document.getElementById('usuario-nivel').value = 'usuario';
+    document.getElementById('usuario-senha').value    = '';
+    document.getElementById('usuario-nivel').value    = 'usuario';
+    document.getElementById('usuario-whatsapp').value = '';
     document.getElementById('modal-usuario-titulo').textContent = 'Novo Usuário';
     document.getElementById('senha-hint').textContent = '';
     document.getElementById('modal-usuario').classList.add('visivel');
   };
 
   window.editarUsuario = function (u) {
-    document.getElementById('usuario-id').value    = u.id;
-    document.getElementById('usuario-nome').value  = u.nome;
-    document.getElementById('usuario-login').value = u.usuario;
+    document.getElementById('usuario-id').value       = u.id;
+    document.getElementById('usuario-nome').value     = u.nome;
+    document.getElementById('usuario-login').value    = u.usuario;
     document.getElementById('usuario-login').disabled = true;
-    document.getElementById('usuario-senha').value = '';
-    document.getElementById('usuario-nivel').value = u.nivel;
+    document.getElementById('usuario-senha').value    = '';
+    document.getElementById('usuario-nivel').value    = u.nivel;
+    document.getElementById('usuario-whatsapp').value = u.whatsapp || '';
     document.getElementById('modal-usuario-titulo').textContent = 'Editar Usuário';
     document.getElementById('senha-hint').textContent = '(deixe em branco para manter)';
     document.getElementById('modal-usuario').classList.add('visivel');
@@ -135,11 +147,12 @@
   };
 
   window.salvarUsuario = async function () {
-    const id    = document.getElementById('usuario-id').value;
-    const nome  = document.getElementById('usuario-nome').value.trim();
-    const login = document.getElementById('usuario-login').value.trim();
-    const senha = document.getElementById('usuario-senha').value;
-    const nivel = document.getElementById('usuario-nivel').value;
+    const id       = document.getElementById('usuario-id').value;
+    const nome     = document.getElementById('usuario-nome').value.trim();
+    const login    = document.getElementById('usuario-login').value.trim();
+    const senha    = document.getElementById('usuario-senha').value;
+    const nivel    = document.getElementById('usuario-nivel').value;
+    const whatsapp = document.getElementById('usuario-whatsapp').value.trim();
 
     if (!nome) { mostrarAlerta('Informe o nome completo.', 'erro'); return; }
 
@@ -149,7 +162,7 @@
         resp = await fetch(`/api/usuarios/${id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ nome, nivel, senha })
+          body: JSON.stringify({ nome, nivel, senha, whatsapp })
         });
       } else {
         if (!login) { mostrarAlerta('Informe o login.', 'erro'); return; }

@@ -120,6 +120,14 @@
   .email-notif-header-info small  { font-size: .78rem; color: var(--cor-texto-fraco); }
   .smtp-estado { font-size: .75rem; font-weight: 600; color: var(--cor-texto-fraco); white-space: nowrap; }
   .smtp-estado.on { color: #10b981; }
+  .btn-cron-manual {
+    display: inline-flex; align-items: center; gap: 5px;
+    margin-top: 8px; padding: 4px 10px; border-radius: 6px; font-size: 0.78rem;
+    background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.35);
+    color: #10b981; cursor: pointer; transition: background .2s;
+  }
+  .btn-cron-manual:hover { background: rgba(16,185,129,0.22); }
+  .btn-cron-manual:disabled { opacity: .5; cursor: not-allowed; }
   .email-notif-rodape {
     display: flex; align-items: center; justify-content: flex-end;
     padding-top: 16px; margin-top: 16px;
@@ -774,9 +782,13 @@
       <div class="email-notif-item-info">
         <strong>Contas em atraso (diário)</strong><small>Enviado diariamente às 07:00 com todas as contas já vencidas e ainda não pagas</small>
         <div class="email-dest-chips">
+          <span class="email-dest-chip" data-dest="financeiro.conta_vencida_diario" data-tipo="criado_por_usuario"><i class="fas fa-user-edit"></i> Criado por</span>
           <span class="email-dest-chip ativo" data-dest="financeiro.conta_vencida_diario" data-tipo="email_padrao"><i class="fas fa-envelope"></i> Email padrão</span>
           <span class="email-dest-chip" data-dest="financeiro.conta_vencida_diario" data-tipo="admins"><i class="fas fa-shield-alt"></i> Administradores</span>
         </div>
+        <button class="btn-cron-manual" onclick="dispararCron('conta_vencida_diario', this)" title="Dispara este serviço agora com dados reais">
+          <i class="fas fa-play"></i> Disparar agora
+        </button>
       </div>
     </div>
     <div class="email-notif-item">
@@ -788,6 +800,9 @@
           <span class="email-dest-chip ativo" data-dest="financeiro.lembrete_hoje" data-tipo="email_padrao"><i class="fas fa-envelope"></i> Email padrão</span>
           <span class="email-dest-chip" data-dest="financeiro.lembrete_hoje" data-tipo="admins"><i class="fas fa-shield-alt"></i> Administradores</span>
         </div>
+        <button class="btn-cron-manual" onclick="dispararCron('lembrete_hoje', this)" title="Dispara este serviço agora com dados reais">
+          <i class="fas fa-play"></i> Disparar agora
+        </button>
       </div>
     </div>
     <div class="email-notif-item">
@@ -799,6 +814,9 @@
           <span class="email-dest-chip ativo" data-dest="financeiro.lembrete_7dias" data-tipo="email_padrao"><i class="fas fa-envelope"></i> Email padrão</span>
           <span class="email-dest-chip" data-dest="financeiro.lembrete_7dias" data-tipo="admins"><i class="fas fa-shield-alt"></i> Administradores</span>
         </div>
+        <button class="btn-cron-manual" onclick="dispararCron('lembrete_7dias', this)" title="Dispara este serviço agora com dados reais">
+          <i class="fas fa-play"></i> Disparar agora
+        </button>
       </div>
     </div>
   </div>
@@ -814,6 +832,9 @@
           <span class="email-dest-chip ativo" data-dest="financeiro.lembrete_lancamento" data-tipo="email_padrao"><i class="fas fa-envelope"></i> Email padrão</span>
           <span class="email-dest-chip" data-dest="financeiro.lembrete_lancamento" data-tipo="admins"><i class="fas fa-shield-alt"></i> Administradores</span>
         </div>
+        <button class="btn-cron-manual" onclick="dispararCron('lembrete_lancamento', this)" title="Dispara este serviço agora com dados reais">
+          <i class="fas fa-play"></i> Disparar agora
+        </button>
       </div>
     </div>
     <div class="email-notif-item" style="background:var(--cor-fundo-3)">
@@ -1014,6 +1035,9 @@
           <span class="email-dest-chip" data-dest="aprovacoes.lembrete_pendente" data-tipo="email_padrao"><i class="fas fa-envelope"></i> Email padrão</span>
           <span class="email-dest-chip" data-dest="aprovacoes.lembrete_pendente" data-tipo="admins"><i class="fas fa-shield-alt"></i> Administradores</span>
         </div>
+        <button class="btn-cron-manual" onclick="dispararCron('aprovacoes_lembrete_pendente', this)" title="Dispara este serviço agora com dados reais">
+          <i class="fas fa-play"></i> Disparar agora
+        </button>
       </div>
     </div>
 
@@ -1293,6 +1317,31 @@
       .finally(function () {
         if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-redo"></i> Reenviar lembretes agora'; }
       });
+  };
+
+  // ── Disparar serviço automático individualmente ──────────────────────
+  window.dispararCron = function (servico, btn) {
+    var nomes = {
+      'conta_vencida_diario':        'Contas em atraso (diário)',
+      'lembrete_hoje':               'Lembrar contas do dia',
+      'lembrete_7dias':              'Lembrar contas dos próximos 7 dias',
+      'lembrete_lancamento':         'Lembrete para lançar conta',
+      'aprovacoes_lembrete_pendente':'Lembrete de aprovação pendente',
+    };
+    var nome = nomes[servico] || servico;
+    if (!confirm('Disparar "' + nome + '" AGORA para os destinatários reais?\n\nIsso enviará emails reais.')) return;
+    var orig = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando…';
+    fetch('/api/email/cron-manual', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ servico: servico })
+    })
+      .then(function (r) { return r.json(); })
+      .then(function (d) { mostrarAlerta(d.mensagem || d.erro, d.sucesso ? 'sucesso' : 'erro'); })
+      .catch(function () { mostrarAlerta('Erro ao disparar serviço.', 'erro'); })
+      .finally(function () { btn.disabled = false; btn.innerHTML = orig; });
   };
 
   // ── Testar email ─────────────────────────────────────────────────────

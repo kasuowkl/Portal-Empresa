@@ -19,6 +19,7 @@ const ad             = require('../lib/ad');
 const verificarLogin        = require('../middleware/verificarLogin');
 const { enviarNotificacao, enviarEmailTeste } = require('../services/emailService');
 const { enviarLembreteHoje, enviarLembrete7Dias, enviarLembreteLancamento, enviarContasVencidas } = require('../services/cronFinanceiro');
+const { enviarLembreteAprovacoes } = require('../services/cronAprovacoes');
 const { registrarLog } = require('../services/logService');
 const router                = express.Router();
 
@@ -292,6 +293,74 @@ router.post('/api/notificacoes', verificarLogin, verificarAdmin, async (req, res
 // API — USUÁRIOS
 // ============================================================
 
+// GET /api/usuarios/por-whatsapp/:numero — Busca usuário pelo número WhatsApp (sem auth, chave API)
+router.get('/api/usuarios/por-whatsapp/:numero', async (req, res) => {
+  const apiKey = req.headers['x-api-key'];
+  if (!apiKey || apiKey !== process.env.WHATSAPP_API_KEY) return res.status(401).json({ erro: 'Não autorizado' });
+
+  const pool   = req.app.locals.pool;
+  const numero = (req.params.numero || '').replace(/\D/g, '');
+  if (!numero) return res.status(400).json({ erro: 'Número inválido' });
+
+  try {
+    const r = await pool.request()
+      .input('n', sql.VarChar, numero)
+      .query(`
+        SELECT login, nome FROM usuarios_dominio WHERE whatsapp = @n AND ativo = 1
+        UNION ALL
+        SELECT usuario AS login, nome FROM usuarios WHERE whatsapp = @n AND ativo = 1
+      `);
+    if (!r.recordset.length) return res.status(404).json({ erro: 'Usuário não encontrado' });
+    res.json(r.recordset[0]);
+  } catch (err) {
+    res.status(500).json({ erro: err.message });
+  }
+});
+
+// PUT /api/perfil/whatsapp — Usuário salva seu próprio número WhatsApp
+router.put('/api/perfil/whatsapp', verificarLogin, async (req, res) => {
+  const pool  = req.app.locals.pool;
+  const login = req.session.usuario.usuario || req.session.usuario.login;
+  const { whatsapp } = req.body;
+  const numero = (whatsapp || '').replace(/\D/g, '').slice(0, 20);
+
+  try {
+    // Tenta atualizar em usuarios_dominio primeiro, depois usuarios local
+    const r1 = await pool.request()
+      .input('whatsapp', sql.VarChar, numero || null)
+      .input('login',    sql.VarChar, login)
+      .query('UPDATE usuarios_dominio SET whatsapp = @whatsapp WHERE login = @login');
+
+    if (r1.rowsAffected[0] === 0) {
+      await pool.request()
+        .input('whatsapp', sql.VarChar, numero || null)
+        .input('usuario',  sql.VarChar, login)
+        .query('UPDATE usuarios SET whatsapp = @whatsapp WHERE usuario = @usuario');
+    }
+    res.json({ sucesso: true });
+  } catch (erro) {
+    res.status(500).json({ erro: 'Erro ao salvar número WhatsApp.' });
+  }
+});
+
+// PUT /api/ad/usuarios/:id/whatsapp — Admin salva WhatsApp de qualquer usuário domínio
+router.put('/api/ad/usuarios/:id/whatsapp', verificarLogin, verificarAdmin, async (req, res) => {
+  const pool  = req.app.locals.pool;
+  const id    = parseInt(req.params.id);
+  const { whatsapp } = req.body;
+  const numero = (whatsapp || '').replace(/\D/g, '').slice(0, 20);
+
+  try {
+    await pool.request()
+      .input('whatsapp', sql.VarChar, numero || null)
+      .input('id',       sql.Int,     id)
+      .query('UPDATE usuarios_dominio SET whatsapp = @whatsapp WHERE id = @id');
+    res.json({ sucesso: true });
+  } catch (erro) {
+    res.status(500).json({ erro: 'Erro ao salvar número WhatsApp.' });
+  }
+});
+
 // GET /api/usuarios — Listar todos
 router.get('/api/usuarios', verificarLogin, verificarAdmin, async (req, res) => {
   const pool    = req.app.locals.pool;
@@ -299,7 +368,7 @@ router.get('/api/usuarios', verificarLogin, verificarAdmin, async (req, res) => 
 
   try {
     const resultado = await pool.request()
-      .query('SELECT id, nome, usuario, nivel, ativo, criado_em FROM usuarios ORDER BY nome');
+      .query('SELECT id, nome, usuario, nivel, ativo, criado_em, whatsapp FROM usuarios ORDER BY nome');
     res.json({ sucesso: true, usuarios: resultado.recordset });
   } catch (erro) {
     logErro.error(`Erro ao listar usuários: ${erro.message}`);
@@ -351,7 +420,8 @@ router.put('/api/usuarios/:id', verificarLogin, verificarAdmin, async (req, res)
   const logErro      = req.app.locals.logErro;
   const admin        = req.session.usuario.usuario;
   const id           = parseInt(req.params.id);
-  const { nome, nivel, senha } = req.body;
+  const { nome, nivel, senha, whatsapp } = req.body;
+  const waNro = (whatsapp || '').replace(/\D/g, '').slice(0, 20) || null;
 
   if (!nome || !nivel) {
     return res.status(400).json({ erro: 'Nome e nível são obrigatórios.' });
@@ -365,13 +435,15 @@ router.put('/api/usuarios/:id', verificarLogin, verificarAdmin, async (req, res)
         .input('nome',      sql.VarChar, nome.trim())
         .input('nivel',     sql.VarChar, nivel)
         .input('senhaHash', sql.VarChar, senhaHash)
-        .query('UPDATE usuarios SET nome = @nome, nivel = @nivel, senha_hash = @senhaHash WHERE id = @id');
+        .input('whatsapp',  sql.VarChar, waNro)
+        .query('UPDATE usuarios SET nome = @nome, nivel = @nivel, senha_hash = @senhaHash, whatsapp = @whatsapp WHERE id = @id');
     } else {
       await pool.request()
-        .input('id',    sql.Int,     id)
-        .input('nome',  sql.VarChar, nome.trim())
-        .input('nivel', sql.VarChar, nivel)
-        .query('UPDATE usuarios SET nome = @nome, nivel = @nivel WHERE id = @id');
+        .input('id',       sql.Int,     id)
+        .input('nome',     sql.VarChar, nome.trim())
+        .input('nivel',    sql.VarChar, nivel)
+        .input('whatsapp', sql.VarChar, waNro)
+        .query('UPDATE usuarios SET nome = @nome, nivel = @nivel, whatsapp = @whatsapp WHERE id = @id');
     }
 
     logAtividade.info(`Usuário id=${id} editado — por: "${admin}"`);
@@ -938,6 +1010,44 @@ router.post('/api/email/reenviar-financeiro', verificarLogin, verificarAdmin, as
 });
 
 // ============================================================
+// POST /api/email/cron-manual — Dispara um serviço automático individualmente
+// ============================================================
+router.post('/api/email/cron-manual', verificarLogin, verificarAdmin, async (req, res) => {
+  const pool    = req.app.locals.pool;
+  const admin   = req.session.usuario.usuario || req.session.usuario.login;
+  const { servico } = req.body;
+
+  const servicoMap = {
+    'conta_vencida_diario':       () => enviarContasVencidas(pool),
+    'lembrete_hoje':               () => enviarLembreteHoje(pool),
+    'lembrete_7dias':              () => enviarLembrete7Dias(pool),
+    'lembrete_lancamento':         () => enviarLembreteLancamento(pool),
+    'aprovacoes_lembrete_pendente':() => enviarLembreteAprovacoes(pool),
+  };
+
+  const nomes = {
+    'conta_vencida_diario':       'Contas em atraso (diário)',
+    'lembrete_hoje':               'Lembrar contas do dia',
+    'lembrete_7dias':              'Lembrar contas dos próximos 7 dias',
+    'lembrete_lancamento':         'Lembrete para lançar conta',
+    'aprovacoes_lembrete_pendente':'Lembrete de aprovação pendente',
+  };
+
+  if (!servicoMap[servico]) {
+    return res.status(400).json({ erro: 'Serviço inválido.' });
+  }
+
+  try {
+    await servicoMap[servico]();
+    registrarLog(pool, { usuario: admin, ip: null, acao: 'EMAIL', sistema: 'portal',
+      detalhes: `Serviço de email disparado manualmente: "${nomes[servico]}"` });
+    res.json({ sucesso: true, mensagem: `"${nomes[servico]}" disparado com sucesso para os destinatários reais.` });
+  } catch (erro) {
+    res.status(500).json({ sucesso: false, erro: 'Erro: ' + erro.message });
+  }
+});
+
+// ============================================================
 // API — LOGS COM FILTROS
 // ============================================================
 router.get('/api/logs', verificarLogin, verificarAdmin, async (req, res) => {
@@ -1016,7 +1126,7 @@ router.get('/api/ad/usuarios-portal', verificarLogin, verificarAdmin, async (req
 
   try {
     const resultado = await pool.request()
-      .query('SELECT id, login, nome, email, departamento, nivel, ativo, criado_em FROM usuarios_dominio ORDER BY nome');
+      .query('SELECT id, login, nome, email, departamento, nivel, ativo, criado_em, whatsapp FROM usuarios_dominio ORDER BY nome');
     res.json({ sucesso: true, usuarios: resultado.recordset });
   } catch (erro) {
     logErro.error(`Erro ao listar usuários do domínio: ${erro.message}`);
@@ -1081,14 +1191,17 @@ router.post('/api/ad/usuarios/sincronizar', verificarLogin, verificarAdmin, asyn
       const adUser = mapaAD[u.login.toLowerCase()];
       if (!adUser) { naoEncontrados++; continue; }
 
+      const novoWhatsapp = (adUser.whatsapp || '').replace(/\D/g, '');
       await pool.request()
         .input('id',          sql.Int,     u.id)
         .input('nome',        sql.VarChar, (adUser.nome        || u.nome        || u.login).trim())
         .input('email',       sql.VarChar, (adUser.email       || u.email       || '').trim())
         .input('departamento',sql.VarChar, (adUser.departamento|| u.departamento|| '').trim())
+        .input('whatsapp',    sql.VarChar, novoWhatsapp || null)
         .query(`
           UPDATE usuarios_dominio
           SET nome = @nome, email = @email, departamento = @departamento
+            ${novoWhatsapp ? ', whatsapp = @whatsapp' : ''}
           WHERE id = @id
         `);
       atualizados++;

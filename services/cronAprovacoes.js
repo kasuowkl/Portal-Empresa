@@ -92,4 +92,4 @@ function iniciarCronAprovacoes(pool) {
   console.log('[Cron Aprovações] Agendador iniciado — lembretes às 08:00 diariamente.');
 }
 
-module.exports = { iniciarCronAprovacoes };
+module.exports = { iniciarCronAprovacoes, enviarLembreteAprovacoes };

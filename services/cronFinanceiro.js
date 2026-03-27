@@ -105,10 +105,10 @@ async function enviarLembreteHoje(pool) {
 
   for (const [email, contas] of porUsuario) {
     await enviarNotificacao(pool, 'financeiro.lembrete_hoje', {
-      total:        contas.length,
-      data_hoje:    fmtData(hoje),
-      lista_html:   montarListaHTML(contas),
-      email_direto: [email],
+      total:            contas.length,
+      data_hoje:        fmtData(hoje),
+      lista_html:       montarListaHTML(contas),
+      email_criado_por: email,
     }).catch(e => console.error(`[Cron Financeiro] Erro lembrete_hoje (${email}): ${e.message}`));
   }
   console.log(`[Cron Financeiro] Lembrete hoje enviado para ${porUsuario.size} usuário(s).`);
@@ -130,9 +130,9 @@ async function enviarLembrete7Dias(pool) {
 
   for (const [email, contas] of porUsuario) {
     await enviarNotificacao(pool, 'financeiro.lembrete_7dias', {
-      total:        contas.length,
-      lista_html:   montarListaHTML(contas),
-      email_direto: [email],
+      total:            contas.length,
+      lista_html:       montarListaHTML(contas),
+      email_criado_por: email,
     }).catch(e => console.error(`[Cron Financeiro] Erro lembrete_7dias (${email}): ${e.message}`));
   }
   console.log(`[Cron Financeiro] Lembrete 7 dias enviado para ${porUsuario.size} usuário(s).`);
@@ -196,10 +196,10 @@ async function enviarLembreteLancamento(pool) {
 
   for (const [email, contas] of porUsuario) {
     await enviarNotificacao(pool, 'financeiro.lembrete_lancamento', {
-      total:        contas.length,
+      total:            contas.length,
       dias,
-      lista_html:   montarListaHTML(contas),
-      email_direto: [email],
+      lista_html:       montarListaHTML(contas),
+      email_criado_por: email,
     }).catch(e => console.error(`[Cron Financeiro] Erro lembrete_lancamento (${email}): ${e.message}`));
   }
   console.log(`[Cron Financeiro] Lembrete lançamento (${dias}d) enviado para ${porUsuario.size} usuário(s).`);
@@ -251,9 +251,9 @@ async function enviarContasVencidas(pool) {
 
   for (const [email, contas] of porUsuario) {
     await enviarNotificacao(pool, 'financeiro.conta_vencida_diario', {
-      total:        contas.length,
-      lista_html:   montarListaHTML(contas),
-      email_direto: [email],
+      total:            contas.length,
+      lista_html:       montarListaHTML(contas),
+      email_criado_por: email,
     }).catch(e => console.error(`[Cron Financeiro] Erro conta_vencida_diario (${email}): ${e.message}`));
   }
   console.log(`[Cron Financeiro] Contas vencidas enviado para ${porUsuario.size} usuário(s).`);

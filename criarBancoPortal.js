@@ -18,6 +18,7 @@
  * 1.9.0 - 2026-03-16 - Adicionada tabela aprovacoes_anexos
  * 2.0.0 - 2026-03-16 - Colunas tipo_consenso e consenso_valor em aprovacoes
  * 2.1.0 - 2026-03-23 - Adicionadas tabelas do módulo Calendários (cal_agendas, cal_membros, cal_eventos, cal_caldav_config)
+ * 2.2.0 - 2026-03-25 - Coluna whatsapp em usuarios_dominio e usuarios (integração WhatsApp)
  */
 
 require('dotenv').config();
@@ -912,6 +913,17 @@ async function criarTabelas(pool) {
     END
   `);
   console.log('  Tabela: cal_caldav_config — OK');
+
+  // v2.2.0 — Coluna whatsapp em usuarios_dominio e usuarios
+  await pool.request().query(`
+    IF NOT EXISTS (SELECT * FROM sys.columns WHERE Name = N'whatsapp' AND Object_ID = Object_ID(N'usuarios_dominio'))
+      ALTER TABLE usuarios_dominio ADD whatsapp VARCHAR(20) NULL
+  `);
+  await pool.request().query(`
+    IF NOT EXISTS (SELECT * FROM sys.columns WHERE Name = N'whatsapp' AND Object_ID = Object_ID(N'usuarios'))
+      ALTER TABLE usuarios ADD whatsapp VARCHAR(20) NULL
+  `);
+  console.log('  Coluna whatsapp em usuarios_dominio/usuarios — OK');
 }
 
 // ============================================================

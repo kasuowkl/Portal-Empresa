@@ -1088,7 +1088,7 @@
       const q  = (document.getElementById('chip-busca').value || '').toLowerCase();
       const lg = window.usuarioLogado?.usuario || window.usuarioLogado?.login || '';
       const el = document.getElementById('chip-dropdown');
-      const lista = todosUsuarios.filter(u => u.login !== lg && ((u.nome||'').toLowerCase().includes(q) || u.login.toLowerCase().includes(q)));
+      const lista = todosUsuarios.filter(u => (u.nome||'').toLowerCase().includes(q) || u.login.toLowerCase().includes(q));
       if (!lista.length) { el.innerHTML = '<div style="padding:10px 14px;font-size:.82rem;color:var(--gray)">Nenhum resultado.</div>'; return; }
       el.innerHTML = lista.map(u => {
         const sel = aprovadoresSelecionados.find(a => a.login === u.login);
@@ -1128,7 +1128,7 @@
       const q  = (document.getElementById('chip-busca-obs').value || '').toLowerCase();
       const lg = window.usuarioLogado?.usuario || window.usuarioLogado?.login || '';
       const el = document.getElementById('chip-dropdown-obs');
-      const lista = todosUsuarios.filter(u => u.login !== lg && ((u.nome||'').toLowerCase().includes(q) || u.login.toLowerCase().includes(q)));
+      const lista = todosUsuarios.filter(u => (u.nome||'').toLowerCase().includes(q) || u.login.toLowerCase().includes(q));
       if (!lista.length) { el.innerHTML = '<div style="padding:10px 14px;font-size:.82rem;color:var(--gray)">Nenhum resultado.</div>'; return; }
       el.innerHTML = lista.map(u => {
         const sel = observadoresSelecionados.find(a => a.login === u.login);

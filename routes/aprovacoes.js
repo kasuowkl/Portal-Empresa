@@ -8,9 +8,45 @@
 const express        = require('express');
 const sql            = require('mssql');
 const path           = require('path');
+const http           = require('http');
 const verificarLogin   = require('../middleware/verificarLogin');
 const { registrarLog } = require('../services/logService');
 const { enviarNotificacao } = require('../services/emailService');
+
+const WHATSAPP_URL = process.env.WHATSAPP_SERVICE_URL || 'http://localhost:3200';
+const WHATSAPP_KEY = process.env.WHATSAPP_API_KEY || '';
+
+// Envia notificação WhatsApp sem bloquear o fluxo principal
+function notificarWhatsApp(numero, mensagem) {
+  try {
+    const body = JSON.stringify({ numero, mensagem });
+    const url  = new URL('/api/notificar', WHATSAPP_URL);
+    const opts = {
+      hostname: url.hostname, port: url.port || 3200,
+      path: url.pathname, method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body), 'x-api-key': WHATSAPP_KEY },
+    };
+    const req = http.request(opts);
+    req.on('error', () => {}); // silencia erros de rede
+    req.write(body);
+    req.end();
+  } catch (_) {}
+}
+
+async function buscarWhatsAppAprovadores(pool, logins) {
+  if (!logins.length) return {};
+  try {
+    const lista = logins.map(l => `'${l.replace(/'/g, '')}'`).join(',');
+    const r = await pool.request().query(`
+      SELECT login, whatsapp FROM usuarios_dominio WHERE login IN (${lista}) AND whatsapp IS NOT NULL AND whatsapp <> ''
+      UNION ALL
+      SELECT usuario AS login, whatsapp FROM usuarios WHERE usuario IN (${lista}) AND whatsapp IS NOT NULL AND whatsapp <> ''
+    `);
+    const mapa = {};
+    for (const row of r.recordset) mapa[row.login] = row.whatsapp;
+    return mapa;
+  } catch { return {}; }
+}
 const router           = express.Router();
 
 // ── Helpers de e-mail ─────────────────────────────────────────
@@ -232,6 +268,27 @@ router.post('/api/aprovacoes', verificarLogin, async (req, res) => {
 
     montarDadosNotif(pool, aprovacaoId).then(d => {
       if (d) enviarNotificacao(pool, 'aprovacoes.nova_solicitacao', d).catch(() => {});
+    }).catch(() => {});
+
+    // Notificação WhatsApp automática para cada aprovador com número cadastrado
+    // Envia com intervalo de 3s entre cada para evitar bloqueio do WhatsApp
+    buscarWhatsAppAprovadores(pool, aprovadores).then(async (mapaWhatsApp) => {
+      const entries = Object.entries(mapaWhatsApp);
+      for (let i = 0; i < entries.length; i++) {
+        const [aprLogin, numero] = entries[i];
+        const aprNome = mapaUsuarios[aprLogin] || aprLogin;
+        const msg =
+          `*Portal WKL — Aprovação Pendente* 🔔\n\n` +
+          `Olá, *${aprNome}*! Você tem uma nova solicitação aguardando sua resposta:\n\n` +
+          `*#${aprovacaoId}* — ${titulo.trim()}\n` +
+          `Solicitante: ${nome}\n` +
+          (objetivo ? `Objetivo: ${objetivo}\n` : '') +
+          `\nPara responder:\n✅ *aprovar ${aprovacaoId}*\n❌ *reprovar ${aprovacaoId} [motivo]*\n\n` +
+          `Ou acesse: http://192.168.0.80:3132/aprovacoes`;
+        if (i > 0) await new Promise(r => setTimeout(r, 3000));
+        notificarWhatsApp(numero, msg);
+        console.log(`[WhatsApp] Notificação enviada para ${aprLogin} (${numero}) [${i + 1}/${entries.length}]`);
+      }
     }).catch(() => {});
 
     res.json({ sucesso: true, id: aprovacaoId });
@@ -542,7 +599,8 @@ router.put('/api/aprovacoes/:id/responder', verificarLogin, async (req, res) => 
   const login   = req.session.usuario.usuario || req.session.usuario.login;
   const nome    = req.session.usuario.nome || login;
   const id      = parseInt(req.params.id);
-  const { decisao, motivo } = req.body;
+  const { decisao, motivo, _whatsapp_login } = req.body;
+  const viaWhatsApp = !!_whatsapp_login;
 
   if (!['Aprovado', 'Reprovado'].includes(decisao))
     return res.status(400).json({ erro: 'Decisão inválida. Use "Aprovado" ou "Reprovado".' });
@@ -593,9 +651,10 @@ router.put('/api/aprovacoes/:id/responder', verificarLogin, async (req, res) => 
     }
 
     // Registra no log da aprovação
+    const canalSufixo = viaWhatsApp ? ' (via WhatsApp)' : '';
     const acaoLog = decisao === 'Aprovado'
-      ? `${nome} aprovou`
-      : `${nome} reprovou${motivo ? ` — ${motivo}` : ''}`;
+      ? `${nome} aprovou${canalSufixo}`
+      : `${nome} reprovou${motivo ? ` — ${motivo}` : ''}${canalSufixo}`;
     await pool.request()
       .input('aprovacao_id', sql.Int,     id)
       .input('usuario',      sql.VarChar, login)
