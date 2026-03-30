@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <!--
   ARQUIVO: public/ajuda/Aprovacoes.html
-  VERSÃO:  1.0.0
-  DATA:    2026-03-24
+  VERSÃO:  1.1.0
+  DATA:    2026-03-29
   DESCRIÇÃO: Documentação do módulo de Aprovações
 -->
 <html lang="pt-BR">
@@ -128,6 +128,7 @@
         <a href="#anexos">Anexos</a>
         <a href="#relatorios">Relatórios</a>
         <a href="#notificacoes">Notificações</a>
+        <a href="#notificacoes" style="padding-left:22px;font-size:12px">↳ WhatsApp / Reenviar</a>
         <a href="#permissoes">Permissões</a>
         <a href="#logs">Logs de Auditoria</a>
         <br>
@@ -276,6 +277,8 @@
       <!-- NOTIFICAÇÕES -->
       <section class="doc-secao" id="notificacoes">
         <h2><i class="fas fa-bell"></i> Notificações</h2>
+
+        <h3><i class="fas fa-envelope" style="color:#8b5cf6;margin-right:6px"></i> E-mail</h3>
         <p>O sistema envia e-mails automáticos nos seguintes eventos (quando configurado em <strong>Configurações → Email SMTP → Aprovações</strong>):</p>
         <table class="perm-table">
           <thead>
@@ -290,6 +293,23 @@
           </tbody>
         </table>
         <p>Configure os eventos e destinatários em <strong>Configurações → Email (SMTP) → Aprovações</strong>.</p>
+
+        <h3><i class="fab fa-whatsapp" style="color:#25d366;margin-right:6px"></i> WhatsApp</h3>
+        <p>Ao criar uma solicitação, o sistema envia automaticamente uma mensagem WhatsApp para cada aprovador que tiver o número cadastrado no Portal. A mensagem inclui o título, solicitante e os comandos para responder diretamente pelo WhatsApp.</p>
+        <div class="doc-info">
+          <i class="fas fa-info-circle" style="color:#8b5cf6; margin-right:6px"></i>
+          Para receber notificações WhatsApp, o aprovador precisa ter o campo <strong>WhatsApp</strong> preenchido em seu cadastro (Configurações → Usuários). O resultado de cada envio (sucesso, erro ou número não cadastrado) fica registrado nos <strong>Logs de Atividade</strong> com ação <strong>NOTIF_WHATSAPP</strong>.
+        </div>
+
+        <h3><i class="fab fa-whatsapp" style="color:#25d366;margin-right:6px"></i> Reenviar WhatsApp (Admin)</h3>
+        <p>Administradores podem reenviar a notificação WhatsApp manualmente a qualquer momento, enquanto a solicitação estiver <span class="badge-status b-pendente">Pendente</span>:</p>
+        <div class="passo"><div class="passo-num">1</div><div class="passo-txt">Abra os detalhes da solicitação pendente.</div></div>
+        <div class="passo"><div class="passo-num">2</div><div class="passo-txt">Clique no botão <strong style="color:#25d366"><i class="fab fa-whatsapp"></i> Reenviar WhatsApp</strong> (visível apenas para administradores).</div></div>
+        <div class="passo"><div class="passo-num">3</div><div class="passo-txt">O sistema envia uma mensagem de lembrete para todos os aprovadores com decisão ainda <strong>Pendente</strong> que tiverem número cadastrado.</div></div>
+        <div class="doc-warn">
+          <i class="fas fa-exclamation-triangle" style="color:#f59e0b; margin-right:6px"></i>
+          O reenvio é enviado apenas para aprovadores que ainda <strong>não votaram</strong>. Quem já aprovou ou reprovou não recebe o lembrete.
+        </div>
       </section>
 
       <!-- PERMISSÕES -->
@@ -300,13 +320,14 @@
             <tr><th>Ação</th><th>Usuário</th><th>Aprovador</th><th>Criador</th><th>Admin</th></tr>
           </thead>
           <tbody>
-            <tr><td>Visualizar solicitações</td>         <td class="sim">✓</td><td class="sim">✓</td><td class="sim">✓</td><td class="sim">✓</td></tr>
-            <tr><td>Criar solicitação</td>               <td class="sim">✓</td><td class="sim">✓</td><td class="sim">✓</td><td class="sim">✓</td></tr>
-            <tr><td>Votar (aprovar/reprovar)</td>        <td class="nao">—</td><td class="sim">✓</td><td class="nao">—</td><td class="sim">✓</td></tr>
-            <tr><td>Editar solicitação (Pendente)</td>   <td class="nao">—</td><td class="nao">—</td><td class="sim">✓</td><td class="sim">✓</td></tr>
-            <tr><td>Cancelar solicitação</td>            <td class="nao">—</td><td class="nao">—</td><td class="sim">✓</td><td class="sim">✓</td></tr>
-            <tr><td>Excluir solicitação</td>             <td class="nao">—</td><td class="nao">—</td><td class="nao">—</td><td class="sim">✓</td></tr>
-            <tr><td>Ver relatórios</td>                  <td class="sim">✓</td><td class="sim">✓</td><td class="sim">✓</td><td class="sim">✓</td></tr>
+            <tr><td>Visualizar solicitações</td>                <td class="sim">✓</td><td class="sim">✓</td><td class="sim">✓</td><td class="sim">✓</td></tr>
+            <tr><td>Criar solicitação</td>                      <td class="sim">✓</td><td class="sim">✓</td><td class="sim">✓</td><td class="sim">✓</td></tr>
+            <tr><td>Votar (aprovar/reprovar)</td>               <td class="nao">—</td><td class="sim">✓</td><td class="nao">—</td><td class="sim">✓</td></tr>
+            <tr><td>Editar solicitação (Pendente)</td>          <td class="nao">—</td><td class="nao">—</td><td class="sim">✓</td><td class="sim">✓</td></tr>
+            <tr><td>Cancelar solicitação</td>                   <td class="nao">—</td><td class="nao">—</td><td class="sim">✓</td><td class="sim">✓</td></tr>
+            <tr><td>Excluir solicitação</td>                    <td class="nao">—</td><td class="nao">—</td><td class="nao">—</td><td class="sim">✓</td></tr>
+            <tr><td>Reenviar WhatsApp (lembrete)</td>           <td class="nao">—</td><td class="nao">—</td><td class="nao">—</td><td class="sim">✓</td></tr>
+            <tr><td>Ver relatórios</td>                         <td class="sim">✓</td><td class="sim">✓</td><td class="sim">✓</td><td class="sim">✓</td></tr>
           </tbody>
         </table>
       </section>
@@ -314,21 +335,25 @@
       <!-- LOGS -->
       <section class="doc-secao" id="logs">
         <h2><i class="fas fa-history"></i> Logs de Auditoria</h2>
-        <p>Todas as ações no módulo Aprovações são registradas automaticamente.</p>
+        <p>Todas as ações no módulo Aprovações são registradas automaticamente em <strong>Configurações → Logs</strong>. Filtre por <strong>Sistema: Aprovações</strong> para ver apenas estes registros.</p>
         <table class="perm-table">
           <thead>
-            <tr><th>Ação</th><th>O que é registrado</th></tr>
+            <tr><th>Ação (Código)</th><th>O que é registrado</th></tr>
           </thead>
           <tbody>
-            <tr><td>Solicitação criada</td><td>Título, tipo de consenso e aprovadores</td></tr>
-            <tr><td>Solicitação editada</td><td>Título da solicitação</td></tr>
-            <tr><td>Voto registrado</td><td>Solicitação, votante e decisão</td></tr>
-            <tr><td>Solicitação concluída</td><td>Resultado final e solicitação</td></tr>
-            <tr><td>Solicitação cancelada</td><td>Título da solicitação</td></tr>
-            <tr><td>Solicitação excluída</td><td>Título da solicitação</td></tr>
+            <tr><td>CRIACAO</td><td>Solicitação criada — título, tipo de consenso e aprovadores</td></tr>
+            <tr><td>EDICAO</td><td>Solicitação editada — título da solicitação</td></tr>
+            <tr><td>APROVACAO / REPROVACAO</td><td>Voto registrado — solicitação, votante e decisão</td></tr>
+            <tr><td>CANCELAMENTO</td><td>Solicitação cancelada — título</td></tr>
+            <tr><td>EXCLUSAO</td><td>Solicitação excluída — título</td></tr>
+            <tr><td>NOTIF_WHATSAPP</td><td>Resultado de cada envio WhatsApp — aprovador, número e resultado (enviado / ERRO / número não cadastrado)</td></tr>
+            <tr><td>REENVIO_WHATSAPP</td><td>Admin reenviou lembrete WhatsApp — quantos aprovadores foram notificados</td></tr>
           </tbody>
         </table>
-        <p>Para consultar os logs, acesse <strong>Configurações → Logs</strong> e filtre por <strong>Sistema: Aprovações</strong>.</p>
+        <div class="doc-info">
+          <i class="fas fa-info-circle" style="color:#8b5cf6; margin-right:6px"></i>
+          Os logs <strong>NOTIF_WHATSAPP</strong> permitem confirmar se a notificação chegou ao serviço WhatsApp ou se houve falha de conexão. Caso um aprovador não receba a mensagem, consulte estes logs para identificar a causa (número não cadastrado, erro de rede, etc.).
+        </div>
       </section>
 
     </main>

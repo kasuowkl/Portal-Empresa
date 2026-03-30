@@ -10,46 +10,34 @@ const api = axios.create({
   headers: { 'x-api-key': KEY },
 });
 
-// Busca todos os contatos com WhatsApp preenchido
+// Busca todos os contatos (usuários locais, AD e agenda) com qualquer telefone
 async function buscarContatosPortal(busca = '') {
   try {
-    // Busca todas as listas disponíveis
-    const { data: dadosListas } = await api.get('/api/contatos/listas', {
-      params: { _whatsapp_login: LOGIN },
-    });
-    const listas = Array.isArray(dadosListas?.listas) ? dadosListas.listas
-                 : Array.isArray(dadosListas)         ? dadosListas
-                 : [];
+    const { data } = await api.get('/api/usuarios/lista-whatsapp');
+    const lista = Array.isArray(data) ? data : [];
 
-    const todos = [];
-    await Promise.all(listas.map(async (lista) => {
-      try {
-        const { data } = await api.get(`/api/contatos/listas/${lista.id}/contatos`, {
-          params: { busca: busca || undefined, _whatsapp_login: LOGIN },
-        });
-        const contatos = data.contatos || data || [];
-        for (const c of contatos) {
-          const numero = (c.whatsapp || c.cel_pessoal || c.cel_corporativo || '').replace(/\D/g, '');
-          if (!numero) continue;
-          todos.push({
-            id:      c.id,
-            nome:    c.nome,
-            numero,
-            empresa: c.empresa || '',
-            jid:     `${numero}@s.whatsapp.net`,
-            lista:   lista.nome,
-          });
-        }
-      } catch { /* ignora lista sem permissão */ }
-    }));
+    const todos = lista.map(c => {
+      const numero = (c.numero || '').replace(/\D/g, '');
+      return {
+        id:      c.login,
+        nome:    c.nome,
+        numero,
+        empresa: c.empresa || '',
+        jid:     `${numero}@s.whatsapp.net`,
+        tipo:    c.tipo,
+      };
+    }).filter(c => c.numero);
 
     // Remove duplicatas por número
     const unicos = Object.values(Object.fromEntries(todos.map(c => [c.numero, c])));
 
-    // Filtra por busca se informada
     if (busca) {
       const b = busca.toLowerCase();
-      return unicos.filter(c => c.nome.toLowerCase().includes(b) || c.numero.includes(b) || (c.empresa || '').toLowerCase().includes(b));
+      return unicos.filter(c =>
+        c.nome.toLowerCase().includes(b) ||
+        c.numero.includes(b) ||
+        (c.empresa || '').toLowerCase().includes(b)
+      );
     }
 
     return unicos.sort((a, b) => a.nome.localeCompare(b.nome));

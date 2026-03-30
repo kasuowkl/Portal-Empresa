@@ -924,6 +924,16 @@ async function criarTabelas(pool) {
       ALTER TABLE usuarios ADD whatsapp VARCHAR(20) NULL
   `);
   console.log('  Coluna whatsapp em usuarios_dominio/usuarios — OK');
+
+  // v2.3.0 — Coluna visivel_usuarios em sistemas
+  await pool.request().query(`
+    IF NOT EXISTS (SELECT * FROM sys.columns WHERE Name = N'visivel_usuarios' AND Object_ID = Object_ID(N'sistemas'))
+      ALTER TABLE sistemas ADD visivel_usuarios BIT NOT NULL DEFAULT 1
+  `);
+  await pool.request().query(`
+    UPDATE sistemas SET visivel_usuarios = 1 WHERE visivel_usuarios IS NULL
+  `);
+  console.log('  Coluna visivel_usuarios em sistemas — OK');
 }
 
 // ============================================================

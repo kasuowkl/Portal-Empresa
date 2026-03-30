@@ -16,21 +16,27 @@ const { enviarNotificacao } = require('../services/emailService');
 const WHATSAPP_URL = process.env.WHATSAPP_SERVICE_URL || 'http://localhost:3200';
 const WHATSAPP_KEY = process.env.WHATSAPP_API_KEY || '';
 
-// Envia notificação WhatsApp sem bloquear o fluxo principal
+// Envia notificação WhatsApp e retorna Promise<{ ok, status, erro }>
 function notificarWhatsApp(numero, mensagem) {
-  try {
-    const body = JSON.stringify({ numero, mensagem });
-    const url  = new URL('/api/notificar', WHATSAPP_URL);
-    const opts = {
-      hostname: url.hostname, port: url.port || 3200,
-      path: url.pathname, method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body), 'x-api-key': WHATSAPP_KEY },
-    };
-    const req = http.request(opts);
-    req.on('error', () => {}); // silencia erros de rede
-    req.write(body);
-    req.end();
-  } catch (_) {}
+  return new Promise((resolve) => {
+    try {
+      const body = JSON.stringify({ numero, mensagem });
+      const url  = new URL('/api/notificar', WHATSAPP_URL);
+      const opts = {
+        hostname: url.hostname, port: url.port || 3200,
+        path: url.pathname, method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body), 'x-api-key': WHATSAPP_KEY },
+      };
+      const req = http.request(opts, (res) => {
+        resolve({ ok: res.statusCode >= 200 && res.statusCode < 300, status: res.statusCode });
+      });
+      req.on('error', (e) => resolve({ ok: false, erro: e.message }));
+      req.write(body);
+      req.end();
+    } catch (e) {
+      resolve({ ok: false, erro: e.message });
+    }
+  });
 }
 
 async function buscarWhatsAppAprovadores(pool, logins) {
@@ -274,6 +280,14 @@ router.post('/api/aprovacoes', verificarLogin, async (req, res) => {
     // Envia com intervalo de 3s entre cada para evitar bloqueio do WhatsApp
     buscarWhatsAppAprovadores(pool, aprovadores).then(async (mapaWhatsApp) => {
       const entries = Object.entries(mapaWhatsApp);
+      const semNumero = aprovadores.filter(a => !mapaWhatsApp[a]);
+      // Loga aprovadores sem número
+      for (const aprLogin of semNumero) {
+        registrarLog(pool, {
+          usuario: login, ip: '::1', acao: 'NOTIF_WHATSAPP', sistema: 'aprovacoes',
+          detalhes: `Aprovação #${aprovacaoId}: WhatsApp NÃO enviado para ${aprLogin} — número não cadastrado`
+        });
+      }
       for (let i = 0; i < entries.length; i++) {
         const [aprLogin, numero] = entries[i];
         const aprNome = mapaUsuarios[aprLogin] || aprLogin;
@@ -286,8 +300,21 @@ router.post('/api/aprovacoes', verificarLogin, async (req, res) => {
           `\nPara responder:\n✅ *aprovar ${aprovacaoId}*\n❌ *reprovar ${aprovacaoId} [motivo]*\n\n` +
           `Ou acesse: http://192.168.0.80:3132/aprovacoes`;
         if (i > 0) await new Promise(r => setTimeout(r, 3000));
-        notificarWhatsApp(numero, msg);
-        console.log(`[WhatsApp] Notificação enviada para ${aprLogin} (${numero}) [${i + 1}/${entries.length}]`);
+        const result = await notificarWhatsApp(numero, msg);
+        if (result.ok) {
+          console.log(`[WhatsApp] Notificação enviada para ${aprLogin} (${numero}) [${i + 1}/${entries.length}]`);
+          registrarLog(pool, {
+            usuario: login, ip: '::1', acao: 'NOTIF_WHATSAPP', sistema: 'aprovacoes',
+            detalhes: `Aprovação #${aprovacaoId}: WhatsApp enviado para ${aprLogin} (${numero})`
+          });
+        } else {
+          const motivo = result.erro || `status ${result.status}`;
+          console.error(`[WhatsApp] Falha ao notificar ${aprLogin} (${numero}): ${motivo}`);
+          registrarLog(pool, {
+            usuario: login, ip: '::1', acao: 'NOTIF_WHATSAPP', sistema: 'aprovacoes',
+            detalhes: `Aprovação #${aprovacaoId}: WhatsApp ERRO para ${aprLogin} (${numero}) — ${motivo}`
+          });
+        }
       }
     }).catch(() => {});
 
@@ -894,6 +921,89 @@ router.delete('/api/aprovacoes/:id/anexos/:anexoId', verificarLogin, async (req,
 // ============================================================
 router.get('/aprovacoes/relatorios', verificarLogin, (_req, res) => {
   res.sendFile(path.join(__dirname, '../public/aprovacoes/relatoriosAprovacoes.html'));
+});
+
+
+// ============================================================
+// POST /api/aprovacoes/:id/reenviar-whatsapp — Reenviar notificações WhatsApp (admin)
+// ============================================================
+router.post('/api/aprovacoes/:id/reenviar-whatsapp', verificarLogin, async (req, res) => {
+  const pool    = req.app.locals.pool;
+  const logErro = req.app.locals.logErro;
+  const login   = req.session.usuario.usuario || req.session.usuario.login;
+  const nome    = req.session.usuario.nome || login;
+  const nivel   = req.session.usuario.nivel || '';
+  const id      = parseInt(req.params.id);
+
+  if (nivel !== 'admin') return res.status(403).json({ erro: 'Apenas administradores podem reenviar notificações.' });
+
+  try {
+    const aprR = await pool.request()
+      .input('id', sql.Int, id)
+      .query('SELECT titulo, objetivo, criado_por_nome, status FROM aprovacoes WHERE id = @id');
+    if (!aprR.recordset.length) return res.status(404).json({ erro: 'Aprovação não encontrada.' });
+    const apr = aprR.recordset[0];
+
+    if (apr.status !== 'Pendente') return res.status(400).json({ erro: 'Só é possível reenviar para aprovações com status Pendente.' });
+
+    const partsR = await pool.request()
+      .input('id', sql.Int, id)
+      .query(`SELECT aprovador_login FROM aprovacoes_participantes WHERE aprovacao_id = @id AND decisao = 'Pendente'`);
+    const pendentes = partsR.recordset.map(p => p.aprovador_login);
+
+    if (!pendentes.length) return res.json({ sucesso: true, enviados: 0, msg: 'Nenhum aprovador com decisão pendente.' });
+
+    const mapaWhatsApp = await buscarWhatsAppAprovadores(pool, pendentes);
+    const entries = Object.entries(mapaWhatsApp);
+
+    const portalBase = 'http://192.168.0.80:3132';
+    let enviados = 0;
+    for (let i = 0; i < entries.length; i++) {
+      const [aprLogin, numero] = entries[i];
+      const msg =
+        `*Portal WKL — Lembrete: Aprovação Pendente* 🔔\n\n` +
+        `Você ainda tem uma solicitação aguardando sua resposta:\n\n` +
+        `*#${id}* — ${apr.titulo}\n` +
+        `Solicitante: ${apr.criado_por_nome}\n` +
+        (apr.objetivo ? `Objetivo: ${apr.objetivo}\n` : '') +
+        `\nPara responder:\n` +
+        `✅ *aprovar ${id}*\n` +
+        `❌ *reprovar ${id} [motivo]*\n\n` +
+        `Ou acesse: ${portalBase}/aprovacoes`;
+      if (i > 0) await new Promise(r => setTimeout(r, 2000));
+      const result = await notificarWhatsApp(numero, msg);
+      if (result.ok) {
+        enviados++;
+        registrarLog(pool, {
+          usuario: login, ip: req.ip, acao: 'NOTIF_WHATSAPP', sistema: 'aprovacoes',
+          detalhes: `Aprovação #${id}: WhatsApp (reenvio) enviado para ${aprLogin} (${numero})`
+        });
+      } else {
+        const motivo = result.erro || `status ${result.status}`;
+        registrarLog(pool, {
+          usuario: login, ip: req.ip, acao: 'NOTIF_WHATSAPP', sistema: 'aprovacoes',
+          detalhes: `Aprovação #${id}: WhatsApp (reenvio) ERRO para ${aprLogin} (${numero}) — ${motivo}`
+        });
+      }
+    }
+
+    await pool.request()
+      .input('aprovacao_id', sql.Int,     id)
+      .input('usuario',      sql.VarChar, login)
+      .input('acao',         sql.VarChar, `${nome} reenviou notificação WhatsApp para ${enviados} aprovador(es)`.substring(0, 200))
+      .query('INSERT INTO aprovacoes_log (aprovacao_id, usuario, acao) VALUES (@aprovacao_id, @usuario, @acao)');
+
+    registrarLog(pool, {
+      usuario: login, ip: req.ip, acao: 'REENVIO_WHATSAPP', sistema: 'aprovacoes',
+      detalhes: `Aprovação #${id}: WhatsApp reenviado para ${enviados} aprovador(es) pendentes`
+    });
+
+    const semNumero = pendentes.length - entries.length;
+    res.json({ sucesso: true, enviados, semNumero, total: pendentes.length });
+  } catch (erro) {
+    logErro.error(`Erro ao reenviar WhatsApp #${id}: ${erro.message}`);
+    res.status(500).json({ erro: 'Erro ao reenviar notificações.' });
+  }
 });
 
 module.exports = router;

@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<!--
+  ARQUIVO: public/ajuda/WhatsApp.html
+  VERSÃO:  1.1.0
+  DATA:    2026-03-29
+  DESCRIÇÃO: Documentação da integração WhatsApp do Portal WKL
+-->
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ajuda — Integração WhatsApp</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/menu.css">
+  <style>
+    .doc-layout {
+      display: flex;
+      max-width: 1100px;
+      margin: 32px auto;
+      padding: 0 24px;
+      gap: 32px;
+    }
+    .doc-sidebar { width: 220px; flex-shrink: 0; }
+    .doc-sidebar-sticky {
+      position: sticky;
+      top: calc(var(--altura-menu) + 20px);
+    }
+    .doc-sidebar h4 {
+      font-size: 11px; letter-spacing: 1.4px; text-transform: uppercase;
+      color: var(--cor-texto-fraco); margin-bottom: 12px;
+    }
+    .doc-sidebar a {
+      display: block; padding: 6px 12px; font-size: 13px;
+      color: var(--cor-texto-fraco); border-left: 2px solid var(--cor-borda);
+      text-decoration: none; transition: all .15s;
+    }
+    .doc-sidebar a:hover { color: #00a884; border-left-color: #00a884; }
+    .doc-conteudo { flex: 1; min-width: 0; }
+    .doc-breadcrumb { font-size: 12px; color: var(--cor-texto-fraco); margin-bottom: 24px; }
+    .doc-breadcrumb a { color: var(--cor-destaque); text-decoration: none; }
+    .doc-breadcrumb span { margin: 0 6px; }
+    .doc-titulo {
+      font-size: 26px; font-weight: 700; margin-bottom: 6px;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .doc-titulo i { color: #00a884; }
+    .doc-subtitulo { color: var(--cor-texto-fraco); font-size: 14px; margin-bottom: 36px; }
+    .doc-secao {
+      margin-bottom: 40px;
+      scroll-margin-top: calc(var(--altura-menu) + 16px);
+    }
+    .doc-secao h2 {
+      font-size: 18px; font-weight: 600; margin-bottom: 16px;
+      padding-bottom: 8px; border-bottom: 1px solid var(--cor-borda);
+      display: flex; align-items: center; gap: 10px;
+    }
+    .doc-secao h2 i { color: #00a884; font-size: 16px; }
+    .doc-secao h3 { font-size: 15px; font-weight: 600; color: var(--cor-texto); margin: 20px 0 10px; }
+    .doc-secao p, .doc-secao li {
+      font-size: 14px; color: var(--cor-texto-fraco); line-height: 1.7; margin-bottom: 8px;
+    }
+    .doc-secao ul, .doc-secao ol { padding-left: 20px; margin-bottom: 12px; }
+    .doc-secao strong { color: var(--cor-texto); }
+    .doc-info {
+      background: rgba(0,168,132,0.08); border-left: 3px solid #00a884;
+      border-radius: 0 8px 8px 0; padding: 12px 16px; margin-bottom: 16px;
+      font-size: 13px; color: var(--cor-texto-fraco);
+    }
+    .doc-warn {
+      background: rgba(245,158,11,0.08); border-left: 3px solid #f59e0b;
+      border-radius: 0 8px 8px 0; padding: 12px 16px; margin-bottom: 16px;
+      font-size: 13px; color: var(--cor-texto-fraco);
+    }
+    .passo { display: flex; gap: 14px; margin-bottom: 14px; align-items: flex-start; }
+    .passo-num {
+      width: 28px; height: 28px; border-radius: 50%; background: #00a884;
+      color: #fff; font-size: 12px; font-weight: 700;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .passo-txt { font-size: 14px; color: var(--cor-texto-fraco); line-height: 1.6; padding-top: 4px; }
+    .passo-txt strong { color: var(--cor-texto); }
+    .passo-txt code {
+      background: var(--cor-fundo-3); color: #f59e0b;
+      padding: 1px 6px; border-radius: 4px; font-size: 12px; font-family: monospace;
+    }
+
+    /* Comandos */
+    .cmd-lista { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
+    .cmd-item {
+      background: var(--cor-fundo-2); border: 1px solid var(--cor-borda);
+      border-radius: 8px; padding: 12px 16px;
+      display: flex; gap: 14px; align-items: flex-start;
+    }
+    .cmd-key {
+      background: #00a884; color: #fff;
+      font-family: monospace; font-size: 12px; font-weight: 700;
+      padding: 3px 10px; border-radius: 5px; white-space: nowrap; flex-shrink: 0;
+    }
+    .cmd-desc { font-size: 13px; color: var(--cor-texto-fraco); }
+    .cmd-desc strong { color: var(--cor-texto); }
+    .cmd-desc code {
+      background: var(--cor-fundo-3); color: #f59e0b;
+      padding: 1px 6px; border-radius: 4px; font-size: 12px; font-family: monospace;
+    }
+
+    /* Arquitetura */
+    .arch { display: flex; flex-direction: column; gap: 8px; margin: 16px 0; }
+    .arch-box {
+      background: var(--cor-fundo-2); border: 1px solid var(--cor-borda);
+      border-radius: 8px; padding: 12px 16px; font-size: 13px;
+    }
+    .arch-box strong { color: #00a884; display: block; margin-bottom: 4px; }
+    .arch-box span { color: var(--cor-texto-fraco); }
+    .arch-arrow { color: var(--cor-texto-fraco); font-size: 12px; padding-left: 20px; }
+
+    /* Tabela */
+    .doc-table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 12px 0 20px; }
+    .doc-table th {
+      background: var(--cor-fundo-3); padding: 8px 12px; text-align: left;
+      font-weight: 600; color: var(--cor-texto); border-bottom: 1px solid var(--cor-borda);
+    }
+    .doc-table td { padding: 8px 12px; border-bottom: 1px solid var(--cor-borda); color: var(--cor-texto-fraco); vertical-align: top; }
+    .doc-table td:first-child { font-family: monospace; color: #f59e0b; }
+    .doc-table tr:last-child td { border-bottom: none; }
+    .doc-table tr:hover td { background: var(--cor-fundo-3); }
+
+    @media (max-width: 700px) {
+      .doc-layout { flex-direction: column; }
+      .doc-sidebar { width: 100%; }
+      .doc-sidebar-sticky { position: static; }
+    }
+  </style>
+</head>
+<body>
+  <div id="menu-container"></div>
+
+  <div class="doc-layout">
+
+    <aside class="doc-sidebar">
+      <div class="doc-sidebar-sticky">
+        <h4>Nesta página</h4>
+        <a href="#visao-geral">Visão Geral</a>
+        <a href="#arquitetura">Arquitetura</a>
+        <a href="#autenticacao">Autenticação</a>
+        <a href="#comandos">Comandos</a>
+        <a href="#aprovacoes-web">Aprovações no Portal</a>
+        <a href="#reenviar">Reenviar WhatsApp</a>
+        <a href="#admin">Painel Admin</a>
+        <a href="#configuracao">Configuração</a>
+        <a href="#problemas">Problemas Comuns</a>
+        <br>
+        <a href="/ajuda/WhatsAppIntegracao.html" style="color:#00a884; font-size:12px; border:none; padding-left:0; margin-top:8px; display:block">
+          ⚙ Guia técnico / Integrar sistemas
+        </a>
+        <a href="/ajuda/Ajuda.html" style="color:var(--cor-destaque); font-size:12px; border:none; padding-left:0">
+          ← Voltar à Ajuda
+        </a>
+      </div>
+    </aside>
+
+    <main class="doc-conteudo">
+
+      <div class="doc-breadcrumb">
+        <a href="/ajuda/Ajuda.html">Ajuda</a>
+        <span>›</span> Integração WhatsApp
+      </div>
+
+      <div class="doc-titulo">
+        <i class="fab fa-whatsapp"></i> Integração WhatsApp
+      </div>
+      <div class="doc-subtitulo">
+        Aprove, reprove e consulte solicitações do Portal WKL diretamente pelo WhatsApp, com login automático por número de telefone.
+      </div>
+
+      <!-- VISÃO GERAL -->
+      <section class="doc-secao" id="visao-geral">
+        <h2><i class="fas fa-eye"></i> Visão Geral</h2>
+        <p>A integração WhatsApp conecta o Portal WKL ao aplicativo WhatsApp, permitindo que os aprovadores interajam com o sistema de aprovações sem precisar acessar o portal pelo navegador.</p>
+
+        <h3>O que você pode fazer pelo WhatsApp</h3>
+        <ul>
+          <li>Receber notificações de aprovações pendentes</li>
+          <li>Consultar aprovações pendentes, aprovadas e reprovadas</li>
+          <li>Aprovar ou reprovar solicitações respondendo uma mensagem</li>
+          <li>Ver detalhes completos de uma aprovação pelo número</li>
+          <li>Acessar automaticamente com seu número de telefone cadastrado</li>
+        </ul>
+
+        <div class="doc-info">
+          <i class="fas fa-info-circle" style="color:#00a884; margin-right:6px"></i>
+          O sistema foi desenvolvido pela equipe WKL e roda em 3 serviços independentes integrados ao Portal WKL.
+        </div>
+      </section>
+
+      <!-- ARQUITETURA -->
+      <section class="doc-secao" id="arquitetura">
+        <h2><i class="fas fa-project-diagram"></i> Arquitetura</h2>
+        <p>O sistema é composto por <strong>3 serviços</strong> que se comunicam via HTTP:</p>
+
+        <div class="arch">
+          <div class="arch-box">
+            <strong>Portal WKL — porta 3000</strong>
+            <span>Sistema principal. Banco de dados SQL Server. Gerencia usuários, aprovações e todos os módulos.</span>
+          </div>
+          <div class="arch-arrow">↕ API REST + chave de integração</div>
+          <div class="arch-box">
+            <strong>WhatsApp UI — porta 3001</strong>
+            <span>Conexão com o WhatsApp via Baileys. Interface web de conversas. Encaminha mensagens recebidas para o Bot.</span>
+          </div>
+          <div class="arch-arrow">↕ HTTP interno</div>
+          <div class="arch-box">
+            <strong>WhatsApp Bot — porta 3002</strong>
+            <span>Processa comandos dos usuários. Consulta o Portal. Envia respostas de volta pelo WhatsApp UI.</span>
+          </div>
+        </div>
+
+        <div class="doc-warn">
+          <i class="fas fa-exclamation-triangle" style="color:#f59e0b; margin-right:6px"></i>
+          O serviço <strong>WhatsApp UI (3001)</strong> mantém a sessão do WhatsApp e não deve ser reiniciado desnecessariamente. O <strong>Bot (3002)</strong> e o <strong>Portal (3000)</strong> podem ser reiniciados livremente.
+        </div>
+      </section>
+
+      <!-- AUTENTICAÇÃO -->
+      <section class="doc-secao" id="autenticacao">
+        <h2><i class="fas fa-user-check"></i> Autenticação — Login Automático</h2>
+        <p>Quando um usuário envia uma mensagem, o bot identifica automaticamente seu login no Portal pelo número de telefone cadastrado. Não é necessário digitar usuário nem senha.</p>
+
+        <h3>Como cadastrar seu número no Portal</h3>
+        <div class="passo">
+          <div class="passo-num">1</div>
+          <div class="passo-txt">Acesse o Portal WKL → <strong>Configurações → Usuários Locais</strong> (ou Usuários de Domínio)</div>
+        </div>
+        <div class="passo">
+          <div class="passo-num">2</div>
+          <div class="passo-txt">Clique em <strong>Editar</strong> no seu usuário</div>
+        </div>
+        <div class="passo">
+          <div class="passo-num">3</div>
+          <div class="passo-txt">Preencha o campo <strong>WhatsApp</strong> com seu número completo (somente dígitos, com DDI e DDD).<br>Exemplo: <code>5592991002823</code> → 55 (Brasil) + 92 (DDD) + 991002823 (número)</div>
+        </div>
+        <div class="passo">
+          <div class="passo-num">4</div>
+          <div class="passo-txt">Clique em <strong>Salvar</strong>. Na próxima mensagem enviada ao bot, o login será automático.</div>
+        </div>
+
+        <h3>Login manual (alternativo)</h3>
+        <p>Se seu número não estiver cadastrado, você pode fazer login manualmente digitando:</p>
+        <div class="cmd-lista">
+          <div class="cmd-item">
+            <span class="cmd-key">login &lt;usuario&gt;</span>
+            <div class="cmd-desc">Vincula seu login do Portal à sessão atual.<br>Exemplo: <code>login joao.silva</code></div>
+          </div>
+        </div>
+        <div class="doc-warn">
+          <i class="fas fa-exclamation-triangle" style="color:#f59e0b; margin-right:6px"></i>
+          O login manual não persiste entre reinícios do bot. Para uso contínuo, cadastre o número no Portal.
+        </div>
+      </section>
+
+      <!-- COMANDOS -->
+      <section class="doc-secao" id="comandos">
+        <h2><i class="fas fa-terminal"></i> Comandos disponíveis</h2>
+        <p>Envie as mensagens abaixo como texto normal no WhatsApp para o número da empresa:</p>
+
+        <div class="cmd-lista">
+          <div class="cmd-item">
+            <span class="cmd-key">oi / olá / bom dia</span>
+            <div class="cmd-desc"><strong>Saudação</strong> — exibe boas-vindas e o menu principal (se autenticado)</div>
+          </div>
+          <div class="cmd-item">
+            <span class="cmd-key">0 / menu / ajuda</span>
+            <div class="cmd-desc"><strong>Menu principal</strong> — exibe todas as opções disponíveis</div>
+          </div>
+          <div class="cmd-item">
+            <span class="cmd-key">1 / pendentes</span>
+            <div class="cmd-desc"><strong>Aprovações pendentes</strong> — lista até 10 aprovações que aguardam sua decisão</div>
+          </div>
+          <div class="cmd-item">
+            <span class="cmd-key">2</span>
+            <div class="cmd-desc"><strong>Últimas aprovadas</strong> — lista as 10 aprovações mais recentes com status Aprovado</div>
+          </div>
+          <div class="cmd-item">
+            <span class="cmd-key">3</span>
+            <div class="cmd-desc"><strong>Últimas reprovadas</strong> — lista as 10 aprovações mais recentes com status Reprovado</div>
+          </div>
+          <div class="cmd-item">
+            <span class="cmd-key">4</span>
+            <div class="cmd-desc"><strong>Resumo geral</strong> — exibe totais de pendentes, aprovadas e reprovadas</div>
+          </div>
+          <div class="cmd-item">
+            <span class="cmd-key">5 &lt;id&gt; / detalhar &lt;id&gt;</span>
+            <div class="cmd-desc"><strong>Detalhar</strong> — exibe todas as informações de uma aprovação específica<br>Exemplo: <code>detalhar 42</code></div>
+          </div>
+          <div class="cmd-item">
+            <span class="cmd-key">6 &lt;id&gt; / aprovar &lt;id&gt;</span>
+            <div class="cmd-desc"><strong>Aprovar</strong> — registra sua aprovação para a solicitação informada<br>Exemplo: <code>aprovar 42</code></div>
+          </div>
+          <div class="cmd-item">
+            <span class="cmd-key">7 &lt;id&gt; [motivo] / reprovar &lt;id&gt; [motivo]</span>
+            <div class="cmd-desc"><strong>Reprovar</strong> — registra sua reprovação com motivo opcional<br>Exemplo: <code>reprovar 42 Fora do orçamento aprovado</code></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- APROVAÇÕES NO PORTAL -->
+      <section class="doc-secao" id="aprovacoes-web">
+        <h2><i class="fas fa-desktop"></i> Aprovações no Portal</h2>
+        <p>O módulo de Aprovações do Portal WKL está totalmente integrado ao WhatsApp. Toda interação — criar, aprovar ou reprovar — gera notificações automáticas para os aprovadores que tiverem número cadastrado.</p>
+
+        <h3>Fluxo de notificações</h3>
+        <ul>
+          <li><strong>Ao criar uma solicitação:</strong> cada aprovador com número cadastrado recebe uma mensagem WhatsApp com os dados da solicitação e os comandos para responder</li>
+          <li><strong>Ao votar pelo WhatsApp:</strong> o voto é registrado no Portal e o histórico da solicitação é atualizado com a indicação <em>"(via WhatsApp)"</em></li>
+          <li><strong>Resultado dos envios:</strong> cada tentativa de envio é registrada nos Logs de Atividade (ação <strong>NOTIF_WHATSAPP</strong>) — com sucesso, erro ou aviso de número não cadastrado</li>
+        </ul>
+
+        <h3>Votar pelo WhatsApp</h3>
+        <p>O aprovador pode responder diretamente pelo WhatsApp sem acessar o portal:</p>
+        <div class="cmd-lista">
+          <div class="cmd-item">
+            <span class="cmd-key">aprovar &lt;id&gt;</span>
+            <div class="cmd-desc">Registra aprovação. Exemplo: <code>aprovar 42</code></div>
+          </div>
+          <div class="cmd-item">
+            <span class="cmd-key">reprovar &lt;id&gt; [motivo]</span>
+            <div class="cmd-desc">Registra reprovação com motivo opcional. Exemplo: <code>reprovar 42 Fora do orçamento</code></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- REENVIAR WHATSAPP -->
+      <section class="doc-secao" id="reenviar">
+        <h2><i class="fab fa-whatsapp"></i> Reenviar WhatsApp (Admin)</h2>
+        <p>Administradores podem reenviar a notificação WhatsApp manualmente para os aprovadores que ainda não votaram, diretamente do painel de detalhes da solicitação no Portal.</p>
+
+        <h3>Como usar</h3>
+        <div class="passo">
+          <div class="passo-num">1</div>
+          <div class="passo-txt">Acesse <strong>/aprovacoes</strong> no Portal e abra uma solicitação com status <strong>Pendente</strong>.</div>
+        </div>
+        <div class="passo">
+          <div class="passo-num">2</div>
+          <div class="passo-txt">No painel de detalhes, clique no botão <strong style="color:#25d366">Reenviar WhatsApp</strong> (visível apenas para administradores).</div>
+        </div>
+        <div class="passo">
+          <div class="passo-num">3</div>
+          <div class="passo-txt">Confirme a ação. O sistema envia um lembrete para todos os aprovadores com decisão ainda <strong>Pendente</strong> que tiverem número cadastrado.</div>
+        </div>
+        <div class="passo">
+          <div class="passo-num">4</div>
+          <div class="passo-txt">Um toast confirma quantos foram notificados e quantos não tinham número. O resultado detalhado aparece nos <strong>Logs de Atividade</strong>.</div>
+        </div>
+
+        <div class="doc-warn">
+          <i class="fas fa-exclamation-triangle" style="color:#f59e0b; margin-right:6px"></i>
+          O botão <strong>Reenviar WhatsApp</strong> só aparece para usuários com nível <strong>Admin</strong> e apenas em solicitações com status <strong>Pendente</strong>.
+        </div>
+        <div class="doc-info">
+          <i class="fas fa-info-circle" style="color:#00a884; margin-right:6px"></i>
+          Use o reenvio quando um aprovador relatar que não recebeu a notificação original ou quando o bot WhatsApp estava offline no momento da criação da solicitação.
+        </div>
+      </section>
+
+      <!-- ADMIN -->
+      <section class="doc-secao" id="admin">
+        <h2><i class="fas fa-cog"></i> Painel Administrativo</h2>
+        <p>Acesse em <strong>http://servidor:3002/admin</strong> — exclusivo para administradores do sistema.</p>
+
+        <h3>Recursos disponíveis</h3>
+        <ul>
+          <li><strong>Logs em tempo real</strong> — todas as mensagens recebidas, envios, autenticações e erros via Socket.IO</li>
+          <li><strong>Sessões ativas</strong> — visualiza quais números de WhatsApp estão autenticados no bot no momento</li>
+          <li><strong>Configurações do bot</strong> — editar textos das mensagens (saudação, menu, erros) sem precisar reiniciar</li>
+          <li><strong>Reset de configurações</strong> — restaura todos os textos ao padrão original</li>
+          <li><strong>Limpar sessões Signal</strong> — remove arquivos de sessão corrompidos sem novo QR Code</li>
+        </ul>
+
+        <h3>Tipos de log monitorados</h3>
+        <table class="doc-table">
+          <thead><tr><th>Tipo</th><th>Descrição</th></tr></thead>
+          <tbody>
+            <tr><td>msg</td><td>Mensagem recebida de um usuário pelo WhatsApp</td></tr>
+            <tr><td>envio</td><td>Mensagem enviada pelo bot ao usuário</td></tr>
+            <tr><td>auth</td><td>Tentativas de autenticação (auto-login e login manual)</td></tr>
+            <tr><td>api</td><td>Chamadas à API do Portal (listar, aprovar, reprovar)</td></tr>
+            <tr><td>erro</td><td>Erros de comunicação ou processamento</td></tr>
+            <tr><td>conexao</td><td>Eventos de conexão e desconexão do WhatsApp</td></tr>
+            <tr><td>config</td><td>Alterações nas configurações do bot</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- CONFIGURAÇÃO -->
+      <section class="doc-secao" id="configuracao">
+        <h2><i class="fas fa-sliders-h"></i> Configuração do Portal</h2>
+        <p>Para que a integração funcione, o Portal WKL precisa estar configurado corretamente:</p>
+
+        <h3>Pré-requisitos no Portal</h3>
+        <ul>
+          <li>Banco de dados na versão <strong>v2.2.0+</strong> — colunas <code>whatsapp</code> nas tabelas <code>usuarios</code> e <code>usuarios_dominio</code></li>
+          <li>Middleware de autenticação <strong>v1.1.0+</strong> com suporte à chave de API (<code>x-api-key</code>)</li>
+          <li>Endpoint <code>GET /api/usuarios/por-whatsapp/:numero</code> disponível na API do Portal</li>
+        </ul>
+
+        <h3>Variável de ambiente no Portal (.env)</h3>
+        <table class="doc-table">
+          <thead><tr><th>Variável</th><th>Descrição</th><th>Exemplo</th></tr></thead>
+          <tbody>
+            <tr><td>WHATSAPP_API_KEY</td><td>Chave secreta compartilhada entre Portal e bot</td><td>wkl-whatsapp-2026</td></tr>
+          </tbody>
+        </table>
+
+        <div class="doc-warn">
+          <i class="fas fa-exclamation-triangle" style="color:#f59e0b; margin-right:6px"></i>
+          O valor de <strong>WHATSAPP_API_KEY</strong> (Portal) deve ser idêntico ao <strong>PORTAL_API_KEY</strong> no arquivo <code>.env</code> do serviço WhatsApp. Após alterar qualquer <code>.env</code>, reinicie com <code>pm2 restart --update-env</code>.
+        </div>
+      </section>
+
+      <!-- PROBLEMAS COMUNS -->
+      <section class="doc-secao" id="problemas">
+        <h2><i class="fas fa-wrench"></i> Problemas Comuns</h2>
+
+        <h3>Mensagem "número não vinculado ao Portal"</h3>
+        <ul>
+          <li>Verifique se o campo <strong>WhatsApp</strong> está preenchido no usuário do Portal (somente dígitos, com DDI 55)</li>
+          <li>Para usuários do domínio AD: clique em <strong>Atualizar do AD</strong> no cadastro para sincronizar o número</li>
+          <li>Confirme que <code>PORTAL_API_KEY</code> e <code>WHATSAPP_API_KEY</code> têm o mesmo valor nos dois <code>.env</code></li>
+          <li>Reinicie o bot com <code>pm2 restart whatsapp-bot --update-env</code></li>
+        </ul>
+
+        <h3>Mensagens ficam "Aguardando" no iPhone (não entregues)</h3>
+        <ul>
+          <li>Este problema é causado por incompatibilidade de sessão entre o Baileys e dispositivos iPhone (formato LID)</li>
+          <li>Solução: verifique se a versão do Baileys é <strong>7.0.0-rc.9 ou superior</strong>. Versões anteriores (ex: 6.7.21) não são compatíveis com o novo protocolo LID do iPhone</li>
+          <li>Se necessário, atualize: <code>npm install @whiskeysockets/baileys@7.0.0-rc.9</code> na pasta do serviço WhatsApp</li>
+          <li>Após atualizar, faça um reset completo da sessão (apague a pasta <code>auth_info_baileys/</code>) e escaneie o QR Code novamente</li>
+        </ul>
+
+        <h3>Bot não responde às mensagens</h3>
+        <ul>
+          <li>Confirme que todos os serviços estão online: <code>pm2 list</code></li>
+          <li>Verifique se <code>BOT_URL=http://localhost:3002</code> está correto no <code>.env</code></li>
+          <li>Consulte os logs: <code>pm2 logs whatsapp-wkl --lines 30</code></li>
+        </ul>
+
+        <h3>Aprovador não recebeu notificação WhatsApp ao criar solicitação</h3>
+        <ul>
+          <li>Acesse <strong>Configurações → Logs</strong>, filtre por <strong>Sistema: Aprovações</strong> e ação <strong>NOTIF_WHATSAPP</strong></li>
+          <li>O log mostra se o envio foi bem-sucedido, se houve erro de rede ou se o número não estava cadastrado</li>
+          <li>Se o bot estava offline no momento da criação, use o botão <strong>Reenviar WhatsApp</strong> (disponível para admins na tela de detalhes da solicitação)</li>
+        </ul>
+
+        <h3>QR Code não aparece / WhatsApp desconectado</h3>
+        <ul>
+          <li>Acesse <strong>http://servidor:3001/admin</strong> e clique em <strong>Limpar Sessões Signal</strong></li>
+          <li>Se necessário, apague toda a pasta <code>auth_info_baileys/</code> e escaneie o QR Code novamente</li>
+        </ul>
+
+        <h3>Erro 401 ao consultar aprovações</h3>
+        <ul>
+          <li>As chaves <code>PORTAL_API_KEY</code> e <code>WHATSAPP_API_KEY</code> estão divergentes</li>
+          <li>Após corrigir, reinicie: <code>pm2 restart portal-wkl whatsapp-bot --update-env</code></li>
+        </ul>
+
+        <div class="doc-info">
+          <i class="fas fa-lightbulb" style="color:#00a884; margin-right:6px"></i>
+          Em caso de dúvida, consulte sempre os logs: <strong>Painel Admin → Logs em tempo real</strong> (bot) e <strong>Configurações → Logs → NOTIF_WHATSAPP</strong> (Portal). Juntos mostram exatamente o que aconteceu em cada etapa do envio.
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <script src="/js/portal-core.js"></script>
+  <script>carregarMenu();</script>
+</body>
+</html>

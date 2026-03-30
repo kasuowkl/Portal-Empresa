@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Modelo - Agenda Projetos</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+      background: #f9fafb;
+      color: #1f2937;
+      padding: 40px 24px;
+      line-height: 1.5;
+    }
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+      padding: 32px 40px;
+    }
+    h1 {
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: #111827;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    h1 i {
+      color: #8b5cf6;
+    }
+    .subtitulo {
+      font-size: 14px;
+      color: #6b7280;
+      margin-bottom: 32px;
+      border-left: 3px solid #8b5cf6;
+      padding-left: 12px;
+    }
+    h2 {
+      font-size: 20px;
+      font-weight: 600;
+      margin: 32px 0 16px 0;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #e5e7eb;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    h2 i {
+      color: #8b5cf6;
+      font-size: 18px;
+    }
+    h3 {
+      font-size: 18px;
+      font-weight: 600;
+      margin: 24px 0 12px 0;
+      color: #374151;
+    }
+    h4 {
+      font-size: 16px;
+      font-weight: 600;
+      margin: 16px 0 8px 0;
+      color: #4b5563;
+    }
+    p {
+      margin-bottom: 12px;
+      color: #4b5563;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0 20px 0;
+      font-size: 14px;
+    }
+    th, td {
+      border: 1px solid #e2e8f0;
+      padding: 10px 12px;
+      text-align: left;
+      vertical-align: top;
+    }
+    th {
+      background: #f3f4f6;
+      font-weight: 600;
+      color: #1f2937;
+    }
+    .badge {
+      display: inline-block;
+      background: #ede9fe;
+      color: #5b21b6;
+      font-size: 12px;
+      padding: 2px 8px;
+      border-radius: 20px;
+      font-weight: 500;
+    }
+    .card {
+      background: #fef9e3;
+      border-left: 4px solid #f59e0b;
+      padding: 12px 16px;
+      margin: 16px 0;
+      border-radius: 8px;
+      font-size: 14px;
+    }
+    .info {
+      background: #eff6ff;
+      border-left: 4px solid #3b82f6;
+      padding: 12px 16px;
+      margin: 16px 0;
+      border-radius: 8px;
+    }
+    ul, ol {
+      margin: 8px 0 16px 24px;
+    }
+    li {
+      margin-bottom: 6px;
+    }
+    .grid-entities {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin: 20px 0;
+    }
+    .entity-card {
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 16px;
+      flex: 1 1 250px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    }
+    .entity-card h4 {
+      margin-top: 0;
+      color: #8b5cf6;
+      border-left: 3px solid #8b5cf6;
+      padding-left: 8px;
+    }
+    .perm-table th:first-child, .perm-table td:first-child {
+      font-weight: 500;
+    }
+    .sim {
+      color: #10b981;
+      font-weight: 700;
+      text-align: center;
+    }
+    .nao {
+      color: #ef4444;
+      text-align: center;
+    }
+    footer {
+      margin-top: 48px;
+      font-size: 12px;
+      color: #9ca3af;
+      text-align: center;
+      border-top: 1px solid #e5e7eb;
+      padding-top: 24px;
+    }
+    @media print {
+      body {
+        background: white;
+        padding: 0;
+        margin: 0;
+      }
+      .container {
+        box-shadow: none;
+        padding: 20px;
+        max-width: 100%;
+      }
+      .badge, .entity-card {
+        break-inside: avoid;
+      }
+      h2, h3, h4 {
+        break-after: avoid;
+      }
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>
+    <span>📋</span> Agenda Projetos
+  </h1>
+  <div class="subtitulo">
+    Modelo completo para gestão hierárquica de projetos, subprojetos, tarefas, subtarefas e atividades.<br>
+    Baseado na estrutura existente da Agenda de Tarefas, com extensões para colaboração avançada e controle de tempo.
+  </div>
+
+  <!-- Entidades principais -->
+  <h2>📦 1. Entidades Principais</h2>
+  <div class="grid-entities">
+    <div class="entity-card"><h4>Projeto Principal</h4><p>Contêiner de nível superior. Pode conter subprojetos ou tarefas diretamente.</p><p><span class="badge">id</span> <span class="badge">nome</span> <span class="badge">datas</span> <span class="badge">dono</span> <span class="badge">progresso</span></p></div>
+    <div class="entity-card"><h4>Subprojeto</h4><p>Projeto filho. Herda permissões do pai ou pode ter permissões independentes.</p><p><span class="badge">projeto_pai_id</span> <span class="badge">status</span></p></div>
+    <div class="entity-card"><h4>Tarefa</h4><p>Unidade de trabalho, pode ser dividida em subtarefas. Possui responsável, prazo, prioridade.</p><p><span class="badge">estimativa horas</span> <span class="badge">dependências</span> <span class="badge">status</span></p></div>
+    <div class="entity-card"><h4>Subtarefa</h4><p>Subdivisão de uma tarefa, com conclusão individual.</p><p><span class="badge">tarefa_pai_id</span> <span class="badge">ordem</span></p></div>
+    <div class="entity-card"><h4>Atividade</h4><p>Registro de trabalho realizado, com horas apontadas e descrição.</p><p><span class="badge">data_início</span> <span class="badge">duração</span> <span class="badge">anexos</span></p></div>
+    <div class="entity-card"><h4>Marco (Milestone)</h4><p>Evento importante que agrupa tarefas e serve como ponto de controle.</p><p><span class="badge">data_prevista</span> <span class="badge">data_realizada</span></p></div>
+    <div class="entity-card"><h4>Comentário & Anexo</h4><p>Comunicação e arquivos vinculados a qualquer entidade.</p></div>
+    <div class="entity-card"><h4>Log de Atividades</h4><p>Registro automático de todas as ações para auditoria.</p></div>
+  </div>
+
+  <!-- Relacionamentos -->
+  <h2>🔗 2. Relacionamentos (Estrutura Hierárquica)</h2>
+  <div class="info">
+    <strong>Projeto Principal</strong> → (0..n) <strong>Subprojeto</strong><br>
+    <strong>Projeto Principal / Subprojeto</strong> → (0..n) <strong>Tarefa</strong><br>
+    <strong>Tarefa</strong> → (0..n) <strong>Subtarefa</strong><br>
+    <strong>Tarefa / Subtarefa</strong> → (0..n) <strong>Atividade</strong><br>
+    <strong>Tarefa / Projeto / Subtarefa</strong> → (0..n) <strong>Comentário + Anexo</strong><br>
+    <strong>Projeto</strong> → (0..n) <strong>Marco</strong><br>
+    <strong>Usuário</strong> → responsável por tarefas / executor de atividades / autor de comentários.
+  </div>
+
+  <!-- Funções detalhadas -->
+  <h2>⚙️ 3. Funções por Entidade</h2>
+  
+  <h3>📁 Projeto Principal e Subprojeto</h3>
+  <ul>
+    <li><strong>Criar:</strong> Definir nome, datas, equipe, cor. Ex: “Lançamento App Versão 2.0” (01/04 a 30/06).</li>
+    <li><strong>Editar:</strong> Alterar atributos, adicionar/remover membros, mudar cor.</li>
+    <li><strong>Arquivar:</strong> Mover para projetos concluídos (sem exclusão).</li>
+    <li><strong>Excluir:</strong> Remover permanentemente (confirmação obrigatória).</li>
+    <li><strong>Visualizar:</strong> Painel com resumo, gráfico de progresso, marcos.</li>
+    <li><strong>Gerenciar Membros:</strong> Convidar pessoas com permissões específicas (dono, editor, colaborador, leitor).</li>
+  </ul>
+
+  <h3>✅ Tarefa</h3>
+  <ul>
+    <li><strong>Criar:</strong> Título, descrição, responsável, prazo, prioridade, categoria, estimativa de horas.</li>
+    <li><strong>Editar:</strong> Alterar qualquer campo, inclusive dependências (ex: tarefa A depende de tarefa B).</li>
+    <li><strong>Mover:</strong> Transferir entre projetos/subprojetos.</li>
+    <li><strong>Alterar Status:</strong> A Fazer → Em Andamento → Concluída (via botões ou Kanban).</li>
+    <li><strong>Registrar Horas:</strong> Lançar tempo trabalhado via atividade (iniciar/pausar/encerrar).</li>
+    <li><strong>Adicionar Comentário:</strong> Inserir observações, @menções (ex: “@joao, valide esta correção”).</li>
+    <li><strong>Anexar Arquivos:</strong> Upload de documentos, imagens, wireframes.</li>
+    <li><strong>Gerenciar Subtarefas:</strong> Criar, concluir, reordenar.</li>
+  </ul>
+
+  <h3>📌 Subtarefa</h3>
+  <ul>
+    <li><strong>Criar:</strong> Dentro de uma tarefa, definir subtarefa com título.</li>
+    <li><strong>Marcar Concluída:</strong> Checkbox que atualiza progresso da tarefa pai.</li>
+    <li><strong>Editar/Excluir:</strong> Modificar título ou remover.</li>
+  </ul>
+
+  <h3>⏱️ Atividade</h3>
+  <ul>
+    <li><strong>Iniciar / Pausar / Encerrar:</strong> Cronometragem em tempo real.</li>
+    <li><strong>Adicionar Manual:</strong> Lançar horas retroativas com descrição.</li>
+    <li><strong>Editar:</strong> Corrigir descrição ou duração.</li>
+  </ul>
+
+  <h3>🏁 Marco</h3>
+  <ul>
+    <li><strong>Criar:</strong> Definir marco com data prevista e tarefas associadas.</li>
+    <li><strong>Concluir:</strong> Registrar data de realização e comentário.</li>
+    <li><strong>Associar Tarefas:</strong> Vincular tarefas que devem ser concluídas para o marco ser atingido.</li>
+  </ul>
+
+  <h3>💬 Comentário e Anexo</h3>
+  <ul>
+    <li><strong>Comentar:</strong> Texto, menções, anexos inline.</li>
+    <li><strong>Editar/Excluir:</strong> Modificar ou remover comentário próprio.</li>
+    <li><strong>Anexar:</strong> Upload de arquivo em qualquer entidade (tarefa, projeto, atividade).</li>
+  </ul>
+
+  <h3>📜 Log de Atividades</h3>
+  <ul>
+    <li><strong>Registrar Automático:</strong> Captura ações como criação, edição, exclusão, mudança de status.</li>
+    <li><strong>Filtrar:</strong> Por entidade, data, usuário (ex: logs do projeto “App” nos últimos 7 dias).</li>
+  </ul>
+
+  <!-- Exemplo prático -->
+  <h2>📘 4. Exemplo de Uso – Projeto “Sistema de Gestão de Vendas”</h2>
+  <div class="card">
+    <strong>Projeto Principal:</strong> Sistema de Gestão de Vendas (01/04 a 31/08, dono: Carlos)<br>
+    <strong>Subprojeto 1:</strong> Backend (API e banco)<br>
+    &nbsp;&nbsp;→ Tarefa 1.1: Modelagem de dados<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;▪ Subtarefa 1.1.1: Criar diagrama ER<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;▪ Subtarefa 1.1.2: Implementar migrações<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;▪ Atividade: 2h – “Levantamento de requisitos”<br>
+    &nbsp;&nbsp;→ Tarefa 1.2: Endpoints de autenticação<br>
+    <strong>Subprojeto 2:</strong> Frontend (React)<br>
+    &nbsp;&nbsp;→ Tarefa 2.1: Estrutura de componentes<br>
+    <strong>Marco 1:</strong> MVP funcional (15/06) – associado às tarefas 1.1, 1.2, 2.1<br>
+    <strong>Marco 2:</strong> Versão final (31/08)
+  </div>
+  <p><strong>Fluxo:</strong> Carlos cria projeto e subprojetos → adiciona Ana (backend) e Pedro (frontend) → Ana cria tarefa e subtarefas → Ana inicia atividade, registra 2h → Carlos acompanha progresso no painel → Pedro comenta pedindo documentação → sistema registra logs.</p>
+
+    <!-- Exemplos complementares -->
+    <h2>📌 8. Exemplos Complementares</h2>
+    <p>Para demonstrar a flexibilidade do modelo, apresentamos dois cenários adicionais: um projeto de marketing digital e um projeto ágil com sprints.</p>
+  
+    <h3>🎯 Exemplo 2 – Projeto de Marketing: “Lançamento Produto XYZ”</h3>
+    <div class="card">
+      <strong>Projeto Principal:</strong> Lançamento Produto XYZ (início: 01/05, fim: 30/06)<br>
+      <strong>Subprojeto 1:</strong> Estratégia Digital<br>
+      &nbsp;&nbsp;→ Tarefa 1.1: SEO e conteúdo<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;▪ Subtarefa 1.1.1: Pesquisa de palavras-chave<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;▪ Subtarefa 1.1.2: Produção de 5 artigos<br>
+      &nbsp;&nbsp;→ Tarefa 1.2: Campanhas de anúncios (Google Ads, Meta)<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;▪ Subtarefa 1.2.1: Criar criativos<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;▪ Subtarefa 1.2.2: Configurar segmentação<br>
+      <strong>Subprojeto 2:</strong> Evento de Lançamento<br>
+      &nbsp;&nbsp;→ Tarefa 2.1: Logística do evento<br>
+      &nbsp;&nbsp;→ Tarefa 2.2: Convites e mailing<br>
+      <strong>Marco:</strong> Pré-lançamento (15/06) – tarefas de SEO e campanhas concluídas<br>
+      <strong>Atividade Registrada:</strong> 3h – “Reunião de alinhamento com agência de mídia” (tarefa 1.2)<br>
+      <strong>Comentário:</strong> “@mariana, revisar os criativos até sexta-feira.”
+    </div>
+  
+    <h3>🔄 Exemplo 3 – Projeto Ágil: “Sprint 23 – App Mobile”</h3>
+    <div class="card">
+      <strong>Projeto Principal:</strong> App Mobile (Sprints contínuas)<br>
+      <strong>Subprojeto:</strong> Sprint 23 (início: 10/04, fim: 24/04)<br>
+      &nbsp;&nbsp;→ Tarefa 1: Implementar tela de perfil<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;▪ Subtarefa 1.1: Design responsivo<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;▪ Subtarefa 1.2: Integrar API de usuário<br>
+      &nbsp;&nbsp;→ Tarefa 2: Correção de bugs críticos<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;▪ Subtarefa 2.1: Ajustar crash ao abrir câmera<br>
+      &nbsp;&nbsp;→ Tarefa 3: Testes de regressão<br>
+      <strong>Marco:</strong> Review da Sprint (24/04) – todas as tarefas com status “Concluída”<br>
+      <strong>Atividades:</strong> Desenvolvedor registrou 8h na tarefa 1, 2h na tarefa 2.1.<br>
+      <strong>Dependência:</strong> Tarefa 3 depende da conclusão das tarefas 1 e 2.<br>
+      <strong>Log:</strong> “Sistema automaticamente marcou tarefa 1 como ‘Em Andamento’ ao iniciar atividade.”
+    </div>
+
+  <!-- Permissões -->
+  <h2>🛡️ 5. Permissões Granulares</h2>
+  <table class="perm-table">
+    <thead>
+      <tr><th>Papel</th><th>Projetos</th><th>Tarefas</th><th>Subprojetos</th><th>Marcos</th><th>Membros</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>Dono</strong></td><td>Criar, editar, excluir, arquivar</td><td>Todas as ações</td><td>Criar, editar, excluir</td><td>Criar, editar, excluir</td><td>Adicionar/remover, definir papéis</td></tr>
+      <tr><td><strong>Editor</strong></td><td>Visualizar, editar atributos (exceto exclusão)</td><td>Criar, editar, excluir próprias, mover</td><td>Visualizar, editar (se permitido)</td><td>Criar, editar, excluir</td><td>Visualizar membros</td></tr>
+      <tr><td><strong>Colaborador</strong></td><td>Visualizar</td><td>Criar, editar próprias, alterar status</td><td>Visualizar</td><td>Visualizar</td><td>Visualizar membros</td></tr>
+      <tr><td><strong>Leitor</strong></td><td>Visualizar</td><td>Visualizar</td><td>Visualizar</td><td>Visualizar</td><td>Visualizar membros</td></tr>
+    </tbody>
+  </table>
+  <div class="info">
+    Os papéis podem ser definidos por projeto ou herdados da hierarquia. O dono do projeto principal pode delegar permissões específicas para subprojetos.
+  </div>
+
+  <!-- Integração com a Agenda de Tarefas existente -->
+  <h2>🔄 6. Integração com a Agenda de Tarefas Atual</h2>
+  <ul>
+    <li>As <strong>listas</strong> existentes serão convertidas em <strong>projetos pessoais</strong> ou subprojetos dentro de um projeto principal “Meus Projetos”.</li>
+    <li><strong>Tarefas</strong> atuais mantêm status, prioridade, categoria e são vinculadas ao novo modelo.</li>
+    <li><strong>Compartilhamento</strong> de listas é mapeado para permissões de projeto (dono/edição/leitura → papéis equivalentes).</li>
+    <li>Visualizações <strong>Kanban e Lista</strong> permanecem disponíveis, agora filtradas por projeto.</li>
+  </ul>
+
+  <!-- Considerações técnicas -->
+  <h2>🧩 7. Considerações Técnicas</h2>
+  <ul>
+    <li><strong>Banco de dados:</strong> Novas tabelas <code>projetos</code> (com campo <code>parent_id</code> para hierarquia), <code>marcos</code>, <code>atividades</code>, <code>comentarios</code>, <code>anexos</code>, <code>logs</code>. Tabela <code>tarefas</code> ganha <code>projeto_id</code> e campos de estimativa/horas/dependências.</li>
+    <li><strong>API RESTful:</strong> Endpoints para cada entidade com validação de permissões via token JWT.</li>
+    <li><strong>Frontend:</strong> Componentes reutilizáveis (árvore de projetos, visão Gantt, timeline de atividades). Manter a identidade visual do sistema original.</li>
+  </ul>
+
+  <!-- ========== INÍCIO – MÓDULO AGENDA PROJETOS ========== -->
+<div class="doc-layout" style="margin-top: 2rem;">
+    <aside class="doc-sidebar">
+      <div class="doc-sidebar-sticky">
+        <h4>Agenda Projetos</h4>
+        <a href="#projetos-entidades">Entidades</a>
+        <a href="#projetos-funcoes">Funções</a>
+        <a href="#projetos-exemplos">Exemplos</a>
+        <a href="#projetos-permissoes">Permissões</a>
+        <a href="#projetos-banco">Banco de Dados</a>
+      </div>
+    </aside>
+    <main class="doc-conteudo">
+      <div class="doc-titulo">
+        <i class="fas fa-project-diagram"></i> Agenda Projetos
+      </div>
+      <div class="doc-subtitulo">
+        Extensão da Agenda de Tarefas: estrutura hierárquica (projetos, subprojetos, tarefas, subtarefas, atividades) e gestão avançada.
+      </div>
+  
+      <!-- Entidades -->
+      <section class="doc-secao" id="projetos-entidades">
+        <h2><i class="fas fa-cubes"></i> Entidades Principais</h2>
+        <div style="display: flex; flex-wrap: wrap; gap: 1rem; margin: 1rem 0;">
+          <div class="doc-card" style="flex:1;"><h4>Projeto Principal</h4><p>Contêiner de nível superior. Pode conter subprojetos ou tarefas.</p><code>id, nome, datas, dono, progresso</code></div>
+          <div class="doc-card" style="flex:1;"><h4>Subprojeto</h4><p>Projeto filho, herda permissões do pai.</p><code>projeto_pai_id, status</code></div>
+          <div class="doc-card" style="flex:1;"><h4>Tarefa</h4><p>Unidade de trabalho com responsável, prazo, prioridade e horas.</p><code>estimativa_horas, dependências</code></div>
+          <div class="doc-card" style="flex:1;"><h4>Subtarefa</h4><p>Divisão de uma tarefa, com conclusão individual.</p><code>tarefa_pai_id, ordem</code></div>
+          <div class="doc-card" style="flex:1;"><h4>Atividade</h4><p>Registro de trabalho realizado, com apontamento de horas.</p><code>data_início, duração, descrição</code></div>
+          <div class="doc-card" style="flex:1;"><h4>Marco</h4><p>Evento importante que agrupa tarefas.</p><code>data_prevista, data_realizada</code></div>
+          <div class="doc-card" style="flex:1;"><h4>Comentário & Anexo</h4><p>Comunicação e arquivos vinculados a qualquer entidade.</p></div>
+          <div class="doc-card" style="flex:1;"><h4>Log de Atividades</h4><p>Registro automático de ações para auditoria.</p></div>
+        </div>
+      </section>
+  
+      <!-- Funções -->
+      <section class="doc-secao" id="projetos-funcoes">
+        <h2><i class="fas fa-tools"></i> Funções por Entidade</h2>
+        <h3>Projetos e Subprojetos</h3>
+        <ul><li><strong>Criar/Editar/Arquivar/Excluir</strong> – nome, datas, equipe, cores.</li><li><strong>Gerenciar Membros</strong> – convidar com papéis (dono, editor, colaborador, leitor).</li></ul>
+        <h3>Tarefas</h3>
+        <ul><li>Criar/Editar/Mover – título, descrição, responsável, prazo, prioridade, categoria, estimativa de horas.</li><li>Alterar Status (A Fazer → Em Andamento → Concluída).</li><li>Registrar Horas (via atividade).</li><li>Adicionar Comentários, Anexos e Gerenciar Subtarefas.</li></ul>
+        <h3>Subtarefas</h3>
+        <ul><li>Criar, marcar concluída, editar/excluir.</li></ul>
+        <h3>Atividades</h3>
+        <ul><li>Iniciar/Pausar/Encerrar (cronômetro) ou lançamento manual.</li><li>Editar descrição/duração.</li></ul>
+        <h3>Marcos</h3>
+        <ul><li>Criar marco com data prevista, associar tarefas, concluir com data real.</li></ul>
+        <h3>Comentários e Anexos</h3>
+        <ul><li>Comentar com @menções, anexar arquivos em qualquer entidade.</li></ul>
+        <h3>Logs</h3>
+        <ul><li>Registro automático de criação, edição, exclusão, mudança de status.</li></ul>
+      </section>
+  
+      <!-- Exemplos -->
+      <section class="doc-secao" id="projetos-exemplos">
+        <h2><i class="fas fa-chalkboard-teacher"></i> Exemplos de Uso</h2>
+        <div class="doc-card">
+          <h4>Exemplo 1: Projeto de Marketing Digital</h4>
+          <p><strong>Projeto Principal:</strong> "Campanha Black Friday" (01/09 a 25/11, dono: Mariana)</p>
+          <ul>
+            <li><strong>Subprojeto:</strong> "Criação de Conteúdo"
+              <ul><li>Tarefa: "Roteiro de vídeos" – Subtarefas: "Pesquisa de público", "Escrita", "Aprovação"</li>
+              <li>Atividade: 3h – "Pesquisa de concorrentes"</li></ul>
+            </li>
+            <li><strong>Subprojeto:</strong> "Tráfego Pago"
+              <ul><li>Tarefa: "Configurar campanhas no Google Ads" – responsável: João, prazo 15/10</li></ul>
+            </li>
+            <li><strong>Marco:</strong> "Conteúdo finalizado" (10/10) – associado às tarefas do subprojeto "Criação de Conteúdo"</li>
+          </ul>
+        </div>
+        <div class="doc-card">
+          <h4>Exemplo 2: Desenvolvimento de Software Ágil</h4>
+          <p><strong>Projeto Principal:</strong> "App de Entregas" (sprint 1 a 4, dono: Thiago)</p>
+          <ul>
+            <li><strong>Tarefa Épica:</strong> "Autenticação de usuários"
+              <ul><li>Subtarefa 1: "Implementar login com e-mail"</li>
+              <li>Subtarefa 2: "Integrar Google OAuth"</li>
+              <li>Atividade: "Desenvolvimento do fluxo de login" – 4h</li></ul>
+            </li>
+            <li><strong>Tarefa:</strong> "Documentar API" – dependente da conclusão da tarefa "Autenticação"</li>
+            <li><strong>Marco:</strong> "MVP da Sprint 1" (10/05) – tarefas associadas: Autenticação, Cadastro, Tela inicial</li>
+          </ul>
+        </div>
+        <div class="doc-card">
+          <h4>Exemplo 3: Projeto de Infraestrutura</h4>
+          <p><strong>Projeto Principal:</strong> "Migração para Nuvem" (01/02 a 30/06, dono: Fernanda)</p>
+          <ul>
+            <li><strong>Subprojeto:</strong> "Ambiente de Testes"
+              <ul><li>Tarefa: "Criar instâncias de homologação" – estimativa 8h</li>
+              <li>Atividade: "Configuração de rede" – 2h</li></ul>
+            </li>
+            <li><strong>Subprojeto:</strong> "Migração de Dados"
+              <ul><li>Tarefa: "Exportação de bancos" – dependência: "Ambiente de Testes" concluído</li></ul>
+            </li>
+            <li><strong>Marco:</strong> "Ambiente de Testes Validado" (15/03)</li>
+          </ul>
+        </div>
+      </section>
+  
+      <!-- Permissões -->
+      <section class="doc-secao" id="projetos-permissoes">
+        <h2><i class="fas fa-shield-alt"></i> Permissões Granulares</h2>
+        <table class="perm-table">
+          <thead><tr><th>Papel</th><th>Projetos</th><th>Tarefas</th><th>Subprojetos</th><th>Marcos</th><th>Membros</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Dono</strong></td><td>Criar, editar, excluir, arquivar</td><td>Todas</td><td>Criar, editar, excluir</td><td>Criar, editar, excluir</td><td>Adicionar/remover, definir papéis</td></tr>
+            <tr><td><strong>Editor</strong></td><td>Visualizar, editar atributos (exceto exclusão)</td><td>Criar, editar, excluir próprias, mover</td><td>Visualizar, editar (se permitido)</td><td>Criar, editar, excluir</td><td>Visualizar membros</td></tr>
+            <tr><td><strong>Colaborador</strong></td><td>Visualizar</td><td>Criar, editar próprias, alterar status</td><td>Visualizar</td><td>Visualizar</td><td>Visualizar membros</td></tr>
+            <tr><td><strong>Leitor</strong></td><td>Visualizar</td><td>Visualizar</td><td>Visualizar</td><td>Visualizar</td><td>Visualizar membros</td></tr>
+          </tbody>
+        </table>
+      </section>
+  
+      <!-- Banco de Dados -->
+      <section class="doc-secao" id="projetos-banco">
+        <h2><i class="fas fa-database"></i> Estrutura de Banco de Dados (Nomes Reduzidos)</h2>
+        <p>Tabelas principais para implementação:</p>
+        <ul>
+          <li><strong>projetos</strong> – auto-relacionamento (projeto_pai_id), dono_id, datas, status, cor.</li>
+          <li><strong>marcos</strong> – projeto_id, nome, data_prevista, data_realizada.</li>
+          <li><strong>tarefas</strong> – projeto_id, responsavel_id, prazo, prioridade, status, estimativa_horas, horas_trabalhadas.</li>
+          <li><strong>subtarefas</strong> – tarefa_id, titulo, concluida, ordem.</li>
+          <li><strong>atividades</strong> – tarefa_id (opcional), subtarefa_id (opcional), usuario_id, data_inicio, data_fim, duracao_minutos, descricao.</li>
+          <li><strong>comentarios</strong> – entidade_tipo, entidade_id, usuario_id, conteudo.</li>
+          <li><strong>anexos</strong> – entidade_tipo, entidade_id, nome_arquivo, caminho, tamanho, uploaded_por.</li>
+          <li><strong>logs</strong> – usuario_id, acao, entidade_tipo, entidade_id, detalhes (JSON), data_hora.</li>
+          <li><strong>membros_projeto</strong> – projeto_id, usuario_id, papel.</li>
+          <li><strong>categorias</strong> (opcional) – projeto_id, nome, cor.</li>
+        </ul>
+        <div class="doc-info">
+          <i class="fas fa-code"></i> Exemplo SQL (MySQL) para tabelas principais:
+          <pre style="margin-top:8px; overflow-x:auto;">
+  CREATE TABLE projetos (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      nome VARCHAR(200) NOT NULL,
+      descricao TEXT,
+      projeto_pai_id INT NULL,
+      dono_id INT NOT NULL,
+      data_inicio DATE,
+      data_fim DATE,
+      status VARCHAR(20) DEFAULT 'planejado',
+      cor VARCHAR(7),
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      FOREIGN KEY (projeto_pai_id) REFERENCES projetos(id) ON DELETE CASCADE
+  );
+  
+  CREATE TABLE tarefas (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      projeto_id INT NOT NULL,
+      titulo VARCHAR(255) NOT NULL,
+      descricao TEXT,
+      responsavel_id INT,
+      prazo DATE,
+      prioridade VARCHAR(10),
+      categoria VARCHAR(50),
+      status VARCHAR(20) DEFAULT 'a_fazer',
+      estimativa_horas DECIMAL(6,2),
+      horas_trabalhadas DECIMAL(6,2) DEFAULT 0,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      FOREIGN KEY (projeto_id) REFERENCES projetos(id) ON DELETE CASCADE
+  );
+  
+  -- demais tabelas seguem padrão semelhante
+          </pre>
+        </div>
+        <p>As listas existentes na Agenda de Tarefas podem ser convertidas em projetos, e as tarefas migradas para a nova estrutura mantendo histórico.</p>
+      </section>
+    </main>
+  </div>
+  <!-- ========== FIM – MÓDULO AGENDA PROJETOS ========== -->
+
+  
+
+  <footer>
+    Documento gerado em 30 de março de 2026 – Modelo para implementação da Agenda Projetos.<br>
+    Este documento pode ser salvo como PDF via impressão (Ctrl+P → “Salvar como PDF”).
+  </footer>
+</div>
+</body>
+</html>

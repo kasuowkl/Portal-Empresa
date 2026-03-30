@@ -817,10 +817,13 @@
           </div>
         </div>` : '';
 
-      const acoesCriador = (podeEditar || podeCancelar) ? `
+      const isAdmin = window.usuarioLogado?.nivel === 'admin';
+      const podeReenviar = isAdmin && apr.status === 'Pendente';
+      const acoesCriador = (podeEditar || podeCancelar || podeReenviar) ? `
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">
           ${podeEditar   ? `<button class="btn-editar"   onclick="mostrarEdicao(_dadosAbertos.apr,_dadosAbertos.participantes,_dadosAbertos.observadores)"><i class="fas fa-edit"></i> Editar</button>` : ''}
           ${podeCancelar ? `<button class="btn-cancelar" onclick="cancelar(${apr.id})"><i class="fas fa-ban"></i> Cancelar</button>` : ''}
+          ${podeReenviar ? `<button class="btn-editar" style="color:#25d366;border-color:rgba(37,211,102,0.4)" onclick="reenviarWhatsApp(${apr.id})"><i class="fab fa-whatsapp"></i> Reenviar WhatsApp</button>` : ''}
         </div>` : '';
 
       document.getElementById('modal-detalhe-conteudo').innerHTML = `
@@ -1178,6 +1181,26 @@
         toast('Aprovação cancelada.', 'info');
         fecharModalDetalhe();
         await carregarLista();
+      } catch (e) { toast(e.message, 'erro'); }
+    }
+
+    // ──────────────────────────────────────────────────────────
+    // REENVIAR WHATSAPP
+    // ──────────────────────────────────────────────────────────
+    async function reenviarWhatsApp(id) {
+      if (!confirm('Reenviar notificação WhatsApp para todos os aprovadores com decisão pendente?')) return;
+      try {
+        const r = await fetch(`/api/aprovacoes/${id}/reenviar-whatsapp`, { method: 'POST' });
+        const data = await r.json();
+        if (!r.ok) throw new Error(data.erro || 'Erro');
+        if (data.enviados === 0) {
+          toast(data.msg || 'Nenhum aprovador com WhatsApp cadastrado.', 'info');
+        } else {
+          let msg = `WhatsApp reenviado para ${data.enviados} aprovador(es).`;
+          if (data.semNumero > 0) msg += ` (${data.semNumero} sem número cadastrado)`;
+          toast(msg, 'sucesso');
+        }
+        await abrirDetalhe(id);
       } catch (e) { toast(e.message, 'erro'); }
     }
 

@@ -56,8 +56,9 @@ router.get('/sistemas', verificarLogin, async (req, res) => {
   const ip           = req.ip || req.connection.remoteAddress;
 
   try {
+    const isAdmin = req.session.usuario?.nivel === 'admin';
     const resultado = await pool.request()
-      .query('SELECT id, nome, url, icone, descricao, nova_aba FROM sistemas WHERE ativo = 1 ORDER BY nome');
+      .query(`SELECT id, nome, url, icone, descricao, nova_aba FROM sistemas WHERE ativo = 1${isAdmin ? '' : ' AND visivel_usuarios = 1'} ORDER BY nome`);
 
     logAtividade.info(`Listagem de sistemas — usuário: "${usuario}" | IP: ${ip}`);
     res.json({ sucesso: true, sistemas: resultado.recordset });
@@ -317,6 +318,32 @@ router.get('/api/usuarios/por-whatsapp/:numero', async (req, res) => {
   }
 });
 
+// GET /api/usuarios/lista-whatsapp — Lista todos os usuários + contatos com qualquer telefone (API Key)
+router.get('/api/usuarios/lista-whatsapp', async (req, res) => {
+  const apiKey = req.headers['x-api-key'];
+  if (!apiKey || apiKey !== process.env.WHATSAPP_API_KEY) return res.status(401).json({ erro: 'Não autorizado' });
+
+  const pool = req.app.locals.pool;
+  try {
+    const r = await pool.request().query(`
+      SELECT nome, usuario AS login, 'local'   AS tipo, ''  AS empresa, whatsapp AS numero
+      FROM usuarios WHERE ativo = 1 AND whatsapp IS NOT NULL AND whatsapp <> ''
+      UNION ALL
+      SELECT nome, login,           'dominio' AS tipo, ''  AS empresa, whatsapp AS numero
+      FROM usuarios_dominio WHERE ativo = 1 AND whatsapp IS NOT NULL AND whatsapp <> ''
+      UNION ALL
+      SELECT c.nome, c.nome AS login, 'contato' AS tipo,
+             ISNULL(c.empresa, '') AS empresa,
+             COALESCE(NULLIF(c.whatsapp,''), NULLIF(c.cel_pessoal,''), NULLIF(c.cel_corporativo,'')) AS numero
+      FROM contatos c
+      WHERE COALESCE(NULLIF(c.whatsapp,''), NULLIF(c.cel_pessoal,''), NULLIF(c.cel_corporativo,'')) IS NOT NULL
+    `);
+    res.json(r.recordset);
+  } catch (err) {
+    res.status(500).json({ erro: err.message });
+  }
+});
+
 // PUT /api/perfil/whatsapp — Usuário salva seu próprio número WhatsApp
 router.put('/api/perfil/whatsapp', verificarLogin, async (req, res) => {
   const pool  = req.app.locals.pool;
@@ -520,7 +547,7 @@ router.get('/api/sistemas-admin', verificarLogin, verificarAdmin, async (req, re
 
   try {
     const resultado = await pool.request()
-      .query('SELECT id, nome, url, icone, descricao, ativo, nova_aba FROM sistemas ORDER BY nome');
+      .query('SELECT id, nome, url, icone, descricao, ativo, nova_aba, visivel_usuarios FROM sistemas ORDER BY nome');
     res.json({ sucesso: true, sistemas: resultado.recordset });
   } catch (erro) {
     logErro.error(`Erro ao listar sistemas (admin): ${erro.message}`);
@@ -534,7 +561,7 @@ router.post('/api/sistemas', verificarLogin, verificarAdmin, async (req, res) =>
   const logAtividade = req.app.locals.logAtividade;
   const logErro      = req.app.locals.logErro;
   const admin        = req.session.usuario.usuario;
-  const { nome, url, icone, descricao, nova_aba } = req.body;
+  const { nome, url, icone, descricao, nova_aba, visivel_usuarios } = req.body;
 
   if (!nome || !url) {
     return res.status(400).json({ erro: 'Nome e URL são obrigatórios.' });
@@ -542,14 +569,15 @@ router.post('/api/sistemas', verificarLogin, verificarAdmin, async (req, res) =>
 
   try {
     await pool.request()
-      .input('nome',      sql.VarChar, nome.trim())
-      .input('url',       sql.VarChar, url.trim())
-      .input('icone',     sql.VarChar, (icone || 'fa-window-maximize').trim())
-      .input('descricao', sql.VarChar, (descricao || '').trim())
-      .input('nova_aba',  sql.Bit,     nova_aba ? 1 : 0)
+      .input('nome',             sql.VarChar, nome.trim())
+      .input('url',              sql.VarChar, url.trim())
+      .input('icone',            sql.VarChar, (icone || 'fa-window-maximize').trim())
+      .input('descricao',        sql.VarChar, (descricao || '').trim())
+      .input('nova_aba',         sql.Bit,     nova_aba ? 1 : 0)
+      .input('visivel_usuarios', sql.Bit,     visivel_usuarios ? 1 : 0)
       .query(`
-        INSERT INTO sistemas (nome, url, icone, descricao, ativo, nova_aba)
-        VALUES (@nome, @url, @icone, @descricao, 1, @nova_aba)
+        INSERT INTO sistemas (nome, url, icone, descricao, ativo, nova_aba, visivel_usuarios)
+        VALUES (@nome, @url, @icone, @descricao, 1, @nova_aba, @visivel_usuarios)
       `);
 
     logAtividade.info(`Sistema criado: "${nome}" — por: "${admin}"`);
@@ -568,7 +596,7 @@ router.put('/api/sistemas/:id', verificarLogin, verificarAdmin, async (req, res)
   const logErro      = req.app.locals.logErro;
   const admin        = req.session.usuario.usuario;
   const id           = parseInt(req.params.id);
-  const { nome, url, icone, descricao, nova_aba } = req.body;
+  const { nome, url, icone, descricao, nova_aba, visivel_usuarios } = req.body;
 
   if (!nome || !url) {
     return res.status(400).json({ erro: 'Nome e URL são obrigatórios.' });
@@ -576,15 +604,17 @@ router.put('/api/sistemas/:id', verificarLogin, verificarAdmin, async (req, res)
 
   try {
     await pool.request()
-      .input('id',        sql.Int,     id)
-      .input('nome',      sql.VarChar, nome.trim())
-      .input('url',       sql.VarChar, url.trim())
-      .input('icone',     sql.VarChar, (icone || 'fa-window-maximize').trim())
-      .input('descricao', sql.VarChar, (descricao || '').trim())
-      .input('nova_aba',  sql.Bit,     nova_aba ? 1 : 0)
+      .input('id',               sql.Int,     id)
+      .input('nome',             sql.VarChar, nome.trim())
+      .input('url',              sql.VarChar, url.trim())
+      .input('icone',            sql.VarChar, (icone || 'fa-window-maximize').trim())
+      .input('descricao',        sql.VarChar, (descricao || '').trim())
+      .input('nova_aba',         sql.Bit,     nova_aba ? 1 : 0)
+      .input('visivel_usuarios', sql.Bit,     visivel_usuarios ? 1 : 0)
       .query(`
         UPDATE sistemas
-        SET nome = @nome, url = @url, icone = @icone, descricao = @descricao, nova_aba = @nova_aba
+        SET nome = @nome, url = @url, icone = @icone, descricao = @descricao,
+            nova_aba = @nova_aba, visivel_usuarios = @visivel_usuarios
         WHERE id = @id
       `);
 

@@ -18,11 +18,12 @@
         <th>Descrição</th>
         <th>Status</th>
         <th style="text-align:center">Nova Aba</th>
+        <th style="text-align:center">Usuários</th>
         <th class="col-acoes">Ações</th>
       </tr>
     </thead>
     <tbody id="tbody-sistemas">
-      <tr><td colspan="7" style="text-align:center;padding:24px;color:var(--cor-texto-fraco)">
+      <tr><td colspan="8" style="text-align:center;padding:24px;color:var(--cor-texto-fraco)">
         <i class="fas fa-spinner fa-spin"></i> Carregando...
       </td></tr>
     </tbody>
@@ -61,6 +62,10 @@
         <input type="checkbox" id="sistema-nova-aba" style="width:18px;height:18px;cursor:pointer;accent-color:var(--cor-destaque)">
         <label for="sistema-nova-aba" style="margin:0;cursor:pointer">Abrir em nova aba</label>
       </div>
+      <div class="form-grupo" style="display:flex;align-items:center;gap:10px;margin-bottom:4px">
+        <input type="checkbox" id="sistema-visivel-usuarios" style="width:18px;height:18px;cursor:pointer;accent-color:var(--cor-destaque)">
+        <label for="sistema-visivel-usuarios" style="margin:0;cursor:pointer">Visível para usuários comuns</label>
+      </div>
       <!-- Preview do ícone -->
       <div style="text-align:center;padding:14px 0;color:var(--cor-destaque)">
         <i id="preview-icone" class="fas fa-window-maximize" style="font-size:2rem"></i>
@@ -88,7 +93,7 @@
       const dados = await resp.json();
 
       if (!dados.sistemas || dados.sistemas.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" class="sem-dados"><i class="fas fa-th-large"></i>Nenhum sistema cadastrado.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" class="sem-dados"><i class="fas fa-th-large"></i>Nenhum sistema cadastrado.</td></tr>';
         return;
       }
 
@@ -99,6 +104,7 @@
           <td><a href="${s.url}" target="_blank" style="font-size:0.82em">${s.url}</a></td>
           <td style="color:var(--cor-texto-fraco);font-size:0.88em">${s.descricao || '—'}</td>
           <td style="text-align:center">${s.nova_aba ? '<i class="fas fa-external-link-alt" title="Abre em nova aba" style="color:var(--cor-destaque);font-size:0.9rem"></i>' : '<span style="opacity:0.3">—</span>'}</td>
+          <td style="text-align:center">${s.visivel_usuarios ? '<i class="fas fa-eye" title="Visível para usuários" style="color:var(--cor-sucesso);font-size:0.9rem"></i>' : '<i class="fas fa-eye-slash" title="Oculto para usuários" style="color:var(--cor-texto-fraco);font-size:0.9rem"></i>'}</td>
           <td><span class="badge badge-${s.ativo ? 'ativo' : 'inativo'}">${s.ativo ? 'Ativo' : 'Inativo'}</span></td>
           <td class="col-acoes">
             <button class="btn-icone editar" title="Editar" onclick='editarSistema(${JSON.stringify(s)})'><i class="fas fa-edit"></i></button>
@@ -126,7 +132,8 @@
     document.getElementById('sistema-url').value          = '';
     document.getElementById('sistema-icone').value        = '';
     document.getElementById('sistema-descricao').value    = '';
-    document.getElementById('sistema-nova-aba').checked   = false;
+    document.getElementById('sistema-nova-aba').checked          = false;
+    document.getElementById('sistema-visivel-usuarios').checked  = true;
     document.getElementById('preview-icone').className    = 'fas fa-window-maximize';
     document.getElementById('modal-sistema-titulo').textContent = 'Novo Sistema';
     document.getElementById('modal-sistema').classList.add('visivel');
@@ -138,7 +145,8 @@
     document.getElementById('sistema-url').value         = s.url;
     document.getElementById('sistema-icone').value       = s.icone;
     document.getElementById('sistema-descricao').value   = s.descricao || '';
-    document.getElementById('sistema-nova-aba').checked  = !!s.nova_aba;
+    document.getElementById('sistema-nova-aba').checked         = !!s.nova_aba;
+    document.getElementById('sistema-visivel-usuarios').checked = !!s.visivel_usuarios;
     document.getElementById('preview-icone').className   = `fas ${s.icone}`;
     document.getElementById('modal-sistema-titulo').textContent = 'Editar Sistema';
     document.getElementById('modal-sistema').classList.add('visivel');
@@ -154,7 +162,8 @@
     const url       = document.getElementById('sistema-url').value.trim();
     const icone     = document.getElementById('sistema-icone').value.trim() || 'fa-window-maximize';
     const descricao = document.getElementById('sistema-descricao').value.trim();
-    const nova_aba  = document.getElementById('sistema-nova-aba').checked;
+    const nova_aba          = document.getElementById('sistema-nova-aba').checked;
+    const visivel_usuarios  = document.getElementById('sistema-visivel-usuarios').checked;
 
     if (!nome) { mostrarAlerta('Informe o nome do sistema.', 'erro'); return; }
     if (!url)  { mostrarAlerta('Informe a URL do sistema.', 'erro'); return; }
@@ -163,7 +172,7 @@
       const resp = await fetch(id ? `/api/sistemas/${id}` : '/api/sistemas', {
         method: id ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nome, url, icone, descricao, nova_aba })
+        body: JSON.stringify({ nome, url, icone, descricao, nova_aba, visivel_usuarios })
       });
 
       const dados = await resp.json();

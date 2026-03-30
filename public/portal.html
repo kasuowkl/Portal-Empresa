@@ -124,7 +124,8 @@
         // Monta um card para cada sistema
         dados.sistemas.forEach(function (sistema) {
           const card = document.createElement('a');
-          card.href      = sistema.url;
+          const url = sistema.url.startsWith('http') || sistema.url.startsWith('/') ? sistema.url : 'http://' + sistema.url;
+          card.href      = url;
           card.target    = sistema.nova_aba ? '_blank' : '_self';
           card.className = 'sistema-card';
           card.title     = sistema.descricao || sistema.nome;

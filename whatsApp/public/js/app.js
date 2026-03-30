@@ -112,7 +112,7 @@ const fotoCache = {}; // jid → url | 'erro'
 async function carregarFoto(jid) {
   if (fotoCache[jid]) return fotoCache[jid] === 'erro' ? null : fotoCache[jid];
   try {
-    const url = `/api/foto/${encodeURIComponent(jid)}`;
+    const url = WA_BASE + `/api/foto/${encodeURIComponent(jid)}`;
     // Testa se a URL retorna algo válido fazendo um HEAD-like via fetch com redirect manual
     const resp = await fetch(url, { method: 'GET', redirect: 'follow' });
     if (resp.ok) {
@@ -145,7 +145,7 @@ async function atualizarPresenca(jid) {
   ctStatus.textContent = '';
   ctStatus.classList.remove('digitando');
   try {
-    await fetch(`/api/presenca/${encodeURIComponent(jid)}`, { method: 'POST' });
+    await fetch(WA_BASE + `/api/presenca/${encodeURIComponent(jid)}`, { method: 'POST' });
   } catch (_) {}
 }
 
@@ -236,7 +236,7 @@ async function abrirChat(chat) {
 
   chatFeed.innerHTML = '';
   try {
-    const msgs = await fetch(`/api/mensagens/${encodeURIComponent(chat.jid)}`).then(r => r.json());
+    const msgs = await fetch(WA_BASE + `/api/mensagens/${encodeURIComponent(chat.jid)}`).then(r => r.json());
     if (!msgs.length) {
       const av = document.createElement('div');
       av.className = 'aviso-hist';
@@ -407,7 +407,7 @@ async function carregarContatosPortal(busca) {
   const lista = document.getElementById('lista-contatos-portal');
   lista.innerHTML = '<div class="hint-load">Buscando...</div>';
   try {
-    const url = '/api/portal-contatos' + (busca ? `?busca=${encodeURIComponent(busca)}` : '');
+    const url = WA_BASE + '/api/portal-contatos' + (busca ? `?busca=${encodeURIComponent(busca)}` : '');
     const contatos = await fetch(url).then(r => r.json());
 
     if (!contatos.length) {
