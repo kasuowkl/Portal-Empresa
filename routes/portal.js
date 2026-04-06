@@ -51,6 +51,7 @@ router.get('/portal', verificarLogin, (req, res) => {
 router.get('/sistemas', verificarLogin, async (req, res) => {
   const pool         = req.app.locals.pool;
   const logAtividade = req.app.locals.logAtividade;
+  const nivel        = req.session.usuario?.nivel;
   const logErro      = req.app.locals.logErro;
   const usuario      = req.session.usuario.usuario;
   const ip           = req.ip || req.connection.remoteAddress;
@@ -409,7 +410,7 @@ router.post('/api/usuarios', verificarLogin, verificarAdmin, async (req, res) =>
   const logAtividade = req.app.locals.logAtividade;
   const logErro      = req.app.locals.logErro;
   const admin        = req.session.usuario.usuario;
-  const { nome, usuario, senha, nivel } = req.body;
+  const { nome, usuario, senha, nivel, whatsapp } = req.body;
 
   if (!nome || !usuario || !senha || !nivel) {
     return res.status(400).json({ erro: 'Preencha todos os campos.' });
@@ -423,9 +424,10 @@ router.post('/api/usuarios', verificarLogin, verificarAdmin, async (req, res) =>
       .input('usuario',   sql.VarChar, usuario.trim().toLowerCase())
       .input('senhaHash', sql.VarChar, senhaHash)
       .input('nivel',     sql.VarChar, nivel)
+      .input('whatsapp',  sql.VarChar, (whatsapp || '').replace(/\D/g, '') || null)
       .query(`
-        INSERT INTO usuarios (nome, usuario, senha_hash, nivel, ativo)
-        VALUES (@nome, @usuario, @senhaHash, @nivel, 1)
+        INSERT INTO usuarios (nome, usuario, senha_hash, nivel, ativo, whatsapp)
+        VALUES (@nome, @usuario, @senhaHash, @nivel, 1, @whatsapp)
       `);
 
     logAtividade.info(`Usuário criado: "${usuario}" — por: "${admin}"`);
@@ -510,6 +512,36 @@ router.patch('/api/usuarios/:id/status', verificarLogin, verificarAdmin, async (
   }
 });
 
+// GET /api/usuarios/por-whatsapp/:numero — Buscar usuário pelo número WhatsApp (uso interno bot)
+router.get('/api/usuarios/por-whatsapp/:numero', async (req, res) => {
+  const apiKey = req.headers['x-api-key'];
+  const chave  = process.env.WHATSAPP_API_KEY;
+  if (!chave || !apiKey || apiKey !== chave) return res.status(401).json({ erro: 'Não autorizado.' });
+
+  const pool = req.app.locals.pool;
+  const numero = req.params.numero.replace(/\D/g, '');
+  if (!numero) return res.status(400).json({ erro: 'Número inválido.' });
+
+  try {
+    const resultado = await pool.request()
+      .input('whatsapp', sql.VarChar, numero)
+      .query(`
+        SELECT TOP 1 usuario AS login, nome, nivel
+        FROM usuarios
+        WHERE whatsapp = @whatsapp AND ativo = 1
+        UNION ALL
+        SELECT TOP 1 login, nome, 'usuario' AS nivel
+        FROM usuarios_dominio
+        WHERE whatsapp = @whatsapp AND ativo = 1
+      `);
+
+    if (!resultado.recordset.length) return res.status(404).json({ erro: 'Não encontrado.' });
+    res.json(resultado.recordset[0]);
+  } catch (erro) {
+    res.status(500).json({ erro: erro.message });
+  }
+});
+
 // DELETE /api/usuarios/:id — Excluir
 router.delete('/api/usuarios/:id', verificarLogin, verificarAdmin, async (req, res) => {
   const pool         = req.app.locals.pool;
@@ -574,7 +606,7 @@ router.post('/api/sistemas', verificarLogin, verificarAdmin, async (req, res) =>
       .input('icone',            sql.VarChar, (icone || 'fa-window-maximize').trim())
       .input('descricao',        sql.VarChar, (descricao || '').trim())
       .input('nova_aba',         sql.Bit,     nova_aba ? 1 : 0)
-      .input('visivel_usuarios', sql.Bit,     visivel_usuarios ? 1 : 0)
+      .input('visivel_usuarios', sql.Bit,     visivel_usuarios !== false ? 1 : 0)
       .query(`
         INSERT INTO sistemas (nome, url, icone, descricao, ativo, nova_aba, visivel_usuarios)
         VALUES (@nome, @url, @icone, @descricao, 1, @nova_aba, @visivel_usuarios)
@@ -610,7 +642,7 @@ router.put('/api/sistemas/:id', verificarLogin, verificarAdmin, async (req, res)
       .input('icone',            sql.VarChar, (icone || 'fa-window-maximize').trim())
       .input('descricao',        sql.VarChar, (descricao || '').trim())
       .input('nova_aba',         sql.Bit,     nova_aba ? 1 : 0)
-      .input('visivel_usuarios', sql.Bit,     visivel_usuarios ? 1 : 0)
+      .input('visivel_usuarios', sql.Bit,     visivel_usuarios !== false ? 1 : 0)
       .query(`
         UPDATE sistemas
         SET nome = @nome, url = @url, icone = @icone, descricao = @descricao,

@@ -53,6 +53,7 @@ async function buscarWhatsAppAprovadores(pool, logins) {
     return mapa;
   } catch { return {}; }
 }
+
 const router           = express.Router();
 
 // ── Helpers de e-mail ─────────────────────────────────────────
