@@ -1,0 +1,12 @@
+{
+  "items": [
+    {
+      "localPath": "public/ajuda/Ajuda.html",
+      "remotePath": "/var/www/html/wkl/Portal/public/ajuda/Ajuda.html"
+    },
+    {
+      "localPath": "public/ajuda/VersionamentoBackup.html",
+      "remotePath": "/var/www/html/wkl/Portal/public/ajuda/VersionamentoBackup.html"
+    }
+  ]
+}

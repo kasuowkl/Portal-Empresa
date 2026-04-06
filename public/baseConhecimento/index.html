@@ -1,0 +1,277 @@
+﻿<!DOCTYPE html>
+<!--
+  ARQUIVO: public/baseConhecimento/index.html
+  VERSAO:  1.0.0
+  DATA:    2026-04-02
+  DESCRICAO: Base de Conhecimento â€” biblioteca para resolucao de problemas
+-->
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portal WKL â€” Base de Conhecimento</title>
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/menu.css">
+  <link rel="stylesheet" href="/baseConhecimento/css/conhecimento.css">
+</head>
+<body>
+  <div id="menu-container"></div>
+
+  <!-- Container principal -->
+  <div class="kb-container">
+
+    <!-- â”€â”€ Sidebar â”€â”€ -->
+    <aside class="kb-sidebar">
+      <div class="kb-sidebar-header">
+        <h2><i class="fas fa-book"></i> Base de Conhecimento</h2>
+        <input type="text" class="kb-busca-input" id="busca-input" placeholder="Buscar artigos..." oninput="buscarArtigos()">
+      </div>
+
+      <!-- Estatisticas -->
+      <div class="kb-stats">
+        <div class="kb-stat">
+          <span class="kb-stat-valor" id="stat-artigos">0</span>
+          <span class="kb-stat-label">Artigos</span>
+        </div>
+        <div class="kb-stat">
+          <span class="kb-stat-valor" id="stat-categorias">0</span>
+          <span class="kb-stat-label">Categorias</span>
+        </div>
+        <div class="kb-stat">
+          <span class="kb-stat-valor" id="stat-views">0</span>
+          <span class="kb-stat-label">VisualizaÃ§Ãµes</span>
+        </div>
+        <div class="kb-stat">
+          <span class="kb-stat-valor" id="stat-likes">0</span>
+          <span class="kb-stat-label">Ãšteis</span>
+        </div>
+      </div>
+
+      <!-- Categorias -->
+      <div class="kb-categorias-header">
+        <span>Categorias</span>
+        <button class="kb-btn-add-cat" onclick="abrirModalCategoria()" title="Nova categoria">
+          <i class="fas fa-plus"></i>
+        </button>
+      </div>
+      <div class="kb-categorias-lista" id="categorias-lista">
+        <div class="kb-cat-item ativo" onclick="filtrarCategoria(null)" data-cat-id="todas">
+          <div class="kb-cat-icone" style="background: var(--cor-destaque)">
+            <i class="fas fa-layer-group"></i>
+          </div>
+          <div class="kb-cat-info">
+            <div class="kb-cat-nome">Todas</div>
+            <div class="kb-cat-total" id="total-todas">0 artigos</div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- â”€â”€ Area principal â”€â”€ -->
+    <div class="kb-main">
+
+      <!-- Header -->
+      <div class="kb-main-header">
+        <h2 id="titulo-secao">Todos os Artigos</h2>
+        <div class="kb-header-acoes">
+          <button class="kb-btn kb-btn-primario" onclick="abrirModalArtigo()">
+            <i class="fas fa-plus"></i> Novo Artigo
+          </button>
+        </div>
+      </div>
+
+      <!-- Lista de artigos -->
+      <div class="kb-artigos-lista" id="artigos-lista">
+        <div class="kb-vazio">
+          <i class="fas fa-book-open"></i>
+          <p>Nenhum artigo encontrado</p>
+          <p>Crie o primeiro artigo clicando em "Novo Artigo"</p>
+        </div>
+      </div>
+
+      <!-- Visualizacao de artigo (oculta por padrao) -->
+      <div class="kb-artigo-view" id="artigo-view">
+        <button class="kb-btn kb-btn-secundario kb-btn-sm" onclick="voltarLista()" style="margin-bottom:16px">
+          <i class="fas fa-arrow-left"></i> Voltar
+        </button>
+
+        <div class="kb-view-header">
+          <h1 class="kb-view-titulo" id="view-titulo"></h1>
+          <div class="kb-view-meta" id="view-meta"></div>
+          <div style="margin-top:10px; display:flex; gap:6px;" id="view-acoes"></div>
+        </div>
+
+        <div class="kb-view-conteudo" id="view-conteudo"></div>
+
+        <!-- Anexos -->
+        <div class="kb-anexos-lista" id="view-anexos" style="display:none">
+          <h4><i class="fas fa-paperclip"></i> Anexos</h4>
+          <div id="view-anexos-lista"></div>
+        </div>
+
+        <!-- Avaliacao -->
+        <div class="kb-avaliacao">
+          <span>Este artigo foi Ãºtil?</span>
+          <button class="kb-btn-avaliacao" id="btn-like" onclick="avaliarArtigo(true)">
+            <i class="fas fa-thumbs-up"></i> <span id="like-count">0</span>
+          </button>
+          <button class="kb-btn-avaliacao" id="btn-dislike" onclick="avaliarArtigo(false)">
+            <i class="fas fa-thumbs-down"></i> <span id="dislike-count">0</span>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- â”€â”€ Modal: Novo/Editar Artigo â”€â”€ -->
+  <div class="kb-modal" id="modal-artigo">
+    <div class="kb-modal-box" style="max-width:900px">
+      <div class="kb-modal-header">
+        <h3 id="modal-artigo-titulo">Novo Artigo</h3>
+        <div class="kb-modal-header-acoes">
+          <button class="kb-modal-toggle" id="btn-maximizar-artigo" onclick="toggleModalArtigoMaximizado()" title="Maximizar modal">
+            <i class="fas fa-expand"></i>
+          </button>
+          <button class="kb-modal-fechar" onclick="fecharModal('modal-artigo')"><i class="fas fa-times"></i></button>
+        </div>
+      </div>
+      <div class="kb-modal-body">
+        <input type="hidden" id="artigo-id">
+
+        <div class="kb-form-grupo">
+          <label>TÃ­tulo *</label>
+          <input type="text" id="artigo-titulo" placeholder="TÃ­tulo do artigo">
+        </div>
+
+        <div class="kb-form-row">
+          <div class="kb-form-grupo">
+            <label>Categoria</label>
+            <select id="artigo-categoria">
+              <option value="">Sem categoria</option>
+            </select>
+          </div>
+          <div class="kb-form-grupo">
+            <label>Tags (separadas por vÃ­rgula)</label>
+            <input type="text" id="artigo-tags" placeholder="Ex: windows, rede, impressora">
+          </div>
+        </div>
+
+        <div class="kb-form-grupo">
+          <label>ConteÃºdo * (suporta HTML bÃ¡sico)</label>
+          <div class="kb-editor-toolbar">
+            <button onclick="inserirTag('b')" title="Negrito"><i class="fas fa-bold"></i></button>
+            <button onclick="inserirTag('i')" title="ItÃ¡lico"><i class="fas fa-italic"></i></button>
+            <button onclick="inserirTag('u')" title="Sublinhado"><i class="fas fa-underline"></i></button>
+            <div class="separador"></div>
+            <button onclick="inserirTag('h2')" title="TÃ­tulo">H2</button>
+            <button onclick="inserirTag('h3')" title="SubtÃ­tulo">H3</button>
+            <div class="separador"></div>
+            <button onclick="inserirLista('ul')" title="Lista"><i class="fas fa-list-ul"></i></button>
+            <button onclick="inserirLista('ol')" title="Lista numerada"><i class="fas fa-list-ol"></i></button>
+            <div class="separador"></div>
+            <button onclick="inserirTag('code')" title="CÃ³digo inline"><i class="fas fa-code"></i></button>
+            <button onclick="inserirBloco('pre')" title="Bloco de cÃ³digo"><i class="fas fa-file-code"></i></button>
+            <button onclick="inserirBloco('blockquote')" title="CitaÃ§Ã£o"><i class="fas fa-quote-right"></i></button>
+            <div class="separador"></div>
+            <button onclick="inserirTabela()" title="Tabela"><i class="fas fa-table"></i></button>
+            <button onclick="inserirLink()" title="Link"><i class="fas fa-link"></i></button>
+            <button onclick="document.getElementById('input-imagem').click()" title="Inserir imagem"><i class="fas fa-image"></i></button>
+            <input type="file" id="input-imagem" accept="image/*" multiple style="display:none" onchange="inserirImagensUpload(this)">
+            <div class="separador"></div>
+            <button onclick="converterParaHtml()" title="Converter texto puro em HTML formatado"><i class="fas fa-magic"></i> Auto-formatar</button>
+            <button onclick="previewConteudo()" title="Visualizar resultado"><i class="fas fa-eye"></i> Preview</button>
+          </div>
+          <div id="artigo-editor" class="kb-editor-surface" contenteditable="true" spellcheck="true" data-placeholder="Escreva o conteudo do artigo aqui... (Cole textos formatados e printscreens com Ctrl+V)"></div>
+          <textarea id="artigo-conteudo" class="com-toolbar" style="display:none"></textarea>
+          <div id="imagens-preview" style="display:flex; flex-wrap:wrap; gap:8px; margin-top:8px;"></div>
+          <small style="color:var(--cor-texto-fraco); font-size:0.75rem;"><i class="fas fa-info-circle"></i> Cole imagens do clipboard com <b>Ctrl+V</b> direto no editor, ou use o botÃ£o <i class="fas fa-image"></i></small>
+        </div>
+
+        <div class="kb-form-row">
+          <div class="kb-form-grupo">
+            <label>Status</label>
+            <select id="artigo-status">
+              <option value="publicado">Publicado</option>
+              <option value="rascunho">Rascunho</option>
+            </select>
+          </div>
+          <div class="kb-form-grupo">
+            <label>Fixar no topo</label>
+            <select id="artigo-fixado">
+              <option value="0">NÃ£o</option>
+              <option value="1">Sim</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="kb-form-grupo">
+          <label>Anexos</label>
+          <input type="file" id="artigo-anexos" multiple style="font-size:0.85rem">
+          <div id="artigo-anexos-lista" style="margin-top:8px"></div>
+        </div>
+      </div>
+      <div class="kb-modal-footer">
+        <button class="kb-btn kb-btn-secundario" onclick="fecharModal('modal-artigo')">Cancelar</button>
+        <button class="kb-btn kb-btn-primario" onclick="salvarArtigo()">
+          <i class="fas fa-save"></i> Salvar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- â”€â”€ Modal: Nova/Editar Categoria â”€â”€ -->
+  <div class="kb-modal" id="modal-categoria">
+    <div class="kb-modal-box" style="max-width:500px">
+      <div class="kb-modal-header">
+        <h3 id="modal-cat-titulo">Nova Categoria</h3>
+        <button class="kb-modal-fechar" onclick="fecharModal('modal-categoria')"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="kb-modal-body">
+        <input type="hidden" id="cat-id">
+        <div class="kb-form-grupo">
+          <label>Nome *</label>
+          <input type="text" id="cat-nome" placeholder="Nome da categoria">
+        </div>
+        <div class="kb-form-grupo">
+          <label>DescriÃ§Ã£o</label>
+          <input type="text" id="cat-descricao" placeholder="DescriÃ§Ã£o breve">
+        </div>
+        <div class="kb-form-row">
+          <div class="kb-form-grupo">
+            <label>Ãcone (classe Font Awesome)</label>
+            <input type="text" id="cat-icone" placeholder="fas fa-folder" value="fas fa-folder">
+          </div>
+          <div class="kb-form-grupo">
+            <label>Cor</label>
+            <input type="color" id="cat-cor" value="#3b82f6" style="height:38px;padding:4px">
+          </div>
+        </div>
+      </div>
+      <div class="kb-modal-footer">
+        <button class="kb-btn kb-btn-secundario" onclick="fecharModal('modal-categoria')">Cancelar</button>
+        <button class="kb-btn kb-btn-primario" onclick="salvarCategoria()">
+          <i class="fas fa-save"></i> Salvar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="kb-toast" id="toast"></div>
+
+  <script src="/js/menu.js"></script>
+  <script src="/baseConhecimento/js/core-ui.js"></script>
+  <script src="/baseConhecimento/js/core-api.js"></script>
+  <script src="/baseConhecimento/js/core-state.js"></script>
+  <script src="/baseConhecimento/js/core-categorias.js"></script>
+  <script src="/baseConhecimento/js/core-stats.js"></script>
+  <script src="/baseConhecimento/js/core-artigos.js"></script>
+  <script src="/baseConhecimento/js/core-editor.js"></script>
+  <script src="/baseConhecimento/js/core-init.js"></script>
+</body>
+</html>
+
+

@@ -164,11 +164,16 @@
   <div class="man-secao-desc">
     Exporta todos os dados do banco em formato JSON para download.
   </div>
-  <button class="btn btn-primario btn-sm" onclick="fazerBackup()" style="width:auto" id="btn-backup">
-    <i class="fas fa-download" id="ico-backup"></i>
-    <i class="fas fa-spinner fa-spin" id="spin-backup" style="display:none"></i>
-    Gerar Backup
-  </button>
+  <div style="display:flex;gap:10px;flex-wrap:wrap">
+    <button class="btn btn-primario btn-sm" onclick="fazerBackup()" style="width:auto" id="btn-backup">
+      <i class="fas fa-download" id="ico-backup"></i>
+      <i class="fas fa-spinner fa-spin" id="spin-backup" style="display:none"></i>
+      Gerar Backup
+    </button>
+    <a class="btn btn-sm" href="/backups" style="width:auto;background:var(--cor-fundo-3);color:var(--cor-texto);text-decoration:none">
+      <i class="fas fa-clock-rotate-left"></i> Ver Backups Publicados
+    </a>
+  </div>
 </div>
 
 <!-- ── RESTORE ─────────────────────────────────────────── -->
@@ -208,6 +213,9 @@
     </button>
     <button class="man-btn-limpeza" onclick="abrirModalLimpeza('financeiro','Agenda Financeira')">
       <i class="fas fa-wallet"></i> Agenda Financeira
+    </button>
+    <button class="man-btn-limpeza" onclick="abrirModalLimpeza('contabil','Agenda Contábil')">
+      <i class="fas fa-file-invoice-dollar"></i> Agenda Contábil
     </button>
     <button class="man-btn-limpeza" onclick="abrirModalLimpeza('contatos','Agenda Contatos')">
       <i class="fas fa-address-book"></i> Agenda Contatos
@@ -256,6 +264,10 @@
       <i class="fas fa-wallet" style="color:var(--cor-destaque)"></i> Agenda Financeira
     </label>
     <label>
+      <input type="checkbox" id="chk-contabil" checked>
+      <i class="fas fa-file-invoice-dollar" style="color:var(--cor-destaque)"></i> Agenda Contábil
+    </label>
+    <label>
       <input type="checkbox" id="chk-contatos" checked>
       <i class="fas fa-address-book" style="color:var(--cor-destaque)"></i> Agenda Contatos
     </label>
@@ -276,7 +288,7 @@
 <div class="man-secao">
   <div class="man-secao-titulo" style="color:#e94560"><i class="fas fa-exclamation-triangle"></i> Reset Completo do Portal</div>
   <div class="man-reset-aviso">
-    <strong>Atenção:</strong> Remove <strong>todos os dados</strong> (chamados, aprovações, tarefas, financeiro, contatos, patrimônio, usuários, logs).
+    <strong>Atenção:</strong> Remove <strong>todos os dados</strong> (chamados, aprovações, tarefas, financeiro, contábil, contatos, patrimônio, usuários, logs).
     Apenas o usuário <strong>admin</strong> e as configurações de sistemas/serviços serão mantidos.
     Login continuará funcionando com <strong>usuario: admin / senha: admin</strong>.
   </div>
@@ -469,6 +481,7 @@
     const sistemas = [];
     if (document.getElementById('chk-tarefas').checked)     sistemas.push('tarefas');
     if (document.getElementById('chk-financeiro').checked)   sistemas.push('financeiro');
+    if (document.getElementById('chk-contabil').checked)     sistemas.push('contabil');
     if (document.getElementById('chk-contatos').checked)     sistemas.push('contatos');
     if (document.getElementById('chk-calendarios').checked)  sistemas.push('calendarios');
 

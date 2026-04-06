@@ -112,6 +112,10 @@ app.use('/', rotasAgenda);
 const rotasFinanceiro = require('./routes/financeiro');
 app.use('/', rotasFinanceiro);
 
+// Rotas da Agenda Contabil: GET /agendaContabil
+const rotasContabil = require('./routes/contabil');
+app.use('/', rotasContabil);
+
 // Rotas do sistema de Chamados: GET /chamados | /api/chamados/*
 const rotasChamados = require('./routes/chamados');
 app.use('/', rotasChamados);
@@ -131,6 +135,14 @@ app.use('/', rotasAprovacoes);
 // Rotas da Agenda de Calendários: GET /agendaCalendarios | /api/calendarios/*
 const rotasCalendarios = require('./routes/calendarios');
 app.use('/', rotasCalendarios);
+
+// Rotas da Agenda Projetos: GET /agendaProjetos | /api/projetos/*
+const rotasAgendaProjetos = require('./routes/agendaProjetos');
+app.use('/', rotasAgendaProjetos);
+
+// Rotas da Base de Conhecimento: GET /conhecimento | /api/conhecimento/*
+const rotasConhecimento = require('./routes/conhecimento');
+app.use('/', rotasConhecimento);
 
 // Rotas do WhatsApp: GET /whatsapp | /whatsapp/admin | /whatsapp/aprovacoes
 const rotasWhatsapp = require('./routes/whatsapp');

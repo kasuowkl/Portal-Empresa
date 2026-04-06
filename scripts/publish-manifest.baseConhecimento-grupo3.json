@@ -1,0 +1,16 @@
+{
+  "items": [
+    {
+      "localPath": "public/baseConhecimento/index.html",
+      "remotePath": "/var/www/html/wkl/Portal/public/baseConhecimento/index.html"
+    },
+    {
+      "localPath": "public/baseConhecimento/js/core-editor.js",
+      "remotePath": "/var/www/html/wkl/Portal/public/baseConhecimento/js/core-editor.js"
+    },
+    {
+      "localPath": "public/baseConhecimento/js/core-init.js",
+      "remotePath": "/var/www/html/wkl/Portal/public/baseConhecimento/js/core-init.js"
+    }
+  ]
+}

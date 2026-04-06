@@ -1,0 +1,291 @@
+(function () {
+  function getEditor() {
+    return document.getElementById('artigo-editor');
+  }
+
+  function focusEditor() {
+    const editor = getEditor();
+    editor.focus();
+    const sel = window.getSelection();
+    const selecaoDentroDoEditor = sel.rangeCount > 0
+      && editor.contains(sel.getRangeAt(0).startContainer)
+      && editor.contains(sel.getRangeAt(0).endContainer);
+
+    if (!selecaoDentroDoEditor) {
+      const range = document.createRange();
+      range.selectNodeContents(editor);
+      range.collapse(false);
+      sel.removeAllRanges();
+      sel.addRange(range);
+    }
+  }
+
+  function normalizarHtmlColado(html) {
+    return html
+      .replace(/<!--[\s\S]*?-->/g, '')
+      .replace(/\sclass=(".*?"|'.*?')/gi, '')
+      .replace(/\sstyle=(".*?"|'.*?')/gi, '')
+      .replace(/\sdata-[\w-]+=(".*?"|'.*?')/gi, '')
+      .replace(/\sid=(".*?"|'.*?')/gi, '')
+      .replace(/<(meta|link|script|style|title|head|html|body)[^>]*>[\s\S]*?<\/\1>/gi, '')
+      .replace(/<(meta|link|script|style|title|head|html|body)[^>]*\/?>/gi, '');
+  }
+
+  function limparHtmlEditor(html) {
+    const wrapper = document.createElement('div');
+    wrapper.innerHTML = normalizarHtmlColado(html);
+    wrapper.querySelectorAll('*').forEach((el) => {
+      [...el.attributes].forEach((attr) => {
+        if (!['href', 'src', 'target', 'rel', 'alt', 'title', 'colspan', 'rowspan'].includes(attr.name)) {
+          el.removeAttribute(attr.name);
+        }
+      });
+    });
+    return wrapper.innerHTML;
+  }
+
+  function syncEditorSource() {
+    document.getElementById('artigo-conteudo').value = getEditor().innerHTML.trim();
+  }
+
+  function getEditorHtml() {
+    syncEditorSource();
+    return document.getElementById('artigo-conteudo').value;
+  }
+
+  function setEditorHtml(html) {
+    getEditor().innerHTML = limparHtmlEditor(html || '');
+    syncEditorSource();
+  }
+
+  function inserirHtmlFallback(html) {
+    const editor = getEditor();
+    const sel = window.getSelection();
+    if (!sel.rangeCount) {
+      const range = document.createRange();
+      range.selectNodeContents(editor);
+      range.collapse(false);
+      sel.removeAllRanges();
+      sel.addRange(range);
+    }
+
+    const range = sel.getRangeAt(0);
+    range.deleteContents();
+
+    const wrapper = document.createElement('div');
+    wrapper.innerHTML = html;
+    const fragment = document.createDocumentFragment();
+    let ultimoNo = null;
+
+    while (wrapper.firstChild) {
+      ultimoNo = fragment.appendChild(wrapper.firstChild);
+    }
+
+    range.insertNode(fragment);
+
+    if (ultimoNo) {
+      const novoRange = document.createRange();
+      novoRange.setStartAfter(ultimoNo);
+      novoRange.collapse(true);
+      sel.removeAllRanges();
+      sel.addRange(novoRange);
+    }
+  }
+
+  function insertHtmlAtCursor(html) {
+    focusEditor();
+    const inseriu = document.execCommand('insertHTML', false, html);
+    if (!inseriu) {
+      inserirHtmlFallback(html);
+    }
+    syncEditorSource();
+  }
+
+  function inserirTag(tag) {
+    focusEditor();
+    document.execCommand(tag === 'b' ? 'bold' : tag === 'i' ? 'italic' : tag === 'u' ? 'underline' : 'formatBlock', false, tag === 'h2' || tag === 'h3' ? tag.toUpperCase() : undefined);
+    syncEditorSource();
+  }
+
+  function inserirBloco(tag) {
+    focusEditor();
+    const html = tag === 'pre' ? '<pre><code>codigo aqui</code></pre>' : '<blockquote>citacao</blockquote>';
+    insertHtmlAtCursor(html);
+  }
+
+  function inserirLista(tipo) {
+    focusEditor();
+    document.execCommand(tipo === 'ul' ? 'insertUnorderedList' : 'insertOrderedList');
+    syncEditorSource();
+  }
+
+  function inserirTabela() {
+    insertHtmlAtCursor(`
+      <table>
+        <tr><th>Coluna 1</th><th>Coluna 2</th></tr>
+        <tr><td>Valor 1</td><td>Valor 2</td></tr>
+      </table>
+    `);
+  }
+
+  async function adicionarImagem(file) {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      insertHtmlAtCursor(`<p><img src="${reader.result}" alt="${esc(file.name || 'imagem colada')}"></p>`);
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function inserirImagensUpload(input) {
+    const arquivos = Array.from(input.files || []);
+    arquivos.forEach((arquivo) => adicionarImagem(arquivo));
+    input.value = '';
+  }
+
+  function removerImagem(idx) {
+    window.KBState.imagensPendentes.splice(idx, 1);
+    renderizarImagensPreview();
+    syncEditorSource();
+  }
+
+  function renderizarImagensPreview() {
+    const container = document.getElementById('imagens-preview');
+    let html = '';
+    window.KBState.imagensPendentes.forEach((img, idx) => {
+      html += `
+        <div style="position:relative; width:88px; height:88px; border:1px solid var(--cor-borda); border-radius:6px; overflow:hidden;">
+          <img src="${img.src}" alt="preview" style="width:100%; height:100%; object-fit:cover;">
+          <button onclick="removerImagem(${idx})" style="position:absolute; top:4px; right:4px; background:rgba(0,0,0,0.6); color:white; border:none; width:20px; height:20px; border-radius:50%; cursor:pointer;">x</button>
+        </div>
+      `;
+    });
+    container.innerHTML = html;
+    container.style.display = html ? 'flex' : 'none';
+  }
+
+  function resolverImagensNoConteudo(conteudo) {
+    return conteudo;
+  }
+
+  function converterParaHtml() {
+    const texto = stripHtml(getEditorHtml()).trim();
+    if (!texto) return toast('Conteudo vazio.', 'erro');
+    if (contemHtml(texto)) return toast('O conteudo ja contem HTML.', 'erro');
+    setEditorHtml(textoParaHtml(texto));
+    toast('Texto convertido para HTML!');
+  }
+
+  function previewConteudo() {
+    const texto = getEditorHtml().trim();
+    if (!texto) return toast('Conteudo vazio.', 'erro');
+    const html = contemHtml(texto) ? texto : textoParaHtml(texto);
+    const win = window.open('', '_blank', 'width=800,height=600');
+    win.document.write(`
+      <!DOCTYPE html>
+      <html lang="pt-BR"><head>
+      <meta charset="UTF-8"><title>Preview - Base de Conhecimento</title>
+      <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #1a1a2e; color: #e0e0e0; padding: 32px; line-height: 1.8; }
+        h1, h2, h3 { color: #e0e0e0; margin: 16px 0 8px; }
+        a { color: #4e9af1; }
+        pre { background: #0f0f1f; border: 1px solid #1e3a5f; border-radius: 6px; padding: 12px; overflow-x: auto; font-family: Consolas, monospace; }
+        code { background: #0f0f1f; padding: 2px 6px; border-radius: 4px; font-family: Consolas, monospace; }
+        pre code { background: none; padding: 0; }
+        blockquote { border-left: 3px solid #4e9af1; padding: 8px 16px; color: #9e9e9e; background: rgba(78,154,241,0.05); margin: 12px 0; border-radius: 0 6px 6px 0; }
+        ul, ol { padding-left: 24px; }
+        li { margin-bottom: 4px; }
+        table { border-collapse: collapse; width: 100%; }
+        th, td { padding: 8px 12px; border: 1px solid #1e3a5f; }
+        th { background: #0f3460; }
+        img { max-width: 100%; border-radius: 6px; }
+      </style></head><body>${html}</body></html>
+    `);
+    win.document.close();
+  }
+
+  function inserirLink() {
+    const url = prompt('URL do link:');
+    if (!url) return;
+    focusEditor();
+    const sel = window.getSelection();
+    const texto = sel.toString() || 'texto do link';
+    insertHtmlAtCursor(`<a href="${url}" target="_blank" rel="noopener noreferrer">${texto}</a>`);
+  }
+
+  function bindEditor() {
+    const editor = getEditor();
+    editor.addEventListener('input', syncEditorSource);
+    editor.addEventListener('paste', async (event) => {
+      const clipboardData = event.clipboardData || window.clipboardData;
+      if (!clipboardData) return;
+
+      const files = Array.from(clipboardData.files || []);
+      const imageFile = files.find((file) => file.type && file.type.startsWith('image/'));
+      if (imageFile) {
+        event.preventDefault();
+        await adicionarImagem(imageFile);
+        return;
+      }
+
+      const items = Array.from(clipboardData.items || []);
+      const imageItem = items.find((item) => item.type && item.type.startsWith('image/'));
+      if (imageItem) {
+        event.preventDefault();
+        const file = imageItem.getAsFile();
+        if (file) {
+          await adicionarImagem(file);
+        }
+        return;
+      }
+
+      const html = clipboardData.getData('text/html');
+      if (html) {
+        event.preventDefault();
+        insertHtmlAtCursor(limparHtmlEditor(html));
+        return;
+      }
+
+      const texto = clipboardData.getData('text/plain');
+      if (texto) {
+        event.preventDefault();
+        const htmlTexto = esc(texto)
+          .replace(/\r?\n/g, '<br>')
+          .replace(/\t/g, '&nbsp;&nbsp;&nbsp;&nbsp;');
+        insertHtmlAtCursor(htmlTexto);
+      }
+    });
+
+    document.addEventListener('click', (e) => {
+      if (e.target.tagName === 'IMG' && e.target.closest('.kb-view-conteudo')) {
+        const overlay = document.createElement('div');
+        overlay.className = 'kb-img-overlay';
+        overlay.innerHTML = `<img src="${e.target.src}" alt="Imagem ampliada">`;
+        overlay.onclick = () => overlay.remove();
+        document.body.appendChild(overlay);
+      }
+    });
+  }
+
+  window.getEditor = getEditor;
+  window.focusEditor = focusEditor;
+  window.normalizarHtmlColado = normalizarHtmlColado;
+  window.limparHtmlEditor = limparHtmlEditor;
+  window.syncEditorSource = syncEditorSource;
+  window.getEditorHtml = getEditorHtml;
+  window.setEditorHtml = setEditorHtml;
+  window.insertHtmlAtCursor = insertHtmlAtCursor;
+  window.inserirTag = inserirTag;
+  window.inserirBloco = inserirBloco;
+  window.inserirLista = inserirLista;
+  window.inserirTabela = inserirTabela;
+  window.adicionarImagem = adicionarImagem;
+  window.inserirImagensUpload = inserirImagensUpload;
+  window.removerImagem = removerImagem;
+  window.renderizarImagensPreview = renderizarImagensPreview;
+  window.resolverImagensNoConteudo = resolverImagensNoConteudo;
+  window.converterParaHtml = converterParaHtml;
+  window.previewConteudo = previewConteudo;
+  window.inserirLink = inserirLink;
+  window.bindEditor = bindEditor;
+})();

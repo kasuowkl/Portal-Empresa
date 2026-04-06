@@ -13,6 +13,7 @@
 
 const express        = require('express');
 const path           = require('path');
+const fs             = require('fs');
 const sql            = require('mssql');
 const bcrypt         = require('bcryptjs');
 const ad             = require('../lib/ad');
@@ -31,6 +32,82 @@ function verificarAdmin(req, res, next) {
     return res.status(403).json({ erro: 'Acesso restrito a administradores.' });
   }
   next();
+}
+
+const BACKUP_ROOT = path.join(__dirname, '../_backups');
+
+function formatarTamanhoBytes(bytes) {
+  if (!Number.isFinite(bytes)) return 0;
+  return bytes;
+}
+
+function detectarModuloBackup(item) {
+  const normalized = (item.relativePath || '').replace(/\\/g, '/');
+  const lower = normalized.toLowerCase();
+
+  if (item.type === 'nightly') return 'Portal Nightly';
+  if (lower.startsWith('db-json/')) return 'Banco JSON';
+  if (lower.startsWith('public/agendaContabil/')) return 'Agenda Contabil';
+  if (lower.startsWith('public/agendafinanceira/')) return 'Agenda Financeira';
+  if (lower.startsWith('public/baseconhecimento/')) return 'Base Conhecimento';
+  if (lower.startsWith('public/ajuda/')) return 'Ajuda';
+  if (lower.startsWith('public/fragmentos/')) return 'Fragmentos';
+  if (lower.startsWith('public/')) return 'Public';
+  if (lower.startsWith('routes/')) return 'Rotas';
+  if (lower.startsWith('docs/')) return 'Documentacao';
+  return 'Outros';
+}
+
+function montarCaminhoRestore(relativePath, fileName, tipo) {
+  if (tipo !== 'published') return null;
+
+  const originalFileName = fileName.replace(/^\d{4}-\d{2}-\d{2}_\d{6}__/, '');
+  const relativeDir = path.dirname(relativePath).replace(/\\/g, '/');
+  const targetDir = relativeDir === '.'
+    ? '/var/www/html/wkl/Portal'
+    : `/var/www/html/wkl/Portal/${relativeDir}`;
+
+  return `${targetDir}/${originalFileName}`.replace(/\/+/g, '/');
+}
+
+async function listarArquivosRecursivos(dirBase, tipo, raizCompleta = dirBase) {
+  if (!fs.existsSync(dirBase)) return [];
+
+  const entries = await fs.promises.readdir(dirBase, { withFileTypes: true });
+  const resultados = [];
+
+  for (const entry of entries) {
+    const fullPath = path.join(dirBase, entry.name);
+    if (entry.isDirectory()) {
+      if (tipo === 'published' && dirBase === raizCompleta && entry.name === 'nightly') {
+        continue;
+      }
+      const filhos = await listarArquivosRecursivos(fullPath, tipo, raizCompleta);
+      resultados.push(...filhos);
+      continue;
+    }
+
+    const stat = await fs.promises.stat(fullPath);
+    const relativePath = path.relative(raizCompleta, fullPath).replace(/\\/g, '/');
+    const directory = path.dirname(relativePath).replace(/\\/g, '/');
+    const segments = relativePath.split('/');
+    const group = tipo === 'nightly'
+      ? 'nightly'
+      : (segments.length > 1 ? segments.slice(0, -1).join('/') : 'raiz');
+
+    resultados.push({
+      type: tipo,
+      fileName: entry.name,
+      directory,
+      group,
+      relativePath,
+      fullPath: fullPath.replace(/\\/g, '/'),
+      size: formatarTamanhoBytes(stat.size),
+      modifiedAt: stat.mtime.toISOString()
+    });
+  }
+
+  return resultados;
 }
 
 // ============================================================
@@ -110,6 +187,10 @@ router.get('/configuracoes', verificarLogin, (req, res) => {
   res.sendFile(path.join(__dirname, '../public/configuracoes.html'));
 });
 
+router.get('/backups', verificarLogin, verificarAdmin, (req, res) => {
+  res.sendFile(path.join(__dirname, '../public/backups.html'));
+});
+
 // ============================================================
 // GET /logs — Últimos 50 logs de atividade (somente admin)
 // ============================================================
@@ -175,6 +256,54 @@ router.get('/conf/logs', verificarLogin, verificarAdmin, (req, res) => {
 
 router.get('/conf/manutencao', verificarLogin, verificarAdmin, (req, res) => {
   res.sendFile(path.join(__dirname, '../public/fragmentos/manutencao.html'));
+});
+
+router.get('/api/backups', verificarLogin, verificarAdmin, async (req, res) => {
+  const logErro = req.app.locals.logErro;
+
+  try {
+    const publicados = await listarArquivosRecursivos(BACKUP_ROOT, 'published');
+    const nightlyDir = path.join(BACKUP_ROOT, 'nightly');
+    const nightly = await listarArquivosRecursivos(nightlyDir, 'nightly', BACKUP_ROOT);
+
+    const backups = [...publicados, ...nightly]
+      .sort((a, b) => new Date(b.modifiedAt) - new Date(a.modifiedAt))
+      .map(item => ({
+        ...item,
+        module: detectarModuloBackup(item),
+        targetPath: montarCaminhoRestore(item.relativePath, item.fileName, item.type),
+        downloadUrl: `/api/backups/download?path=${encodeURIComponent(item.relativePath)}`
+      }));
+
+    res.json({ sucesso: true, backups });
+  } catch (erro) {
+    logErro.error(`Erro ao listar backups: ${erro.message}`);
+    res.status(500).json({ erro: 'Erro ao listar backups.' });
+  }
+});
+
+router.get('/api/backups/download', verificarLogin, verificarAdmin, async (req, res) => {
+  const logErro = req.app.locals.logErro;
+  const relativePath = String(req.query.path || '').trim();
+
+  if (!relativePath) {
+    return res.status(400).json({ erro: 'Informe o caminho do backup.' });
+  }
+
+  try {
+    const targetPath = path.resolve(BACKUP_ROOT, relativePath);
+    const normalizedRoot = path.resolve(BACKUP_ROOT);
+
+    if (!targetPath.startsWith(normalizedRoot)) {
+      return res.status(400).json({ erro: 'Caminho de backup invalido.' });
+    }
+
+    await fs.promises.access(targetPath, fs.constants.R_OK);
+    res.download(targetPath);
+  } catch (erro) {
+    logErro.error(`Erro ao baixar backup: ${erro.message}`);
+    res.status(404).json({ erro: 'Backup nao encontrado.' });
+  }
 });
 
 // ============================================================
@@ -1483,6 +1612,13 @@ const TABELAS_BACKUP = [
   { nome: 'fin_empresas',   identidade: true, fk: ['fin_agendas'] },
   { nome: 'fin_contas',     identidade: true, fk: ['fin_agendas', 'fin_categorias', 'fin_empresas'] },
   { nome: 'fin_logs',       identidade: true, fk: ['fin_agendas'] },
+  // Agenda Contábil
+  { nome: 'cont_agendas',   identidade: true, fk: [] },
+  { nome: 'cont_membros',   identidade: true, fk: ['cont_agendas'] },
+  { nome: 'cont_grupos',    identidade: true, fk: ['cont_agendas'] },
+  { nome: 'cont_clientes',  identidade: true, fk: ['cont_agendas'] },
+  { nome: 'cont_itens',     identidade: true, fk: ['cont_agendas', 'cont_grupos', 'cont_clientes'] },
+  { nome: 'cont_logs',      identidade: true, fk: ['cont_agendas', 'cont_itens'] },
   // Patrimônio
   { nome: 'pat_categorias', identidade: true, fk: [] },
   { nome: 'pat_unidades',   identidade: true, fk: [] },
@@ -1647,7 +1783,7 @@ router.post('/api/manutencao/limpar', verificarLogin, verificarAdmin, async (req
   const admin        = req.session.usuario.usuario;
   const { sistema, usuario } = req.body;  // usuario = login específico ou vazio = todos
 
-  if (!['chamados', 'tarefas', 'financeiro', 'logs', 'patrimonio', 'contatos', 'aprovacoes', 'calendarios', 'tudo'].includes(sistema)) {
+  if (!['chamados', 'tarefas', 'financeiro', 'contabil', 'logs', 'patrimonio', 'contatos', 'aprovacoes', 'calendarios', 'tudo'].includes(sistema)) {
     return res.status(400).json({ erro: 'Sistema inválido.' });
   }
 
@@ -1664,6 +1800,8 @@ router.post('/api/manutencao/limpar', verificarLogin, verificarAdmin, async (req
   const wAgCat       = u ? ' WHERE lista_id IN (SELECT id FROM agenda_listas WHERE dono = @u)' : '';
   const wFinAgendas  = u ? ' WHERE dono = @u' : '';
   const wFinSub      = u ? ' WHERE agenda_id IN (SELECT id FROM fin_agendas WHERE dono = @u)' : '';
+  const wContbAg     = u ? ' WHERE dono = @u' : '';
+  const wContbSub    = u ? ' WHERE agenda_id IN (SELECT id FROM cont_agendas WHERE dono = @u)' : '';
   const wContListas  = u ? ' WHERE dono = @u' : '';
   const wContSub     = u ? ' WHERE lista_id IN (SELECT id FROM contatos_listas WHERE dono = @u)' : '';
   const wAprov       = u ? ' WHERE criado_por = @u' : '';
@@ -1701,6 +1839,14 @@ router.post('/api/manutencao/limpar', verificarLogin, verificarAdmin, async (req
       await exec(`DELETE FROM fin_categorias${wFinSub}`);
       await exec(`DELETE FROM fin_membros${wFinSub}`);
       await exec(`DELETE FROM fin_agendas${wFinAgendas}`);
+    }
+    if (sistema === 'contabil' || sistema === 'tudo') {
+      await exec(`DELETE FROM cont_logs${wContbSub}`);
+      await exec(`DELETE FROM cont_itens${wContbSub}`);
+      await exec(`DELETE FROM cont_clientes${wContbSub}`);
+      await exec(`DELETE FROM cont_grupos${wContbSub}`);
+      await exec(`DELETE FROM cont_membros${wContbSub}`);
+      await exec(`DELETE FROM cont_agendas${wContbAg}`);
     }
     if (sistema === 'logs' || sistema === 'tudo') {
       await exec('DELETE FROM logs_atividade');
@@ -1772,6 +1918,13 @@ router.post('/api/manutencao/transferir', verificarLogin, verificarAdmin, async 
         .query('UPDATE fin_agendas SET dono = @destino WHERE dono = @origem');
       transferidos.push(`Financeiro: ${r.rowsAffected[0]} agenda(s)`);
     }
+    if (sistemas.includes('contabil')) {
+      const r = await pool.request()
+        .input('origem',  sql.VarChar, origem)
+        .input('destino', sql.VarChar, destino)
+        .query('UPDATE cont_agendas SET dono = @destino WHERE dono = @origem');
+      transferidos.push(`Contábil: ${r.rowsAffected[0]} agenda(s)`);
+    }
     if (sistemas.includes('contatos')) {
       const r = await pool.request()
         .input('origem',  sql.VarChar, origem)
@@ -1823,6 +1976,13 @@ router.post('/api/manutencao/reset', verificarLogin, verificarAdmin, async (req,
       'DELETE FROM fin_categorias',
       'DELETE FROM fin_membros',
       'DELETE FROM fin_agendas',
+      // Contábil
+      'DELETE FROM cont_logs',
+      'DELETE FROM cont_itens',
+      'DELETE FROM cont_clientes',
+      'DELETE FROM cont_grupos',
+      'DELETE FROM cont_membros',
+      'DELETE FROM cont_agendas',
       // Logs
       'DELETE FROM logs_atividade',
       // Contatos

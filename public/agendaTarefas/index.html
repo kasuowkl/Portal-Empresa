@@ -39,7 +39,7 @@
     }
     .passo-item {
       display: grid;
-      grid-template-columns: 16px 1fr auto auto;
+      grid-template-columns: 20px 16px 1fr auto auto auto;
       align-items: center;
       gap: 6px;
       padding: 4px 0;
@@ -141,6 +141,35 @@
     .progresso-inline .progresso-track { flex: 1; height: 5px; }
     .progresso-inline span { font-size: 0.7rem; color: var(--cor-texto-fraco); white-space: nowrap; }
 
+    /* Drag handle nos passos */
+    .passo-drag-handle {
+      color: var(--cor-texto-fraco);
+      cursor: grab;
+      font-size: 0.72rem;
+      justify-self: center;
+      opacity: 0;
+      transition: opacity .15s;
+    }
+    .passo-item:hover .passo-drag-handle { opacity: 1; }
+    .passo-item.drag-sobre {
+      border-top: 2px solid var(--cor-destaque);
+    }
+    /* Anexos */
+    .anexos-lista { list-style: none; padding: 0; margin: 0; }
+    .anexo-item {
+      display: flex; align-items: center; gap: 8px;
+      padding: 5px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      font-size: 0.82rem;
+    }
+    .anexo-item:last-child { border-bottom: none; }
+    .anexo-nome {
+      flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+      color: var(--cor-destaque); cursor: pointer;
+    }
+    .anexo-nome:hover { text-decoration: underline; }
+    .anexo-tamanho { color: var(--cor-texto-fraco); font-size: 0.75rem; white-space: nowrap; }
+
     /* Drag-and-drop Kanban */
     .kanban-card[draggable="true"] { cursor: grab; }
     .kanban-card.dragging { opacity: 0.35; cursor: grabbing; }
@@ -215,6 +244,10 @@
             <button class="view-tab"       id="tab-kanban" onclick="setView('kanban')">
               <i class="fas fa-columns"></i> Kanban
             </button>
+            <button class="view-tab" id="tab-cfg-kanban" onclick="abrirModalColunasAgenda()"
+                    style="display:none;" title="Configurar colunas">
+              <i class="fas fa-sliders-h"></i>
+            </button>
           </div>
 
           <div class="filtros">
@@ -263,36 +296,8 @@
           </table>
         </div>
 
-        <!-- vista kanban -->
-        <div id="vista-kanban" class="kanban-board" style="display:none">
-          <div class="kanban-col">
-            <div class="kanban-col-header">
-              <span class="kanban-col-titulo">
-                <i class="fas fa-circle" style="color:#9e9e9e; font-size:0.6rem"></i> A Fazer
-              </span>
-              <span class="kanban-col-count" id="cnt-a_fazer">0</span>
-            </div>
-            <div class="kanban-cards" id="col-a_fazer"></div>
-          </div>
-          <div class="kanban-col">
-            <div class="kanban-col-header">
-              <span class="kanban-col-titulo">
-                <i class="fas fa-circle" style="color:#4e9af1; font-size:0.6rem"></i> Em Andamento
-              </span>
-              <span class="kanban-col-count" id="cnt-em_andamento">0</span>
-            </div>
-            <div class="kanban-cards" id="col-em_andamento"></div>
-          </div>
-          <div class="kanban-col">
-            <div class="kanban-col-header">
-              <span class="kanban-col-titulo">
-                <i class="fas fa-circle" style="color:#4caf50; font-size:0.6rem"></i> Concluída
-              </span>
-              <span class="kanban-col-count" id="cnt-concluida">0</span>
-            </div>
-            <div class="kanban-cards" id="col-concluida"></div>
-          </div>
-        </div>
+        <!-- vista kanban (renderizada dinamicamente) -->
+        <div id="vista-kanban" class="kanban-board" style="display:none"></div>
 
       </div>
     </main>
@@ -491,12 +496,63 @@
           </div>
         </div>
 
+        <!-- Anexos -->
+        <div class="form-grupo" id="secao-anexos" style="display:none">
+          <label><i class="fas fa-paperclip" style="font-size:0.82rem;margin-right:5px;opacity:.7"></i>Anexos</label>
+          <div class="passos-box">
+            <ul class="anexos-lista" id="anexos-lista">
+              <li style="color:var(--cor-texto-fraco);font-size:0.8rem;padding:6px 2px">Nenhum anexo.</li>
+            </ul>
+            <div id="anexos-add-area" class="passos-add" style="display:none">
+              <input type="file" id="anexo-input" multiple
+                     style="flex:1;min-width:0;font-size:0.82rem;color:var(--cor-texto);background:transparent;border:none;outline:none">
+              <button class="btn-add-passo" type="button" onclick="uploadAnexos()" title="Enviar">
+                <i class="fas fa-upload"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
       </div>
       <div class="modal-rodape">
+        <button id="btn-transferir-tarefa" class="btn btn-sm" onclick="abrirModalTransferir()"
+                style="display:none;background:var(--cor-fundo-3);color:var(--cor-texto);width:auto;margin-right:auto">
+          <i class="fas fa-exchange-alt"></i> Transferir
+        </button>
         <button class="btn btn-sm" onclick="fecharModalTarefa()"
                 style="background:var(--cor-fundo-3);color:var(--cor-texto)">Cancelar</button>
         <button class="btn btn-primario btn-sm" onclick="salvarTarefa()" style="width:auto">
           <i class="fas fa-save"></i> Salvar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       MODAL — Transferir Tarefa
+       ═══════════════════════════════════════════════════════════ -->
+  <div class="modal-overlay" id="modal-transferir">
+    <div class="modal" style="max-width:400px">
+      <div class="modal-header">
+        <div class="modal-titulo"><i class="fas fa-exchange-alt"></i> Transferir Tarefa</div>
+        <button class="modal-fechar" onclick="fecharModalTransferir()"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="modal-corpo">
+        <div style="font-size:0.85rem;color:var(--cor-texto-fraco);margin-bottom:14px">
+          Escolha a lista de destino. Os passos e anexos serão mantidos.
+        </div>
+        <div class="form-grupo">
+          <label>Lista de destino</label>
+          <select id="transferir-lista-sel">
+            <option value="">Selecione...</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-rodape">
+        <button class="btn btn-sm" onclick="fecharModalTransferir()"
+                style="background:var(--cor-fundo-3);color:var(--cor-texto)">Cancelar</button>
+        <button class="btn btn-primario btn-sm" onclick="confirmarTransferir()" style="width:auto">
+          <i class="fas fa-exchange-alt"></i> Transferir
         </button>
       </div>
     </div>
@@ -559,6 +615,31 @@
   </div>
 
   <!-- Menu compartilhado -->
+  <!-- MODAL — Configurar colunas kanban ───────────── -->
+  <div class="modal-overlay" id="modal-colunas-agenda">
+    <div class="modal" style="max-width:460px;">
+      <div class="modal-header">
+        <div class="modal-titulo"><i class="fas fa-sliders-h"></i> Configurar Colunas Kanban</div>
+        <button class="modal-fechar" onclick="fecharModalColunasAgenda()"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="modal-corpo" style="padding:16px;">
+        <p style="font-size:.82rem;color:var(--cor-texto-fraco);margin:0 0 14px;">
+          Personalize o nome e a cor de cada coluna.
+        </p>
+        <div id="colunas-agenda-lista"></div>
+      </div>
+      <div class="modal-rodape">
+        <button onclick="resetarColunasAgenda()" class="btn btn-sm"
+                style="background:var(--cor-fundo-3);color:var(--cor-texto);width:auto;margin-right:auto;">
+          <i class="fas fa-undo"></i> Padrão
+        </button>
+        <button onclick="fecharModalColunasAgenda()" class="btn btn-sm"
+                style="background:var(--cor-fundo-3);color:var(--cor-texto);">Cancelar</button>
+        <button onclick="salvarColunasAgenda()" class="btn btn-primario btn-sm" style="width:auto;">Salvar</button>
+      </div>
+    </div>
+  </div>
+
   <script src="/js/menu.js"></script>
 
   <!-- ═══════════════════════════════════════════════════════════
@@ -575,13 +656,47 @@
     let usuarios    = [];     // todos os usuários (para seletor de membros)
     let permissao   = null;   // 'dono' | 'edicao' | 'leitura'
     let viewAtual   = 'lista';
-    let _dragId = null, _dragTitulo = null, _dragStatus = null; // drag-and-drop
+
+    // ── Config colunas kanban (agenda) ─────────────
+    const COLUNAS_AGENDA_PADRAO = [
+      { key: 'a_fazer',      label: 'A Fazer',      cor: '#9e9e9e', visivel: true },
+      { key: 'em_andamento', label: 'Em Andamento', cor: '#4e9af1', visivel: true },
+      { key: 'concluida',    label: 'Concluída',    cor: '#4caf50', visivel: true }
+    ];
+    function carregarColunasAgenda() {
+      try {
+        const s = localStorage.getItem('agenda_kanban_cfg');
+        if (s) {
+          const p = JSON.parse(s);
+          return COLUNAS_AGENDA_PADRAO.map(pad => {
+            const c = p.find(x => x.key === pad.key);
+            return c ? { ...pad, ...c } : { ...pad };
+          });
+        }
+      } catch (_) {}
+      return COLUNAS_AGENDA_PADRAO.map(c => ({ ...c }));
+    }
+    let _colunasAgenda = carregarColunasAgenda();
+    let _colunasAgendaTemp = [];
+    let _dragId = null, _dragTitulo = null, _dragStatus = null; // drag-and-drop kanban
     let _passos = [];          // { id?, texto, concluido } — passos em edição
     let _passosCanEdit = true; // se o usuário pode editar
     let _tarefaCriadoPor = null; // criador da tarefa (para padrão de colaboradores)
+    let _anexos = [];          // anexos da tarefa em edição
+    let _listasParaTransferir = []; // listas disponíveis para transferência
 
     // ── Inicialização ──────────────────────────────────────────
     console.log('AGENDA DE TAREFAS CARREGADA');
+    // ── Deep link: ?tarefa=ID&from=projeto&projetoId=X ────────
+    (function () {
+      const params = new URLSearchParams(window.location.search);
+      const tarefaId  = params.get('tarefa') ? parseInt(params.get('tarefa')) : null;
+      const projetoId = params.get('projetoId');
+
+      if (tarefaId)  window._abrirTarefaAoCarregar = tarefaId;
+      if (projetoId) window._fromProjetoId = projetoId;
+    })();
+
     document.addEventListener('DOMContentLoaded', () => {
       console.log('DOMContentLoaded disparado');
       carregarListas();
@@ -643,6 +758,17 @@
             const ultima = listas.find(l => l.id === ultimaId);
             if (ultima) selecionarLista(ultima);
           }
+        }
+
+        // Deep link: selecionar automaticamente a lista da tarefa
+        if (window._abrirTarefaAoCarregar) {
+          try {
+            const tr = await fetch(`/api/agenda/tarefas/${window._abrirTarefaAoCarregar}`).then(r => r.json());
+            if (tr.tarefa) {
+              const lista = listas.find(l => l.id === tr.tarefa.lista_id);
+              if (lista) selecionarLista(lista);
+            }
+          } catch (_) {}
         }
       } catch (e) {
         console.error('Erro ao carregar listas:', e);
@@ -742,6 +868,16 @@
       if (!r.ok) return;
       tarefas = (await r.json()).tarefas || [];
       renderTarefas();
+
+      // Deep link: abrir tarefa específica automaticamente
+      if (window._abrirTarefaAoCarregar) {
+        const tid = window._abrirTarefaAoCarregar;
+        const t = tarefas.find(x => x.id === tid);
+        if (t) {
+          window._abrirTarefaAoCarregar = null;
+          editarTarefa(t);
+        }
+      }
     }
 
     function tarefasFiltradas() {
@@ -826,60 +962,145 @@
       }).join('');
     }
 
-    // Vista Kanban
+    // Vista Kanban — dinâmica
     function renderKanban() {
-      const lista    = tarefasFiltradas();
-      const canEdit  = permissao === 'dono' || permissao === 'edicao';
-      const grupos   = { a_fazer: [], em_andamento: [], concluida: [] };
+      const lista   = tarefasFiltradas();
+      const canEdit = permissao === 'dono' || permissao === 'edicao';
+      const board   = document.getElementById('vista-kanban');
+      const cols    = _colunasAgenda.filter(c => c.visivel);
 
-      lista.forEach(t => {
-        if (grupos[t.status]) grupos[t.status].push(t);
-      });
-
-      ['a_fazer', 'em_andamento', 'concluida'].forEach(status => {
-        const col   = document.getElementById(`col-${status}`);
-        const cnt   = document.getElementById(`cnt-${status}`);
-        const items = grupos[status];
-
-        cnt.textContent = items.length;
-
-        if (items.length === 0) {
-          col.innerHTML = '<div class="kanban-vazio">Nenhuma tarefa aqui</div>';
-          return;
-        }
-
-        col.innerHTML = items.map(t => {
+      board.innerHTML = cols.map(col => {
+        const items = lista.filter(t => t.status === col.key);
+        const cards = items.map(t => {
           const cat  = categorias.find(c => c.id === t.categoria_id);
           const vcdo = isVencido(t.prazo) && t.status !== 'concluida';
-
-          const pct = t.passos_total > 0 ? Math.round(t.passos_concluidos / t.passos_total * 100) : -1;
-
+          const pct  = t.passos_total > 0 ? Math.round(t.passos_concluidos / t.passos_total * 100) : -1;
           return `<div class="kanban-card ${t.status === 'concluida' ? 'concluida' : ''}"
                        draggable="${canEdit ? 'true' : 'false'}"
-                       data-id="${t.id}"
-                       data-titulo="${esc(t.titulo)}"
-                       data-status="${t.status}"
+                       data-id="${t.id}" data-titulo="${esc(t.titulo)}" data-status="${t.status}"
                        onclick='editarTarefa(${JSON.stringify(t)})'>
             <div class="kanban-card-titulo">${esc(t.titulo)}</div>
             <div class="kanban-card-meta">
               <span class="badge badge-${t.prioridade}">${PRIORIDADE_LABEL[t.prioridade]}</span>
               ${cat ? `<span class="badge" style="background:${cat.cor}22;color:${cat.cor}">${esc(cat.nome)}</span>` : ''}
-              ${t.prazo
-                ? `<span class="kanban-card-prazo ${vcdo ? 'vencido' : ''}">
-                     <i class="fas fa-calendar-alt"></i> ${fmtData(t.prazo)}
-                   </span>` : ''}
+              ${t.prazo ? `<span class="kanban-card-prazo ${vcdo ? 'vencido' : ''}">
+                <i class="fas fa-calendar-alt"></i> ${fmtData(t.prazo)}</span>` : ''}
             </div>
-            ${pct >= 0 ? `
-            <div class="progresso-wrap">
+            ${pct >= 0 ? `<div class="progresso-wrap">
               <div class="progresso-track"><div class="progresso-fill" style="width:${pct}%"></div></div>
               <div class="progresso-label">${t.passos_concluidos}/${t.passos_total} passos &bull; ${pct}%</div>
             </div>` : ''}
           </div>`;
         }).join('');
-      });
+
+        return `
+          <div class="kanban-col">
+            <div class="kanban-col-header">
+              <span class="kanban-col-titulo">
+                <i class="fas fa-circle" style="color:${col.cor};font-size:.6rem;"></i> ${esc(col.label)}
+              </span>
+              <span class="kanban-col-count">${items.length}</span>
+            </div>
+            <div class="kanban-cards" data-status="${col.key}">
+              ${items.length === 0 ? '<div class="kanban-vazio">Nenhuma tarefa aqui</div>' : cards}
+            </div>
+          </div>`;
+      }).join('');
 
       if (canEdit) configurarDragDrop();
     }
+
+    // ── Configurar colunas (agenda) ────────────────
+    window.abrirModalColunasAgenda = function () {
+      _colunasAgendaTemp = _colunasAgenda.map(c => ({ ...c }));
+      renderColunasAgendaModal();
+      document.getElementById('modal-colunas-agenda').classList.add('visivel');
+    };
+
+    function renderColunasAgendaModal() {
+      document.getElementById('colunas-agenda-lista').innerHTML =
+        _colunasAgendaTemp.map((col, i) => `
+          <div style="display:flex;align-items:center;gap:10px;padding:9px 12px;
+                      background:var(--cor-fundo);border:1px solid var(--cor-borda);
+                      border-radius:var(--raio);margin-bottom:8px;" id="ca-item-${i}">
+            <div style="width:22px;height:22px;border-radius:50%;background:${col.cor};
+                        flex-shrink:0;cursor:pointer;border:2px solid rgba(255,255,255,.2);
+                        overflow:hidden;position:relative;" title="Cor">
+              <input type="color" value="${col.cor}" id="ca-cor-${i}"
+                     style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;"
+                     oninput="document.getElementById('ca-item-${i}').querySelector('div').style.background=this.value">
+            </div>
+            <input type="text" id="ca-label-${i}" value="${esc(col.label)}"
+                   style="flex:1;background:transparent;border:none;color:var(--cor-texto);
+                          font-size:.88rem;padding:0;outline:none;">
+            <i class="fas ${col.visivel ? 'fa-eye' : 'fa-eye-slash'}"
+               id="ca-vis-${i}" title="${col.visivel ? 'Ocultar' : 'Mostrar'}"
+               style="cursor:pointer;color:${col.visivel ? 'var(--cor-sucesso)' : 'var(--cor-texto-fraco)'};font-size:.85rem;"
+               onclick="toggleColunaAgendaTemp(${i})"></i>
+            <i class="fas fa-trash" title="Excluir coluna"
+               style="cursor:pointer;color:var(--cor-erro);font-size:.85rem;"
+               onclick="excluirColunaAgendaTemp(${i})"></i>
+          </div>`).join('') + `
+        <div onclick="adicionarColunaAgendaTemp()"
+             style="display:flex;align-items:center;justify-content:center;gap:8px;
+                    padding:9px 12px;border:1px dashed var(--cor-borda);border-radius:var(--raio);
+                    cursor:pointer;font-size:.83rem;color:var(--cor-destaque);transition:.15s;"
+             onmouseover="this.style.borderColor='var(--cor-destaque)'"
+             onmouseout="this.style.borderColor='var(--cor-borda)'">
+          <i class="fas fa-plus"></i> Nova coluna
+        </div>`;
+    }
+
+    window.toggleColunaAgendaTemp = function(i) {
+      _colunasAgendaTemp[i].visivel = !_colunasAgendaTemp[i].visivel;
+      const icon = document.getElementById(`ca-vis-${i}`);
+      icon.classList.toggle('fa-eye',       _colunasAgendaTemp[i].visivel);
+      icon.classList.toggle('fa-eye-slash', !_colunasAgendaTemp[i].visivel);
+      icon.style.color = _colunasAgendaTemp[i].visivel ? 'var(--cor-sucesso)' : 'var(--cor-texto-fraco)';
+    };
+
+    window.excluirColunaAgendaTemp = function(i) {
+      if (_colunasAgendaTemp.length <= 1) { alert('É necessário pelo menos uma coluna.'); return; }
+      _colunasAgendaTemp.splice(i, 1);
+      renderColunasAgendaModal();
+    };
+
+    window.adicionarColunaAgendaTemp = function() {
+      // Salva estado atual dos campos antes de adicionar
+      _colunasAgendaTemp = lerColunasAgendaDoForm();
+      _colunasAgendaTemp.push({ key: 'col_' + Date.now(), label: 'Nova Coluna', cor: '#6366f1', visivel: true });
+      renderColunasAgendaModal();
+      const ultimo = _colunasAgendaTemp.length - 1;
+      setTimeout(() => document.getElementById(`ca-label-${ultimo}`)?.focus(), 50);
+    };
+
+    function lerColunasAgendaDoForm() {
+      return _colunasAgendaTemp.map((col, i) => ({
+        ...col,
+        label: document.getElementById(`ca-label-${i}`)?.value.trim() || col.label,
+        cor:   document.getElementById(`ca-cor-${i}`)?.value           || col.cor,
+      }));
+    }
+
+    window.salvarColunasAgenda = function () {
+      _colunasAgenda = lerColunasAgendaDoForm().filter(c => c.label.trim());
+      localStorage.setItem('agenda_kanban_cfg', JSON.stringify(_colunasAgenda));
+      fecharModalColunasAgenda();
+      renderKanban();
+    };
+
+    window.resetarColunasAgenda = function () {
+      if (!confirm('Restaurar configurações padrão?')) return;
+      localStorage.removeItem('agenda_kanban_cfg');
+      _colunasAgenda     = COLUNAS_AGENDA_PADRAO.map(c => ({ ...c }));
+      _colunasAgendaTemp = _colunasAgenda.map(c => ({ ...c }));
+      renderColunasAgendaModal();
+      renderKanban();
+    };
+
+    window.fecharModalColunasAgenda = function () {
+      document.getElementById('modal-colunas-agenda').classList.remove('visivel');
+    };
 
     // ── Drag-and-drop Kanban ───────────────────────────────────
     function configurarDragDrop() {
@@ -914,7 +1135,7 @@
           e.preventDefault();
           col.classList.remove('drag-over');
 
-          const novoStatus = col.id.replace('col-', '');
+          const novoStatus = col.dataset.status;
           if (!_dragId || novoStatus === _dragStatus) return;
 
           const label = STATUS_KANBAN.find(s => s.value === novoStatus)?.label || novoStatus;
@@ -1021,6 +1242,7 @@
       document.getElementById('tab-kanban').classList.toggle('ativa',  view === 'kanban');
       document.getElementById('vista-lista').style.display   = view === 'lista'   ? '' : 'none';
       document.getElementById('vista-kanban').style.display  = view === 'kanban'  ? '' : 'none';
+      document.getElementById('tab-cfg-kanban').style.display = view === 'kanban' ? '' : 'none';
       renderTarefas();
     };
 
@@ -1240,20 +1462,18 @@
       console.log('_passos completo:', JSON.stringify(_passos, null, 2));
       ul.innerHTML = _passos.map((p, i) => {
         let colaboradores = Array.isArray(p.atribuido_para) ? p.atribuido_para : (p.atribuido_para ? [p.atribuido_para] : []);
-        console.log(`\nPasso[${i}]: "${p.texto}"`);
-        console.log('  atribuido_para original:', p.atribuido_para);
-        console.log('  colaboradores_array:', colaboradores);
         // Se não tiver colaboradores, usar criado_por como padrão
         if (colaboradores.length === 0 && _tarefaCriadoPor && !_passosCanEdit) {
           colaboradores = [_tarefaCriadoPor];
-          console.log('  → Usando criado_por como padrão:', _tarefaCriadoPor);
         }
         const colabTexto = colaboradores.length > 0 ? colaboradores.join(', ') : '(sem colaborador)';
         const temColab = colaboradores.length > 0;
-        console.log('  → Exibindo:', colabTexto);
 
         return `
-          <li class="passo-item">
+          <li class="passo-item" data-idx="${i}"${_passosCanEdit ? ' draggable="true"' : ''}>
+            <span class="passo-drag-handle"${_passosCanEdit ? '' : ' style="visibility:hidden"'}>
+              <i class="fas fa-grip-vertical"></i>
+            </span>
             <input type="checkbox" class="passo-check" ${p.concluido ? 'checked' : ''}
                    onchange="togglePassoModal(${i})" ${!_passosCanEdit ? 'disabled' : ''}>
             <span class="passo-texto ${p.concluido ? 'concluido' : ''}" title="${esc(p.texto)}">${esc(p.texto)}</span>
@@ -1276,6 +1496,8 @@
 
       // Preencher datalists com usuários
       setTimeout(() => preencherDatalistUsuarios(), 0);
+      // Configurar drag-and-drop nos passos
+      if (_passosCanEdit) setTimeout(() => configurarDragPassos(), 0);
     }
 
     window.adicionarPassoLocal = function () {
@@ -1565,6 +1787,7 @@
     window.abrirModalTarefa = async function () {
       _passos = [];
       _passosCanEdit = true;
+      _anexos = [];
       await carregarUsuariosCache();
       document.getElementById('tarefa-id').value          = '';
       document.getElementById('tarefa-titulo').value      = '';
@@ -1574,6 +1797,8 @@
       document.getElementById('tarefa-status').value      = 'a_fazer';
       document.getElementById('tarefa-categoria').value   = '';
       document.getElementById('modal-tarefa-titulo').textContent = 'Nova Tarefa';
+      document.getElementById('btn-transferir-tarefa').style.display = 'none';
+      document.getElementById('secao-anexos').style.display = 'none';
       renderPassosModal();
       setTimeout(() => preencherDatalistUsuarios(), 100);
       document.getElementById('modal-tarefa').classList.add('visivel');
@@ -1606,6 +1831,9 @@
 
       document.querySelector('#modal-tarefa .modal-rodape .btn-primario').style.display = canEdit ? '' : 'none';
 
+      // Botão de transferência (só para edição com permissão)
+      document.getElementById('btn-transferir-tarefa').style.display = canEdit ? '' : 'none';
+
       // Carrega passos existentes
       try {
         const r = await fetch(`/api/agenda/tarefas/${t.id}/passos`);
@@ -1613,14 +1841,8 @@
         if (d.sucesso) {
           _passos = d.passos.map(p => {
             let atrib = p.atribuido_para;
-            // Converter JSON string para array se necessário
             if (typeof atrib === 'string' && atrib) {
-              try {
-                atrib = JSON.parse(atrib);
-              } catch (_) {
-                // Se não for JSON válido, tratar como string simples
-                atrib = [atrib];
-              }
+              try { atrib = JSON.parse(atrib); } catch (_) { atrib = [atrib]; }
             } else if (!atrib) {
               atrib = null;
             }
@@ -1631,12 +1853,33 @@
       renderPassosModal();
       setTimeout(() => preencherDatalistUsuarios(), 100);
 
+      // Carrega anexos
+      document.getElementById('secao-anexos').style.display = '';
+      document.getElementById('anexos-add-area').style.display = canEdit ? '' : 'none';
+      await carregarAnexos(t.id);
+
+      // Quando aberto via Projeto, ajusta botões do modal
+      const btnCancelar = document.querySelector('#modal-tarefa .modal-rodape .btn:not(.btn-primario):not(#btn-transferir-tarefa)');
+      const btnFecharX  = document.querySelector('#modal-tarefa .modal-fechar');
+      if (window._fromProjetoId) {
+        if (btnCancelar) btnCancelar.textContent = '← Voltar ao Projeto';
+        if (btnFecharX)  btnFecharX.style.display = 'none';
+      } else {
+        if (btnCancelar) btnCancelar.textContent = 'Cancelar';
+        if (btnFecharX)  btnFecharX.style.display = '';
+      }
+
       document.getElementById('modal-tarefa').classList.add('visivel');
     };
 
     window.fecharModalTarefa = function () {
+      if (window._fromProjetoId) {
+        window.location.href = `/agendaProjetos/projeto.html?id=${window._fromProjetoId}`;
+        return;
+      }
       document.getElementById('sub-modal-cat').style.display = 'none';
       document.getElementById('modal-tarefa').classList.remove('visivel');
+      _anexos = [];
     };
 
     // ── Função auxiliar: preparar colaboradores para envio ──
@@ -1766,6 +2009,11 @@
         } catch (_) {}
 
         // ── 7. Finalizar ──
+        if (window._fromProjetoId) {
+          window.location.href = `/agendaProjetos/projeto.html?id=${window._fromProjetoId}`;
+          return;
+        }
+
         fecharModalTarefa();
 
         if (errosPassos.length > 0) {
@@ -1910,6 +2158,198 @@
         renderTarefas();
       } catch (e) { toast('Erro de comunicação.', 'erro'); }
     };
+
+    // ── Drag-and-drop nos passos ──────────────────────────────
+    function configurarDragPassos() {
+      const items = Array.from(document.querySelectorAll('#passos-lista .passo-item[draggable="true"]'));
+      let dragIdx = null;
+
+      items.forEach(item => {
+        item.addEventListener('dragstart', e => {
+          dragIdx = parseInt(item.dataset.idx);
+          item.style.opacity = '0.4';
+          e.dataTransfer.effectAllowed = 'move';
+        });
+        item.addEventListener('dragend', () => {
+          item.style.opacity = '';
+          document.querySelectorAll('#passos-lista .passo-item').forEach(el => el.classList.remove('drag-sobre'));
+        });
+        item.addEventListener('dragover', e => {
+          e.preventDefault();
+          e.dataTransfer.dropEffect = 'move';
+          document.querySelectorAll('#passos-lista .passo-item').forEach(el => el.classList.remove('drag-sobre'));
+          item.classList.add('drag-sobre');
+        });
+        item.addEventListener('dragleave', () => {
+          item.classList.remove('drag-sobre');
+        });
+        item.addEventListener('drop', e => {
+          e.preventDefault();
+          item.classList.remove('drag-sobre');
+          const toIdx = parseInt(item.dataset.idx);
+          if (dragIdx === null || dragIdx === toIdx) return;
+
+          const [moved] = _passos.splice(dragIdx, 1);
+          _passos.splice(toIdx, 0, moved);
+          renderPassosModal();
+
+          // Persiste a nova ordem para passos que já têm ID no banco
+          const tarefaId = document.getElementById('tarefa-id').value;
+          if (tarefaId) {
+            const idsOrdenados = _passos.filter(p => p.id).map(p => p.id);
+            if (idsOrdenados.length > 0) {
+              fetch(`/api/agenda/tarefas/${tarefaId}/passos/reordenar`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ids: idsOrdenados })
+              }).catch(() => {});
+            }
+          }
+        });
+      });
+    }
+
+    // ── Anexos ────────────────────────────────────────────────
+    async function carregarAnexos(tarefaId) {
+      try {
+        const r = await fetch(`/api/agenda/tarefas/${tarefaId}/anexos`);
+        const d = await r.json();
+        _anexos = d.sucesso ? d.anexos : [];
+      } catch (_) { _anexos = []; }
+      renderAnexos();
+    }
+
+    function renderAnexos() {
+      const ul = document.getElementById('anexos-lista');
+      if (!ul) return;
+      if (_anexos.length === 0) {
+        ul.innerHTML = '<li style="color:var(--cor-texto-fraco);font-size:0.8rem;padding:6px 2px">Nenhum anexo.</li>';
+        return;
+      }
+      ul.innerHTML = _anexos.map(a => {
+        const kb = a.tamanho ? (a.tamanho / 1024).toFixed(0) + ' KB' : '';
+        return `<li class="anexo-item">
+          <i class="fas fa-paperclip" style="color:var(--cor-texto-fraco);font-size:0.82rem;flex-shrink:0"></i>
+          <span class="anexo-nome" onclick="baixarAnexo(${a.id}, '${esc(a.nome)}')" title="${esc(a.nome)}">${esc(a.nome)}</span>
+          ${kb ? `<span class="anexo-tamanho">${kb}</span>` : ''}
+          ${_passosCanEdit ? `
+          <button class="btn-icone excluir" onclick="excluirAnexo(${a.id})" title="Excluir" style="flex-shrink:0">
+            <i class="fas fa-times"></i>
+          </button>` : ''}
+        </li>`;
+      }).join('');
+    }
+
+    window.uploadAnexos = async function () {
+      const input = document.getElementById('anexo-input');
+      const files = Array.from(input.files);
+      if (!files.length) return;
+
+      const tarefaId = document.getElementById('tarefa-id').value;
+      if (!tarefaId) { toast('Salve a tarefa antes de anexar arquivos.', 'aviso'); return; }
+
+      let erros = 0;
+      for (const file of files) {
+        try {
+          const dados = await new Promise((res, rej) => {
+            const reader = new FileReader();
+            reader.onload  = () => res(reader.result);
+            reader.onerror = rej;
+            reader.readAsDataURL(file);
+          });
+          const r = await fetch(`/api/agenda/tarefas/${tarefaId}/anexos`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ nome: file.name, tipo: file.type, tamanho: file.size, dados })
+          });
+          if (!r.ok) erros++;
+        } catch (_) { erros++; }
+      }
+
+      input.value = '';
+      if (erros) toast(`${erros} arquivo(s) não puderam ser enviados.`, 'erro');
+      else toast(`${files.length} anexo(s) adicionado(s)!`);
+      await carregarAnexos(tarefaId);
+    };
+
+    window.baixarAnexo = async function (id, nome) {
+      try {
+        const r = await fetch(`/api/agenda/anexos/${id}/dados`);
+        const d = await r.json();
+        if (!d.sucesso) { toast('Erro ao baixar anexo.', 'erro'); return; }
+        const a = document.createElement('a');
+        a.href     = d.dados;
+        a.download = nome;
+        a.click();
+      } catch (_) { toast('Erro ao baixar anexo.', 'erro'); }
+    };
+
+    window.excluirAnexo = async function (id) {
+      if (!confirm('Excluir este anexo?')) return;
+      const tarefaId = document.getElementById('tarefa-id').value;
+      try {
+        const r = await fetch(`/api/agenda/anexos/${id}`, { method: 'DELETE' });
+        const d = await r.json();
+        if (!r.ok) { toast(d.erro || 'Erro.', 'erro'); return; }
+        toast('Anexo excluído.');
+        await carregarAnexos(tarefaId);
+      } catch (_) { toast('Erro de comunicação.', 'erro'); }
+    };
+
+    // ── Transferir Tarefa ─────────────────────────────────────
+    window.abrirModalTransferir = async function () {
+      try {
+        const r = await fetch('/api/agenda/listas');
+        const d = await r.json();
+        const listas = (d.listas || []).filter(l =>
+          l.id !== listaAtiva.id && (l.permissao === 'dono' || l.permissao === 'edicao')
+        );
+        _listasParaTransferir = listas;
+
+        const sel = document.getElementById('transferir-lista-sel');
+        if (listas.length === 0) {
+          sel.innerHTML = '<option value="">Nenhuma lista disponível</option>';
+        } else {
+          sel.innerHTML = '<option value="">Selecione...</option>' +
+            listas.map(l => `<option value="${l.id}">${esc(l.nome)}</option>`).join('');
+        }
+        document.getElementById('modal-transferir').classList.add('visivel');
+      } catch (_) { toast('Erro ao carregar listas.', 'erro'); }
+    };
+
+    window.fecharModalTransferir = function () {
+      document.getElementById('modal-transferir').classList.remove('visivel');
+    };
+
+    window.confirmarTransferir = async function () {
+      const novaListaId = document.getElementById('transferir-lista-sel').value;
+      if (!novaListaId) { toast('Selecione uma lista de destino.', 'aviso'); return; }
+
+      const tarefaId = document.getElementById('tarefa-id').value;
+      if (!tarefaId) return;
+
+      const listaNome = _listasParaTransferir.find(l => l.id == novaListaId)?.nome || '';
+      if (!confirm(`Transferir esta tarefa para "${listaNome}"?`)) return;
+
+      try {
+        const r = await fetch(`/api/agenda/tarefas/${tarefaId}/transferir`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ nova_lista_id: parseInt(novaListaId) })
+        });
+        const d = await r.json();
+        if (!r.ok) { toast(d.erro || 'Erro ao transferir.', 'erro'); return; }
+
+        fecharModalTransferir();
+        fecharModalTarefa();
+        toast(`Tarefa transferida para "${listaNome}"!`);
+        await carregarTarefas();
+      } catch (_) { toast('Erro de comunicação.', 'erro'); }
+    };
+
+    document.getElementById('modal-transferir').addEventListener('click', function (e) {
+      if (e.target === this) fecharModalTransferir();
+    });
 
     // ── Fechar modal clicando fora ─────────────────────────────
     ['modal-lista','modal-membros','modal-tarefa','modal-categorias'].forEach(id => {

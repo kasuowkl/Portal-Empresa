@@ -148,6 +148,7 @@ router.delete('/api/agenda/listas/:id', verificarLogin, async (req, res) => {
   if (perm !== 'dono') return res.status(403).json({ erro: 'Apenas o dono pode excluir a lista.' });
 
   try {
+    await pool.request().input('id', sql.Int, id).query(`DELETE FROM agenda_anexos WHERE tarefa_id IN (SELECT id FROM agenda_tarefas WHERE lista_id=@id)`);
     await pool.request().input('id', sql.Int, id).query('DELETE FROM agenda_tarefas    WHERE lista_id=@id');
     await pool.request().input('id', sql.Int, id).query('DELETE FROM agenda_categorias WHERE lista_id=@id');
     await pool.request().input('id', sql.Int, id).query('DELETE FROM agenda_membros    WHERE lista_id=@id');
@@ -349,6 +350,46 @@ router.post('/api/agenda/listas/:id/tarefas', verificarLogin, async (req, res) =
 });
 
 // ============================================================
+// GET /api/agenda/tarefas/:id — Detalhar tarefa (usado pelo módulo Projetos)
+// ============================================================
+router.get('/api/agenda/tarefas/:id', verificarLogin, async (req, res) => {
+  const pool    = req.app.locals.pool;
+  const logErro = req.app.locals.logErro;
+  const usuario = req.session.usuario.usuario;
+  const id      = parseInt(req.params.id);
+
+  try {
+    const r = await pool.request()
+      .input('id', sql.Int, id)
+      .query(`
+        SELECT t.id, t.lista_id, t.titulo, t.descricao, t.prazo, t.prioridade,
+               t.status, t.categoria_id, t.criado_por, t.criado_em, t.atualizado_em,
+               t.responsavel, t.projeto_id, t.subprojeto_id,
+               l.nome AS lista_nome,
+               c.nome AS categoria_nome
+        FROM agenda_tarefas t
+        LEFT JOIN agenda_listas l ON l.id = t.lista_id
+        LEFT JOIN agenda_categorias c ON c.id = t.categoria_id
+        WHERE t.id = @id
+      `);
+    if (!r.recordset[0]) return res.status(404).json({ erro: 'Tarefa não encontrada.' });
+
+    const tarefa = r.recordset[0];
+    const perm = await getPermissao(pool, tarefa.lista_id, usuario);
+    if (!perm) return res.status(403).json({ erro: 'Sem acesso.' });
+
+    const passos = await pool.request()
+      .input('id', sql.Int, id)
+      .query('SELECT * FROM agenda_passos WHERE tarefa_id = @id ORDER BY ordem ASC');
+
+    res.json({ tarefa, passos: passos.recordset });
+  } catch (erro) {
+    logErro.error(`Erro ao buscar tarefa: ${erro.message}`);
+    res.status(500).json({ erro: 'Erro ao buscar tarefa.' });
+  }
+});
+
+// ============================================================
 // PUT /api/agenda/tarefas/:id — Editar tarefa
 // ============================================================
 router.put('/api/agenda/tarefas/:id', verificarLogin, async (req, res) => {
@@ -366,7 +407,7 @@ router.put('/api/agenda/tarefas/:id', verificarLogin, async (req, res) => {
   if (!temPermissao(perm, 'edicao')) return res.status(403).json({ erro: 'Sem permissão.' });
   if (!titulo?.trim())               return res.status(400).json({ erro: 'Informe o título.' });
 
-  const statusValido = ['a_fazer', 'em_andamento', 'concluida'].includes(status) ? status : 'a_fazer';
+  const statusValido = status?.trim() || 'a_fazer';
 
   try {
     await pool.request()
@@ -430,7 +471,7 @@ router.patch('/api/agenda/tarefas/:id/status', verificarLogin, async (req, res) 
   const id      = parseInt(req.params.id);
   const { status } = req.body;
 
-  if (!['a_fazer','em_andamento','concluida'].includes(status))
+  if (!status || typeof status !== 'string' || status.trim().length === 0)
     return res.status(400).json({ erro: 'Status inválido.' });
 
   const t = await pool.request().input('id', sql.Int, id)
@@ -525,6 +566,7 @@ router.delete('/api/agenda/tarefas/:id', verificarLogin, async (req, res) => {
 
   try {
     const tR = await pool.request().input('id', sql.Int, id).query('SELECT titulo FROM agenda_tarefas WHERE id=@id');
+    await pool.request().input('id', sql.Int, id).query('DELETE FROM agenda_anexos WHERE tarefa_id=@id');
     await pool.request().input('id', sql.Int, id)
       .query('DELETE FROM agenda_passos WHERE tarefa_id=@id');
     await pool.request().input('id', sql.Int, id)
@@ -921,7 +963,12 @@ router.get('/api/agenda/relatorios', verificarLogin, async (req, res) => {
   const pool    = req.app.locals.pool;
   const logErro = req.app.locals.logErro;
   const usuario = req.session.usuario.usuario;
-  const { tipo, prazoInicio, prazoFim, lista_id: lId, categoria_id: catId, status, prioridade, page } = req.query;
+  const { tipo, prazoInicio, prazoFim, lista_id: lId, lista_ids: lIds, categoria_id: catId, status, prioridade, page } = req.query;
+
+  // lista_ids: IDs validados como inteiros (seguro para IN clause)
+  const listaIdsArr = lIds
+    ? lIds.split(',').map(Number).filter(n => Number.isInteger(n) && n > 0)
+    : null;
 
   const baseFrom = `
     FROM agenda_tarefas t
@@ -933,6 +980,7 @@ router.get('/api/agenda/relatorios', verificarLogin, async (req, res) => {
     const r = pool.request().input('usuario', sql.VarChar, usuario);
     const conds = ['(l.dono=@usuario OR EXISTS (SELECT 1 FROM agenda_membros m WHERE m.lista_id=l.id AND m.usuario=@usuario))'];
     if (lId)                           { r.input('lista_id',    sql.Int,     parseInt(lId));  conds.push('t.lista_id=@lista_id'); }
+    else if (listaIdsArr && listaIdsArr.length > 0) { conds.push(`t.lista_id IN (${listaIdsArr.join(',')})`); }
     if (prazoInicio)                   { r.input('prazoInicio', sql.Date,    prazoInicio);    conds.push('t.prazo>=@prazoInicio'); }
     if (prazoFim)                      { r.input('prazoFim',    sql.Date,    prazoFim);       conds.push('t.prazo<=@prazoFim'); }
     if (catId)                         { r.input('categoria_id',sql.Int,     parseInt(catId));conds.push('t.categoria_id=@categoria_id'); }
@@ -1003,19 +1051,18 @@ router.get('/api/agenda/relatorios', verificarLogin, async (req, res) => {
       ORDER BY CASE t.prioridade WHEN 'alta' THEN 1 WHEN 'media' THEN 2 ELSE 3 END
     `);
 
-    // Por lista (só se não filtrou uma lista específica)
-    let porLista = [];
-    if (!lId) {
-      const { r: rLst, where: wLst } = mkReq();
-      const lstR = await rLst.query(`
-        SELECT l.nome AS lista, l.cor, COUNT(*) AS total,
-               SUM(CASE WHEN t.status='concluida' THEN 1 ELSE 0 END) AS concluidas
-        ${baseFrom} ${wLst}
-        GROUP BY l.nome, l.cor
-        ORDER BY COUNT(*) DESC
-      `);
-      porLista = lstR.recordset;
-    }
+    // Por lista — sempre retorna (inclui listas próprias e compartilhadas)
+    const { r: rLst, where: wLst } = mkReq();
+    const lstR = await rLst.query(`
+      SELECT l.nome AS lista, l.cor, COUNT(*) AS total,
+             SUM(CASE WHEN t.status='concluida'    THEN 1 ELSE 0 END) AS concluidas,
+             SUM(CASE WHEN t.status='a_fazer'      THEN 1 ELSE 0 END) AS a_fazer,
+             SUM(CASE WHEN t.status='em_andamento' THEN 1 ELSE 0 END) AS em_andamento
+      ${baseFrom} ${wLst}
+      GROUP BY l.nome, l.cor
+      ORDER BY COUNT(*) DESC
+    `);
+    const porLista = lstR.recordset;
 
     return res.json({
       resumo:       resumoR.recordset[0],
@@ -1184,5 +1231,197 @@ async function _notifTarefa(pool, tarefaId, tipo, logErro) {
     logErro?.error(`[_notifTarefa] ❌ ERRO na cadeia: ${err.message}`);
   }
 }
+
+// ============================================================
+// GET /api/agenda/tarefas/:id/anexos — listar anexos (sem dados)
+// ============================================================
+router.get('/api/agenda/tarefas/:id/anexos', verificarLogin, async (req, res) => {
+  const pool    = req.app.locals.pool;
+  const logErro = req.app.locals.logErro;
+  const usuario = req.session.usuario.usuario;
+  const id      = parseInt(req.params.id);
+
+  const t = await pool.request().input('id', sql.Int, id)
+    .query('SELECT lista_id FROM agenda_tarefas WHERE id=@id');
+  if (!t.recordset[0]) return res.status(404).json({ erro: 'Tarefa não encontrada.' });
+
+  const perm = await getPermissao(pool, t.recordset[0].lista_id, usuario);
+  if (!perm) return res.status(403).json({ erro: 'Sem acesso.' });
+
+  try {
+    const r = await pool.request().input('tarefa_id', sql.Int, id)
+      .query('SELECT id, nome, tipo, tamanho, criado_por, criado_em FROM agenda_anexos WHERE tarefa_id=@tarefa_id ORDER BY criado_em');
+    res.json({ sucesso: true, anexos: r.recordset });
+  } catch (erro) {
+    logErro.error(`Erro ao listar anexos: ${erro.message}`);
+    res.status(500).json({ erro: 'Erro ao carregar anexos.' });
+  }
+});
+
+// ============================================================
+// GET /api/agenda/anexos/:id/dados — retorna dados base64 de um anexo
+// ============================================================
+router.get('/api/agenda/anexos/:id/dados', verificarLogin, async (req, res) => {
+  const pool    = req.app.locals.pool;
+  const logErro = req.app.locals.logErro;
+  const usuario = req.session.usuario.usuario;
+  const id      = parseInt(req.params.id);
+
+  const a = await pool.request().input('id', sql.Int, id)
+    .query('SELECT aa.dados, at.lista_id FROM agenda_anexos aa JOIN agenda_tarefas at ON at.id=aa.tarefa_id WHERE aa.id=@id');
+  if (!a.recordset[0]) return res.status(404).json({ erro: 'Anexo não encontrado.' });
+
+  const perm = await getPermissao(pool, a.recordset[0].lista_id, usuario);
+  if (!perm) return res.status(403).json({ erro: 'Sem acesso.' });
+
+  try {
+    res.json({ sucesso: true, dados: a.recordset[0].dados });
+  } catch (erro) {
+    logErro.error(`Erro ao obter dados do anexo: ${erro.message}`);
+    res.status(500).json({ erro: 'Erro ao obter anexo.' });
+  }
+});
+
+// ============================================================
+// POST /api/agenda/tarefas/:id/anexos — adicionar anexo (base64)
+// ============================================================
+router.post('/api/agenda/tarefas/:id/anexos', verificarLogin, async (req, res) => {
+  const pool    = req.app.locals.pool;
+  const logErro = req.app.locals.logErro;
+  const usuario = req.session.usuario.usuario;
+  const id      = parseInt(req.params.id);
+  const { nome, tipo, tamanho, dados } = req.body;
+
+  if (!nome?.trim()) return res.status(400).json({ erro: 'Informe o nome do arquivo.' });
+  if (!dados)        return res.status(400).json({ erro: 'Dados do arquivo ausentes.' });
+
+  const t = await pool.request().input('id', sql.Int, id)
+    .query('SELECT lista_id FROM agenda_tarefas WHERE id=@id');
+  if (!t.recordset[0]) return res.status(404).json({ erro: 'Tarefa não encontrada.' });
+
+  const perm = await getPermissao(pool, t.recordset[0].lista_id, usuario);
+  if (!temPermissao(perm, 'edicao')) return res.status(403).json({ erro: 'Sem permissão.' });
+
+  try {
+    const r = await pool.request()
+      .input('tarefa_id',  sql.Int,      id)
+      .input('nome',       sql.NVarChar, nome.trim())
+      .input('tipo',       sql.NVarChar, tipo || '')
+      .input('tamanho',    sql.Int,      tamanho || null)
+      .input('dados',      sql.NVarChar, dados)
+      .input('criado_por', sql.NVarChar, usuario)
+      .query(`
+        INSERT INTO agenda_anexos (tarefa_id, nome, tipo, tamanho, dados, criado_por, criado_em)
+        OUTPUT INSERTED.id, INSERTED.nome, INSERTED.tipo, INSERTED.tamanho, INSERTED.criado_em
+        VALUES (@tarefa_id, @nome, @tipo, @tamanho, @dados, @criado_por, GETDATE())
+      `);
+    res.json({ sucesso: true, anexo: r.recordset[0] });
+  } catch (erro) {
+    logErro.error(`Erro ao salvar anexo: ${erro.message}`);
+    res.status(500).json({ erro: 'Erro ao salvar anexo.' });
+  }
+});
+
+// ============================================================
+// DELETE /api/agenda/anexos/:id — excluir anexo
+// ============================================================
+router.delete('/api/agenda/anexos/:id', verificarLogin, async (req, res) => {
+  const pool    = req.app.locals.pool;
+  const logErro = req.app.locals.logErro;
+  const usuario = req.session.usuario.usuario;
+  const id      = parseInt(req.params.id);
+
+  const a = await pool.request().input('id', sql.Int, id)
+    .query('SELECT aa.tarefa_id, at.lista_id FROM agenda_anexos aa JOIN agenda_tarefas at ON at.id=aa.tarefa_id WHERE aa.id=@id');
+  if (!a.recordset[0]) return res.status(404).json({ erro: 'Anexo não encontrado.' });
+
+  const perm = await getPermissao(pool, a.recordset[0].lista_id, usuario);
+  if (!temPermissao(perm, 'edicao')) return res.status(403).json({ erro: 'Sem permissão.' });
+
+  try {
+    await pool.request().input('id', sql.Int, id).query('DELETE FROM agenda_anexos WHERE id=@id');
+    res.json({ sucesso: true });
+  } catch (erro) {
+    logErro.error(`Erro ao excluir anexo: ${erro.message}`);
+    res.status(500).json({ erro: 'Erro ao excluir anexo.' });
+  }
+});
+
+// ============================================================
+// PATCH /api/agenda/tarefas/:id/passos/reordenar
+// body: { ids: [3, 1, 2, ...] }  — nova ordem dos passos
+// ============================================================
+router.patch('/api/agenda/tarefas/:id/passos/reordenar', verificarLogin, async (req, res) => {
+  const pool    = req.app.locals.pool;
+  const logErro = req.app.locals.logErro;
+  const usuario = req.session.usuario.usuario;
+  const id      = parseInt(req.params.id);
+  const { ids } = req.body;
+
+  if (!Array.isArray(ids) || ids.length === 0)
+    return res.status(400).json({ erro: 'Informe o array de IDs.' });
+
+  const t = await pool.request().input('id', sql.Int, id)
+    .query('SELECT lista_id FROM agenda_tarefas WHERE id=@id');
+  if (!t.recordset[0]) return res.status(404).json({ erro: 'Tarefa não encontrada.' });
+
+  const perm = await getPermissao(pool, t.recordset[0].lista_id, usuario);
+  if (!temPermissao(perm, 'edicao')) return res.status(403).json({ erro: 'Sem permissão.' });
+
+  try {
+    for (let i = 0; i < ids.length; i++) {
+      await pool.request()
+        .input('ordem',     sql.Int, i + 1)
+        .input('id',        sql.Int, ids[i])
+        .input('tarefa_id', sql.Int, id)
+        .query('UPDATE agenda_passos SET ordem=@ordem WHERE id=@id AND tarefa_id=@tarefa_id');
+    }
+    res.json({ sucesso: true });
+  } catch (erro) {
+    logErro.error(`Erro ao reordenar passos: ${erro.message}`);
+    res.status(500).json({ erro: 'Erro ao reordenar passos.' });
+  }
+});
+
+// ============================================================
+// PATCH /api/agenda/tarefas/:id/transferir
+// body: { nova_lista_id }
+// ============================================================
+router.patch('/api/agenda/tarefas/:id/transferir', verificarLogin, async (req, res) => {
+  const pool    = req.app.locals.pool;
+  const logErro = req.app.locals.logErro;
+  const usuario = req.session.usuario.usuario;
+  const id      = parseInt(req.params.id);
+  const { nova_lista_id } = req.body;
+
+  if (!nova_lista_id) return res.status(400).json({ erro: 'Informe a lista de destino.' });
+
+  const t = await pool.request().input('id', sql.Int, id)
+    .query('SELECT lista_id, titulo FROM agenda_tarefas WHERE id=@id');
+  if (!t.recordset[0]) return res.status(404).json({ erro: 'Tarefa não encontrada.' });
+
+  const permOrigem  = await getPermissao(pool, t.recordset[0].lista_id, usuario);
+  const permDestino = await getPermissao(pool, nova_lista_id, usuario);
+
+  if (!temPermissao(permOrigem,  'edicao')) return res.status(403).json({ erro: 'Sem permissão na lista de origem.' });
+  if (!temPermissao(permDestino, 'edicao')) return res.status(403).json({ erro: 'Sem permissão na lista de destino.' });
+
+  try {
+    await pool.request()
+      .input('nova_lista_id', sql.Int, nova_lista_id)
+      .input('id',            sql.Int, id)
+      .query('UPDATE agenda_tarefas SET lista_id=@nova_lista_id WHERE id=@id');
+
+    await registrarLog(pool, {
+      usuario, ip: req.ip, acao: 'TRANSFERENCIA', sistema: 'agenda',
+      detalhes: `Tarefa #${id} "${t.recordset[0].titulo}" transferida para lista #${nova_lista_id}`
+    });
+
+    res.json({ sucesso: true, mensagem: 'Tarefa transferida.' });
+  } catch (erro) {
+    logErro.error(`Erro ao transferir tarefa: ${erro.message}`);
+    res.status(500).json({ erro: 'Erro ao transferir tarefa.' });
+  }
+});
 
 module.exports = router;

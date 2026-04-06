@@ -1552,98 +1552,125 @@ function voltarLista() {
 // ============================================================
 // GERAR TERMO IMPRIMÍVEL
 // ============================================================
-function gerarTermo(hist) {
+async function gerarTermo(hist) {
   const b = bemAtual || {};
   const data = hist.data_evt ? hist.data_evt.substring(0,10) : '';
   const dataFmt = data ? new Date(data + 'T12:00:00').toLocaleDateString('pt-BR') : '—';
   const hoje = new Date().toLocaleDateString('pt-BR');
+  const anoAtual = new Date().getFullYear();
 
-  const titulos = {
-    'Disponibilizado': 'TERMO DE ENTREGA DE EQUIPAMENTO',
-    'Transferido':     'TERMO DE TRANSFERÊNCIA DE EQUIPAMENTO',
-    'Devolvido':       'TERMO DE DEVOLUÇÃO DE EQUIPAMENTO',
-    'Empréstimo':      'TERMO DE EMPRÉSTIMO DE EQUIPAMENTO',
-    'Manutenção':      'TERMO DE ENVIO PARA MANUTENÇÃO',
-    'Avaria':          'TERMO DE REGISTRO DE AVARIA',
-    'Sinistro':        'REGISTRO DE SINISTRO',
-    'Descarte':        'TERMO DE DESCARTE / BAIXA DE PATRIMÔNIO',
-    'Ocorrência':      'REGISTRO DE OCORRÊNCIA'
-  };
-  const titulo = titulos[hist.tipo] || `TERMO DE ${String(hist.tipo).toUpperCase()}`;
+  // Busca telefone/email do responsável no banco
+  let telefone = hist.telefone || '';
+  let email    = hist.email    || '';
+  if (hist.responsavel_para && (!telefone || !email)) {
+    try {
+      const r = await fetch('/api/patrimonio/contato/' + encodeURIComponent(hist.responsavel_para)).then(r => r.json());
+      if (r.sucesso) {
+        if (!telefone) telefone = r.telefone || '';
+        if (!email) email = r.email || '';
+      }
+    } catch (_) {}
+  }
+
+  // Valor formatado do bem
+  const valorFmt = b.valor != null ? 'R$ ' + parseFloat(b.valor).toLocaleString('pt-BR', {minimumFractionDigits:2}) : '—';
+
+  // Localização completa
+  const localizacao = (b.loc_tipo || '') + (b.loc_detalhe ? ' — ' + b.loc_detalhe : '') || '—';
 
   const html = `<!DOCTYPE html><html lang="pt-br"><head><meta charset="UTF-8">
-<title>${titulo} — ${hist.numero_termo || ''}</title>
+<title>TERMO DE RESPONSABILIDADE - ${hist.numero_termo || 'S-N'}</title>
 <style>
   body { font-family: Arial, sans-serif; margin: 30px 40px; color: #222; font-size: 13px; }
-  h1 { font-size: 15px; text-align: center; text-transform: uppercase; border-bottom: 2px solid #333; padding-bottom: 8px; margin-bottom: 6px; }
+  h1 { font-size: 16px; text-align: center; text-transform: uppercase; border-bottom: 2px solid #333; padding-bottom: 8px; margin-bottom: 6px; }
   .subtitulo { text-align: center; font-size: 12px; color: #555; margin-bottom: 20px; }
   .secao { margin-bottom: 18px; }
   .secao-titulo { font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: .5px; background: #f0f0f0; padding: 4px 8px; border-left: 3px solid #333; margin-bottom: 8px; }
   table { width: 100%; border-collapse: collapse; margin-bottom: 6px; }
   td { padding: 5px 8px; border: 1px solid #ccc; font-size: 12px; }
-  td.label { background: #f5f5f5; font-weight: bold; width: 35%; }
+  td.label { background: #f5f5f5; font-weight: bold; width: 25%; }
   .assinaturas { display: flex; justify-content: space-around; margin-top: 40px; }
   .assinatura-box { text-align: center; width: 40%; }
   .linha-assinatura { border-top: 1px solid #333; margin-bottom: 6px; }
   .rodape { margin-top: 30px; font-size: 10px; color: #777; text-align: center; border-top: 1px solid #ccc; padding-top: 8px; }
-  @media print { button { display: none; } }
+  .clausulas { margin: 10px 0; padding-left: 20px; }
+  .clausulas li { margin-bottom: 8px; font-size: 12px; line-height: 1.5; }
+  @media print { button { display: none !important; } }
 </style></head><body>
 
 <div style="text-align:center;margin-bottom:4px">
-  <strong style="font-size:14px">PORTAL WKL — GESTÃO DE PATRIMÔNIO</strong>
+  <strong style="font-size:14px">BARRETO CONSTRUÇÕES LTDA</strong><br>
+  <span style="font-size:12px;color:#555">CNPJ: 07.621.786/0001-03</span>
 </div>
-<h1>${titulo}</h1>
-<div class="subtitulo">Nº do Termo: <strong>${hist.numero_termo || 'S/N'}</strong> &nbsp;|&nbsp; Emitido em: ${hoje}</div>
+<h1>TERMO DE RESPONSABILIDADE PELO USO DE EQUIPAMENTO</h1>
+<div class="subtitulo">Nº do Termo: <strong>${esc(hist.numero_termo || 'S/N')}</strong> &nbsp;|&nbsp; Emitido em: ${hoje}</div>
 
+<!-- IDENTIFICAÇÃO DO EMPREGADO -->
 <div class="secao">
-  <div class="secao-titulo">Dados do Equipamento</div>
+  <div class="secao-titulo">IDENTIFICAÇÃO DO EMPREGADO</div>
+  <table>
+    <tr><td class="label">Nome</td><td colspan="3">${esc(hist.responsavel_para || '')}</td></tr>
+    <tr><td class="label">Fone para contato</td><td>${esc(telefone)}</td><td class="label">E-mail</td><td>${esc(email)}</td></tr>
+    ${hist.setor_destino ? '<tr><td class="label">Setor / Departamento</td><td colspan="3">' + esc(hist.setor_destino) + '</td></tr>' : ''}
+  </table>
+</div>
+
+<!-- DADOS DO EQUIPAMENTO -->
+<div class="secao">
+  <div class="secao-titulo">DADOS DO EQUIPAMENTO</div>
   <table>
     <tr><td class="label">Código / Plaqueta</td><td>${esc(b.codigo || '—')}</td><td class="label">Categoria</td><td>${esc(b.categoria || '—')}</td></tr>
     <tr><td class="label">Descrição</td><td colspan="3">${esc(b.descricao || '—')}</td></tr>
     <tr><td class="label">Marca / Modelo</td><td>${esc(b.marca || '—')}</td><td class="label">Nº de Série</td><td>${esc(b.num_serie || '—')}</td></tr>
     <tr><td class="label">Estado</td><td>${esc(hist.novo_estado || b.estado || '—')}</td><td class="label">Status</td><td>${esc(b.status || '—')}</td></tr>
-    <tr><td class="label">Localização Atual</td><td colspan="3">${esc((b.loc_tipo || '') + (b.loc_detalhe ? ' — ' + b.loc_detalhe : '') || '—')}</td></tr>
+    <tr><td class="label">Localização</td><td>${esc(localizacao)}</td><td class="label">Valor</td><td>${valorFmt}</td></tr>
   </table>
 </div>
 
-${(hist.responsavel_de || hist.responsavel_para) ? `
+<!-- DETALHES DO EVENTO (tipo, data, observações) -->
+` + ((hist.detalhe || hist.responsavel_de) ? `
 <div class="secao">
-  <div class="secao-titulo">Movimentação de Responsabilidade</div>
+  <div class="secao-titulo">DETALHES DA MOVIMENTAÇÃO</div>
   <table>
-    ${hist.responsavel_de ? `<tr><td class="label">De (Responsável Anterior)</td><td>${esc(hist.responsavel_de)}</td></tr>` : ''}
-    ${hist.responsavel_para ? `<tr><td class="label">Para (Novo Responsável)</td><td>${esc(hist.responsavel_para)}</td></tr>` : ''}
-    ${hist.setor_destino ? `<tr><td class="label">Setor / Departamento</td><td>${esc(hist.setor_destino)}</td></tr>` : ''}
+    <tr><td class="label">Tipo de Evento</td><td>${esc(hist.tipo)}</td><td class="label">Data</td><td>${dataFmt}</td></tr>
+    ${hist.responsavel_de ? '<tr><td class="label">Responsável Anterior</td><td colspan="3">' + esc(hist.responsavel_de) + '</td></tr>' : ''}
+    ${hist.detalhe ? '<tr><td class="label">Observações</td><td colspan="3">' + esc(hist.detalhe) + '</td></tr>' : ''}
   </table>
-</div>` : ''}
+</div>` : '') + `
 
+<!-- CLÁUSULAS DE RESPONSABILIDADE -->
 <div class="secao">
-  <div class="secao-titulo">Detalhes do Evento</div>
-  <table>
-    <tr><td class="label">Tipo</td><td>${esc(hist.tipo)}</td><td class="label">Data</td><td>${dataFmt}</td></tr>
-    <tr><td class="label">Registrado por</td><td>${esc(hist.resp || '—')}</td><td class="label">Usuário Sistema</td><td>${esc(hist.registrado_por || '—')}</td></tr>
-    <tr><td class="label">Observações</td><td colspan="3">${esc(hist.detalhe || '—')}</td></tr>
-  </table>
+  <div class="secao-titulo">CLÁUSULAS DE RESPONSABILIDADE</div>
+  <ol class="clausulas">
+    <li>Se o equipamento for danificado ou inutilizado por emprego inadequado, mau uso, negligência ou extravio, a empresa fornecerá novo equipamento e cobrará o valor de um equipamento da mesma marca ou equivalente ao da praça.</li>
+    <li>Em caso de dano, inutilização ou extravio do equipamento, o funcionário deverá comunicar imediatamente ao setor competente.</li>
+    <li>Terminando os serviços ou no caso de rescisão do contrato de trabalho, o funcionário devolverá o equipamento completo e em perfeito estado de conservação, considerando-se o tempo do uso, ao setor competente.</li>
+    <li>Estando os equipamentos em sua posse, o funcionário estará sujeito a inspeções sem prévio aviso.</li>
+  </ol>
 </div>
 
+<!-- LOCAL E DATA -->
+<p style="margin:30px 0 20px;">Manaus/AM, ___ de ______________, ${anoAtual}.</p>
+
+<!-- ASSINATURAS -->
 <div class="assinaturas">
   <div class="assinatura-box">
     <div class="linha-assinatura"></div>
-    <div>${esc(hist.responsavel_de || 'Responsável Entregador')}</div>
+    <div>${esc(hist.responsavel_para || 'Funcionário')}</div>
     <div style="font-size:11px;color:#555">Assinatura / CPF</div>
   </div>
   <div class="assinatura-box">
     <div class="linha-assinatura"></div>
-    <div>${esc(hist.responsavel_para || hist.resp || 'Responsável Recebedor')}</div>
+    <div>${esc(hist.resp || 'Responsável Empresa')}</div>
     <div style="font-size:11px;color:#555">Assinatura / CPF</div>
   </div>
 </div>
 
 <div class="rodape">
-  Documento gerado automaticamente pelo Portal WKL em ${hoje} | Nº ${hist.numero_termo || 'S/N'}
+  Documento gerado automaticamente pelo Portal WKL em ${hoje} | Nº ${esc(hist.numero_termo || 'S/N')}
 </div>
 
-<br>
-<div style="text-align:center">
+<div style="text-align:center;margin-top:20px">
   <button onclick="window.print()" style="padding:8px 20px;background:#0056b3;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:13px">
     🖨️ Imprimir / Salvar PDF
   </button>

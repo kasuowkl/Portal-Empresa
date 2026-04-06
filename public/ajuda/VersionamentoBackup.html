@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<!--
+  ARQUIVO: public/ajuda/VersionamentoBackup.html
+  VERSAO:  1.0.0
+  DATA:    2026-04-02
+  DESCRICAO: Documentacao visual de versionamento, branches e backup de publicacao
+-->
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ajuda - Versionamento e Backup</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/menu.css">
+  <style>
+    .doc-layout { display: flex; max-width: 1100px; margin: 32px auto; padding: 0 24px; gap: 32px; }
+    .doc-sidebar { width: 240px; flex-shrink: 0; }
+    .doc-sidebar-sticky { position: sticky; top: calc(var(--altura-menu) + 20px); }
+    .doc-sidebar h4 { font-size: 11px; letter-spacing: 1.4px; text-transform: uppercase; color: var(--cor-texto-fraco); margin-bottom: 12px; }
+    .doc-sidebar a { display: block; padding: 6px 12px; font-size: 13px; color: var(--cor-texto-fraco); border-left: 2px solid var(--cor-borda); text-decoration: none; transition: all .15s; }
+    .doc-sidebar a:hover { color: #4e9af1; border-left-color: #4e9af1; }
+    .doc-conteudo { flex: 1; min-width: 0; }
+    .doc-breadcrumb { font-size: 12px; color: var(--cor-texto-fraco); margin-bottom: 24px; }
+    .doc-breadcrumb a { color: var(--cor-destaque); text-decoration: none; }
+    .doc-breadcrumb span { margin: 0 6px; }
+    .doc-titulo { font-size: 26px; font-weight: 700; margin-bottom: 6px; display: flex; align-items: center; gap: 12px; }
+    .doc-titulo i { color: #4e9af1; }
+    .doc-subtitulo { color: var(--cor-texto-fraco); font-size: 14px; margin-bottom: 36px; }
+    .doc-secao { margin-bottom: 40px; scroll-margin-top: calc(var(--altura-menu) + 16px); }
+    .doc-secao h2 { font-size: 18px; font-weight: 600; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid var(--cor-borda); display: flex; align-items: center; gap: 10px; }
+    .doc-secao h2 i { color: #4e9af1; font-size: 16px; }
+    .doc-secao p, .doc-secao li { font-size: 14px; color: var(--cor-texto-fraco); line-height: 1.7; margin-bottom: 8px; }
+    .doc-secao ul, .doc-secao ol { padding-left: 20px; margin-bottom: 12px; }
+    .doc-secao strong { color: var(--cor-texto); }
+    .doc-card { background: var(--cor-fundo-2); border: 1px solid var(--cor-borda); border-radius: 8px; padding: 16px 20px; margin-bottom: 14px; }
+    .doc-card h4 { font-size: 14px; margin-bottom: 6px; color: var(--cor-texto); }
+    .doc-info { background: rgba(78,154,241,0.08); border-left: 3px solid #4e9af1; border-radius: 0 8px 8px 0; padding: 12px 16px; margin-bottom: 16px; font-size: 13px; color: var(--cor-texto-fraco); }
+    .doc-warn { background: rgba(245,158,11,0.08); border-left: 3px solid #f59e0b; border-radius: 0 8px 8px 0; padding: 12px 16px; margin-bottom: 16px; font-size: 13px; color: var(--cor-texto-fraco); }
+    .code-box { background: #0f172a; border: 1px solid var(--cor-borda); border-radius: 10px; padding: 14px 16px; overflow-x: auto; margin: 12px 0 16px; }
+    .code-box code, .code-box pre { margin: 0; color: #dbeafe; font-family: Consolas, monospace; font-size: 13px; line-height: 1.6; white-space: pre-wrap; }
+    .grid-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 14px 0 18px; }
+    .mini-card { background: var(--cor-fundo-2); border: 1px solid var(--cor-borda); border-radius: 10px; padding: 14px 16px; }
+    .mini-card span { display: inline-flex; align-items: center; gap: 8px; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--cor-texto-fraco); margin-bottom: 8px; }
+    .mini-card h4 { font-size: 15px; color: var(--cor-texto); margin-bottom: 6px; }
+    .mini-card p { font-size: 13px; margin: 0; }
+    .passo { display: flex; gap: 14px; margin-bottom: 14px; align-items: flex-start; }
+    .passo-num { width: 28px; height: 28px; border-radius: 50%; background: #4e9af1; color: #fff; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .passo-txt { font-size: 14px; color: var(--cor-texto-fraco); line-height: 1.6; }
+    .passo-txt strong { color: var(--cor-texto); }
+    .tag-list { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0 16px; }
+    .det-tag { display: inline-block; font-size: 11px; padding: 4px 10px; border-radius: 20px; background: rgba(78,154,241,0.12); color: #4e9af1; border: 1px solid rgba(78,154,241,0.25); }
+    @media (max-width: 800px) {
+      .doc-layout { flex-direction: column; }
+      .doc-sidebar { width: 100%; }
+      .doc-sidebar-sticky { position: static; }
+      .grid-cards { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div id="menu-container"></div>
+  <div class="doc-layout">
+    <aside class="doc-sidebar">
+      <div class="doc-sidebar-sticky">
+        <h4>Nesta pagina</h4>
+        <a href="#visao-geral">Visao Geral</a>
+        <a href="#estrutura">Estrutura Recomendada</a>
+        <a href="#branch">Branches</a>
+        <a href="#publicacao">Publicacao com Backup</a>
+        <a href="#restauracao">Restauracao</a>
+        <a href="#fluxo">Fluxo do Dia a Dia</a>
+        <a href="#pastas">Pastas e Arquivos</a>
+        <br>
+        <a href="/ajuda/Ajuda.html" style="color:var(--cor-destaque); font-size:12px; border:none; padding-left:0">
+          <- Voltar a Ajuda
+        </a>
+      </div>
+    </aside>
+    <main class="doc-conteudo">
+      <div class="doc-breadcrumb">
+        <a href="/ajuda/Ajuda.html">Ajuda</a>
+        <span>></span> Versionamento e Backup
+      </div>
+
+      <div class="doc-titulo">
+        <i class="fas fa-code-branch"></i> Versionamento e Backup
+      </div>
+      <div class="doc-subtitulo">
+        Guia visual para trabalhar com Git local, branches de seguranca e backup automatico antes de publicar no servidor do Portal.
+      </div>
+
+      <section class="doc-secao" id="visao-geral">
+        <h2><i class="fas fa-shield-halved"></i> Visao Geral</h2>
+        <p>O Portal agora usa uma combinacao de <strong>Git local</strong>, <strong>branch por mudanca maior</strong> e <strong>backup automatico no servidor</strong> antes de cada publicacao manual.</p>
+        <div class="grid-cards">
+          <div class="mini-card">
+            <span><i class="fas fa-code-branch"></i> Git</span>
+            <h4>Historico local</h4>
+            <p>Permite comparar, voltar arquivos e recuperar commits com seguranca.</p>
+          </div>
+          <div class="mini-card">
+            <span><i class="fas fa-layer-group"></i> Branches</span>
+            <h4>Mudancas isoladas</h4>
+            <p>Cada ajuste maior pode nascer numa branch propria, reduzindo risco.</p>
+          </div>
+          <div class="mini-card">
+            <span><i class="fas fa-server"></i> Backup remoto</span>
+            <h4>Versao anterior publicada</h4>
+            <p>Antes de subir um arquivo, o servidor guarda a copia anterior com timestamp.</p>
+          </div>
+        </div>
+        <div class="doc-info">
+          Esse modelo e mais seguro do que renomear arquivos para <strong>index_v1</strong>, <strong>index_v2</strong> e assim por diante, porque preserva historico local e copia publicada de forma organizada.
+        </div>
+      </section>
+
+      <section class="doc-secao" id="estrutura">
+        <h2><i class="fas fa-sitemap"></i> Estrutura Recomendada</h2>
+        <div class="tag-list">
+          <span class="det-tag">master</span>
+          <span class="det-tag">feature/*</span>
+          <span class="det-tag">fix/*</span>
+          <span class="det-tag">_backups</span>
+        </div>
+        <div class="doc-card">
+          <h4>Padrao adotado</h4>
+          <ul>
+            <li><strong>master</strong> para a linha mais estavel do projeto.</li>
+            <li><strong>feature/*</strong> para funcionalidades novas.</li>
+            <li><strong>fix/*</strong> para correcoes pontuais.</li>
+            <li><strong>_backups</strong> no servidor para guardar a versao publicada anterior.</li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="doc-secao" id="branch">
+        <h2><i class="fas fa-code-branch"></i> Branches</h2>
+        <p>Foi criado um script para padronizar a abertura de branches de trabalho.</p>
+        <div class="code-box"><pre><code>.\scripts\new-work-branch.ps1 -Name "agenda-contabil-notificacoes"</code></pre></div>
+        <p>Exemplo para correcao:</p>
+        <div class="code-box"><pre><code>.\scripts\new-work-branch.ps1 -Type fix -Name "editor-colagem-texto"</code></pre></div>
+        <div class="doc-warn">
+          O script bloqueia criacao de branch se houver alteracoes locais pendentes. Isso ajuda a evitar misturar trabalho antigo com mudanca nova.
+        </div>
+      </section>
+
+      <section class="doc-secao" id="publicacao">
+        <h2><i class="fas fa-upload"></i> Publicacao com Backup</h2>
+        <p>Antes de publicar um arquivo no Ubuntu, use o script de publicacao com backup. Ele cria a pasta, copia a versao remota atual e so depois envia o arquivo novo.</p>
+        <div class="code-box"><pre><code>.\scripts\publish-with-backup.ps1 `
+  -LocalPath "public/baseConhecimento/index.html" `
+  -RemotePath "/var/www/html/wkl/Portal/public/baseConhecimento/index.html"</code></pre></div>
+        <p>Se quiser reiniciar o Portal em seguida:</p>
+        <div class="code-box"><pre><code>.\scripts\publish-with-backup.ps1 `
+  -LocalPath "routes/conhecimento.js" `
+  -RemotePath "/var/www/html/wkl/Portal/routes/conhecimento.js" `
+  -RestartPortal</code></pre></div>
+        <div class="doc-card">
+          <h4>Resultado esperado</h4>
+          <p>O backup anterior passa a existir com timestamp, por exemplo:</p>
+          <div class="code-box"><pre><code>/var/www/html/wkl/Portal/_backups/public/baseConhecimento/2026-04-02_153000__index.html</code></pre></div>
+        </div>
+      </section>
+
+      <section class="doc-secao" id="restauracao">
+        <h2><i class="fas fa-rotate-left"></i> Restauracao</h2>
+        <p>Se algo quebrar em producao, o restore pode ser feito direto a partir de um backup publicado.</p>
+        <div class="code-box"><pre><code>.\scripts\restore-from-backup.ps1 `
+  -BackupPath "/var/www/html/wkl/Portal/_backups/public/baseConhecimento/2026-04-02_153000__index.html" `
+  -TargetPath "/var/www/html/wkl/Portal/public/baseConhecimento/index.html" `
+  -RestartPortal</code></pre></div>
+        <div class="doc-info">
+          Esse restore e mais confiavel do que tentar lembrar "qual era o index_v3 certo", porque o arquivo mostra data e hora exatas da publicacao anterior.
+        </div>
+      </section>
+
+      <section class="doc-secao" id="fluxo">
+        <h2><i class="fas fa-list-check"></i> Fluxo do Dia a Dia</h2>
+        <div class="passo"><div class="passo-num">1</div><div class="passo-txt">Abra uma <strong>branch nova</strong> para mudancas medias ou grandes.</div></div>
+        <div class="passo"><div class="passo-num">2</div><div class="passo-txt">Trabalhe com <strong>commits pequenos</strong> e mensagens claras.</div></div>
+        <div class="passo"><div class="passo-num">3</div><div class="passo-txt">Antes de subir arquivo no servidor, use <strong>publish-with-backup.ps1</strong>.</div></div>
+        <div class="passo"><div class="passo-num">4</div><div class="passo-txt">Se houver problema, use <strong>restore-from-backup.ps1</strong> para voltar.</div></div>
+        <div class="doc-card">
+          <h4>Comandos de apoio</h4>
+          <div class="code-box"><pre><code>git status
+git diff
+git log --oneline --decorate -n 15</code></pre></div>
+        </div>
+      </section>
+
+      <section class="doc-secao" id="pastas">
+        <h2><i class="fas fa-folder-tree"></i> Pastas e Arquivos</h2>
+        <ul>
+          <li><strong>Documentacao local:</strong> <code>docs/versionamento-e-backup.md</code></li>
+          <li><strong>Scripts locais:</strong> <code>scripts/new-work-branch.ps1</code>, <code>scripts/publish-with-backup.ps1</code>, <code>scripts/restore-from-backup.ps1</code></li>
+          <li><strong>Backups no servidor:</strong> <code>/var/www/html/wkl/Portal/_backups</code></li>
+          <li><strong>Documentacao no servidor:</strong> <code>/var/www/html/wkl/Portal/docs/versionamento-e-backup.md</code></li>
+        </ul>
+      </section>
+    </main>
+  </div>
+  <script src="/js/menu.js"></script>
+</body>
+</html>

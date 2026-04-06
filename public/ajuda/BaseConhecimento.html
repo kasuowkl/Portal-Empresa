@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<!--
+  ARQUIVO: public/ajuda/BaseConhecimento.html
+  VERSAO:  1.0.0
+  DATA:    2026-04-02
+  DESCRICAO: Documentacao da Base de Conhecimento
+-->
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ajuda - Base de Conhecimento</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/menu.css">
+  <style>
+    .doc-layout { display: flex; max-width: 1100px; margin: 32px auto; padding: 0 24px; gap: 32px; }
+    .doc-sidebar { width: 220px; flex-shrink: 0; }
+    .doc-sidebar-sticky { position: sticky; top: calc(var(--altura-menu) + 20px); }
+    .doc-sidebar h4 { font-size: 11px; letter-spacing: 1.4px; text-transform: uppercase; color: var(--cor-texto-fraco); margin-bottom: 12px; }
+    .doc-sidebar a { display: block; padding: 6px 12px; font-size: 13px; color: var(--cor-texto-fraco); border-left: 2px solid var(--cor-borda); text-decoration: none; transition: all .15s; }
+    .doc-sidebar a:hover { color: #55a5ff; border-left-color: #55a5ff; }
+    .doc-conteudo { flex: 1; min-width: 0; }
+    .doc-breadcrumb { font-size: 12px; color: var(--cor-texto-fraco); margin-bottom: 24px; }
+    .doc-breadcrumb a { color: var(--cor-destaque); text-decoration: none; }
+    .doc-breadcrumb span { margin: 0 6px; }
+    .doc-titulo { font-size: 26px; font-weight: 700; margin-bottom: 6px; display: flex; align-items: center; gap: 12px; }
+    .doc-titulo i { color: #55a5ff; }
+    .doc-subtitulo { color: var(--cor-texto-fraco); font-size: 14px; margin-bottom: 36px; }
+    .doc-secao { margin-bottom: 40px; scroll-margin-top: calc(var(--altura-menu) + 16px); }
+    .doc-secao h2 { font-size: 18px; font-weight: 600; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid var(--cor-borda); display: flex; align-items: center; gap: 10px; }
+    .doc-secao h2 i { color: #55a5ff; font-size: 16px; }
+    .doc-secao p, .doc-secao li { font-size: 14px; color: var(--cor-texto-fraco); line-height: 1.7; margin-bottom: 8px; }
+    .doc-secao ul { padding-left: 20px; margin-bottom: 12px; }
+    .doc-secao strong { color: var(--cor-texto); }
+    .doc-card { background: var(--cor-fundo-2); border: 1px solid var(--cor-borda); border-radius: 8px; padding: 16px 20px; margin-bottom: 12px; }
+    .doc-card h4 { font-size: 14px; margin-bottom: 6px; color: var(--cor-texto); }
+    .doc-info { background: rgba(85,165,255,0.08); border-left: 3px solid #55a5ff; border-radius: 0 8px 8px 0; padding: 12px 16px; margin-bottom: 16px; font-size: 13px; color: var(--cor-texto-fraco); }
+    .doc-warn { background: rgba(245,158,11,0.08); border-left: 3px solid #f59e0b; border-radius: 0 8px 8px 0; padding: 12px 16px; margin-bottom: 16px; font-size: 13px; color: var(--cor-texto-fraco); }
+    .perm-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 16px; }
+    .perm-table th { background: var(--cor-fundo-3); padding: 8px 12px; text-align: left; font-weight: 600; color: var(--cor-texto); border-bottom: 1px solid var(--cor-borda); }
+    .perm-table td { padding: 8px 12px; border-bottom: 1px solid var(--cor-borda); color: var(--cor-texto-fraco); }
+    @media (max-width: 700px) {
+      .doc-layout { flex-direction: column; }
+      .doc-sidebar { width: 100%; }
+      .doc-sidebar-sticky { position: static; }
+    }
+  </style>
+</head>
+<body>
+  <div id="menu-container"></div>
+  <div class="doc-layout">
+    <aside class="doc-sidebar">
+      <div class="doc-sidebar-sticky">
+        <h4>Nesta pagina</h4>
+        <a href="#visao-geral">Visao Geral</a>
+        <a href="#categorias">Categorias</a>
+        <a href="#artigos">Artigos</a>
+        <a href="#editor">Editor</a>
+        <a href="#colagem">Colagem e Anexos</a>
+        <a href="#permissoes">Permissoes</a>
+        <a href="#avaliacoes">Avaliacoes e Historico</a>
+        <a href="#boas-praticas">Boas praticas</a>
+        <br>
+        <a href="/ajuda/Ajuda.html" style="color:var(--cor-destaque); font-size:12px; border:none; padding-left:0"><- Voltar a Ajuda</a>
+      </div>
+    </aside>
+    <main class="doc-conteudo">
+      <div class="doc-breadcrumb">
+        <a href="/ajuda/Ajuda.html">Ajuda</a>
+        <span>></span> Base de Conhecimento
+      </div>
+      <div class="doc-titulo">
+        <i class="fas fa-book"></i> Base de Conhecimento
+      </div>
+      <div class="doc-subtitulo">
+        Biblioteca interna de artigos, procedimentos e referencias tecnicas do Portal WKL, com categorias, permissao por artigo, editor visual e colagem rica.
+      </div>
+
+      <section class="doc-secao" id="visao-geral">
+        <h2><i class="fas fa-eye"></i> Visao Geral</h2>
+        <p>A Base de Conhecimento foi criada para concentrar instrucoes operacionais, tutoriais, padroes internos e respostas recorrentes em uma interface unica.</p>
+        <p>O modulo trabalha com <strong>categorias</strong>, <strong>artigos publicados</strong>, <strong>rascunhos</strong>, anexos, avaliacao util/nao util e historico de alteracoes.</p>
+        <div class="doc-info">
+          Acesse em <strong>/conhecimento</strong>. O modulo segue o menu e o padrao visual do Portal, incluindo modal de artigo com opcao de maximizar.
+        </div>
+      </section>
+
+      <section class="doc-secao" id="categorias">
+        <h2><i class="fas fa-folder-open"></i> Categorias</h2>
+        <p>As categorias organizam os artigos por assunto, area ou equipe, como por exemplo: API, Desenvolvimento, Infraestrutura, Financeiro ou Suporte.</p>
+        <div class="doc-card">
+          <h4>O que cada categoria possui</h4>
+          <ul>
+            <li>Nome</li>
+            <li>Descricao opcional</li>
+            <li>Icone Font Awesome</li>
+            <li>Cor de destaque</li>
+          </ul>
+        </div>
+        <p>Ao excluir uma categoria, os artigos vinculados passam a ficar <strong>sem categoria</strong>.</p>
+      </section>
+
+      <section class="doc-secao" id="artigos">
+        <h2><i class="fas fa-file-lines"></i> Artigos</h2>
+        <p>O cadastro de artigo permite registrar conhecimento em formato mais rico, com titulo, conteudo, categoria, tags, status e fixacao no topo.</p>
+        <div class="doc-card">
+          <h4>Campos principais</h4>
+          <ul>
+            <li><strong>Titulo</strong> do artigo</li>
+            <li><strong>Categoria</strong></li>
+            <li><strong>Tags</strong> separadas por virgula</li>
+            <li><strong>Conteudo</strong> em editor visual</li>
+            <li><strong>Status</strong>: publicado ou rascunho</li>
+            <li><strong>Fixar no topo</strong></li>
+            <li><strong>Anexos</strong></li>
+          </ul>
+        </div>
+        <p>Artigos fixados aparecem primeiro na listagem. A busca do modulo procura em titulo, conteudo e tags.</p>
+      </section>
+
+      <section class="doc-secao" id="editor">
+        <h2><i class="fas fa-pen-ruler"></i> Editor</h2>
+        <p>O editor da Base de Conhecimento foi evoluido para trabalhar de forma visual, sem exibir HTML bruto durante a edicao.</p>
+        <div class="doc-card">
+          <h4>Recursos do editor</h4>
+          <ul>
+            <li>Negrito, italico e sublinhado</li>
+            <li>Titulos H2 e H3</li>
+            <li>Listas simples e numeradas</li>
+            <li>Bloco de codigo e citacao</li>
+            <li>Tabela</li>
+            <li>Links</li>
+            <li>Preview do artigo</li>
+            <li>Maximizacao do modal de edicao</li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="doc-secao" id="colagem">
+        <h2><i class="fas fa-paste"></i> Colagem e Anexos</h2>
+        <p>O editor aceita colagem com <strong>Ctrl+V</strong> de texto simples, HTML rico e imagens do clipboard.</p>
+        <div class="doc-info">
+          Colagens vindas de sites, navegadores e documentos HTML passam por limpeza de seguranca para remover metadados, scripts e estilos indesejados, preservando a estrutura principal do conteudo.
+        </div>
+        <div class="doc-card">
+          <h4>Tipos de colagem suportados</h4>
+          <ul>
+            <li>Texto comum</li>
+            <li>Texto com formatacao basica</li>
+            <li>Listas e titulos em HTML</li>
+            <li>Printscreen e imagens copiadas</li>
+            <li>Upload manual de anexos no artigo</li>
+          </ul>
+        </div>
+        <div class="doc-warn">
+          Nem todo HTML externo sera reproduzido 100% igual ao original. O foco do modulo e preservar a estrutura util sem carregar estilos inseguros ou markup excessivo.
+        </div>
+      </section>
+
+      <section class="doc-secao" id="permissoes">
+        <h2><i class="fas fa-user-shield"></i> Permissoes</h2>
+        <p>O modulo trabalha com regras por artigo e por usuario logado.</p>
+        <table class="perm-table">
+          <thead>
+            <tr>
+              <th>Regra</th>
+              <th>Comportamento</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Rascunho</td>
+              <td>Visivel somente para o criador do artigo</td>
+            </tr>
+            <tr>
+              <td>Editar artigo</td>
+              <td>Criador ou admin do Portal</td>
+            </tr>
+            <tr>
+              <td>Excluir artigo</td>
+              <td>Criador ou admin do Portal</td>
+            </tr>
+            <tr>
+              <td>Publicado</td>
+              <td>Visivel para usuarios autenticados</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="doc-secao" id="avaliacoes">
+        <h2><i class="fas fa-thumbs-up"></i> Avaliacoes e Historico</h2>
+        <p>Cada artigo pode receber avaliacao de util ou nao util. O resultado fica visivel na tela do artigo e ajuda a identificar conteudos mais relevantes.</p>
+        <p>O backend tambem registra historico basico de criacao e edicao, o que ajuda no acompanhamento da evolucao do conhecimento cadastrado.</p>
+      </section>
+
+      <section class="doc-secao" id="boas-praticas">
+        <h2><i class="fas fa-lightbulb"></i> Boas praticas</h2>
+        <ul>
+          <li>Use categorias e tags consistentes para melhorar a busca.</li>
+          <li>Salve em rascunho quando o artigo ainda estiver incompleto.</li>
+          <li>Prefira titulos claros e objetivos.</li>
+          <li>Ao colar conteudo externo, revise o resultado visual antes de publicar.</li>
+          <li>Use anexos apenas quando o material realmente nao couber no artigo.</li>
+        </ul>
+      </section>
+    </main>
+  </div>
+  <script src="/js/menu.js"></script>
+</body>
+</html>

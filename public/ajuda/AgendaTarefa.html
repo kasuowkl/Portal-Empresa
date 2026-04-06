@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <!--
   ARQUIVO: public/ajuda/AgendaTarefa.html
-  VERSÃO:  1.1.0
-  DATA:    2026-03-10
+  VERSÃO:  1.2.0
+  DATA:    2026-03-30
   DESCRIÇÃO: Documentação da Agenda de Tarefas
 -->
 <html lang="pt-BR">
@@ -204,6 +204,10 @@
         <a href="#visao-geral">Visão Geral</a>
         <a href="#listas">Listas</a>
         <a href="#tarefas">Tarefas</a>
+        <a href="#passos">Passos / Checklist</a>
+        <a href="#anexos">Anexos</a>
+        <a href="#reordenar">Reordenar Passos</a>
+        <a href="#transferir">Transferir Tarefa</a>
         <a href="#kanban">Vista Kanban</a>
         <a href="#categorias">Categorias</a>
         <a href="#compartilhar">Compartilhar</a>
@@ -265,9 +269,96 @@
             <li><strong>Prioridade</strong> — Baixa, Média ou Alta</li>
             <li><strong>Categoria</strong> — agrupamento personalizado</li>
             <li><strong>Status</strong> — A Fazer, Em Andamento ou Concluída</li>
+            <li><strong>Passos</strong> — checklist de etapas da tarefa</li>
+            <li><strong>Anexos</strong> — arquivos vinculados à tarefa</li>
           </ul>
         </div>
-        <p>Para <strong>mover o status</strong> de uma tarefa, use os botões de ação na lista ou arraste o card no Kanban. Para <strong>editar</strong>, clique no ícone de lápis. Para <strong>excluir</strong>, clique no ícone de lixeira.</p>
+        <p>Para <strong>mover o status</strong> de uma tarefa, use o checkbox na vista lista ou arraste o card no Kanban. Para <strong>editar</strong>, clique no título ou no ícone de lápis. Para <strong>excluir</strong>, clique no ícone de lixeira.</p>
+      </section>
+
+      <!-- PASSOS -->
+      <section class="doc-secao" id="passos">
+        <h2><i class="fas fa-list-check"></i> Passos / Checklist</h2>
+        <p>Cada tarefa pode ter uma lista de <strong>passos</strong> (etapas ou sub-atividades). Os passos são exibidos dentro do modal de edição da tarefa e mostram uma barra de progresso no card Kanban e na vista lista.</p>
+
+        <p><strong>Como adicionar um passo:</strong></p>
+        <div class="passo"><div class="passo-num">1</div><div class="passo-txt">Abra uma tarefa para edição.</div></div>
+        <div class="passo"><div class="passo-num">2</div><div class="passo-txt">Na seção <strong>Passos</strong>, digite o texto no campo <em>"Adicionar passo..."</em> e pressione <strong>Enter</strong> ou clique no botão <i class="fas fa-plus"></i>.</div></div>
+        <div class="passo"><div class="passo-num">3</div><div class="passo-txt">Clique em <strong>Salvar</strong> na tarefa para confirmar.</div></div>
+
+        <p><strong>Ações disponíveis em cada passo:</strong></p>
+        <div class="doc-card">
+          <ul style="margin:0; padding-left:18px">
+            <li><strong>Checkbox</strong> — marca o passo como concluído (salvo imediatamente, sem precisar salvar a tarefa)</li>
+            <li><strong>Editar</strong> — altera o texto e define colaboradores responsáveis pelo passo</li>
+            <li><strong>Excluir</strong> — remove o passo permanentemente</li>
+          </ul>
+        </div>
+        <div class="doc-info">
+          <i class="fas fa-info-circle" style="color:#8b5cf6; margin-right:6px"></i>
+          A barra de progresso no topo da caixa de passos e nos cards Kanban reflete automaticamente quantos passos foram concluídos.
+        </div>
+      </section>
+
+      <!-- ANEXOS -->
+      <section class="doc-secao" id="anexos">
+        <h2><i class="fas fa-paperclip"></i> Anexos</h2>
+        <p>É possível anexar arquivos a qualquer tarefa existente. Os arquivos são armazenados diretamente no banco de dados como Base64.</p>
+
+        <p><strong>Como anexar um arquivo:</strong></p>
+        <div class="passo"><div class="passo-num">1</div><div class="passo-txt">Abra uma tarefa existente para edição (a tarefa precisa ter sido salva antes).</div></div>
+        <div class="passo"><div class="passo-num">2</div><div class="passo-txt">Na seção <strong>Anexos</strong>, clique em <em>"Escolher arquivo"</em> e selecione um ou mais arquivos.</div></div>
+        <div class="passo"><div class="passo-num">3</div><div class="passo-txt">Clique no botão <i class="fas fa-upload"></i> para enviar. Os arquivos aparecem listados imediatamente.</div></div>
+
+        <p><strong>Como baixar um anexo:</strong> clique no nome do arquivo na lista de anexos — o download é iniciado automaticamente.</p>
+        <p><strong>Como excluir um anexo:</strong> clique no ícone <i class="fas fa-times"></i> ao lado do arquivo e confirme.</p>
+
+        <div class="doc-warn">
+          <i class="fas fa-exclamation-triangle" style="color:#f59e0b; margin-right:6px"></i>
+          Por serem armazenados como Base64, arquivos muito grandes (acima de alguns MB) podem impactar o desempenho. Recomenda-se uso para documentos leves como PDFs, imagens e planilhas pequenas.
+        </div>
+        <div class="doc-info">
+          <i class="fas fa-info-circle" style="color:#8b5cf6; margin-right:6px"></i>
+          Os anexos são excluídos automaticamente ao excluir a tarefa ou a lista.
+        </div>
+      </section>
+
+      <!-- REORDENAR PASSOS -->
+      <section class="doc-secao" id="reordenar">
+        <h2><i class="fas fa-grip-vertical"></i> Reordenar Passos</h2>
+        <p>A ordem dos passos pode ser alterada livremente por <strong>arrastar e soltar</strong> (drag &amp; drop), sem precisar salvar a tarefa.</p>
+
+        <p><strong>Como reordenar:</strong></p>
+        <div class="passo"><div class="passo-num">1</div><div class="passo-txt">Abra uma tarefa para edição.</div></div>
+        <div class="passo"><div class="passo-num">2</div><div class="passo-txt">Passe o mouse sobre um passo — o ícone <i class="fas fa-grip-vertical"></i> aparece à esquerda.</div></div>
+        <div class="passo"><div class="passo-num">3</div><div class="passo-txt">Clique e arraste o passo para a posição desejada. Uma linha azul indica onde ele será inserido.</div></div>
+        <div class="passo"><div class="passo-num">4</div><div class="passo-txt">Solte. A nova ordem é salva automaticamente no banco de dados.</div></div>
+
+        <div class="doc-info">
+          <i class="fas fa-info-circle" style="color:#8b5cf6; margin-right:6px"></i>
+          A reordenação é disponível apenas para usuários com permissão de <strong>Edição</strong> ou <strong>Dono</strong> da lista.
+        </div>
+      </section>
+
+      <!-- TRANSFERIR TAREFA -->
+      <section class="doc-secao" id="transferir">
+        <h2><i class="fas fa-exchange-alt"></i> Transferir Tarefa</h2>
+        <p>Uma tarefa pode ser movida para outra lista, mantendo todos os seus <strong>passos</strong> e <strong>anexos</strong> intactos.</p>
+
+        <p><strong>Como transferir:</strong></p>
+        <div class="passo"><div class="passo-num">1</div><div class="passo-txt">Abra a tarefa para edição.</div></div>
+        <div class="passo"><div class="passo-num">2</div><div class="passo-txt">Clique no botão <strong><i class="fas fa-exchange-alt"></i> Transferir</strong> no rodapé esquerdo do modal.</div></div>
+        <div class="passo"><div class="passo-num">3</div><div class="passo-txt">Selecione a <strong>lista de destino</strong> no seletor (apenas listas onde você tem permissão de Edição ou Dono são listadas).</div></div>
+        <div class="passo"><div class="passo-num">4</div><div class="passo-txt">Clique em <strong>Transferir</strong> e confirme. A tarefa desaparece da lista atual e passa a existir na lista de destino.</div></div>
+
+        <div class="doc-warn">
+          <i class="fas fa-exclamation-triangle" style="color:#f59e0b; margin-right:6px"></i>
+          Você precisa ter permissão de <strong>Edição</strong> ou <strong>Dono</strong> tanto na lista de origem quanto na lista de destino para poder transferir.
+        </div>
+        <div class="doc-info">
+          <i class="fas fa-info-circle" style="color:#8b5cf6; margin-right:6px"></i>
+          A transferência é registrada no log de auditoria com a indicação das listas de origem e destino.
+        </div>
       </section>
 
       <!-- KANBAN -->
@@ -323,9 +414,10 @@
           <tbody>
             <tr><td>Lista criada</td><td>Nome da lista</td></tr>
             <tr><td>Lista excluída</td><td>Nome da lista</td></tr>
-            <tr><td>Tarefa criada</td><td>Título da tarefa e lista de destino</td></tr>
+            <tr><td>Tarefa criada</td><td>Título da tarefa e lista</td></tr>
             <tr><td>Tarefa concluída</td><td>Título da tarefa</td></tr>
             <tr><td>Tarefa excluída</td><td>Título da tarefa</td></tr>
+            <tr><td>Tarefa transferida</td><td>Título da tarefa, lista de origem e lista de destino</td></tr>
           </tbody>
         </table>
       </section>
@@ -343,8 +435,11 @@
             </tr>
           </thead>
           <tbody>
-            <tr><td>Visualizar tarefas</td><td class="sim">✓</td><td class="sim">✓</td><td class="sim">✓</td></tr>
+            <tr><td>Visualizar tarefas e passos</td><td class="sim">✓</td><td class="sim">✓</td><td class="sim">✓</td></tr>
             <tr><td>Criar / editar / excluir tarefas</td><td class="sim">✓</td><td class="sim">✓</td><td class="nao">—</td></tr>
+            <tr><td>Adicionar / reordenar / excluir passos</td><td class="sim">✓</td><td class="sim">✓</td><td class="nao">—</td></tr>
+            <tr><td>Adicionar / baixar / excluir anexos</td><td class="sim">✓</td><td class="sim">✓</td><td class="nao">—</td></tr>
+            <tr><td>Transferir tarefa para outra lista</td><td class="sim">✓</td><td class="sim">✓</td><td class="nao">—</td></tr>
             <tr><td>Gerenciar categorias</td><td class="sim">✓</td><td class="sim">✓</td><td class="nao">—</td></tr>
             <tr><td>Adicionar / remover membros</td><td class="sim">✓</td><td class="nao">—</td><td class="nao">—</td></tr>
             <tr><td>Editar / excluir a lista</td><td class="sim">✓</td><td class="nao">—</td><td class="nao">—</td></tr>

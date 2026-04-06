@@ -490,4 +490,35 @@ router.delete('/api/patrimonio/permissoes/:usuario', verificarLogin, verificarAd
   } catch (e) { res.status(500).json({ erro: e.message }); }
 });
 
+// Buscar dados de contato de uma pessoa (para termos)
+router.get('/api/patrimonio/contato/:nome', verificarLogin, async (req, res) => {
+  try {
+    const pool = req.app.locals.pool;
+    const nome = decodeURIComponent(req.params.nome);
+    // Busca em usuarios_dominio
+    let r = await pool.request()
+      .input('nome', sql.NVarChar, nome)
+      .query(`SELECT TOP 1 email, departamento, whatsapp FROM usuarios_dominio WHERE nome = @nome AND ativo = 1`);
+    if (r.recordset[0]) {
+      return res.json({ sucesso: true, email: r.recordset[0].email || '', telefone: r.recordset[0].whatsapp || '', departamento: r.recordset[0].departamento || '' });
+    }
+    // Busca em contatos
+    r = await pool.request()
+      .input('nome', sql.NVarChar, nome)
+      .query(`SELECT TOP 1 email_corporativo, email_pessoal, cel_corporativo, cel_pessoal, whatsapp, departamento FROM contatos WHERE nome = @nome`);
+    if (r.recordset[0]) {
+      const c = r.recordset[0];
+      return res.json({ sucesso: true, email: c.email_corporativo || c.email_pessoal || '', telefone: c.cel_corporativo || c.cel_pessoal || c.whatsapp || '', departamento: c.departamento || '' });
+    }
+    // Busca em usuarios locais
+    r = await pool.request()
+      .input('nome', sql.NVarChar, nome)
+      .query(`SELECT TOP 1 whatsapp FROM usuarios WHERE nome = @nome AND ativo = 1`);
+    if (r.recordset[0]) {
+      return res.json({ sucesso: true, email: '', telefone: r.recordset[0].whatsapp || '', departamento: '' });
+    }
+    res.json({ sucesso: true, email: '', telefone: '', departamento: '' });
+  } catch (e) { res.status(500).json({ erro: e.message }); }
+});
+
 module.exports = router;

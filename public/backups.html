@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portal WKL - Backups</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/menu.css">
+  <style>
+    .bk-wrap { max-width: 1200px; margin: 32px auto; padding: 0 24px 32px; }
+    .bk-hero { display:flex; justify-content:space-between; align-items:flex-start; gap:20px; margin-bottom:24px; }
+    .bk-hero h1 { font-size: 28px; margin: 0 0 8px; display:flex; align-items:center; gap:12px; }
+    .bk-hero h1 i { color: var(--cor-destaque); }
+    .bk-hero p { color: var(--cor-texto-fraco); margin:0; max-width:700px; }
+    .bk-actions { display:flex; gap:10px; flex-wrap:wrap; }
+    .bk-btn { display:inline-flex; align-items:center; gap:8px; padding:10px 14px; border-radius:8px; border:1px solid var(--cor-borda); background:var(--cor-fundo-2); color:var(--cor-texto); text-decoration:none; cursor:pointer; }
+    .bk-btn:hover { border-color: var(--cor-destaque); color: var(--cor-texto); }
+    .bk-summary { display:grid; grid-template-columns: repeat(4, 1fr); gap:12px; margin-bottom:24px; }
+    .bk-card { background:var(--cor-fundo-2); border:1px solid var(--cor-borda); border-radius:12px; padding:16px; }
+    .bk-card span { display:block; font-size:11px; text-transform:uppercase; letter-spacing:1px; color:var(--cor-texto-fraco); margin-bottom:6px; }
+    .bk-card strong { font-size:24px; }
+    .bk-filters { display:grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap:12px; margin-bottom:20px; }
+    .bk-input, .bk-select { width:100%; padding:11px 12px; border-radius:8px; border:1px solid var(--cor-borda); background:var(--cor-fundo-2); color:var(--cor-texto); }
+    .bk-group { background:var(--cor-fundo-2); border:1px solid var(--cor-borda); border-radius:14px; margin-bottom:18px; overflow:hidden; }
+    .bk-group-header { display:flex; justify-content:space-between; align-items:center; gap:12px; padding:16px 18px; border-bottom:1px solid var(--cor-borda); background:rgba(78,154,241,0.05); }
+    .bk-group-header h3 { margin:0; font-size:16px; }
+    .bk-group-header small { color:var(--cor-texto-fraco); }
+    .bk-table-wrap { overflow:auto; }
+    .bk-table { width:100%; border-collapse:collapse; min-width:900px; }
+    .bk-table th, .bk-table td { padding:12px 14px; border-bottom:1px solid var(--cor-borda); text-align:left; font-size:13px; }
+    .bk-table th { color:var(--cor-texto-fraco); font-weight:600; text-transform:uppercase; font-size:11px; letter-spacing:1px; }
+    .bk-table td code { color:#9ecbff; }
+    .bk-chip { display:inline-flex; align-items:center; padding:4px 10px; border-radius:999px; border:1px solid rgba(78,154,241,0.25); background:rgba(78,154,241,0.12); color:#84bbff; font-size:11px; }
+    .bk-empty, .bk-info { background:var(--cor-fundo-2); border:1px solid var(--cor-borda); border-radius:12px; padding:18px; color:var(--cor-texto-fraco); }
+    .bk-copy { background:none; border:none; color:var(--cor-destaque); cursor:pointer; font-size:12px; }
+    .bk-restore-link { color:var(--cor-destaque); cursor:pointer; font-size:12px; text-decoration:none; background:none; border:none; }
+    .bk-modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.65); z-index:2000; align-items:center; justify-content:center; padding:20px; }
+    .bk-modal-overlay.visivel { display:flex; }
+    .bk-modal { width:min(760px, 100%); background:var(--cor-fundo-2); border:1px solid var(--cor-borda); border-radius:14px; overflow:hidden; }
+    .bk-modal-head { display:flex; justify-content:space-between; align-items:center; gap:12px; padding:16px 18px; border-bottom:1px solid var(--cor-borda); }
+    .bk-modal-head h3 { margin:0; font-size:18px; }
+    .bk-modal-close { background:none; border:none; color:var(--cor-texto-fraco); font-size:18px; cursor:pointer; }
+    .bk-modal-body { padding:18px; }
+    .bk-modal-grid { display:grid; grid-template-columns:1fr; gap:12px; margin-bottom:14px; }
+    .bk-label { display:block; font-size:11px; text-transform:uppercase; letter-spacing:1px; color:var(--cor-texto-fraco); margin-bottom:6px; }
+    .bk-textarea { width:100%; min-height:92px; resize:vertical; padding:12px; border-radius:8px; border:1px solid var(--cor-borda); background:#0f172a; color:#dbeafe; font-family:Consolas, monospace; font-size:13px; }
+    .bk-modal-actions { display:flex; gap:10px; flex-wrap:wrap; }
+    @media (max-width: 900px) {
+      .bk-hero { flex-direction:column; }
+      .bk-summary { grid-template-columns: repeat(2, 1fr); }
+      .bk-filters { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div id="menu-container"></div>
+  <div class="bk-wrap">
+    <div class="bk-hero">
+      <div>
+        <h1><i class="fas fa-clock-rotate-left"></i> Backups do Portal</h1>
+        <p>Lista os backups de publicacao e os backups agendados do servidor. Use esta pagina para localizar rapidamente caminhos de restauracao e downloads disponiveis.</p>
+      </div>
+      <div class="bk-actions">
+        <button class="bk-btn" onclick="carregarBackups()"><i class="fas fa-rotate"></i> Atualizar</button>
+        <a class="bk-btn" href="/ajuda/VersionamentoBackup.html"><i class="fas fa-book"></i> Ver Guia</a>
+      </div>
+    </div>
+
+    <div class="bk-summary">
+      <div class="bk-card"><span>Total de arquivos</span><strong id="sum-total">0</strong></div>
+      <div class="bk-card"><span>Grupos</span><strong id="sum-groups">0</strong></div>
+      <div class="bk-card"><span>Nightly</span><strong id="sum-nightly">0</strong></div>
+      <div class="bk-card"><span>Ultima atualizacao</span><strong id="sum-updated" style="font-size:15px">-</strong></div>
+    </div>
+
+    <div class="bk-filters">
+      <input id="filtro-busca" class="bk-input" placeholder="Buscar por arquivo, pasta ou caminho..." oninput="renderizarBackups()">
+      <select id="filtro-tipo" class="bk-select" onchange="renderizarBackups()">
+        <option value="">Todos os tipos</option>
+        <option value="published">Publicados</option>
+        <option value="nightly">Nightly</option>
+      </select>
+      <select id="filtro-grupo" class="bk-select" onchange="renderizarBackups()">
+        <option value="">Todos os grupos</option>
+      </select>
+      <select id="filtro-modulo" class="bk-select" onchange="renderizarBackups()">
+        <option value="">Todos os modulos</option>
+      </select>
+    </div>
+
+    <div class="bk-info" style="margin-bottom:18px">
+      <strong style="color:var(--cor-texto)">Dica:</strong> para restaurar um arquivo publicado, copie o caminho do backup e use o script <code>restore-from-backup.ps1</code>.
+    </div>
+
+    <div id="bk-container" class="bk-empty">Carregando backups...</div>
+  </div>
+
+  <div id="bk-modal-overlay" class="bk-modal-overlay">
+    <div class="bk-modal">
+      <div class="bk-modal-head">
+        <h3><i class="fas fa-rotate-left" style="color:var(--cor-destaque)"></i> Restore Guiado</h3>
+        <button class="bk-modal-close" onclick="fecharRestoreModal()"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="bk-modal-body">
+        <div class="bk-modal-grid">
+          <div>
+            <span class="bk-label">Backup selecionado</span>
+            <textarea id="restore-backup-path" class="bk-textarea" readonly></textarea>
+          </div>
+          <div>
+            <span class="bk-label">Destino sugerido</span>
+            <textarea id="restore-target-path" class="bk-textarea" readonly></textarea>
+          </div>
+          <div>
+            <span class="bk-label">Comando PowerShell sugerido</span>
+            <textarea id="restore-command" class="bk-textarea" readonly></textarea>
+          </div>
+        </div>
+        <div class="bk-modal-actions">
+          <button class="bk-btn" onclick="copiarRestore('restore-backup-path')"><i class="fas fa-copy"></i> Copiar Backup</button>
+          <button class="bk-btn" onclick="copiarRestore('restore-target-path')"><i class="fas fa-copy"></i> Copiar Destino</button>
+          <button class="bk-btn" onclick="copiarRestore('restore-command')"><i class="fas fa-terminal"></i> Copiar Comando</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/menu.js"></script>
+  <script>
+    let todosBackups = [];
+
+    function formatarBytes(bytes) {
+      if (!bytes && bytes !== 0) return '-';
+      if (bytes < 1024) return bytes + ' B';
+      if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+      if (bytes < 1024 * 1024 * 1024) return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+      return (bytes / (1024 * 1024 * 1024)).toFixed(2) + ' GB';
+    }
+
+    function formatarData(valor) {
+      if (!valor) return '-';
+      const d = new Date(valor);
+      if (Number.isNaN(d.getTime())) return valor;
+      return d.toLocaleString('pt-BR');
+    }
+
+    function escapeHtml(texto) {
+      return String(texto || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    function copiarTexto(texto) {
+      navigator.clipboard.writeText(texto).then(() => {
+        alert('Caminho copiado.');
+      }).catch(() => {
+        alert('Nao foi possivel copiar automaticamente.');
+      });
+    }
+
+    function atualizarResumo(itens) {
+      document.getElementById('sum-total').textContent = itens.length;
+      document.getElementById('sum-groups').textContent = new Set(itens.map(i => i.group)).size;
+      document.getElementById('sum-nightly').textContent = itens.filter(i => i.type === 'nightly').length;
+      document.getElementById('sum-updated').textContent = formatarData(new Date().toISOString());
+    }
+
+    function preencherFiltros(itens) {
+      const select = document.getElementById('filtro-grupo');
+      const atual = select.value;
+      const grupos = [...new Set(itens.map(i => i.group).filter(Boolean))].sort();
+      select.innerHTML = '<option value="">Todos os grupos</option>' + grupos.map(g => `<option value="${escapeHtml(g)}">${escapeHtml(g)}</option>`).join('');
+      if (grupos.includes(atual)) select.value = atual;
+
+      const selectModulo = document.getElementById('filtro-modulo');
+      const atualModulo = selectModulo.value;
+      const modulos = [...new Set(itens.map(i => i.module).filter(Boolean))].sort();
+      selectModulo.innerHTML = '<option value="">Todos os modulos</option>' + modulos.map(m => `<option value="${escapeHtml(m)}">${escapeHtml(m)}</option>`).join('');
+      if (modulos.includes(atualModulo)) selectModulo.value = atualModulo;
+    }
+
+    function renderizarBackups() {
+      const busca = document.getElementById('filtro-busca').value.trim().toLowerCase();
+      const tipo = document.getElementById('filtro-tipo').value;
+      const grupo = document.getElementById('filtro-grupo').value;
+      const modulo = document.getElementById('filtro-modulo').value;
+
+      const filtrados = todosBackups.filter(item => {
+        if (tipo && item.type !== tipo) return false;
+        if (grupo && item.group !== grupo) return false;
+        if (modulo && item.module !== modulo) return false;
+        if (!busca) return true;
+
+        const alvo = [item.fileName, item.relativePath, item.group, item.directory, item.module].join(' ').toLowerCase();
+        return alvo.includes(busca);
+      });
+
+      atualizarResumo(filtrados);
+
+      const container = document.getElementById('bk-container');
+      if (!filtrados.length) {
+        container.className = 'bk-empty';
+        container.innerHTML = 'Nenhum backup encontrado com os filtros atuais.';
+        return;
+      }
+
+      const grupos = new Map();
+      for (const item of filtrados) {
+        if (!grupos.has(item.group)) grupos.set(item.group, []);
+        grupos.get(item.group).push(item);
+      }
+
+      container.className = '';
+      container.innerHTML = [...grupos.entries()].map(([nomeGrupo, itens]) => `
+        <div class="bk-group">
+          <div class="bk-group-header">
+            <div>
+              <h3>${escapeHtml(nomeGrupo)}</h3>
+              <small>${itens.length} backup(s)</small>
+            </div>
+            <span class="bk-chip">${itens[0].type === 'nightly' ? 'Nightly' : 'Publicacao'}</span>
+          </div>
+          <div class="bk-table-wrap">
+            <table class="bk-table">
+              <thead>
+                <tr>
+                  <th>Arquivo</th>
+                  <th>Modulo</th>
+                  <th>Data</th>
+                  <th>Tamanho</th>
+                  <th>Caminho</th>
+                  <th>Acao</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${itens.map(item => `
+                  <tr>
+                    <td>${escapeHtml(item.fileName)}</td>
+                    <td>${escapeHtml(item.module || '-')}</td>
+                    <td>${escapeHtml(formatarData(item.modifiedAt))}</td>
+                    <td>${escapeHtml(formatarBytes(item.size))}</td>
+                    <td><code>${escapeHtml(item.relativePath)}</code></td>
+                    <td>
+                      <button class="bk-copy" onclick="copiarTexto('${escapeHtml(item.fullPath).replace(/&#039;/g, "\\'")}')">Copiar caminho</button>
+                      ${item.targetPath ? ` | <button class="bk-restore-link" onclick="abrirRestoreModal('${escapeHtml(item.fullPath).replace(/&#039;/g, "\\'")}', '${escapeHtml(item.targetPath).replace(/&#039;/g, "\\'")}')">Restore guiado</button>` : ''}
+                      ${item.downloadUrl ? ` | <a class="bk-copy" href="${escapeHtml(item.downloadUrl)}">Baixar</a>` : ''}
+                    </td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    async function carregarBackups() {
+      const container = document.getElementById('bk-container');
+      container.className = 'bk-empty';
+      container.innerHTML = 'Carregando backups...';
+
+      try {
+        const resp = await fetch('/api/backups');
+        const dados = await resp.json();
+        if (!resp.ok) throw new Error(dados.erro || 'Erro ao carregar backups.');
+
+        todosBackups = dados.backups || [];
+        preencherFiltros(todosBackups);
+        renderizarBackups();
+      } catch (erro) {
+        container.className = 'bk-empty';
+        container.innerHTML = escapeHtml(erro.message || 'Erro ao carregar backups.');
+      }
+    }
+
+    function abrirRestoreModal(backupPath, targetPath) {
+      const comando = `.\\scripts\\restore-from-backup.ps1 \`\n  -BackupPath "${backupPath}" \`\n  -TargetPath "${targetPath}" \`\n  -RestartPortal`;
+      document.getElementById('restore-backup-path').value = backupPath;
+      document.getElementById('restore-target-path').value = targetPath;
+      document.getElementById('restore-command').value = comando;
+      document.getElementById('bk-modal-overlay').classList.add('visivel');
+    }
+
+    function fecharRestoreModal() {
+      document.getElementById('bk-modal-overlay').classList.remove('visivel');
+    }
+
+    function copiarRestore(id) {
+      copiarTexto(document.getElementById(id).value);
+    }
+
+    document.getElementById('bk-modal-overlay').addEventListener('click', function (e) {
+      if (e.target === this) fecharRestoreModal();
+    });
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') fecharRestoreModal();
+    });
+
+    carregarBackups();
+  </script>
+</body>
+</html>

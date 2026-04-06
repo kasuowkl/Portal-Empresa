@@ -1,0 +1,1096 @@
+<!DOCTYPE html>
+<!--
+  ARQUIVO: public/agendaProjetos/index.html
+  VERSÃO:  2.0.0
+  DATA:    2026-03-31
+  DESCRIÇÃO: Agenda Projetos — Kanban + Lista + configuração de colunas
+-->
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agenda Projetos — Portal WKL</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/menu.css">
+  <link rel="stylesheet" href="/agendaProjetos/css/agendaProjetos.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    /* ── Toolbar ─────────────────────────────────── */
+    .proj-toolbar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 18px;
+    }
+    .proj-toolbar-left  { display:flex; align-items:center; gap:8px; flex:1; flex-wrap:wrap; }
+    .proj-toolbar-right { display:flex; align-items:center; gap:8px; }
+
+    .btn-view {
+      display: flex; align-items: center; gap: 6px;
+      padding: 7px 14px; border-radius: var(--raio);
+      border: 1px solid var(--cor-borda);
+      background: var(--cor-fundo-2); color: var(--cor-texto-fraco);
+      cursor: pointer; font-size: 0.83rem; transition: .15s;
+    }
+    .btn-view:hover  { color: var(--cor-texto); border-color: var(--cor-destaque); }
+    .btn-view.ativo  { background: var(--cor-destaque); color: #fff; border-color: var(--cor-destaque); }
+
+    /* ── Kanban ──────────────────────────────────── */
+    .kanban-board {
+      display: flex; gap: 14px;
+      align-items: flex-start; min-height: 400px;
+      width: 100%;
+    }
+    .kanban-col {
+      flex: 1 1 0; min-width: 0; background: var(--cor-fundo-2);
+      border-radius: var(--raio); border: 1px solid var(--cor-borda);
+      display: flex; flex-direction: column;
+    }
+    .kanban-col-header {
+      padding: 12px 14px; border-bottom: 1px solid var(--cor-borda);
+      display: flex; align-items: center; gap: 8px; border-radius: var(--raio) var(--raio) 0 0;
+    }
+    .kanban-col-dot   { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+    .kanban-col-label { font-weight:600; font-size:0.88rem; flex:1; }
+    .kanban-col-count {
+      background: rgba(255,255,255,.1); color: var(--cor-texto-fraco);
+      font-size: 0.75rem; padding: 2px 7px; border-radius: 99px;
+    }
+    .kanban-col-body {
+      padding: 10px; display: flex; flex-direction: column; gap: 8px;
+      min-height: 80px; flex: 1;
+    }
+    .kanban-col-body.drag-over { background: rgba(59,130,246,.07); border-radius: 0 0 var(--raio) var(--raio); }
+
+    /* ── Kanban card ─────────────────────────────── */
+    .kanban-proj-card {
+      background: var(--cor-fundo); border-radius: var(--raio);
+      border: 1px solid var(--cor-borda); border-left: 4px solid #3b82f6;
+      padding: 10px 12px; cursor: pointer; transition: .15s;
+      user-select: none;
+    }
+    .kanban-proj-card:hover { border-color: var(--cor-destaque); transform: translateY(-1px); }
+    .kanban-proj-card.dragging { opacity: .45; }
+    .kanban-proj-card-nome { font-size:.88rem; font-weight:600; color:var(--cor-texto); margin-bottom:5px; }
+    .kanban-proj-card-desc { font-size:.76rem; color:var(--cor-texto-fraco); margin-bottom:7px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .kanban-proj-card-progress { height:3px; background:rgba(255,255,255,.1); border-radius:99px; margin-bottom:8px; overflow:hidden; }
+    .kanban-proj-card-progress-fill { height:100%; border-radius:99px; background:var(--cor-destaque); }
+    .kanban-proj-card-footer { display:flex; align-items:center; justify-content:space-between; gap:8px; }
+    .kanban-proj-card-stats { display:flex; gap:10px; font-size:.73rem; color:var(--cor-texto-fraco); }
+    .kanban-proj-card-acoes { display:flex; gap:4px; }
+    .kanban-col-add {
+      margin: 8px; padding: 7px;
+      border: 1px dashed var(--cor-borda); border-radius: var(--raio);
+      text-align: center; font-size: .8rem; color: var(--cor-texto-fraco);
+      cursor: pointer; transition: .15s;
+    }
+    .kanban-col-add:hover { border-color: var(--cor-destaque); color: var(--cor-destaque); background: rgba(59,130,246,.06); }
+
+    /* ── Lista view ─────────────────────────────── */
+    .proj-list-table { width:100%; border-collapse:collapse; }
+    .proj-list-table th {
+      text-align:left; padding:8px 12px; font-size:.75rem; font-weight:600;
+      color:var(--cor-texto-fraco); text-transform:uppercase; letter-spacing:.05em;
+      border-bottom:1px solid var(--cor-borda);
+    }
+    .proj-list-table td { padding:9px 12px; border-bottom:1px solid rgba(255,255,255,.04); vertical-align:middle; }
+    .proj-list-table tr:hover td { background:rgba(255,255,255,.025); }
+    .proj-list-table tr { cursor:pointer; }
+    .proj-list-nome { font-size:.87rem; font-weight:600; color:var(--cor-texto); }
+    .proj-list-desc { font-size:.76rem; color:var(--cor-texto-fraco); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:260px; }
+    .proj-list-progress { display:flex; align-items:center; gap:8px; }
+    .proj-list-progress-bar { flex:1; height:5px; background:rgba(255,255,255,.1); border-radius:99px; overflow:hidden; min-width:80px; }
+    .proj-list-progress-fill { height:100%; border-radius:99px; background:var(--cor-destaque); }
+
+    /* ── Config colunas ──────────────────────────── */
+    .col-cfg-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 12px; border-radius: var(--raio);
+      background: var(--cor-fundo); border: 1px solid var(--cor-borda);
+      margin-bottom: 8px;
+    }
+    .col-cfg-dot { width:14px; height:14px; border-radius:50%; flex-shrink:0; border:2px solid rgba(255,255,255,.2); cursor:pointer; }
+    .col-cfg-input { flex:1; background:transparent; border:none; color:var(--cor-texto); font-size:.88rem; padding:0; outline:none; }
+    .col-cfg-color { width:24px; height:24px; border-radius:50%; cursor:pointer; border:2px solid rgba(255,255,255,.2); overflow:hidden; flex-shrink:0; position:relative; }
+    .col-cfg-color input[type=color] { position:absolute; inset:0; opacity:0; cursor:pointer; width:100%; height:100%; border:none; padding:0; }
+    .col-cfg-toggle { cursor:pointer; color:var(--cor-texto-fraco); font-size:.85rem; }
+    .col-cfg-toggle.ativo { color:var(--cor-sucesso); }
+
+    /* ── Toast ──────────────────────────────────── */
+    #toast-container {
+      position: fixed; top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 9999; display: flex; flex-direction: column; gap: 12px;
+      align-items: center;
+      pointer-events: none;
+    }
+    .toast {
+      background: var(--cor-fundo-2); border: 1px solid var(--cor-borda);
+      border-radius: 12px; padding: 20px 28px;
+      color: var(--cor-texto); box-shadow: 0 8px 40px rgba(0,0,0,.6);
+      display: flex; align-items: center; gap: 14px;
+      pointer-events: all; min-width: 380px; max-width: 520px;
+      transition: opacity .3s, transform .3s;
+    }
+    .toast-info    { border-left: 4px solid var(--cor-destaque); }
+    .toast-aviso   { border-left: 4px solid #f59e0b; }
+    .toast-sucesso { border-left: 4px solid var(--cor-sucesso); }
+    @keyframes toast-in { from { opacity:0; transform:scale(.9); } to { opacity:1; transform:none; } }
+    .toast { animation: toast-in .3s ease; }
+
+    /* ── Approval badge ─────────────────────────── */
+    .badge-aprov {
+      font-size: .7rem; padding: 2px 8px; border-radius: 99px;
+      margin-bottom: 6px; display: inline-block; font-weight: 600;
+    }
+    .badge-aprov-pendente  { background: rgba(245,158,11,.15); color: #f59e0b; }
+    .badge-aprov-aprovado  { background: rgba(76,175,80,.15);  color: var(--cor-sucesso); }
+    .badge-aprov-reprovado { background: rgba(233,69,96,.15);  color: var(--cor-erro); }
+    .kanban-proj-card.bloqueado { opacity: .85; cursor: default; }
+    .kanban-proj-card.bloqueado:hover { transform: none; }
+  </style>
+</head>
+<body>
+  <div id="menu-container"></div>
+
+  <main class="conteudo-principal">
+    <div class="proj-container">
+
+      <!-- Cabeçalho -->
+      <div class="proj-header" style="margin-bottom:14px;">
+        <h1><i class="fas fa-project-diagram"></i> Agenda Projetos</h1>
+      </div>
+
+      <!-- Toolbar -->
+      <div class="proj-toolbar">
+        <div class="proj-toolbar-left">
+          <!-- Alternador de view -->
+          <button class="btn-view ativo" id="btn-view-kanban" onclick="setView('kanban')">
+            <i class="fas fa-columns"></i> Kanban
+          </button>
+          <button class="btn-view" id="btn-view-lista" onclick="setView('lista')">
+            <i class="fas fa-list"></i> Lista
+          </button>
+
+          <!-- Filtro de status (só na lista) -->
+          <select id="filtro-status" class="input-campo" style="width:auto;font-size:0.83rem;display:none;" onchange="renderView()">
+            <option value="">Todos os status</option>
+            <option value="planejado">Planejado</option>
+            <option value="em_andamento">Em Andamento</option>
+            <option value="concluido">Concluído</option>
+            <option value="pausado">Pausado</option>
+          </select>
+        </div>
+        <div class="proj-toolbar-right">
+          <button class="btn-view" onclick="abrirModalColunas()" title="Configurar colunas do Kanban" id="btn-cfg-colunas">
+            <i class="fas fa-sliders-h"></i> Configurar
+          </button>
+          <button class="btn-primario" onclick="abrirModalProjeto()">
+            <i class="fas fa-plus"></i> Novo Projeto
+          </button>
+        </div>
+      </div>
+
+      <!-- Mensagem de feedback -->
+      <div id="mensagem-feedback" class="feedback oculto"></div>
+
+      <!-- Kanban view -->
+      <div id="view-kanban">
+        <div class="kanban-board" id="kanban-board"></div>
+      </div>
+
+      <!-- Lista view -->
+      <div id="view-lista" style="display:none;">
+        <div id="proj-grid" class="proj-grid"></div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- ======================================================
+       MODAL — CRIAR / EDITAR PROJETO
+  ====================================================== -->
+  <div id="modal-projeto" class="modal oculto">
+    <div class="modal-box" style="max-width:520px;">
+      <div class="modal-header">
+        <h3 id="modal-projeto-titulo">Novo Projeto</h3>
+        <button onclick="fecharModalProjeto()" class="btn-fechar"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="mp-id">
+        <div class="campo-grupo">
+          <label class="campo-label">Nome *</label>
+          <input type="text" id="mp-nome" class="input-campo" placeholder="Nome do projeto" maxlength="200">
+        </div>
+        <div class="campo-grupo">
+          <label class="campo-label">Descrição</label>
+          <textarea id="mp-descricao" class="input-campo" rows="3" placeholder="Descreva o objetivo do projeto..."></textarea>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div class="campo-grupo">
+            <label class="campo-label">Data Início</label>
+            <input type="date" id="mp-data-inicio" class="input-campo">
+          </div>
+          <div class="campo-grupo">
+            <label class="campo-label">Data Fim</label>
+            <input type="date" id="mp-data-fim" class="input-campo">
+          </div>
+        </div>
+        <div class="campo-grupo" id="campo-status-projeto" style="display:none;">
+          <label class="campo-label">Status</label>
+          <select id="mp-status" class="input-campo">
+            <option value="planejado">Planejado</option>
+            <option value="em_andamento">Em Andamento</option>
+            <option value="concluido">Concluído</option>
+            <option value="pausado">Pausado</option>
+          </select>
+        </div>
+        <div class="campo-grupo">
+          <label class="campo-label">Cor</label>
+          <div class="cor-picker" id="cor-picker"></div>
+          <input type="hidden" id="mp-cor" value="#3b82f6">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button onclick="fecharModalProjeto()" class="btn-secundario">Cancelar</button>
+        <button onclick="salvarProjeto()" class="btn-primario" id="btn-salvar-projeto">Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================
+       MODAL — CONFIGURAR COLUNAS
+  ====================================================== -->
+  <div id="modal-colunas" class="modal oculto">
+    <div class="modal-box" style="max-width:460px;">
+      <div class="modal-header">
+        <h3><i class="fas fa-sliders-h"></i> Configurar Colunas Kanban</h3>
+        <button onclick="fecharModalColunas()" class="btn-fechar"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size:.82rem;color:var(--cor-texto-fraco);margin:0 0 14px;">
+          Personalize o nome, cor e visibilidade de cada coluna.
+        </p>
+        <div id="colunas-cfg-lista"></div>
+      </div>
+      <div class="modal-footer">
+        <button onclick="resetarColunas()" class="btn-secundario" style="margin-right:auto;">
+          <i class="fas fa-undo"></i> Restaurar padrão
+        </button>
+        <button onclick="fecharModalColunas()" class="btn-secundario">Cancelar</button>
+        <button onclick="salvarColunas()" class="btn-primario">Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================
+       MODAL — CONFIRMAR EXCLUSÃO
+  ====================================================== -->
+  <div id="modal-excluir" class="modal oculto">
+    <div class="modal-box" style="max-width:420px;">
+      <div class="modal-header">
+        <h3>Excluir Projeto</h3>
+        <button onclick="fecharModalExcluir()" class="btn-fechar"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="modal-body">
+        <p style="color:var(--cor-texto);margin:0;">
+          Tem certeza que deseja excluir o projeto <strong id="excluir-nome"></strong>?
+          <br><span style="font-size:0.82rem;color:var(--cor-texto-fraco);">As tarefas vinculadas serão desvinculadas (não excluídas).</span>
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button onclick="fecharModalExcluir()" class="btn-secundario">Cancelar</button>
+        <button onclick="confirmarExcluir()" class="btn-perigo">Excluir</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast container -->
+  <div id="toast-container"></div>
+
+  <!-- ======================================================
+       MODAL — SOLICITAR APROVAÇÃO
+  ====================================================== -->
+  <div id="modal-aprovacao" class="modal oculto">
+    <div class="modal-box" style="max-width:540px;">
+      <div class="modal-header">
+        <h3><i class="fas fa-check-double"></i> Solicitar Aprovação do Projeto</h3>
+        <button onclick="fecharModalAprovacao()" class="btn-fechar"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="aprov-projeto-id">
+        <p style="font-size:.83rem;color:var(--cor-texto-fraco);margin:0 0 14px;">
+          O projeto está 100% concluído. Envie para aprovação para finalizar oficialmente.
+        </p>
+        <div class="campo-grupo">
+          <label class="campo-label">Título *</label>
+          <input type="text" id="aprov-titulo" class="input-campo" placeholder="Ex: Aprovação final do projeto X" maxlength="200">
+        </div>
+        <div class="campo-grupo">
+          <label class="campo-label">Objetivo / Observações</label>
+          <textarea id="aprov-objetivo" class="input-campo" rows="2" placeholder="Descreva o que está sendo aprovado..."></textarea>
+        </div>
+        <div class="campo-grupo">
+          <label class="campo-label">Tipo de Consenso</label>
+          <select id="aprov-consenso" class="input-campo" onchange="atualizarCampoPercentual()">
+            <option value="unanimidade">Unanimidade (todos aprovam)</option>
+            <option value="maioria_simples">Maioria Simples (&gt;50%)</option>
+            <option value="percentual">Percentual específico</option>
+          </select>
+        </div>
+        <div class="campo-grupo" id="campo-percentual" style="display:none;">
+          <label class="campo-label">Percentual mínimo (%)</label>
+          <input type="number" id="aprov-percentual" class="input-campo" min="1" max="100" value="75" style="width:120px;">
+        </div>
+        <div class="campo-grupo">
+          <label class="campo-label">Aprovadores *</label>
+          <div id="aprov-chips" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;min-height:28px;"></div>
+          <div style="position:relative;">
+            <input type="text" id="aprov-search" class="input-campo" placeholder="Buscar usuário para adicionar..." autocomplete="off"
+                   oninput="filtrarUsuariosAprov(this.value)" onblur="setTimeout(()=>document.getElementById('aprov-sugestoes').style.display='none',150)">
+            <div id="aprov-sugestoes" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:200;
+                 background:var(--cor-fundo-2);border:1px solid var(--cor-borda);border-radius:var(--raio);
+                 max-height:160px;overflow-y:auto;margin-top:2px;box-shadow:0 4px 16px rgba(0,0,0,.4);"></div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button onclick="fecharModalAprovacao()" class="btn-secundario">Cancelar</button>
+        <button onclick="salvarAprovacao()" class="btn-primario" id="btn-salvar-aprovacao">
+          <i class="fas fa-paper-plane"></i> Enviar para Aprovação
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/menu.js"></script>
+  <script>
+  // ============================================================
+  // ESTADO
+  // ============================================================
+  let _projetos   = [];
+  let _excluirId  = null;
+  let _viewAtual  = localStorage.getItem('proj_view') || 'kanban';
+  let _dragId     = null;
+
+  // Aprovação
+  let _aprovacaoProjetoId = null;
+  let _aprovadoresChips   = [];
+  let _usuariosAprovacao  = [];
+  // Alertas: evita repetir o mesmo alerta na sessão
+  let _alertasDisparados  = new Set();
+  let _toastId            = 0;
+
+  const CORES_PROJ = [
+    '#3b82f6','#8b5cf6','#ec4899','#ef4444','#f97316',
+    '#eab308','#22c55e','#14b8a6','#06b6d4','#6366f1'
+  ];
+
+  // Configuração padrão das colunas
+  const COLUNAS_PADRAO = [
+    { key:'planejado',    label:'Planejado',    cor:'#6b7280', visivel:true },
+    { key:'em_andamento', label:'Em Andamento', cor:'#3b82f6', visivel:true },
+    { key:'pausado',      label:'Pausado',      cor:'#f59e0b', visivel:true },
+    { key:'concluido',    label:'Concluído',    cor:'#22c55e', visivel:true }
+  ];
+
+  function carregarConfigColunas() {
+    try {
+      const salvo = localStorage.getItem('proj_colunas_cfg');
+      if (salvo) {
+        const parsed = JSON.parse(salvo);
+        // Mescla com padrão para garantir novas colunas
+        return COLUNAS_PADRAO.map(pad => {
+          const c = parsed.find(x => x.key === pad.key);
+          return c ? { ...pad, ...c } : { ...pad };
+        });
+      }
+    } catch (_) {}
+    return COLUNAS_PADRAO.map(c => ({ ...c }));
+  }
+
+  let _colunas = carregarConfigColunas();
+
+  // ============================================================
+  // INICIALIZAÇÃO
+  // ============================================================
+  document.addEventListener('DOMContentLoaded', async () => {
+    await carregarProjetos();
+    iniciarCorPicker();
+    setView(_viewAtual, false);
+  });
+
+  async function carregarProjetos() {
+    try {
+      const r = await fetch('/api/projetos/lista').then(r => r.json());
+      if (r.erro) { mostrarMensagem(r.erro, 'erro'); return; }
+      _projetos = r;
+      renderView();
+    } catch (e) {
+      mostrarMensagem('Erro ao carregar projetos.', 'erro');
+    }
+  }
+
+  // ============================================================
+  // VIEW TOGGLE
+  // ============================================================
+  function setView(view, salvar = true) {
+    _viewAtual = view;
+    if (salvar) localStorage.setItem('proj_view', view);
+
+    document.getElementById('view-kanban').style.display = view === 'kanban' ? '' : 'none';
+    document.getElementById('view-lista').style.display  = view === 'lista'  ? '' : 'none';
+    document.getElementById('btn-view-kanban').classList.toggle('ativo', view === 'kanban');
+    document.getElementById('btn-view-lista').classList.toggle('ativo', view === 'lista');
+    document.getElementById('filtro-status').style.display = view === 'lista' ? '' : 'none';
+    document.getElementById('btn-cfg-colunas').style.display = view === 'kanban' ? '' : 'none';
+
+    renderView();
+  }
+
+  function renderView() {
+    if (_viewAtual === 'kanban') renderKanban();
+    else                         renderLista();
+  }
+
+  // ============================================================
+  // KANBAN
+  // ============================================================
+  function renderKanban() {
+    const board = document.getElementById('kanban-board');
+    const colunas = _colunas.filter(c => c.visivel);
+
+    board.innerHTML = colunas.map(col => {
+      const cards = _projetos.filter(p => p.status === col.key);
+      return `
+        <div class="kanban-col"
+             ondragover="onDragOver(event)"
+             ondragleave="onDragLeave(event)"
+             ondrop="onDrop(event, '${col.key}')">
+          <div class="kanban-col-header">
+            <span class="kanban-col-dot" style="background:${col.cor}"></span>
+            <span class="kanban-col-label">${esc(col.label)}</span>
+            <span class="kanban-col-count">${cards.length}</span>
+          </div>
+          <div class="kanban-col-body">
+            ${cards.length === 0
+              ? `<div style="padding:12px;text-align:center;font-size:.78rem;color:var(--cor-texto-fraco);">Nenhum projeto</div>`
+              : cards.map(p => renderKanbanCard(p)).join('')
+            }
+          </div>
+        </div>`;
+    }).join('');
+
+    verificarAlertasKanban();
+  }
+
+  function calcularProgresso(p) {
+    // Usa passos (checklist), consistente com a página do projeto
+    if (p.passos_total > 0) return Math.round(p.passos_concluidos / p.passos_total * 100);
+    // Fallback: tarefas com status 'concluida'
+    if (p.tarefas_total > 0) return Math.round((p.tarefas_concluidas || 0) / p.tarefas_total * 100);
+    return -1; // sem tarefas/passos
+  }
+
+  function renderKanbanCard(p) {
+    const progresso = calcularProgresso(p);
+    const prazo = p.data_fim ? new Date(p.data_fim).toLocaleDateString('pt-BR') : '';
+    const bloqueado = p.aprovacao_status === 'Aprovado' || p.aprovacao_status === 'Reprovado';
+
+    let badgeAprov = '';
+    if (p.aprovacao_status) {
+      const cfg = {
+        'Pendente':  { cls:'badge-aprov-pendente',  txt:'Aprovação Pendente' },
+        'Aprovado':  { cls:'badge-aprov-aprovado',  txt:'✓ Aprovado' },
+        'Reprovado': { cls:'badge-aprov-reprovado', txt:'✗ Reprovado' }
+      }[p.aprovacao_status] || { cls:'', txt: p.aprovacao_status };
+      badgeAprov = `<span class="badge-aprov ${cfg.cls}">${cfg.txt}</span>`;
+    }
+
+    return `
+      <div class="kanban-proj-card${bloqueado ? ' bloqueado' : ''}"
+           style="border-left-color:${p.cor||'#3b82f6'}"
+           draggable="${bloqueado ? 'false' : 'true'}"
+           ondragstart="${bloqueado ? 'return false' : `onDragStart(event, ${p.id})`}"
+           ondragend="onDragEnd(event)"
+           onclick="abrirProjeto(${p.id})">
+        ${badgeAprov}
+        <div class="kanban-proj-card-nome">${esc(p.nome)}</div>
+        ${p.descricao ? `<div class="kanban-proj-card-desc">${esc(p.descricao)}</div>` : ''}
+        <div class="kanban-proj-card-progress">
+          <div class="kanban-proj-card-progress-fill" style="width:${progresso >= 0 ? progresso : 0}%"></div>
+        </div>
+        <div class="kanban-proj-card-footer">
+          <div class="kanban-proj-card-stats">
+            <span title="Tarefas abertas"><i class="fas fa-tasks"></i> ${p.tarefas_abertas||0}</span>
+            <span title="Membros"><i class="fas fa-users"></i> ${p.membros_total||0}</span>
+            ${prazo ? `<span title="Prazo"><i class="fas fa-calendar-alt"></i> ${prazo}</span>` : ''}
+            ${progresso >= 0 ? `<span title="Progresso das tarefas"><i class="fas fa-chart-bar"></i> ${progresso}%</span>` : ''}
+          </div>
+          <div class="kanban-proj-card-acoes" onclick="event.stopPropagation()">
+            ${bloqueado
+              ? `<span style="font-size:.73rem;color:var(--cor-texto-fraco);" title="Aprovação finalizada — edição bloqueada"><i class="fas fa-lock"></i></span>`
+              : `<button class="btn-icone btn-sm" title="Editar" onclick="editarProjeto(${p.id}, event)"><i class="fas fa-edit"></i></button>
+                 <button class="btn-icone btn-sm btn-icone-perigo" title="Excluir" onclick="abrirModalExcluir(${p.id}, '${esc(p.nome)}', event)"><i class="fas fa-trash"></i></button>`
+            }
+          </div>
+        </div>
+      </div>`;
+  }
+
+  // ── Drag & Drop ────────────────────────────────
+  function onDragStart(e, id) {
+    _dragId = id;
+    e.dataTransfer.effectAllowed = 'move';
+    setTimeout(() => e.target.classList.add('dragging'), 0);
+  }
+  function onDragEnd(e) {
+    e.target.classList.remove('dragging');
+  }
+  function onDragOver(e) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    e.currentTarget.querySelector('.kanban-col-body')?.classList.add('drag-over');
+  }
+  function onDragLeave(e) {
+    if (!e.currentTarget.contains(e.relatedTarget)) {
+      e.currentTarget.querySelector('.kanban-col-body')?.classList.remove('drag-over');
+    }
+  }
+  async function onDrop(e, novoStatus) {
+    e.preventDefault();
+    e.currentTarget.querySelector('.kanban-col-body')?.classList.remove('drag-over');
+    if (!_dragId) return;
+    const proj = _projetos.find(p => p.id === _dragId);
+    if (!proj || proj.status === novoStatus) return;
+    try {
+      const resp = await fetch(`/api/projetos/${_dragId}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: novoStatus })
+      }).then(r => r.json());
+      if (resp.erro) { mostrarMensagem(resp.erro, 'erro'); return; }
+      // Limpa alertas anteriores deste projeto para que novos possam disparar
+      _alertasDisparados.delete(`${proj.id}-inicio`);
+      _alertasDisparados.delete(`${proj.id}-incompleto`);
+      _alertasDisparados.delete(`${proj.id}-completo`);
+      proj.status = novoStatus;
+      renderKanban();
+    } catch (_) { mostrarMensagem('Erro ao mover projeto.', 'erro'); }
+    _dragId = null;
+  }
+
+  // ============================================================
+  // LISTA
+  // ============================================================
+  function renderLista() {
+    const filtroStatus = document.getElementById('filtro-status').value;
+    const lista = filtroStatus
+      ? _projetos.filter(p => p.status === filtroStatus)
+      : _projetos;
+
+    const grid = document.getElementById('proj-grid');
+    if (!lista.length) {
+      grid.innerHTML = `
+        <div class="proj-vazio">
+          <i class="fas fa-project-diagram"></i>
+          <p>Nenhum projeto encontrado.</p>
+          <button class="btn-primario" onclick="abrirModalProjeto()" style="margin-top:8px;">
+            <i class="fas fa-plus"></i> Criar primeiro projeto
+          </button>
+        </div>`;
+      return;
+    }
+
+    grid.innerHTML = `
+      <table class="proj-list-table">
+        <thead>
+          <tr>
+            <th style="width:30px;"></th>
+            <th>Projeto</th>
+            <th>Status</th>
+            <th>Progresso</th>
+            <th>Prazo</th>
+            <th>Tarefas</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${lista.map(p => {
+            const progresso = Math.max(0, calcularProgresso(p));
+            const dataFim = p.data_fim ? new Date(p.data_fim).toLocaleDateString('pt-BR') : '—';
+            return `
+              <tr onclick="abrirProjeto(${p.id})">
+                <td><span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:${p.cor||'#3b82f6'}"></span></td>
+                <td>
+                  <div class="proj-list-nome">${esc(p.nome)}</div>
+                  ${p.descricao ? `<div class="proj-list-desc">${esc(p.descricao)}</div>` : ''}
+                </td>
+                <td><span class="badge-status badge-${p.status||'planejado'}">${labelStatus(p.status)}</span></td>
+                <td>
+                  <div class="proj-list-progress">
+                    <div class="proj-list-progress-bar">
+                      <div class="proj-list-progress-fill" style="width:${progresso}%"></div>
+                    </div>
+                    <span style="font-size:.75rem;color:var(--cor-texto-fraco);white-space:nowrap;">${progresso}%</span>
+                  </div>
+                </td>
+                <td style="font-size:.82rem;color:var(--cor-texto-fraco);">${dataFim}</td>
+                <td style="font-size:.82rem;color:var(--cor-texto-fraco);">
+                  <i class="fas fa-tasks"></i> ${p.tarefas_abertas||0} abertas
+                </td>
+                <td onclick="event.stopPropagation()">
+                  <div style="display:flex;gap:4px;">
+                    <button class="btn-icone btn-sm" title="Editar" onclick="editarProjeto(${p.id}, event)"><i class="fas fa-edit"></i></button>
+                    <button class="btn-icone btn-sm btn-icone-perigo" title="Excluir" onclick="abrirModalExcluir(${p.id}, '${esc(p.nome)}', event)"><i class="fas fa-trash"></i></button>
+                  </div>
+                </td>
+              </tr>`;
+          }).join('')}
+        </tbody>
+      </table>`;
+  }
+
+  // ============================================================
+  // CONFIGURAR COLUNAS — estado de edição temporário
+  // ============================================================
+  let _colunasTemp = [];
+
+  function abrirModalColunas() {
+    _colunasTemp = _colunas.map(c => ({ ...c }));
+    renderColunasModal();
+    document.getElementById('modal-colunas').classList.remove('oculto');
+  }
+
+  function renderColunasModal() {
+    const lista = document.getElementById('colunas-cfg-lista');
+    lista.innerHTML = _colunasTemp.map((col, i) => `
+      <div class="col-cfg-item" id="col-item-${i}">
+        <div class="col-cfg-color" style="background:${col.cor}" title="Alterar cor">
+          <input type="color" value="${col.cor}" id="col-cor-${i}"
+                 oninput="document.getElementById('col-item-${i}').querySelector('.col-cfg-color').style.background=this.value">
+        </div>
+        <input class="col-cfg-input input-campo" type="text" id="col-label-${i}"
+               value="${esc(col.label)}" placeholder="Nome da coluna">
+        <i class="fas ${col.visivel ? 'fa-eye col-cfg-toggle ativo' : 'fa-eye-slash col-cfg-toggle'}"
+           id="col-vis-${i}" title="${col.visivel ? 'Ocultar' : 'Mostrar'}"
+           onclick="toggleVisivelTemp(${i})"></i>
+        <i class="fas fa-trash col-cfg-toggle" style="color:var(--cor-erro);"
+           title="Excluir coluna" onclick="excluirColunaTemp(${i})"></i>
+      </div>
+    `).join('') + `
+      <div class="col-cfg-item" style="border-style:dashed;cursor:pointer;justify-content:center;gap:8px;"
+           onclick="adicionarColunaTemp()">
+        <i class="fas fa-plus" style="color:var(--cor-destaque);"></i>
+        <span style="font-size:.83rem;color:var(--cor-destaque);">Nova coluna</span>
+      </div>`;
+  }
+
+  function toggleVisivelTemp(i) {
+    _colunasTemp[i].visivel = !_colunasTemp[i].visivel;
+    // Atualiza só o ícone sem re-render completo
+    const icon = document.getElementById(`col-vis-${i}`);
+    icon.classList.toggle('fa-eye',       _colunasTemp[i].visivel);
+    icon.classList.toggle('fa-eye-slash', !_colunasTemp[i].visivel);
+    icon.classList.toggle('ativo',        _colunasTemp[i].visivel);
+    icon.title = _colunasTemp[i].visivel ? 'Ocultar' : 'Mostrar';
+  }
+
+  function excluirColunaTemp(i) {
+    if (_colunasTemp.length <= 1) { alert('É necessário pelo menos uma coluna.'); return; }
+    _colunasTemp.splice(i, 1);
+    renderColunasModal();
+  }
+
+  function adicionarColunaTemp() {
+    // Lê estado atual dos campos antes de adicionar
+    _colunasTemp = lerColunasDoForm();
+    const key = 'col_' + Date.now();
+    _colunasTemp.push({ key, label: 'Nova Coluna', cor: '#6366f1', visivel: true });
+    renderColunasModal();
+    // Foca no novo campo
+    const ultimo = _colunasTemp.length - 1;
+    setTimeout(() => document.getElementById(`col-label-${ultimo}`)?.focus(), 50);
+  }
+
+  function lerColunasDoForm() {
+    return _colunasTemp.map((col, i) => ({
+      ...col,
+      label:   document.getElementById(`col-label-${i}`)?.value.trim() || col.label,
+      cor:     document.getElementById(`col-cor-${i}`)?.value           || col.cor,
+    }));
+  }
+
+  function salvarColunas() {
+    _colunas = lerColunasDoForm().filter(c => c.label.trim());
+    localStorage.setItem('proj_colunas_cfg', JSON.stringify(_colunas));
+    fecharModalColunas();
+    renderKanban();
+  }
+
+  function resetarColunas() {
+    if (!confirm('Restaurar configurações padrão das colunas?')) return;
+    localStorage.removeItem('proj_colunas_cfg');
+    _colunas = COLUNAS_PADRAO.map(c => ({ ...c }));
+    _colunasTemp = _colunas.map(c => ({ ...c }));
+    renderColunasModal();
+    renderKanban();
+  }
+
+  function fecharModalColunas() {
+    document.getElementById('modal-colunas').classList.add('oculto');
+  }
+
+  // ============================================================
+  // MODAL PROJETO
+  // ============================================================
+  function iniciarCorPicker() {
+    const picker = document.getElementById('cor-picker');
+    picker.innerHTML = CORES_PROJ.map(c => `
+      <div class="cor-opcao${c==='#3b82f6' ? ' selecionada' : ''}"
+           style="background:${c}" title="${c}"
+           onclick="selecionarCor('${c}')"></div>
+    `).join('');
+  }
+
+  function selecionarCor(cor) {
+    document.getElementById('mp-cor').value = cor;
+    document.querySelectorAll('.cor-opcao').forEach(el => {
+      el.classList.toggle('selecionada', el.style.background === cor || el.style.backgroundColor === cor);
+    });
+  }
+
+  function abrirModalProjeto(statusInicial) {
+    document.getElementById('mp-id').value = '';
+    document.getElementById('mp-nome').value = '';
+    document.getElementById('mp-descricao').value = '';
+    document.getElementById('mp-data-inicio').value = '';
+    document.getElementById('mp-data-fim').value = '';
+    document.getElementById('mp-cor').value = '#3b82f6';
+    document.getElementById('mp-status').value = statusInicial || 'planejado';
+    document.getElementById('campo-status-projeto').style.display = 'block';
+    document.getElementById('modal-projeto-titulo').textContent = 'Novo Projeto';
+    selecionarCor('#3b82f6');
+    document.getElementById('modal-projeto').classList.remove('oculto');
+    setTimeout(() => document.getElementById('mp-nome').focus(), 50);
+  }
+
+  function editarProjeto(id, event) {
+    if (event) event.stopPropagation();
+    const p = _projetos.find(x => x.id === id);
+    if (!p) return;
+    document.getElementById('mp-id').value = p.id;
+    document.getElementById('mp-nome').value = p.nome;
+    document.getElementById('mp-descricao').value = p.descricao || '';
+    document.getElementById('mp-data-inicio').value = p.data_inicio ? p.data_inicio.split('T')[0] : '';
+    document.getElementById('mp-data-fim').value    = p.data_fim    ? p.data_fim.split('T')[0]    : '';
+    document.getElementById('mp-status').value      = p.status      || 'planejado';
+    document.getElementById('mp-cor').value         = p.cor         || '#3b82f6';
+    document.getElementById('campo-status-projeto').style.display = 'block';
+    document.getElementById('modal-projeto-titulo').textContent = 'Editar Projeto';
+    selecionarCor(p.cor || '#3b82f6');
+    document.getElementById('modal-projeto').classList.remove('oculto');
+  }
+
+  function fecharModalProjeto() {
+    document.getElementById('modal-projeto').classList.add('oculto');
+  }
+
+  async function salvarProjeto() {
+    const id          = document.getElementById('mp-id').value;
+    const nome        = document.getElementById('mp-nome').value.trim();
+    const descricao   = document.getElementById('mp-descricao').value.trim();
+    const data_inicio = document.getElementById('mp-data-inicio').value;
+    const data_fim    = document.getElementById('mp-data-fim').value;
+    const status      = document.getElementById('mp-status').value;
+    const cor         = document.getElementById('mp-cor').value;
+
+    if (!nome) { mostrarMensagem('Nome obrigatório.', 'erro'); return; }
+
+    const btn = document.getElementById('btn-salvar-projeto');
+    btn.disabled = true;
+    try {
+      let resp;
+      if (id) {
+        resp = await fetch(`/api/projetos/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ nome, descricao, data_inicio, data_fim, status, cor })
+        }).then(r => r.json());
+      } else {
+        resp = await fetch('/api/projetos', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ nome, descricao, data_inicio, data_fim, status, cor })
+        }).then(r => r.json());
+      }
+      if (resp.erro) { mostrarMensagem(resp.erro, 'erro'); return; }
+      fecharModalProjeto();
+      mostrarMensagem(id ? 'Projeto atualizado.' : 'Projeto criado.');
+      await carregarProjetos();
+    } catch (e) {
+      mostrarMensagem('Erro ao salvar.', 'erro');
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  // ============================================================
+  // EXCLUIR
+  // ============================================================
+  function abrirModalExcluir(id, nome, event) {
+    if (event) event.stopPropagation();
+    _excluirId = id;
+    document.getElementById('excluir-nome').textContent = nome;
+    document.getElementById('modal-excluir').classList.remove('oculto');
+  }
+
+  function fecharModalExcluir() {
+    _excluirId = null;
+    document.getElementById('modal-excluir').classList.add('oculto');
+  }
+
+  async function confirmarExcluir() {
+    if (!_excluirId) return;
+    try {
+      const resp = await fetch(`/api/projetos/${_excluirId}`, { method: 'DELETE' }).then(r => r.json());
+      if (resp.erro) { mostrarMensagem(resp.erro, 'erro'); return; }
+      fecharModalExcluir();
+      mostrarMensagem('Projeto excluído.');
+      await carregarProjetos();
+    } catch (e) {
+      mostrarMensagem('Erro ao excluir.', 'erro');
+    }
+  }
+
+  // ============================================================
+  // UTILITÁRIOS
+  // ============================================================
+  function abrirProjeto(id) {
+    window.location.href = `/agendaProjetos/projeto?id=${id}`;
+  }
+
+  function labelStatus(s) {
+    const col = _colunas.find(c => c.key === s);
+    if (col) return col.label;
+    const m = { planejado:'Planejado', em_andamento:'Em Andamento', concluido:'Concluído', arquivado:'Arquivado', pausado:'Pausado' };
+    return m[s] || s;
+  }
+
+  function esc(str) {
+    if (!str) return '';
+    return String(str)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;').replace(/'/g,'&#039;');
+  }
+
+  function mostrarMensagem(texto, tipo = 'sucesso') {
+    const el = document.getElementById('mensagem-feedback');
+    el.textContent = texto;
+    el.className = `feedback feedback-${tipo}`;
+    el.classList.remove('oculto');
+    setTimeout(() => el.classList.add('oculto'), 3500);
+  }
+
+  // ============================================================
+  // TOASTS
+  // ============================================================
+  function mostrarToast(html, tipo = 'info') {
+    const container = document.getElementById('toast-container');
+    const id = ++_toastId;
+    const div = document.createElement('div');
+    div.className = `toast toast-${tipo}`;
+    div.id = `toast-${id}`;
+    const corIcone = tipo === 'aviso' ? '#f59e0b' : tipo === 'sucesso' ? 'var(--cor-sucesso)' : 'var(--cor-destaque)';
+    const icone    = tipo === 'aviso' ? 'fa-exclamation-triangle' : tipo === 'sucesso' ? 'fa-check-circle' : 'fa-info-circle';
+    div.innerHTML = `
+      <i class="fas ${icone}" style="color:${corIcone};font-size:1.6rem;flex-shrink:0;"></i>
+      <span style="flex:1;font-size:1rem;line-height:1.4;">${html}</span>
+      <i class="fas fa-times" style="cursor:pointer;color:var(--cor-texto-fraco);font-size:1rem;flex-shrink:0;padding:4px;" onclick="fecharToast(${id})"></i>
+    `;
+    container.appendChild(div);
+    setTimeout(() => fecharToast(id), 9000);
+  }
+
+  function fecharToast(id) {
+    const el = document.getElementById(`toast-${id}`);
+    if (!el) return;
+    el.style.opacity = '0';
+    el.style.transform = 'translateX(20px)';
+    setTimeout(() => el.remove(), 250);
+  }
+
+  // ============================================================
+  // ALERTAS DO KANBAN (baseados em progresso + posição de coluna)
+  // ============================================================
+  function verificarAlertasKanban() {
+    const colunasVisiveis = _colunas.filter(c => c.visivel);
+    if (!colunasVisiveis.length) return;
+
+    const primeiraKey = colunasVisiveis[0].key;
+    const ultimaKey   = colunasVisiveis[colunasVisiveis.length - 1].key;
+
+    let primeiroCompleto = null;
+
+    for (const p of _projetos) {
+      const progresso = calcularProgresso(p);
+
+      // Alert 1: progresso > 0% e na primeira coluna → "em Andamento"
+      if (progresso > 0 && p.status === primeiraKey) {
+        const chave = `${p.id}-inicio`;
+        if (!_alertasDisparados.has(chave)) {
+          _alertasDisparados.add(chave);
+          mostrarToast(`<strong>${esc(p.nome)}</strong>: Projeto em Andamento!`, 'info');
+        }
+      }
+
+      // Alert 2: progresso < 100% e na última coluna → tarefas incompletas
+      if (progresso >= 0 && progresso < 100 && p.status === ultimaKey) {
+        const chave = `${p.id}-incompleto`;
+        if (!_alertasDisparados.has(chave)) {
+          _alertasDisparados.add(chave);
+          mostrarToast(`<strong>${esc(p.nome)}</strong>: Tarefas ainda não totalmente concluídas!`, 'aviso');
+        }
+      }
+
+      // Alert 3: progresso = 100% na última coluna, sem aprovação registrada
+      if (progresso === 100 && p.status === ultimaKey && !p.aprovacao_status) {
+        const chave = `${p.id}-completo`;
+        if (!_alertasDisparados.has(chave) && !primeiroCompleto) {
+          _alertasDisparados.add(chave);
+          primeiroCompleto = p;
+        }
+      }
+    }
+
+    // Abre modal de aprovação para o primeiro projeto 100% sem aprovação
+    if (primeiroCompleto) {
+      setTimeout(() => abrirModalAprovacao(primeiroCompleto.id), 400);
+    }
+  }
+
+  // ============================================================
+  // MODAL — SOLICITAR APROVAÇÃO
+  // ============================================================
+  async function abrirModalAprovacao(projetoId) {
+    _aprovacaoProjetoId = projetoId;
+    _aprovadoresChips   = [];
+    const p = _projetos.find(x => x.id === projetoId);
+    document.getElementById('aprov-projeto-id').value  = projetoId;
+    document.getElementById('aprov-titulo').value      = p ? `Aprovação: ${p.nome}` : '';
+    document.getElementById('aprov-objetivo').value    = '';
+    document.getElementById('aprov-consenso').value    = 'unanimidade';
+    document.getElementById('campo-percentual').style.display = 'none';
+    document.getElementById('aprov-search').value      = '';
+    document.getElementById('aprov-sugestoes').style.display = 'none';
+    renderAprovadoresChips();
+    document.getElementById('modal-aprovacao').classList.remove('oculto');
+    if (!_usuariosAprovacao.length) {
+      try {
+        const r = await fetch('/api/projetos/auxiliar/usuarios').then(r => r.json());
+        if (!r.erro) _usuariosAprovacao = r;
+      } catch (_) {}
+    }
+    setTimeout(() => document.getElementById('aprov-titulo').focus(), 50);
+  }
+
+  function fecharModalAprovacao() {
+    document.getElementById('modal-aprovacao').classList.add('oculto');
+    _aprovacaoProjetoId = null;
+  }
+
+  function atualizarCampoPercentual() {
+    const tipo = document.getElementById('aprov-consenso').value;
+    document.getElementById('campo-percentual').style.display = tipo === 'percentual' ? '' : 'none';
+  }
+
+  function filtrarUsuariosAprov(q) {
+    const sug = document.getElementById('aprov-sugestoes');
+    if (!q.trim()) { sug.style.display = 'none'; return; }
+    const jaAdicionados = _aprovadoresChips.map(a => a.login);
+    const ql = q.toLowerCase();
+    const filtrado = _usuariosAprovacao
+      .filter(u => !jaAdicionados.includes(u.login) &&
+        (u.nome.toLowerCase().includes(ql) || u.login.toLowerCase().includes(ql)))
+      .slice(0, 8);
+    if (!filtrado.length) { sug.style.display = 'none'; return; }
+    sug.innerHTML = filtrado.map(u => `
+      <div style="padding:8px 12px;cursor:pointer;font-size:.84rem;border-bottom:1px solid var(--cor-borda);"
+           onmousedown="adicionarAprovador('${esc(u.login)}','${esc(u.nome)}')"
+           onmouseover="this.style.background='rgba(255,255,255,.06)'"
+           onmouseout="this.style.background=''">
+        <strong>${esc(u.nome)}</strong>
+        <span style="color:var(--cor-texto-fraco);margin-left:6px;">(${esc(u.login)})</span>
+      </div>`).join('');
+    sug.style.display = '';
+  }
+
+  function adicionarAprovador(login, nome) {
+    if (_aprovadoresChips.find(a => a.login === login)) return;
+    _aprovadoresChips.push({ login, nome });
+    renderAprovadoresChips();
+    document.getElementById('aprov-search').value = '';
+    document.getElementById('aprov-sugestoes').style.display = 'none';
+  }
+
+  function removerAprovador(login) {
+    _aprovadoresChips = _aprovadoresChips.filter(a => a.login !== login);
+    renderAprovadoresChips();
+  }
+
+  function renderAprovadoresChips() {
+    document.getElementById('aprov-chips').innerHTML = _aprovadoresChips.map(a => `
+      <span style="display:inline-flex;align-items:center;gap:5px;
+                   background:var(--cor-destaque);color:#fff;
+                   border-radius:99px;padding:3px 10px 3px 12px;font-size:.8rem;">
+        ${esc(a.nome)}
+        <i class="fas fa-times" style="cursor:pointer;font-size:.7rem;"
+           onclick="removerAprovador('${esc(a.login)}')"></i>
+      </span>`).join('');
+  }
+
+  async function salvarAprovacao() {
+    const titulo     = document.getElementById('aprov-titulo').value.trim();
+    const objetivo   = document.getElementById('aprov-objetivo').value.trim();
+    const tipo       = document.getElementById('aprov-consenso').value;
+    const percentual = tipo === 'percentual'
+      ? parseInt(document.getElementById('aprov-percentual').value) : null;
+
+    if (!titulo) { mostrarMensagem('Título obrigatório.', 'erro'); return; }
+    if (!_aprovadoresChips.length) { mostrarMensagem('Adicione pelo menos um aprovador.', 'erro'); return; }
+
+    const btn = document.getElementById('btn-salvar-aprovacao');
+    btn.disabled = true;
+    try {
+      const resp = await fetch(`/api/projetos/${_aprovacaoProjetoId}/solicitar-aprovacao`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          titulo, objetivo, tipo_consenso: tipo,
+          consenso_valor: percentual,
+          aprovadores: _aprovadoresChips
+        })
+      }).then(r => r.json());
+      if (resp.erro) { mostrarMensagem(resp.erro, 'erro'); return; }
+      fecharModalAprovacao();
+      mostrarMensagem('Aprovação solicitada com sucesso!');
+      await carregarProjetos();
+    } catch (e) {
+      mostrarMensagem('Erro ao solicitar aprovação.', 'erro');
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      fecharModalProjeto();
+      fecharModalExcluir();
+      fecharModalColunas();
+      fecharModalAprovacao();
+    }
+  });
+  </script>
+</body>
+</html>

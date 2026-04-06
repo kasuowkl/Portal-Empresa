@@ -20,6 +20,8 @@
  * 2.1.0 - 2026-03-23 - Adicionadas tabelas do módulo Calendários (cal_agendas, cal_membros, cal_eventos, cal_caldav_config)
  * 2.2.0 - 2026-03-26 - Coluna whatsapp em usuarios_dominio e usuarios (integração WhatsApp)
  * 2.3.0 - 2026-03-26 - Coluna visivel_usuarios em sistemas (controle de visibilidade por nível)
+ * 2.3.0 - 2026-03-31 - Adicionadas tabelas do módulo Agenda Projetos (proj_projetos, proj_subprojetos, proj_membros)
+ * 2.3.1 - 2026-03-31 - Colunas projeto_id, subprojeto_id, responsavel em agenda_tarefas (integração Projetos)
  */
 
 require('dotenv').config();
@@ -346,6 +348,21 @@ async function criarTabelas(pool) {
   `);
   console.log('  Tabela: agenda_passos — OK');
 
+  await pool.request().query(`
+    IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='agenda_anexos' AND xtype='U')
+    CREATE TABLE agenda_anexos (
+      id         INT IDENTITY(1,1) PRIMARY KEY,
+      tarefa_id  INT            NOT NULL REFERENCES agenda_tarefas(id),
+      nome       NVARCHAR(255)  NOT NULL,
+      tipo       NVARCHAR(100)  NULL,
+      tamanho    INT            NULL,
+      dados      NVARCHAR(MAX)  NOT NULL,
+      criado_por NVARCHAR(100)  NOT NULL,
+      criado_em  DATETIME       NOT NULL DEFAULT GETDATE()
+    )
+  `);
+  console.log('  Tabela: agenda_anexos — OK');
+
   // ── Agenda Financeira ──────────────────────────────────────
 
   await pool.request().query(`
@@ -445,6 +462,154 @@ async function criarTabelas(pool) {
     END
   `);
   console.log('  Tabela: fin_logs — OK');
+
+  // —— Agenda Contábil ——————————————————————————————————————
+
+  await pool.request().query(`
+    IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='cont_agendas' AND xtype='U')
+    BEGIN
+      CREATE TABLE cont_agendas (
+        id        INT IDENTITY(1,1) PRIMARY KEY,
+        nome      VARCHAR(100)  NOT NULL,
+        descricao VARCHAR(500),
+        cor       VARCHAR(20)   NOT NULL DEFAULT '#3b82f6',
+        dono      VARCHAR(100)  NOT NULL,
+        criado_em DATETIME      NOT NULL DEFAULT GETDATE()
+      )
+    END
+  `);
+  console.log('  Tabela: cont_agendas — OK');
+
+  await pool.request().query(`
+    IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='cont_membros' AND xtype='U')
+    BEGIN
+      CREATE TABLE cont_membros (
+        id            INT IDENTITY(1,1) PRIMARY KEY,
+        agenda_id     INT          NOT NULL REFERENCES cont_agendas(id),
+        usuario       VARCHAR(100) NOT NULL,
+        permissao     VARCHAR(10)  NOT NULL DEFAULT 'leitura',
+        adicionado_em DATETIME     NOT NULL DEFAULT GETDATE(),
+        UNIQUE (agenda_id, usuario)
+      )
+    END
+  `);
+  console.log('  Tabela: cont_membros — OK');
+
+  await pool.request().query(`
+    IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='cont_grupos' AND xtype='U')
+    BEGIN
+      CREATE TABLE cont_grupos (
+        id          INT IDENTITY(1,1) PRIMARY KEY,
+        agenda_id   INT          NOT NULL REFERENCES cont_agendas(id),
+        nome        VARCHAR(100) NOT NULL,
+        descricao   VARCHAR(300),
+        cor         VARCHAR(20)  NOT NULL DEFAULT '#6b7280',
+        ordem       INT          NOT NULL DEFAULT 0,
+        ativo       BIT          NOT NULL DEFAULT 1,
+        criado_em   DATETIME     NOT NULL DEFAULT GETDATE()
+      )
+    END
+  `);
+  console.log('  Tabela: cont_grupos — OK');
+
+  await pool.request().query(`
+    IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='cont_clientes' AND xtype='U')
+    BEGIN
+      CREATE TABLE cont_clientes (
+        id           INT IDENTITY(1,1) PRIMARY KEY,
+        agenda_id    INT           NOT NULL REFERENCES cont_agendas(id),
+        nome         VARCHAR(150)  NOT NULL,
+        documento    VARCHAR(30),
+        email        VARCHAR(150),
+        whatsapp     VARCHAR(30),
+        responsavel  VARCHAR(150),
+        observacoes  VARCHAR(MAX),
+        ativo        BIT           NOT NULL DEFAULT 1,
+        criado_em    DATETIME      NOT NULL DEFAULT GETDATE()
+      )
+    END
+  `);
+  console.log('  Tabela: cont_clientes — OK');
+
+  await pool.request().query(`
+    IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='cont_itens' AND xtype='U')
+    BEGIN
+      CREATE TABLE cont_itens (
+        id                INT IDENTITY(1,1) PRIMARY KEY,
+        agenda_id         INT            NOT NULL REFERENCES cont_agendas(id),
+        grupo_id          INT            NULL REFERENCES cont_grupos(id),
+        cliente_id        INT            NULL REFERENCES cont_clientes(id),
+        titulo            VARCHAR(200)   NOT NULL,
+        descricao         VARCHAR(MAX),
+        competencia       VARCHAR(20),
+        data_emissao      DATE,
+        vencimento        DATE,
+        valor             DECIMAL(15,2)  NOT NULL DEFAULT 0,
+        recorrencia       VARCHAR(50)    NOT NULL DEFAULT 'Mensal',
+        status            VARCHAR(20)    NOT NULL DEFAULT 'pendente',
+        prioridade        VARCHAR(20)    NOT NULL DEFAULT 'normal',
+        dias_antecedencia INT            NOT NULL DEFAULT 3,
+        notificar_email   BIT            NOT NULL DEFAULT 1,
+        notificar_whatsapp BIT           NOT NULL DEFAULT 0,
+        manifesto_ativo   BIT            NOT NULL DEFAULT 0,
+        observacoes       VARCHAR(MAX),
+        criado_por        VARCHAR(100)   NOT NULL,
+        criado_em         DATETIME       NOT NULL DEFAULT GETDATE(),
+        atualizado_em     DATETIME       NOT NULL DEFAULT GETDATE()
+      )
+    END
+  `);
+  console.log('  Tabela: cont_itens — OK');
+
+  await pool.request().query(`
+    IF COL_LENGTH('cont_itens', 'recorrencia_id') IS NULL
+      ALTER TABLE cont_itens ADD recorrencia_id VARCHAR(100) NULL
+    IF COL_LENGTH('cont_itens', 'data_emissao') IS NULL
+      ALTER TABLE cont_itens ADD data_emissao DATE NULL
+    IF COL_LENGTH('cont_itens', 'eh_serie_principal') IS NULL
+      ALTER TABLE cont_itens ADD eh_serie_principal BIT NOT NULL CONSTRAINT DF_cont_itens_eh_serie_principal DEFAULT 0 WITH VALUES
+    IF COL_LENGTH('cont_itens', 'parcela_atual') IS NULL
+      ALTER TABLE cont_itens ADD parcela_atual INT NOT NULL CONSTRAINT DF_cont_itens_parcela_atual DEFAULT 1 WITH VALUES
+    IF COL_LENGTH('cont_itens', 'max_parcelas') IS NULL
+      ALTER TABLE cont_itens ADD max_parcelas INT NULL
+    IF COL_LENGTH('cont_itens', 'recorrencia_fim') IS NULL
+      ALTER TABLE cont_itens ADD recorrencia_fim DATE NULL
+  `);
+  console.log('  Colunas extras de recorrencia em cont_itens â€” OK');
+
+  await pool.request().query(`
+    IF COL_LENGTH('cont_itens', 'data_emissao') IS NOT NULL
+    BEGIN
+      EXEC('
+        UPDATE cont_itens
+          SET data_emissao =
+            CASE
+              WHEN data_emissao IS NOT NULL THEN data_emissao
+              WHEN ISDATE(competencia) = 1 THEN CAST(competencia AS DATE)
+              WHEN competencia LIKE ''[0-1][0-9]/[1-2][0-9][0-9][0-9]'' THEN TRY_CONVERT(DATE, ''01/'' + competencia, 103)
+              ELSE NULL
+            END
+          WHERE data_emissao IS NULL
+      ')
+    END
+  `);
+  console.log('  Backfill de data_emissao em cont_itens â€” OK');
+
+  await pool.request().query(`
+    IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='cont_logs' AND xtype='U')
+    BEGIN
+      CREATE TABLE cont_logs (
+        id        INT IDENTITY(1,1) PRIMARY KEY,
+        agenda_id INT          NOT NULL REFERENCES cont_agendas(id),
+        item_id   INT          NULL REFERENCES cont_itens(id),
+        acao      VARCHAR(20)  NOT NULL,
+        detalhes  VARCHAR(500),
+        usuario   VARCHAR(100) NOT NULL,
+        data_hora DATETIME     NOT NULL DEFAULT GETDATE()
+      )
+    END
+  `);
+  console.log('  Tabela: cont_logs — OK');
 
   // ── Sistema de Chamados ────────────────────────────────────
 
@@ -927,6 +1092,153 @@ async function criarTabelas(pool) {
   `);
   console.log('  Coluna whatsapp em usuarios_dominio/usuarios — OK');
 
+  // v2.3.0 — Agenda Projetos: tabelas principais
+  await pool.request().query(`
+    IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='proj_projetos' AND xtype='U')
+    CREATE TABLE proj_projetos (
+      id            INT IDENTITY(1,1) PRIMARY KEY,
+      nome          NVARCHAR(200)  NOT NULL,
+      descricao     NVARCHAR(MAX)  NULL,
+      data_inicio   DATE           NULL,
+      data_fim      DATE           NULL,
+      status        NVARCHAR(20)   NOT NULL DEFAULT 'planejado',
+      dono          NVARCHAR(100)  NOT NULL,
+      cor           NVARCHAR(7)    NOT NULL DEFAULT '#3b82f6',
+      ativo         BIT            NOT NULL DEFAULT 1,
+      criado_por    NVARCHAR(100)  NOT NULL,
+      criado_em     DATETIME       NOT NULL DEFAULT GETDATE(),
+      atualizado_em DATETIME       NOT NULL DEFAULT GETDATE()
+    )
+  `);
+  console.log('  Tabela: proj_projetos — OK');
+
+  await pool.request().query(`
+    IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='proj_membros' AND xtype='U')
+    CREATE TABLE proj_membros (
+      id            INT IDENTITY(1,1) PRIMARY KEY,
+      projeto_id    INT            NOT NULL REFERENCES proj_projetos(id),
+      usuario       NVARCHAR(100)  NOT NULL,
+      permissao     NVARCHAR(20)   NOT NULL DEFAULT 'leitura',
+      adicionado_em DATETIME       NOT NULL DEFAULT GETDATE(),
+      UNIQUE (projeto_id, usuario)
+    )
+  `);
+  console.log('  Tabela: proj_membros — OK');
+
+  await pool.request().query(`
+    IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='proj_subprojetos' AND xtype='U')
+    CREATE TABLE proj_subprojetos (
+      id            INT IDENTITY(1,1) PRIMARY KEY,
+      projeto_id    INT            NOT NULL REFERENCES proj_projetos(id),
+      nome          NVARCHAR(200)  NOT NULL,
+      descricao     NVARCHAR(MAX)  NULL,
+      data_inicio   DATE           NULL,
+      data_fim      DATE           NULL,
+      status        NVARCHAR(20)   NOT NULL DEFAULT 'planejado',
+      criado_por    NVARCHAR(100)  NOT NULL,
+      criado_em     DATETIME       NOT NULL DEFAULT GETDATE(),
+      atualizado_em DATETIME       NOT NULL DEFAULT GETDATE()
+    )
+  `);
+  console.log('  Tabela: proj_subprojetos — OK');
+
+  // v2.3.1 — Colunas de integração Projetos em agenda_tarefas
+  await pool.request().query(`
+    IF NOT EXISTS (SELECT * FROM sys.columns WHERE Name = N'projeto_id' AND Object_ID = Object_ID(N'agenda_tarefas'))
+      ALTER TABLE agenda_tarefas ADD projeto_id INT NULL REFERENCES proj_projetos(id)
+  `);
+  await pool.request().query(`
+    IF NOT EXISTS (SELECT * FROM sys.columns WHERE Name = N'subprojeto_id' AND Object_ID = Object_ID(N'agenda_tarefas'))
+      ALTER TABLE agenda_tarefas ADD subprojeto_id INT NULL REFERENCES proj_subprojetos(id)
+  `);
+  await pool.request().query(`
+    IF NOT EXISTS (SELECT * FROM sys.columns WHERE Name = N'responsavel' AND Object_ID = Object_ID(N'agenda_tarefas'))
+      ALTER TABLE agenda_tarefas ADD responsavel NVARCHAR(100) NULL
+  `);
+  console.log('  Colunas projeto_id/subprojeto_id/responsavel em agenda_tarefas — OK');
+
+  // v2.4.0 — Coluna aprovacao_id em proj_projetos (integração com workflow de aprovações)
+  await pool.request().query(`
+    IF NOT EXISTS (SELECT * FROM sys.columns WHERE Name = N'aprovacao_id' AND Object_ID = Object_ID(N'proj_projetos'))
+      ALTER TABLE proj_projetos ADD aprovacao_id INT NULL REFERENCES aprovacoes(id)
+  `);
+  console.log('  Coluna aprovacao_id em proj_projetos — OK');
+
+  // ── Base de Conhecimento ─────────────────────────────────────
+  await pool.request().query(`
+    IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='kb_categorias' AND xtype='U')
+    CREATE TABLE kb_categorias (
+      id        INT IDENTITY(1,1) PRIMARY KEY,
+      nome      NVARCHAR(100) NOT NULL,
+      descricao NVARCHAR(500) NULL,
+      icone     NVARCHAR(50)  NOT NULL DEFAULT 'fas fa-folder',
+      cor       NVARCHAR(7)   NOT NULL DEFAULT '#3b82f6',
+      ordem     INT           NOT NULL DEFAULT 0,
+      criado_por NVARCHAR(100) NOT NULL,
+      criado_em DATETIME      NOT NULL DEFAULT GETDATE()
+    )
+  `);
+  console.log('  Tabela: kb_categorias — OK');
+
+  await pool.request().query(`
+    IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='kb_artigos' AND xtype='U')
+    CREATE TABLE kb_artigos (
+      id            INT IDENTITY(1,1) PRIMARY KEY,
+      titulo        NVARCHAR(255)  NOT NULL,
+      conteudo      NVARCHAR(MAX)  NOT NULL,
+      categoria_id  INT            NULL REFERENCES kb_categorias(id),
+      tags          NVARCHAR(500)  NULL,
+      status        NVARCHAR(20)   NOT NULL DEFAULT 'publicado',
+      fixado        BIT            NOT NULL DEFAULT 0,
+      visualizacoes INT            NOT NULL DEFAULT 0,
+      criado_por    NVARCHAR(100)  NOT NULL,
+      criado_em     DATETIME       NOT NULL DEFAULT GETDATE(),
+      atualizado_em DATETIME       NOT NULL DEFAULT GETDATE()
+    )
+  `);
+  console.log('  Tabela: kb_artigos — OK');
+
+  await pool.request().query(`
+    IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='kb_avaliacoes' AND xtype='U')
+    CREATE TABLE kb_avaliacoes (
+      id         INT IDENTITY(1,1) PRIMARY KEY,
+      artigo_id  INT          NOT NULL REFERENCES kb_artigos(id),
+      usuario    NVARCHAR(100) NOT NULL,
+      util       BIT          NOT NULL,
+      criado_em  DATETIME     NOT NULL DEFAULT GETDATE(),
+      UNIQUE (artigo_id, usuario)
+    )
+  `);
+  console.log('  Tabela: kb_avaliacoes — OK');
+
+  await pool.request().query(`
+    IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='kb_anexos' AND xtype='U')
+    CREATE TABLE kb_anexos (
+      id            INT IDENTITY(1,1) PRIMARY KEY,
+      artigo_id     INT            NOT NULL REFERENCES kb_artigos(id),
+      nome_original NVARCHAR(255)  NOT NULL,
+      tipo_mime     NVARCHAR(100)  NULL,
+      tamanho       INT            NULL,
+      dados_base64  NVARCHAR(MAX)  NOT NULL,
+      enviado_por   NVARCHAR(100)  NOT NULL,
+      enviado_em    DATETIME       NOT NULL DEFAULT GETDATE()
+    )
+  `);
+  console.log('  Tabela: kb_anexos — OK');
+
+  await pool.request().query(`
+    IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='kb_historico' AND xtype='U')
+    CREATE TABLE kb_historico (
+      id         INT IDENTITY(1,1) PRIMARY KEY,
+      artigo_id  INT            NOT NULL REFERENCES kb_artigos(id),
+      usuario    NVARCHAR(100)  NOT NULL,
+      acao       NVARCHAR(100)  NOT NULL,
+      detalhes   NVARCHAR(MAX)  NULL,
+      criado_em  DATETIME       NOT NULL DEFAULT GETDATE()
+    )
+  `);
+  console.log('  Tabela: kb_historico — OK');
+
   // Coluna visivel_usuarios em sistemas
   await pool.request().query(`
     IF NOT EXISTS (SELECT * FROM sys.columns WHERE Name = N'visivel_usuarios' AND Object_ID = Object_ID(N'sistemas'))
@@ -936,6 +1248,13 @@ async function criarTabelas(pool) {
     UPDATE sistemas SET visivel_usuarios = 1 WHERE visivel_usuarios IS NULL
   `);
   console.log('  Coluna visivel_usuarios em sistemas — OK');
+
+  await pool.request().query(`
+    IF NOT EXISTS (SELECT 1 FROM configuracoes WHERE chave = 'contabil.dias_lembrete')
+      INSERT INTO configuracoes (chave, valor, grupo, descricao)
+      VALUES ('contabil.dias_lembrete', '3', 'contabil', 'Dias de antecedencia para lembrete da agenda contabil')
+  `);
+  console.log('  Configuração contabil.dias_lembrete — OK');
 }
 
 // ============================================================
@@ -978,6 +1297,12 @@ async function inserirDadosIniciais(pool) {
       descricao: 'Controle de receitas e despesas'
     },
     {
+      nome:      'Agenda Contabil',
+      url:       '/agendaContabil',
+      icone:     'fa-file-invoice-dollar',
+      descricao: 'Controle de obrigacoes contabeis e vencimentos'
+    },
+    {
       nome:      'Agenda de Tarefas',
       url:       'http://192.168.0.80:3002',
       icone:     'fa-tasks',
@@ -1002,6 +1327,16 @@ async function inserirDadosIniciais(pool) {
         `);
       console.log(`  Sistema inserido: ${sistema.nome}`);
     } else {
+      await pool.request()
+        .input('nome',      sql.VarChar, sistema.nome)
+        .input('url',       sql.VarChar, sistema.url)
+        .input('icone',     sql.VarChar, sistema.icone)
+        .input('descricao', sql.VarChar, sistema.descricao)
+        .query(`
+          UPDATE sistemas
+          SET url = @url, icone = @icone, descricao = @descricao
+          WHERE nome = @nome
+        `);
       console.log(`  Sistema já existe: ${sistema.nome}`);
     }
   }

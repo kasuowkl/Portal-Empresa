@@ -1,0 +1,32 @@
+{
+  "items": [
+    {
+      "localPath": "routes/portal.js",
+      "remotePath": "/var/www/html/wkl/Portal/routes/portal.js"
+    },
+    {
+      "localPath": "public/backups.html",
+      "remotePath": "/var/www/html/wkl/Portal/public/backups.html"
+    },
+    {
+      "localPath": "public/fragmentos/manutencao.html",
+      "remotePath": "/var/www/html/wkl/Portal/public/fragmentos/manutencao.html"
+    },
+    {
+      "localPath": "docs/versionamento-e-backup.md",
+      "remotePath": "/var/www/html/wkl/Portal/docs/versionamento-e-backup.md"
+    },
+    {
+      "localPath": "scripts/server-nightly-db-backup.js",
+      "remotePath": "/var/www/html/wkl/Portal/scripts/server-nightly-db-backup.js"
+    },
+    {
+      "localPath": "scripts/install-server-nightly-backup.ps1",
+      "remotePath": "/var/www/html/wkl/Portal/scripts/install-server-nightly-backup.ps1"
+    },
+    {
+      "localPath": "public/ajuda/VersionamentoBackup.html",
+      "remotePath": "/var/www/html/wkl/Portal/public/ajuda/VersionamentoBackup.html"
+    }
+  ]
+}

@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<!--
+  ARQUIVO: public/ajuda/AgendaContabil.html
+  VERSAO:  1.0.0
+  DATA:    2026-04-02
+  DESCRICAO: Documentacao da Agenda Contabil
+-->
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ajuda - Agenda Contabil</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/menu.css">
+  <style>
+    .doc-layout { display: flex; max-width: 1100px; margin: 32px auto; padding: 0 24px; gap: 32px; }
+    .doc-sidebar { width: 220px; flex-shrink: 0; }
+    .doc-sidebar-sticky { position: sticky; top: calc(var(--altura-menu) + 20px); }
+    .doc-sidebar h4 { font-size: 11px; letter-spacing: 1.4px; text-transform: uppercase; color: var(--cor-texto-fraco); margin-bottom: 12px; }
+    .doc-sidebar a { display: block; padding: 6px 12px; font-size: 13px; color: var(--cor-texto-fraco); border-left: 2px solid var(--cor-borda); text-decoration: none; transition: all .15s; }
+    .doc-sidebar a:hover { color: #55a5ff; border-left-color: #55a5ff; }
+    .doc-conteudo { flex: 1; min-width: 0; }
+    .doc-breadcrumb { font-size: 12px; color: var(--cor-texto-fraco); margin-bottom: 24px; }
+    .doc-breadcrumb a { color: var(--cor-destaque); text-decoration: none; }
+    .doc-breadcrumb span { margin: 0 6px; }
+    .doc-titulo { font-size: 26px; font-weight: 700; margin-bottom: 6px; display: flex; align-items: center; gap: 12px; }
+    .doc-titulo i { color: #55a5ff; }
+    .doc-subtitulo { color: var(--cor-texto-fraco); font-size: 14px; margin-bottom: 36px; }
+    .doc-secao { margin-bottom: 40px; scroll-margin-top: calc(var(--altura-menu) + 16px); }
+    .doc-secao h2 { font-size: 18px; font-weight: 600; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid var(--cor-borda); display: flex; align-items: center; gap: 10px; }
+    .doc-secao h2 i { color: #55a5ff; font-size: 16px; }
+    .doc-secao p, .doc-secao li { font-size: 14px; color: var(--cor-texto-fraco); line-height: 1.7; margin-bottom: 8px; }
+    .doc-secao ul, .doc-secao ol { padding-left: 20px; margin-bottom: 12px; }
+    .doc-secao strong { color: var(--cor-texto); }
+    .doc-card { background: var(--cor-fundo-2); border: 1px solid var(--cor-borda); border-radius: 8px; padding: 16px 20px; margin-bottom: 12px; }
+    .doc-card h4 { font-size: 14px; margin-bottom: 6px; color: var(--cor-texto); }
+    .doc-info { background: rgba(85,165,255,0.08); border-left: 3px solid #55a5ff; border-radius: 0 8px 8px 0; padding: 12px 16px; margin-bottom: 16px; font-size: 13px; color: var(--cor-texto-fraco); }
+    .doc-warn { background: rgba(245,158,11,0.08); border-left: 3px solid #f59e0b; border-radius: 0 8px 8px 0; padding: 12px 16px; margin-bottom: 16px; font-size: 13px; color: var(--cor-texto-fraco); }
+    .passo { display: flex; gap: 14px; margin-bottom: 14px; align-items: flex-start; }
+    .passo-num { width: 28px; height: 28px; border-radius: 50%; background: #55a5ff; color: #fff; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .passo-txt { font-size: 14px; color: var(--cor-texto-fraco); line-height: 1.6; }
+    .passo-txt strong { color: var(--cor-texto); }
+    .cards-resumo-demo { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 16px 0; }
+    .card-demo { background: var(--cor-fundo-2); border: 1px solid var(--cor-borda); border-radius: 8px; padding: 12px 14px; }
+    .card-demo span { font-size: 10px; color: var(--cor-texto-fraco); display: block; margin-bottom: 4px; }
+    .card-demo h4 { font-size: 15px; font-weight: 700; }
+    .perm-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 16px; }
+    .perm-table th { background: var(--cor-fundo-3); padding: 8px 12px; text-align: left; font-weight: 600; color: var(--cor-texto); border-bottom: 1px solid var(--cor-borda); }
+    .perm-table td { padding: 8px 12px; border-bottom: 1px solid var(--cor-borda); color: var(--cor-texto-fraco); }
+    .sim { color: #10b981; font-weight: 700; }
+    .nao { color: #ef4444; }
+    @media (max-width: 700px) {
+      .doc-layout { flex-direction: column; }
+      .doc-sidebar { width: 100%; }
+      .doc-sidebar-sticky { position: static; }
+      .cards-resumo-demo { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+  <div id="menu-container"></div>
+  <div class="doc-layout">
+    <aside class="doc-sidebar">
+      <div class="doc-sidebar-sticky">
+        <h4>Nesta pagina</h4>
+        <a href="#visao-geral">Visao Geral</a>
+        <a href="#agendas">Agendas</a>
+        <a href="#lancamentos">Lancamentos</a>
+        <a href="#recorrencia">Recorrencia</a>
+        <a href="#categorias-empresas">Categorias e Empresas</a>
+        <a href="#calendario">Calendario e Filtros</a>
+        <a href="#relatorios">Relatorios</a>
+        <a href="#status-logs">Status e Logs</a>
+        <a href="#compartilhar">Compartilhar</a>
+        <a href="#manutencao">Manutencao</a>
+        <a href="#proximos-passos">Proximos passos</a>
+        <br>
+        <a href="/ajuda/Ajuda.html" style="color:var(--cor-destaque); font-size:12px; border:none; padding-left:0">
+          <- Voltar a Ajuda
+        </a>
+      </div>
+    </aside>
+    <main class="doc-conteudo">
+      <div class="doc-breadcrumb">
+        <a href="/ajuda/Ajuda.html">Ajuda</a>
+        <span>></span> Agenda Contabil
+      </div>
+      <div class="doc-titulo">
+        <i class="fas fa-file-invoice"></i> Agenda Contabil
+      </div>
+      <div class="doc-subtitulo">
+        Controle de obrigacoes contabeis por agenda, com categorias, empresas, vencimentos, recorrencia, calendario, relatorios e base pronta para notificacoes.
+      </div>
+
+      <section class="doc-secao" id="visao-geral">
+        <h2><i class="fas fa-eye"></i> Visao Geral</h2>
+        <p>A Agenda Contabil organiza obrigacoes e compromissos fiscais em <strong>agendas</strong>, permitindo separar carteiras por empresa, setor, escritorio ou responsavel.</p>
+        <p>Cada item pode registrar <strong>descricao</strong>, <strong>data de emissao</strong>, <strong>data de vencimento</strong>, <strong>valor</strong>, <strong>categoria</strong>, <strong>empresa</strong>, recorrencia, observacoes e preferencias de notificacao.</p>
+        <p>Acesse em <strong>/agendaContabil</strong> e use <strong>/agendaContabil/relatorios</strong> para os relatorios consolidados.</p>
+        <div class="doc-info">
+          A Agenda Contabil foi criada no mesmo padrao visual e operacional da Agenda Financeira para facilitar treinamento, suporte e futura integracao no Portal.
+        </div>
+      </section>
+
+      <section class="doc-secao" id="agendas">
+        <h2><i class="fas fa-folder-open"></i> Agendas</h2>
+        <p>Uma agenda contabil agrupa todas as obrigacoes de um contexto especifico, por exemplo: <em>Fiscal Matriz</em>, <em>Contabilidade Clientes</em> ou <em>Documentos Mensais</em>.</p>
+        <div class="passo"><div class="passo-num">1</div><div class="passo-txt">Clique em <strong>Nova Agenda</strong> na lateral.</div></div>
+        <div class="passo"><div class="passo-num">2</div><div class="passo-txt">Informe <strong>nome</strong>, <strong>descricao</strong> e <strong>cor</strong>.</div></div>
+        <div class="passo"><div class="passo-num">3</div><div class="passo-txt">Salve para criar a agenda e seleciona-la automaticamente.</div></div>
+        <p>As agendas seguem permissao por usuario e aceitam compartilhamento com membros.</p>
+      </section>
+
+      <section class="doc-secao" id="lancamentos">
+        <h2><i class="fas fa-file-circle-plus"></i> Lancamentos</h2>
+        <p>O cadastro principal do modulo e o <strong>lancamento contabil</strong>, usado para registrar uma obrigacao, imposto, documento ou entrega.</p>
+        <div class="doc-card">
+          <h4>Campos principais do cadastro</h4>
+          <ul style="margin:8px 0 0; padding-left:18px">
+            <li><strong>Descricao da conta</strong> - nome da obrigacao ou item</li>
+            <li><strong>Data de vencimento</strong> - prazo principal</li>
+            <li><strong>Valor (R$)</strong> - valor financeiro vinculado, quando houver</li>
+            <li><strong>Data de emissao</strong> - substitui o campo antigo de competencia</li>
+            <li><strong>Categoria</strong> - agrupamento contabil do item</li>
+            <li><strong>Empresa</strong> - empresa, cliente ou entidade vinculada</li>
+            <li><strong>Status</strong> - pendente, lancado, pago ou vencido</li>
+            <li><strong>Dias lembrete</strong> - antecedencia usada pela agenda</li>
+            <li><strong>Prioridade</strong> e <strong>responsavel / observacao curta</strong></li>
+            <li><strong>Observacoes</strong> - anotacoes livres do item</li>
+          </ul>
+        </div>
+        <p>Os cadastros sao feitos em modal, no mesmo estilo da Agenda Financeira. Categorias e empresas podem ser criadas sem sair do formulario.</p>
+      </section>
+
+      <section class="doc-secao" id="recorrencia">
+        <h2><i class="fas fa-repeat"></i> Recorrencia</h2>
+        <p>Itens podem ser unicos ou recorrentes. A recorrencia abre <strong>desativada por padrao</strong>, com frequencia inicial em <strong>Mensal</strong>.</p>
+        <div class="doc-card">
+          <h4>Recursos implementados</h4>
+          <ul style="margin:8px 0 0; padding-left:18px">
+            <li>Frequencias: Unica, Mensal, Bimestral, Trimestral, Semestral e Anual</li>
+            <li>Campos sincronizados entre <strong>Data de termino</strong> e <strong>Max. parcelas</strong></li>
+            <li>Geracao automatica da serie no salvamento</li>
+            <li>Edicao da serie principal com propagacao</li>
+            <li>Edicao limitada nas parcelas filhas</li>
+            <li>Exclusao da serie inteira</li>
+          </ul>
+        </div>
+        <div class="doc-warn">
+          Sempre informe a data de vencimento antes de ativar a recorrencia. O calculo das proximas parcelas usa essa data como base.
+        </div>
+      </section>
+
+      <section class="doc-secao" id="categorias-empresas">
+        <h2><i class="fas fa-tags"></i> Categorias e Empresas</h2>
+        <p>No modulo contabil, o termo <strong>Grupo</strong> foi substituido por <strong>Categoria</strong> e o termo <strong>Cliente</strong> foi padronizado como <strong>Empresa</strong>.</p>
+        <p>Esses dois cadastros servem para organizar melhor os itens e tambem alimentam filtros e relatorios.</p>
+        <div class="passo"><div class="passo-num">1</div><div class="passo-txt">No modal de lancamento, clique na <strong>engrenagem</strong> ao lado de Categoria ou Empresa.</div></div>
+        <div class="passo"><div class="passo-num">2</div><div class="passo-txt">Use o mini-gerenciador para <strong>adicionar</strong> ou <strong>excluir</strong> registros.</div></div>
+        <div class="passo"><div class="passo-num">3</div><div class="passo-txt">O select e atualizado na hora, sem precisar recarregar a pagina.</div></div>
+      </section>
+
+      <section class="doc-secao" id="calendario">
+        <h2><i class="fas fa-calendar-days"></i> Calendario e Filtros</h2>
+        <p>A tela principal possui um calendario lateral integrado com os itens da agenda.</p>
+        <ul>
+          <li>Navegacao entre meses</li>
+          <li>Marcacao visual por dia com vencimentos</li>
+          <li>Clique no dia para filtrar a listagem</li>
+          <li>Cards de resumo atualizados conforme o recorte visivel</li>
+        </ul>
+        <div class="cards-resumo-demo">
+          <div class="card-demo"><span>PENDENTES NO MES</span><h4>10</h4></div>
+          <div class="card-demo"><span>VENCIDOS</span><h4>3</h4></div>
+          <div class="card-demo"><span>PROXIMOS 7 DIAS</span><h4>4</h4></div>
+          <div class="card-demo"><span>PAGOS NO MES</span><h4>8</h4></div>
+        </div>
+      </section>
+
+      <section class="doc-secao" id="relatorios">
+        <h2><i class="fas fa-chart-column"></i> Relatorios</h2>
+        <p>A Agenda Contabil possui pagina propria de relatorios seguindo o mesmo estilo da Agenda Financeira.</p>
+        <div class="doc-card">
+          <h4>Filtros disponiveis</h4>
+          <ul style="margin:8px 0 0; padding-left:18px">
+            <li>Periodo rapido: Hoje, Semana, Mes, Trimestre, Ano e Personalizado</li>
+            <li>Selecao de uma ou varias agendas</li>
+            <li>Categoria</li>
+            <li>Empresa</li>
+            <li>Status</li>
+            <li>Modo Resumido ou Detalhado</li>
+          </ul>
+        </div>
+        <p>No modo <strong>Resumido</strong>, o sistema mostra cards, barras por categoria e empresa, e tabelas de participacao. No modo <strong>Detalhado</strong>, exibe tabela paginada e exportacao CSV.</p>
+      </section>
+
+      <section class="doc-secao" id="status-logs">
+        <h2><i class="fas fa-clipboard-check"></i> Status e Logs</h2>
+        <p>O fluxo padrao acompanha quatro status principais:</p>
+        <ul>
+          <li><strong>Pendente</strong> - item aguardando tratativa</li>
+          <li><strong>Lancado</strong> - obrigacao registrada/encaminhada</li>
+          <li><strong>Pago</strong> - item concluido financeiramente</li>
+          <li><strong>Vencido</strong> - item atrasado</li>
+        </ul>
+        <p>As acoes do modulo sao registradas em <strong>cont_logs</strong>, permitindo trilha basica de auditoria por agenda e item.</p>
+      </section>
+
+      <section class="doc-secao" id="compartilhar">
+        <h2><i class="fas fa-users"></i> Compartilhar</h2>
+        <p>Agendas contabeis podem ser compartilhadas com outros usuarios do Portal.</p>
+        <table class="perm-table">
+          <thead>
+            <tr>
+              <th>Permissao</th>
+              <th>Visualizar</th>
+              <th>Cadastrar/Editar</th>
+              <th>Gerenciar membros</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Leitura</strong></td>
+              <td class="sim">Sim</td>
+              <td class="nao">Nao</td>
+              <td class="nao">Nao</td>
+            </tr>
+            <tr>
+              <td><strong>Edicao</strong></td>
+              <td class="sim">Sim</td>
+              <td class="sim">Sim</td>
+              <td class="nao">Nao</td>
+            </tr>
+            <tr>
+              <td><strong>Dono</strong></td>
+              <td class="sim">Sim</td>
+              <td class="sim">Sim</td>
+              <td class="sim">Sim</td>
+            </tr>
+          </tbody>
+        </table>
+        <p>Use o botao <strong>Membros</strong> para adicionar usuarios e ajustar permissao por agenda.</p>
+      </section>
+
+      <section class="doc-secao" id="manutencao">
+        <h2><i class="fas fa-screwdriver-wrench"></i> Manutencao</h2>
+        <p>O modulo ja foi integrado a aba de manutencao do Portal.</p>
+        <ul>
+          <li><strong>Limpeza de Dados por Sistema</strong> inclui Agenda Contabil</li>
+          <li><strong>Transferencia de Agendas</strong> aceita agendas contabeis entre usuarios</li>
+          <li>O sistema pode ser cadastrado e gerenciado pela area de sistemas do Portal</li>
+        </ul>
+      </section>
+
+      <section class="doc-secao" id="proximos-passos">
+        <h2><i class="fas fa-road"></i> Proximos passos</h2>
+        <p>A base do modulo ja esta pronta para evolucao. Os proximos blocos previstos sao:</p>
+        <ul>
+          <li>Notificacoes reais por e-mail</li>
+          <li>Notificacoes por WhatsApp</li>
+          <li>Uso efetivo da integracao por manifesto</li>
+          <li>Aprimoramento da trilha de auditoria</li>
+          <li>Mais refinamentos na gestao de cadastros e relatorios</li>
+        </ul>
+        <div class="doc-info">
+          Estes recursos ainda estao em fase de evolucao. A documentacao sera atualizada conforme novas entregas entrarem no Portal.
+        </div>
+      </section>
+    </main>
+  </div>
+  <script src="/js/menu.js"></script>
+</body>
+</html>

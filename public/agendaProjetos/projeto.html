@@ -1,0 +1,1116 @@
+<!DOCTYPE html>
+<!--
+  ARQUIVO: public/agendaProjetos/projeto.html
+  VERSÃO:  1.1.0
+  DATA:    2026-03-31
+  DESCRIÇÃO: Agenda Projetos — Detalhe do projeto (tabs: Subprojetos, Tarefas, Membros, Logs)
+-->
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Projeto — Portal WKL</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/menu.css">
+  <link rel="stylesheet" href="/agendaProjetos/css/agendaProjetos.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <div id="menu-container"></div>
+
+  <main class="conteudo-principal">
+    <div class="proj-container">
+
+      <button class="btn-voltar" onclick="window.location.href='/agendaProjetos'">
+        <i class="fas fa-arrow-left"></i> Todos os Projetos
+      </button>
+
+      <!-- Mensagem de feedback -->
+      <div id="mensagem-feedback" class="feedback oculto"></div>
+
+      <!-- Header do projeto -->
+      <div id="proj-detalhe-header" class="proj-detalhe-header" style="display:none;">
+        <div class="proj-detalhe-topo">
+          <div>
+            <h1 class="proj-detalhe-nome" id="proj-nome">—</h1>
+            <div class="proj-detalhe-meta" id="proj-meta"></div>
+          </div>
+          <div class="proj-detalhe-acoes" id="proj-acoes"></div>
+        </div>
+        <div class="proj-progresso" id="proj-progresso-header" style="max-width:400px;"></div>
+        <p id="proj-descricao" style="font-size:0.85rem;color:var(--cor-texto-fraco);margin:8px 0 0;"></p>
+      </div>
+
+      <!-- Tabs -->
+      <div class="proj-tabs" id="proj-tabs" style="display:none;">
+        <button class="proj-tab ativa" onclick="mudarTab('subprojetos', this)">
+          <i class="fas fa-sitemap"></i> Subprojetos
+        </button>
+        <button class="proj-tab" onclick="mudarTab('tarefas', this)">
+          <i class="fas fa-tasks"></i> Tarefas
+        </button>
+        <button class="proj-tab" onclick="mudarTab('membros', this)">
+          <i class="fas fa-users"></i> Membros
+        </button>
+        <button class="proj-tab" onclick="mudarTab('logs', this); carregarLogs()">
+          <i class="fas fa-history"></i> Logs
+        </button>
+      </div>
+
+      <!-- Conteúdo das tabs -->
+      <div id="tab-subprojetos" class="proj-tab-conteudo ativo">
+        <div style="display:flex;justify-content:flex-end;margin-bottom:12px;">
+          <button class="btn-primario btn-sm" id="btn-novo-subprojeto" onclick="abrirModalSubprojeto()">
+            <i class="fas fa-plus"></i> Novo Subprojeto
+          </button>
+        </div>
+        <div id="subprojetos-lista" class="subproj-lista"></div>
+      </div>
+
+      <div id="tab-tarefas" class="proj-tab-conteudo">
+        <!-- Kanban view -->
+        <div id="view-kanban">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
+            <div class="proj-filtro-sp">
+              <label>Subprojeto:</label>
+              <select id="filtro-subprojeto" class="input-campo" style="width:auto;" onchange="carregarTarefas()">
+                <option value="">Todos</option>
+              </select>
+            </div>
+            <button class="btn-primario btn-sm" id="btn-nova-tarefa" onclick="abrirModalTarefa()">
+              <i class="fas fa-plus"></i> Nova Tarefa
+            </button>
+          </div>
+          <div id="kanban" class="proj-kanban"></div>
+        </div>
+
+        <!-- Detalhe da tarefa (substitui kanban ao abrir) -->
+        <div id="view-tarefa" style="display:none;">
+          <button class="btn-voltar" onclick="fecharDetalheTarefa()">
+            <i class="fas fa-arrow-left"></i> Voltar para Tarefas
+          </button>
+
+          <div id="detalhe-tarefa-box" class="detalhe-tarefa-box">
+            <!-- preenchido por JS -->
+          </div>
+        </div>
+      </div>
+
+      <div id="tab-membros" class="proj-tab-conteudo">
+        <!-- Formulário inline de adição (visível só para dono) -->
+        <div id="form-add-membro" style="background:var(--cor-fundo-2);border:1px solid var(--cor-borda);border-radius:var(--raio);padding:14px 16px;margin-bottom:16px;display:none;">
+          <div style="font-size:0.8rem;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--cor-texto-fraco);margin-bottom:10px;">
+            <i class="fas fa-user-plus"></i> Adicionar Membro
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;">
+            <div style="flex:2;min-width:180px;">
+              <label class="campo-label">Usuário</label>
+              <select id="mb-usuario-sel" class="input-campo">
+                <option value="">Selecione o usuário...</option>
+              </select>
+            </div>
+            <div style="flex:1;min-width:140px;">
+              <label class="campo-label">Permissão</label>
+              <select id="mb-permissao-sel" class="input-campo">
+                <option value="leitura">Leitura — visualizar</option>
+                <option value="edicao">Edição — criar e editar</option>
+              </select>
+            </div>
+            <button class="btn-primario btn-sm" onclick="salvarMembro()" id="btn-salvar-membro">
+              <i class="fas fa-plus"></i> Adicionar
+            </button>
+          </div>
+        </div>
+        <div id="membros-lista" class="membros-lista"></div>
+      </div>
+
+      <div id="tab-logs" class="proj-tab-conteudo">
+        <div id="logs-lista" style="display:flex;flex-direction:column;gap:6px;"></div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- ======================================================
+       MODAL — SUBPROJETO
+  ====================================================== -->
+  <div id="modal-subprojeto" class="modal oculto">
+    <div class="modal-box" style="max-width:480px;">
+      <div class="modal-header">
+        <h3 id="modal-sp-titulo">Novo Subprojeto</h3>
+        <button onclick="fecharModalSubprojeto()" class="btn-fechar"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="sp-id">
+        <div class="campo-grupo">
+          <label class="campo-label">Nome *</label>
+          <input type="text" id="sp-nome" class="input-campo" placeholder="Nome do subprojeto" maxlength="200">
+        </div>
+        <div class="campo-grupo">
+          <label class="campo-label">Descrição</label>
+          <textarea id="sp-descricao" class="input-campo" rows="2" placeholder="Descrição opcional..."></textarea>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div class="campo-grupo">
+            <label class="campo-label">Data Início</label>
+            <input type="date" id="sp-data-inicio" class="input-campo">
+          </div>
+          <div class="campo-grupo">
+            <label class="campo-label">Data Fim</label>
+            <input type="date" id="sp-data-fim" class="input-campo">
+          </div>
+        </div>
+        <div class="campo-grupo" id="campo-status-sp" style="display:none;">
+          <label class="campo-label">Status</label>
+          <select id="sp-status" class="input-campo">
+            <option value="planejado">Planejado</option>
+            <option value="em_andamento">Em Andamento</option>
+            <option value="concluido">Concluído</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button onclick="fecharModalSubprojeto()" class="btn-secundario">Cancelar</button>
+        <button onclick="salvarSubprojeto()" class="btn-primario" id="btn-salvar-sp">Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================
+       MODAL — NOVA TAREFA
+  ====================================================== -->
+  <div id="modal-tarefa" class="modal oculto">
+    <div class="modal-box" style="max-width:520px;">
+      <div class="modal-header">
+        <h3>Nova Tarefa</h3>
+        <button onclick="fecharModalTarefa()" class="btn-fechar"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="modal-body">
+        <div class="campo-grupo">
+          <label class="campo-label">Título *</label>
+          <input type="text" id="nt-titulo" class="input-campo" placeholder="Título da tarefa" maxlength="200">
+        </div>
+        <div class="campo-grupo">
+          <label class="campo-label">Descrição</label>
+          <textarea id="nt-descricao" class="input-campo" rows="2" placeholder="Descrição opcional..."></textarea>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div class="campo-grupo">
+            <label class="campo-label">Responsável</label>
+            <input type="text" id="nt-responsavel" class="input-campo" placeholder="Login do responsável">
+          </div>
+          <div class="campo-grupo">
+            <label class="campo-label">Prazo</label>
+            <input type="date" id="nt-prazo" class="input-campo">
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div class="campo-grupo">
+            <label class="campo-label">Prioridade</label>
+            <select id="nt-prioridade" class="input-campo">
+              <option value="baixa">Baixa</option>
+              <option value="media" selected>Média</option>
+              <option value="alta">Alta</option>
+            </select>
+          </div>
+          <div class="campo-grupo">
+            <label class="campo-label">Subprojeto</label>
+            <select id="nt-subprojeto" class="input-campo">
+              <option value="">— Nenhum —</option>
+            </select>
+          </div>
+        </div>
+        <div class="campo-grupo">
+          <label class="campo-label">Lista de Tarefas (Agenda) *</label>
+          <select id="nt-lista" class="input-campo">
+            <option value="">Selecione uma lista...</option>
+          </select>
+          <small style="color:var(--cor-texto-fraco);font-size:0.75rem;">A tarefa também aparecerá na sua Agenda de Tarefas</small>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button onclick="fecharModalTarefa()" class="btn-secundario">Cancelar</button>
+        <button onclick="salvarTarefa()" class="btn-primario" id="btn-salvar-tarefa">Criar Tarefa</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================
+       MODAL — CONFIRMAR REMOÇÃO DE MEMBRO
+  ====================================================== -->
+  <div id="modal-remover-membro" class="modal oculto">
+    <div class="modal-box" style="max-width:380px;">
+      <div class="modal-header">
+        <h3>Remover Membro</h3>
+        <button onclick="fecharModalRemoverMembro()" class="btn-fechar"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="modal-body">
+        <p style="color:var(--cor-texto);margin:0;">
+          Remover <strong id="rm-nome"></strong> do projeto?
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button onclick="fecharModalRemoverMembro()" class="btn-secundario">Cancelar</button>
+        <button onclick="confirmarRemoverMembro()" class="btn-perigo">Remover</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================
+       MODAL — EXCLUIR SUBPROJETO
+  ====================================================== -->
+  <div id="modal-excluir-sp" class="modal oculto">
+    <div class="modal-box" style="max-width:400px;">
+      <div class="modal-header">
+        <h3>Excluir Subprojeto</h3>
+        <button onclick="fecharModalExcluirSp()" class="btn-fechar"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="modal-body">
+        <p style="color:var(--cor-texto);margin:0;">
+          Excluir o subprojeto <strong id="excluir-sp-nome"></strong>?
+          <br><span style="font-size:0.82rem;color:var(--cor-texto-fraco);">As tarefas vinculadas serão desvinculadas.</span>
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button onclick="fecharModalExcluirSp()" class="btn-secundario">Cancelar</button>
+        <button onclick="confirmarExcluirSp()" class="btn-perigo">Excluir</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/menu.js"></script>
+  <script>
+  // ============================================================
+  // ESTADO
+  // ============================================================
+  let _projetoId    = null;
+  let _projeto      = null;
+  let _permissao    = null;
+  let _subprojetos  = [];
+  let _tarefas      = [];
+  let _membros      = [];
+  let _minhasListas = [];
+  let _rmMembro     = null;
+  let _excluirSpId  = null;
+
+  // ============================================================
+  // INICIALIZAÇÃO
+  // ============================================================
+  document.addEventListener('DOMContentLoaded', async () => {
+    const params = new URLSearchParams(window.location.search);
+    _projetoId = parseInt(params.get('id'));
+    if (!_projetoId) { window.location.href = '/agendaProjetos'; return; }
+    await carregarProjeto();
+    await Promise.all([carregarSubprojetos(), carregarTarefas(), carregarMembros(), carregarMinhasListas()]);
+  });
+
+  async function carregarProjeto() {
+    try {
+      const r = await fetch(`/api/projetos/${_projetoId}`).then(r => r.json());
+      if (r.erro) { mostrarMensagem(r.erro, 'erro'); return; }
+      _projeto   = r.projeto;
+      _permissao = r.permissao;
+      renderHeaderProjeto();
+    } catch (e) {
+      mostrarMensagem('Erro ao carregar projeto.', 'erro');
+    }
+  }
+
+  function renderHeaderProjeto() {
+    const p = _projeto;
+    document.title = `${p.nome} — Portal WKL`;
+
+    const progresso = p.tarefas_total > 0
+      ? Math.round((p.tarefas_concluidas || 0) / p.tarefas_total * 100) : 0;
+
+    document.getElementById('proj-nome').textContent = p.nome;
+
+    const dataInicio = p.data_inicio ? new Date(p.data_inicio).toLocaleDateString('pt-BR') : null;
+    const dataFim    = p.data_fim    ? new Date(p.data_fim).toLocaleDateString('pt-BR')    : null;
+    let meta = `<span class="badge-status badge-${p.status||'planejado'}">${labelStatus(p.status)}</span>`;
+    if (dataInicio) meta += `<span><i class="fas fa-play"></i> ${dataInicio}</span>`;
+    if (dataFim)    meta += `<span><i class="fas fa-flag-checkered"></i> ${dataFim}</span>`;
+    meta += `<span><i class="fas fa-user"></i> ${esc(p.dono)}</span>`;
+    document.getElementById('proj-meta').innerHTML = meta;
+
+    document.getElementById('proj-progresso-header').innerHTML = `
+      <div class="proj-progresso-barra">
+        <div class="proj-progresso-fill" style="width:${progresso}%"></div>
+      </div>
+      <span class="proj-progresso-label">${progresso}% concluído · ${p.tarefas_total||0} tarefas</span>
+    `;
+
+    if (p.descricao) document.getElementById('proj-descricao').textContent = p.descricao;
+
+    // Acções do header
+    const podEditar = _permissao === 'dono' || _permissao === 'edicao';
+    const podArquivar = _permissao === 'dono';
+    let acoes = '';
+    if (podEditar) acoes += `<button class="btn-secundario btn-sm" onclick="editarProjeto()"><i class="fas fa-edit"></i> Editar</button>`;
+    if (podArquivar) acoes += `<button class="btn-secundario btn-sm" onclick="arquivarProjeto()" title="Arquivar projeto"><i class="fas fa-archive"></i></button>`;
+    document.getElementById('proj-acoes').innerHTML = acoes;
+
+    // Mostra header e tabs
+    document.getElementById('proj-detalhe-header').style.display = 'block';
+    document.getElementById('proj-tabs').style.display = 'flex';
+
+    // Borda esquerda com cor do projeto
+    document.getElementById('proj-detalhe-header').style.borderLeftColor = p.cor || '#3b82f6';
+
+    // Esconde botões se sem permissão de edição
+    if (!podEditar) {
+      document.getElementById('btn-novo-subprojeto').style.display = 'none';
+      document.getElementById('btn-nova-tarefa').style.display = 'none';
+    }
+    // Formulário de adição de membro: só dono ou admin
+    const isAdmin = window.usuarioLogado?.nivel === 'admin';
+    if (_permissao === 'dono' || isAdmin) {
+      document.getElementById('form-add-membro').style.display = 'block';
+    }
+  }
+
+  // ============================================================
+  // TABS
+  // ============================================================
+  function mudarTab(tab, btn) {
+    document.querySelectorAll('.proj-tab').forEach(t => t.classList.remove('ativa'));
+    document.querySelectorAll('.proj-tab-conteudo').forEach(c => c.classList.remove('ativo'));
+    btn.classList.add('ativa');
+    document.getElementById(`tab-${tab}`).classList.add('ativo');
+    // Reset cache de logs ao sair da aba
+    if (tab !== 'logs') _logsCarregados = false;
+  }
+
+  // ============================================================
+  // SUBPROJETOS
+  // ============================================================
+  async function carregarSubprojetos() {
+    try {
+      const r = await fetch(`/api/projetos/${_projetoId}/subprojetos`).then(r => r.json());
+      if (r.erro) return;
+      _subprojetos = r;
+      renderSubprojetos();
+      atualizarFiltroSp();
+    } catch (e) {}
+  }
+
+  function renderSubprojetos() {
+    const el = document.getElementById('subprojetos-lista');
+    if (!_subprojetos.length) {
+      el.innerHTML = `<div style="text-align:center;padding:40px;color:var(--cor-texto-fraco);">
+        <i class="fas fa-sitemap" style="font-size:2rem;opacity:0.3;display:block;margin-bottom:8px;"></i>
+        Nenhum subprojeto criado.
+      </div>`;
+      return;
+    }
+    el.innerHTML = _subprojetos.map(s => {
+      const prog = s.tarefas_total > 0 ? Math.round(s.tarefas_concluidas / s.tarefas_total * 100) : 0;
+      const podEditar = _permissao === 'dono' || _permissao === 'edicao';
+      return `
+        <div class="subproj-item" onclick="abrirTarefasSubprojeto(${s.id})" title="Ver tarefas do subprojeto" style="cursor:pointer;">
+          <div style="width:8px;height:8px;border-radius:50%;background:${corStatus(s.status)};flex-shrink:0;"></div>
+          <div class="subproj-info">
+            <div class="subproj-nome">${esc(s.nome)}</div>
+            ${s.descricao ? `<div class="subproj-desc">${esc(s.descricao)}</div>` : ''}
+            <div style="margin-top:4px;">
+              <div class="proj-progresso-barra" style="max-width:200px;height:3px;">
+                <div class="proj-progresso-fill" style="width:${prog}%"></div>
+              </div>
+            </div>
+          </div>
+          <div class="subproj-stats">
+            <span><i class="fas fa-tasks"></i> ${s.tarefas_total||0} tarefas</span>
+            <span class="badge-status badge-${s.status||'planejado'}" style="font-size:0.68rem;">${labelStatus(s.status)}</span>
+            <span style="font-size:0.72rem;color:var(--cor-destaque);"><i class="fas fa-arrow-right"></i> Ver tarefas</span>
+          </div>
+          ${podEditar ? `
+          <div style="display:flex;gap:4px;" onclick="event.stopPropagation()">
+            <button class="btn-icone" title="Editar" onclick="editarSubprojeto(${s.id})"><i class="fas fa-edit"></i></button>
+            <button class="btn-icone btn-icone-perigo" title="Excluir" onclick="abrirModalExcluirSp(${s.id},'${esc(s.nome)}')"><i class="fas fa-trash"></i></button>
+          </div>` : ''}
+        </div>`;
+    }).join('');
+  }
+
+  function abrirTarefasSubprojeto(spId) {
+    // Muda para aba Tarefas
+    const tabBtn = document.querySelector('.proj-tab[onclick*="tarefas"]');
+    mudarTab('tarefas', tabBtn);
+    // Seleciona o subprojeto no filtro e recarrega
+    const sel = document.getElementById('filtro-subprojeto');
+    if (sel) { sel.value = spId; }
+    carregarTarefas();
+  }
+
+  function atualizarFiltroSp() {
+    const sel = document.getElementById('filtro-subprojeto');
+    const val = sel.value;
+    sel.innerHTML = '<option value="">Todos</option>' +
+      _subprojetos.map(s => `<option value="${s.id}">${esc(s.nome)}</option>`).join('');
+    sel.value = val;
+
+    const selNt = document.getElementById('nt-subprojeto');
+    selNt.innerHTML = '<option value="">— Nenhum —</option>' +
+      _subprojetos.map(s => `<option value="${s.id}">${esc(s.nome)}</option>`).join('');
+  }
+
+  function abrirModalSubprojeto() {
+    document.getElementById('sp-id').value = '';
+    document.getElementById('sp-nome').value = '';
+    document.getElementById('sp-descricao').value = '';
+    document.getElementById('sp-data-inicio').value = '';
+    document.getElementById('sp-data-fim').value = '';
+    document.getElementById('campo-status-sp').style.display = 'none';
+    document.getElementById('modal-sp-titulo').textContent = 'Novo Subprojeto';
+    document.getElementById('modal-subprojeto').classList.remove('oculto');
+    setTimeout(() => document.getElementById('sp-nome').focus(), 50);
+  }
+
+  function editarSubprojeto(id) {
+    const s = _subprojetos.find(x => x.id === id);
+    if (!s) return;
+    document.getElementById('sp-id').value = s.id;
+    document.getElementById('sp-nome').value = s.nome;
+    document.getElementById('sp-descricao').value = s.descricao || '';
+    document.getElementById('sp-data-inicio').value = s.data_inicio ? s.data_inicio.split('T')[0] : '';
+    document.getElementById('sp-data-fim').value    = s.data_fim    ? s.data_fim.split('T')[0]    : '';
+    document.getElementById('sp-status').value      = s.status      || 'planejado';
+    document.getElementById('campo-status-sp').style.display = 'block';
+    document.getElementById('modal-sp-titulo').textContent = 'Editar Subprojeto';
+    document.getElementById('modal-subprojeto').classList.remove('oculto');
+  }
+
+  function fecharModalSubprojeto() {
+    document.getElementById('modal-subprojeto').classList.add('oculto');
+  }
+
+  async function salvarSubprojeto() {
+    const id          = document.getElementById('sp-id').value;
+    const nome        = document.getElementById('sp-nome').value.trim();
+    const descricao   = document.getElementById('sp-descricao').value.trim();
+    const data_inicio = document.getElementById('sp-data-inicio').value;
+    const data_fim    = document.getElementById('sp-data-fim').value;
+    const status      = document.getElementById('sp-status').value;
+    if (!nome) { mostrarMensagem('Nome obrigatório.', 'erro'); return; }
+    const btn = document.getElementById('btn-salvar-sp');
+    btn.disabled = true;
+    try {
+      let resp;
+      if (id) {
+        resp = await fetch(`/api/projetos/subprojetos/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ nome, descricao, data_inicio, data_fim, status })
+        }).then(r => r.json());
+      } else {
+        resp = await fetch(`/api/projetos/${_projetoId}/subprojetos`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ nome, descricao, data_inicio, data_fim })
+        }).then(r => r.json());
+      }
+      if (resp.erro) { mostrarMensagem(resp.erro, 'erro'); return; }
+      fecharModalSubprojeto();
+      mostrarMensagem(id ? 'Subprojeto atualizado.' : 'Subprojeto criado.');
+      await carregarSubprojetos();
+    } catch (e) {
+      mostrarMensagem('Erro ao salvar subprojeto.', 'erro');
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  function abrirModalExcluirSp(id, nome) {
+    _excluirSpId = id;
+    document.getElementById('excluir-sp-nome').textContent = nome;
+    document.getElementById('modal-excluir-sp').classList.remove('oculto');
+  }
+
+  function fecharModalExcluirSp() {
+    _excluirSpId = null;
+    document.getElementById('modal-excluir-sp').classList.add('oculto');
+  }
+
+  async function confirmarExcluirSp() {
+    if (!_excluirSpId) return;
+    try {
+      const resp = await fetch(`/api/projetos/subprojetos/${_excluirSpId}`, { method: 'DELETE' }).then(r => r.json());
+      if (resp.erro) { mostrarMensagem(resp.erro, 'erro'); return; }
+      fecharModalExcluirSp();
+      mostrarMensagem('Subprojeto excluído.');
+      await carregarSubprojetos();
+      await carregarTarefas();
+    } catch (e) {
+      mostrarMensagem('Erro ao excluir.', 'erro');
+    }
+  }
+
+  // ============================================================
+  // TAREFAS (KANBAN)
+  // ============================================================
+  async function carregarTarefas() {
+    try {
+      const spId = document.getElementById('filtro-subprojeto')?.value || '';
+      const url  = `/api/projetos/${_projetoId}/tarefas${spId ? `?subprojeto_id=${spId}` : ''}`;
+      const r    = await fetch(url).then(r => r.json());
+      if (r.erro) return;
+      _tarefas = r;
+      renderKanban();
+    } catch (e) {}
+  }
+
+  function renderKanban() {
+    const colunas = [
+      { key: 'a_fazer',      label: 'A Fazer',      cor: '#6b7280' },
+      { key: 'em_andamento', label: 'Em Andamento', cor: '#3b82f6' },
+      { key: 'concluida',    label: 'Concluída',    cor: '#22c55e' }
+    ];
+
+    document.getElementById('kanban').innerHTML = colunas.map(col => {
+      const cards = _tarefas.filter(t => t.status === col.key);
+      return `
+        <div class="kanban-col">
+          <div class="kanban-col-header">
+            <span class="kanban-col-titulo" style="color:${col.cor}">${col.label}</span>
+            <span class="kanban-col-count">${cards.length}</span>
+          </div>
+          <div class="kanban-cards">
+            ${cards.length === 0
+              ? `<div class="kanban-vazio"><i class="fas fa-inbox"></i> Vazio</div>`
+              : cards.map(t => renderKanbanCard(t, col.key)).join('')
+            }
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  function renderKanbanCard(t, colStatus) {
+    const hoje   = new Date(); hoje.setHours(0,0,0,0);
+    const prazo  = t.prazo ? new Date(t.prazo) : null;
+    const vencido = prazo && prazo < hoje && colStatus !== 'concluida';
+    const prazoStr = prazo ? prazo.toLocaleDateString('pt-BR') : '';
+
+    const statusAnterior = colStatus === 'a_fazer'      ? null : (colStatus === 'em_andamento' ? 'a_fazer' : 'em_andamento');
+    const statusProximo  = colStatus === 'concluida'    ? null : (colStatus === 'em_andamento' ? 'concluida' : 'em_andamento');
+
+    const btnAnterior = statusAnterior
+      ? `<button class="btn-icone" title="Voltar status" onclick="mudarStatusTarefa(${t.id},'${statusAnterior}')"><i class="fas fa-chevron-left"></i></button>` : '';
+    const btnProximo = statusProximo
+      ? `<button class="btn-icone" title="Avançar status" onclick="mudarStatusTarefa(${t.id},'${statusProximo}')"><i class="fas fa-chevron-right"></i></button>` : '';
+
+    const passoProg = t.passos_total > 0 ? Math.round(t.passos_concluidos / t.passos_total * 100) : -1;
+
+    return `
+      <div class="kanban-card" onclick="abrirDetalheTarefa(${t.id})" style="cursor:pointer;">
+        <div class="kanban-card-titulo">${esc(t.titulo)}</div>
+        ${t.subprojeto_nome ? `<div style="font-size:0.72rem;color:var(--cor-texto-fraco);margin-bottom:4px;"><i class="fas fa-sitemap"></i> ${esc(t.subprojeto_nome)}</div>` : ''}
+        ${passoProg >= 0 ? `
+        <div style="margin:6px 0 4px;">
+          <div style="height:3px;background:rgba(255,255,255,0.12);border-radius:99px;overflow:hidden;">
+            <div style="height:100%;width:${passoProg}%;background:var(--cor-sucesso);border-radius:99px;transition:width .3s;"></div>
+          </div>
+          <div style="font-size:0.68rem;color:var(--cor-texto-fraco);margin-top:2px;text-align:right;">${t.passos_concluidos}/${t.passos_total} passos · ${passoProg}%</div>
+        </div>` : ''}
+        <div class="kanban-card-meta">
+          <span class="badge-prioridade badge-${t.prioridade||'media'}">${labelPrioridade(t.prioridade)}</span>
+          ${prazoStr ? `<span class="kanban-card-prazo${vencido ? ' vencido' : ''}"><i class="fas fa-calendar"></i> ${prazoStr}</span>` : ''}
+          ${t.responsavel ? `<span style="font-size:0.7rem;color:var(--cor-texto-fraco);"><i class="fas fa-user"></i> ${esc(t.responsavel)}</span>` : ''}
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:4px;margin-top:6px;" onclick="event.stopPropagation()">
+          ${btnAnterior}
+          ${btnProximo}
+        </div>
+      </div>`;
+  }
+
+  async function mudarStatusTarefa(tid, status) {
+    try {
+      const resp = await fetch(`/api/projetos/tarefas/${tid}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status })
+      }).then(r => r.json());
+      if (resp.erro) { mostrarMensagem(resp.erro, 'erro'); return; }
+      // Se estiver no detalhe, atualiza o detalhe também
+      if (document.getElementById('view-tarefa').style.display !== 'none') {
+        await abrirDetalheTarefa(tid);
+      }
+      await carregarTarefas();
+      await carregarProjeto();
+    } catch (e) {
+      mostrarMensagem('Erro ao atualizar status.', 'erro');
+    }
+  }
+
+  // ============================================================
+  // DETALHE DA TAREFA
+  // ============================================================
+  let _tarefaDetalhe = null;
+  let _passosDetalhe = [];
+
+  async function abrirDetalheTarefa(tid) {
+    // Busca dados completos da tarefa (endpoint da agenda)
+    try {
+      const r = await fetch(`/api/agenda/tarefas/${tid}`).then(r => r.json());
+      if (r.erro || !r.tarefa) {
+        // fallback: usa dados já carregados em _tarefas
+        _tarefaDetalhe = _tarefas.find(t => t.id === tid) || null;
+        _passosDetalhe = [];
+      } else {
+        _tarefaDetalhe = r.tarefa;
+        _passosDetalhe = r.passos || [];
+      }
+    } catch (e) {
+      _tarefaDetalhe = _tarefas.find(t => t.id === tid) || null;
+      _passosDetalhe = [];
+    }
+    if (!_tarefaDetalhe) { mostrarMensagem('Tarefa não encontrada.', 'erro'); return; }
+    renderDetalheTarefa();
+    document.getElementById('view-kanban').style.display = 'none';
+    document.getElementById('view-tarefa').style.display = 'block';
+  }
+
+  function fecharDetalheTarefa() {
+    document.getElementById('view-tarefa').style.display = 'none';
+    document.getElementById('view-kanban').style.display = 'block';
+  }
+
+  function renderDetalheTarefa() {
+    const t = _tarefaDetalhe;
+    const hoje  = new Date(); hoje.setHours(0,0,0,0);
+    const prazo = t.prazo ? new Date(t.prazo) : null;
+    const prazoStr = prazo ? prazo.toLocaleDateString('pt-BR') : '—';
+    const vencido  = prazo && prazo < hoje && t.status !== 'concluida';
+
+    const statusLabel  = { a_fazer:'A Fazer', em_andamento:'Em Andamento', concluida:'Concluída' };
+    const statusCor    = { a_fazer:'#6b7280', em_andamento:'#3b82f6', concluida:'#22c55e' };
+    const corStatus    = statusCor[t.status] || '#6b7280';
+
+    // Botões de status
+    const statusOpcoes = [
+      { v:'a_fazer',      l:'A Fazer' },
+      { v:'em_andamento', l:'Em Andamento' },
+      { v:'concluida',    l:'Concluída' }
+    ];
+    const btnsStatus = statusOpcoes.map(s => `
+      <button onclick="mudarStatusTarefaDetalhe(${t.id},'${s.v}')"
+        style="padding:6px 14px;border-radius:20px;font-size:0.8rem;font-weight:600;border:2px solid ${statusCor[s.v]};
+               background:${t.status===s.v ? statusCor[s.v] : 'transparent'};
+               color:${t.status===s.v ? '#fff' : statusCor[s.v]};cursor:pointer;transition:all 0.15s;">
+        ${s.l}
+      </button>`).join('');
+
+    // Passos
+    const passosHtml = _passosDetalhe.length ? `
+      <div style="margin-top:4px;">
+        ${_passosDetalhe.map(p => `
+          <div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.05);">
+            <input type="checkbox" ${p.concluido ? 'checked' : ''} disabled
+              style="width:14px;height:14px;accent-color:var(--cor-destaque);">
+            <span style="font-size:0.85rem;color:var(--cor-texto);${p.concluido ? 'text-decoration:line-through;opacity:0.5;' : ''}">${esc(p.texto)}</span>
+          </div>`).join('')}
+      </div>
+      <div style="font-size:0.75rem;color:var(--cor-texto-fraco);margin-top:6px;">
+        ${_passosDetalhe.filter(p=>p.concluido).length}/${_passosDetalhe.length} concluídos
+      </div>` : `<span style="color:var(--cor-texto-fraco);font-size:0.85rem;">Nenhum passo registrado.</span>`;
+
+    document.getElementById('detalhe-tarefa-box').innerHTML = `
+      <!-- Cabeçalho -->
+      <div style="margin-bottom:20px;">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+          <h2 style="font-size:1.3rem;font-weight:700;color:var(--cor-texto);margin:0;flex:1;">${esc(t.titulo)}</h2>
+          <a href="/agenda?tarefa=${t.id}&from=projeto&projetoId=${_projetoId}" title="Abrir na Agenda de Tarefas"
+             style="font-size:0.8rem;color:var(--cor-texto-fraco);display:flex;align-items:center;gap:4px;white-space:nowrap;">
+            <i class="fas fa-external-link-alt"></i> Abrir na Agenda
+          </a>
+        </div>
+        ${t.subprojeto_nome ? `<div style="font-size:0.82rem;color:var(--cor-texto-fraco);margin-top:4px;"><i class="fas fa-sitemap"></i> ${esc(t.subprojeto_nome)}</div>` : ''}
+      </div>
+
+      <!-- Status -->
+      <div style="margin-bottom:20px;">
+        <div class="campo-label" style="margin-bottom:8px;">Status</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">${btnsStatus}</div>
+      </div>
+
+      <!-- Metadados em grid -->
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px;margin-bottom:20px;">
+        <div>
+          <div class="campo-label">Prioridade</div>
+          <span class="badge-prioridade badge-${t.prioridade||'media'}" style="font-size:0.82rem;">${labelPrioridade(t.prioridade)}</span>
+        </div>
+        <div>
+          <div class="campo-label">Prazo</div>
+          <span style="font-size:0.88rem;color:${vencido ? 'var(--cor-erro)' : 'var(--cor-texto)'};">
+            <i class="fas fa-calendar${vencido ? ' fa-calendar-times' : '-alt'}"></i> ${prazoStr}
+          </span>
+        </div>
+        <div>
+          <div class="campo-label">Responsável</div>
+          <span style="font-size:0.88rem;color:var(--cor-texto);">
+            ${t.responsavel ? `<i class="fas fa-user"></i> ${esc(t.responsavel)}` : '<span style="color:var(--cor-texto-fraco);">—</span>'}
+          </span>
+        </div>
+        <div>
+          <div class="campo-label">Lista (Agenda)</div>
+          <span style="font-size:0.82rem;color:var(--cor-texto-fraco);">
+            ${t.lista_nome ? esc(t.lista_nome) : '—'}
+          </span>
+        </div>
+        <div>
+          <div class="campo-label">Criado por</div>
+          <span style="font-size:0.82rem;color:var(--cor-texto-fraco);">${esc(t.criado_por||'')}</span>
+        </div>
+        <div>
+          <div class="campo-label">Criado em</div>
+          <span style="font-size:0.82rem;color:var(--cor-texto-fraco);">
+            ${t.criado_em ? new Date(t.criado_em).toLocaleDateString('pt-BR') : '—'}
+          </span>
+        </div>
+      </div>
+
+      <!-- Descrição -->
+      ${t.descricao ? `
+      <div style="margin-bottom:20px;">
+        <div class="campo-label">Descrição</div>
+        <div style="font-size:0.88rem;color:var(--cor-texto);line-height:1.6;white-space:pre-wrap;background:var(--cor-fundo);border:1px solid var(--cor-borda);border-radius:var(--raio);padding:12px;">${esc(t.descricao)}</div>
+      </div>` : ''}
+
+      <!-- Passos -->
+      <div>
+        <div class="campo-label" style="margin-bottom:8px;">Passos / Checklist</div>
+        ${passosHtml}
+      </div>
+    `;
+  }
+
+  async function mudarStatusTarefaDetalhe(tid, status) {
+    try {
+      const resp = await fetch(`/api/projetos/tarefas/${tid}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status })
+      }).then(r => r.json());
+      if (resp.erro) { mostrarMensagem(resp.erro, 'erro'); return; }
+      // Atualiza status local e re-renderiza
+      _tarefaDetalhe.status = status;
+      renderDetalheTarefa();
+      // Atualiza kanban em background
+      carregarTarefas();
+      carregarProjeto();
+    } catch (e) {
+      mostrarMensagem('Erro ao atualizar status.', 'erro');
+    }
+  }
+
+  async function carregarMinhasListas() {
+    try {
+      const r = await fetch('/api/projetos/auxiliar/minhas-listas').then(r => r.json());
+      if (r.erro) return;
+      _minhasListas = r;
+      const sel = document.getElementById('nt-lista');
+      sel.innerHTML = '<option value="">Selecione uma lista...</option>' +
+        r.map(l => `<option value="${l.id}">${esc(l.nome)}</option>`).join('');
+    } catch (e) {}
+  }
+
+  function abrirModalTarefa() {
+    document.getElementById('nt-titulo').value = '';
+    document.getElementById('nt-descricao').value = '';
+    document.getElementById('nt-responsavel').value = '';
+    document.getElementById('nt-prazo').value = '';
+    document.getElementById('nt-prioridade').value = 'media';
+    document.getElementById('nt-subprojeto').value = '';
+    document.getElementById('nt-lista').value = '';
+    // Pré-seleciona subprojeto do filtro ativo
+    const spFiltro = document.getElementById('filtro-subprojeto')?.value;
+    if (spFiltro) document.getElementById('nt-subprojeto').value = spFiltro;
+    document.getElementById('modal-tarefa').classList.remove('oculto');
+    setTimeout(() => document.getElementById('nt-titulo').focus(), 50);
+  }
+
+  function fecharModalTarefa() {
+    document.getElementById('modal-tarefa').classList.add('oculto');
+  }
+
+  async function salvarTarefa() {
+    const titulo       = document.getElementById('nt-titulo').value.trim();
+    const descricao    = document.getElementById('nt-descricao').value.trim();
+    const responsavel  = document.getElementById('nt-responsavel').value.trim();
+    const prazo        = document.getElementById('nt-prazo').value;
+    const prioridade   = document.getElementById('nt-prioridade').value;
+    const subprojeto_id= document.getElementById('nt-subprojeto').value;
+    const lista_id     = document.getElementById('nt-lista').value;
+
+    if (!titulo)    { mostrarMensagem('Título obrigatório.', 'erro'); return; }
+    if (!lista_id)  { mostrarMensagem('Selecione uma lista da Agenda de Tarefas.', 'erro'); return; }
+
+    const btn = document.getElementById('btn-salvar-tarefa');
+    btn.disabled = true;
+    try {
+      const resp = await fetch(`/api/projetos/${_projetoId}/tarefas`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ titulo, descricao, responsavel, prazo, prioridade, lista_id, subprojeto_id: subprojeto_id || null })
+      }).then(r => r.json());
+      if (resp.erro) { mostrarMensagem(resp.erro, 'erro'); return; }
+      fecharModalTarefa();
+      mostrarMensagem('Tarefa criada.');
+      await carregarTarefas();
+      await carregarProjeto();
+    } catch (e) {
+      mostrarMensagem('Erro ao criar tarefa.', 'erro');
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  // ============================================================
+  // MEMBROS
+  // ============================================================
+  let _todosUsuarios = [];
+
+  async function carregarTodosUsuarios() {
+    try {
+      const r = await fetch('/api/projetos/auxiliar/usuarios').then(r => r.json());
+      if (r.erro || !Array.isArray(r)) return;
+      _todosUsuarios = r;
+      const sel = document.getElementById('mb-usuario-sel');
+      if (!sel) return;
+      const membrosLogins = _membros.map(m => m.usuario);
+      const donoLogin = _projeto?.dono || '';
+      const labelOrigem = { local: 'Local', dominio: 'AD', contato: 'Contato' };
+      sel.innerHTML = '<option value="">Selecione o usuário...</option>' +
+        r.filter(u => u.login !== donoLogin && !membrosLogins.includes(u.login))
+         .map(u => `<option value="${esc(u.login)}">${esc(u.nome)} (${esc(u.login)}) [${labelOrigem[u.origem]||u.origem}]</option>`)
+         .join('');
+    } catch (e) {}
+  }
+
+  async function carregarMembros() {
+    try {
+      const r = await fetch(`/api/projetos/${_projetoId}/membros`).then(r => r.json());
+      if (r.erro) return;
+      _membros = r;
+      renderMembros();
+      await carregarTodosUsuarios();
+    } catch (e) {}
+  }
+
+  function renderMembros() {
+    const el = document.getElementById('membros-lista');
+    const podGerenciar = _permissao === 'dono' || window.usuarioLogado?.nivel === 'admin';
+
+    const donoItem = `
+      <div class="membro-item">
+        <div class="membro-avatar" style="background:#f97316">${(_projeto?.dono||'?')[0].toUpperCase()}</div>
+        <div class="membro-info">
+          <div class="membro-nome">${esc(_projeto?.dono||'')}</div>
+          <div class="membro-permissao"><i class="fas fa-crown" style="color:#fbbf24;"></i> Dono do projeto</div>
+        </div>
+      </div>`;
+
+    const membrosHtml = _membros.map(m => `
+      <div class="membro-item">
+        <div class="membro-avatar" style="background:${corPermissao(m.permissao)}">${m.usuario[0].toUpperCase()}</div>
+        <div class="membro-info">
+          <div class="membro-nome">${esc(m.usuario)}</div>
+          <div class="membro-permissao" style="display:flex;align-items:center;gap:6px;">
+            ${podGerenciar
+              ? `<select class="input-campo" style="padding:3px 8px;font-size:0.78rem;height:auto;width:auto;" onchange="alterarPermissaoMembro('${esc(m.usuario)}', this.value)">
+                   <option value="leitura" ${m.permissao==='leitura'?'selected':''}>Leitura</option>
+                   <option value="edicao"  ${m.permissao==='edicao' ?'selected':''}>Edição</option>
+                 </select>`
+              : labelPermissao(m.permissao)
+            }
+          </div>
+        </div>
+        ${podGerenciar ? `<button class="btn-icone btn-icone-perigo" title="Remover membro" onclick="abrirModalRemoverMembro('${esc(m.usuario)}')"><i class="fas fa-user-times"></i></button>` : ''}
+      </div>`).join('');
+
+    el.innerHTML = donoItem + (membrosHtml || `
+      <div style="text-align:center;padding:30px;color:var(--cor-texto-fraco);">
+        <i class="fas fa-users" style="font-size:1.5rem;opacity:0.3;display:block;margin-bottom:6px;"></i>
+        Nenhum membro adicionado ainda.
+      </div>`);
+  }
+
+  async function alterarPermissaoMembro(uid, permissao) {
+    try {
+      const resp = await fetch(`/api/projetos/${_projetoId}/membros`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ membro: uid, permissao })
+      }).then(r => r.json());
+      if (resp.erro) { mostrarMensagem(resp.erro, 'erro'); return; }
+      mostrarMensagem('Permissão atualizada.');
+    } catch (e) {
+      mostrarMensagem('Erro ao atualizar permissão.', 'erro');
+    }
+  }
+
+  async function salvarMembro() {
+    const membro    = document.getElementById('mb-usuario-sel').value;
+    const permissao = document.getElementById('mb-permissao-sel').value;
+    if (!membro) { mostrarMensagem('Selecione um usuário.', 'erro'); return; }
+    const btn = document.getElementById('btn-salvar-membro');
+    btn.disabled = true;
+    try {
+      const resp = await fetch(`/api/projetos/${_projetoId}/membros`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ membro, permissao })
+      }).then(r => r.json());
+      if (resp.erro) { mostrarMensagem(resp.erro, 'erro'); return; }
+      mostrarMensagem('Membro adicionado.');
+      await carregarMembros();
+    } catch (e) {
+      mostrarMensagem('Erro ao adicionar membro.', 'erro');
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  function abrirModalRemoverMembro(uid) {
+    _rmMembro = uid;
+    document.getElementById('rm-nome').textContent = uid;
+    document.getElementById('modal-remover-membro').classList.remove('oculto');
+  }
+
+  function fecharModalRemoverMembro() {
+    _rmMembro = null;
+    document.getElementById('modal-remover-membro').classList.add('oculto');
+  }
+
+  async function confirmarRemoverMembro() {
+    if (!_rmMembro) return;
+    try {
+      const resp = await fetch(`/api/projetos/${_projetoId}/membros/${encodeURIComponent(_rmMembro)}`, { method: 'DELETE' }).then(r => r.json());
+      if (resp.erro) { mostrarMensagem(resp.erro, 'erro'); return; }
+      fecharModalRemoverMembro();
+      mostrarMensagem('Membro removido.');
+      await carregarMembros();
+    } catch (e) {
+      mostrarMensagem('Erro ao remover membro.', 'erro');
+    }
+  }
+
+  // ============================================================
+  // LOGS
+  // ============================================================
+  let _logsCarregados = false;
+
+  async function carregarLogs() {
+    if (_logsCarregados) return;
+    _logsCarregados = true;
+    const el = document.getElementById('logs-lista');
+    el.innerHTML = `<div style="color:var(--cor-texto-fraco);padding:20px;text-align:center;"><i class="fas fa-spinner fa-spin"></i> Carregando...</div>`;
+    try {
+      const r = await fetch(`/api/projetos/${_projetoId}/logs`).then(r => r.json());
+      if (r.erro || !Array.isArray(r)) {
+        el.innerHTML = `<div style="color:var(--cor-texto-fraco);padding:20px;text-align:center;">Nenhum log encontrado.</div>`;
+        return;
+      }
+      if (!r.length) {
+        el.innerHTML = `<div style="color:var(--cor-texto-fraco);padding:40px;text-align:center;">
+          <i class="fas fa-history" style="font-size:2rem;opacity:0.3;display:block;margin-bottom:8px;"></i>
+          Nenhum log registrado ainda.
+        </div>`;
+        return;
+      }
+      const corAcao = { CRIACAO:'#22c55e', EDICAO:'#3b82f6', EXCLUSAO:'#e94560', ARQUIVAMENTO:'#f97316', COMPARTILHAMENTO:'#8b5cf6' };
+      el.innerHTML = r.map(l => {
+        const data = new Date(l.criado_em).toLocaleString('pt-BR');
+        const cor  = corAcao[l.acao] || '#6b7280';
+        return `
+          <div style="background:var(--cor-fundo-2);border:1px solid var(--cor-borda);border-left:3px solid ${cor};border-radius:var(--raio);padding:10px 14px;display:flex;gap:12px;align-items:flex-start;">
+            <div style="flex-shrink:0;width:8px;height:8px;border-radius:50%;background:${cor};margin-top:5px;"></div>
+            <div style="flex:1;">
+              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:2px;">
+                <span style="font-size:0.75rem;font-weight:700;color:${cor};text-transform:uppercase;">${esc(l.acao)}</span>
+                <span style="font-size:0.82rem;color:var(--cor-texto);font-weight:500;">${esc(l.usuario)}</span>
+                <span style="font-size:0.75rem;color:var(--cor-texto-fraco);">${data}</span>
+              </div>
+              ${l.detalhes ? `<div style="font-size:0.82rem;color:var(--cor-texto-fraco);">${esc(l.detalhes)}</div>` : ''}
+            </div>
+          </div>`;
+      }).join('');
+    } catch (e) {
+      el.innerHTML = `<div style="color:var(--cor-erro);padding:20px;">Erro ao carregar logs.</div>`;
+    }
+  }
+
+  // ============================================================
+  // EDITAR / ARQUIVAR PROJETO
+  // ============================================================
+  function editarProjeto() {
+    // Abre index.html com parâmetro de edição
+    window.location.href = `/agendaProjetos?editar=${_projetoId}`;
+  }
+
+  async function arquivarProjeto() {
+    if (!confirm(`Arquivar o projeto "${_projeto?.nome}"?`)) return;
+    try {
+      const resp = await fetch(`/api/projetos/${_projetoId}/arquivar`, { method: 'PATCH' }).then(r => r.json());
+      if (resp.erro) { mostrarMensagem(resp.erro, 'erro'); return; }
+      mostrarMensagem('Projeto arquivado.');
+      setTimeout(() => { window.location.href = '/agendaProjetos'; }, 1200);
+    } catch (e) {
+      mostrarMensagem('Erro ao arquivar.', 'erro');
+    }
+  }
+
+  // ============================================================
+  // UTILITÁRIOS
+  // ============================================================
+  function labelStatus(s) {
+    const m = { planejado:'Planejado', em_andamento:'Em Andamento', concluido:'Concluído', arquivado:'Arquivado', pausado:'Pausado' };
+    return m[s] || s;
+  }
+
+  function labelPrioridade(p) {
+    const m = { alta:'Alta', media:'Média', baixa:'Baixa' };
+    return m[p] || p;
+  }
+
+  function labelPermissao(p) {
+    const m = { leitura:'Leitura', edicao:'Edição', dono:'Dono' };
+    return m[p] || p;
+  }
+
+  function corStatus(s) {
+    const m = { planejado:'#6b7280', em_andamento:'#3b82f6', concluido:'#22c55e', pausado:'#eab308', arquivado:'#4b5563' };
+    return m[s] || '#6b7280';
+  }
+
+  function corPermissao(p) {
+    const m = { leitura:'#6366f1', edicao:'#3b82f6', dono:'#f97316' };
+    return m[p] || '#6b7280';
+  }
+
+  function esc(str) {
+    if (!str) return '';
+    return String(str)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;').replace(/'/g,'&#039;');
+  }
+
+  function mostrarMensagem(texto, tipo = 'sucesso') {
+    const el = document.getElementById('mensagem-feedback');
+    el.textContent = texto;
+    el.className = `feedback feedback-${tipo}`;
+    el.classList.remove('oculto');
+    setTimeout(() => el.classList.add('oculto'), 3500);
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      fecharModalSubprojeto();
+      fecharModalTarefa();
+      fecharModalRemoverMembro();
+      fecharModalExcluirSp();
+    }
+  });
+  </script>
+</body>
+</html>
