@@ -1,0 +1,32 @@
+{
+  "items": [
+    {
+      "localPath": "routes/conhecimento.js",
+      "remotePath": "/var/www/html/wkl/Portal/routes/conhecimento.js"
+    },
+    {
+      "localPath": "public/baseConhecimento/js/core-api.js",
+      "remotePath": "/var/www/html/wkl/Portal/public/baseConhecimento/js/core-api.js"
+    },
+    {
+      "localPath": "public/baseConhecimento/js/core-artigos.js",
+      "remotePath": "/var/www/html/wkl/Portal/public/baseConhecimento/js/core-artigos.js"
+    },
+    {
+      "localPath": "public/baseConhecimento/js/core-editor.js",
+      "remotePath": "/var/www/html/wkl/Portal/public/baseConhecimento/js/core-editor.js"
+    },
+    {
+      "localPath": "public/baseConhecimento/css/conhecimento.css",
+      "remotePath": "/var/www/html/wkl/Portal/public/baseConhecimento/css/conhecimento.css"
+    },
+    {
+      "localPath": "package.json",
+      "remotePath": "/var/www/html/wkl/Portal/package.json"
+    },
+    {
+      "localPath": "package-lock.json",
+      "remotePath": "/var/www/html/wkl/Portal/package-lock.json"
+    }
+  ]
+}

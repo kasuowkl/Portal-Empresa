@@ -1,0 +1,80 @@
+{
+  "items": [
+    {
+      "localPath": "public/configuracoes.html",
+      "remotePath": "/var/www/html/wkl/Portal/public/configuracoes.html"
+    },
+    {
+      "localPath": "public/fragmentos/whatsapp.html",
+      "remotePath": "/var/www/html/wkl/Portal/public/fragmentos/whatsapp.html"
+    },
+    {
+      "localPath": "public/fragmentos/protheus.html",
+      "remotePath": "/var/www/html/wkl/Portal/public/fragmentos/protheus.html"
+    },
+    {
+      "localPath": "routes/auth.js",
+      "remotePath": "/var/www/html/wkl/Portal/routes/auth.js"
+    },
+    {
+      "localPath": "routes/agenda.js",
+      "remotePath": "/var/www/html/wkl/Portal/routes/agenda.js"
+    },
+    {
+      "localPath": "routes/agendaProjetos.js",
+      "remotePath": "/var/www/html/wkl/Portal/routes/agendaProjetos.js"
+    },
+    {
+      "localPath": "routes/aprovacoes.js",
+      "remotePath": "/var/www/html/wkl/Portal/routes/aprovacoes.js"
+    },
+    {
+      "localPath": "routes/chamados.js",
+      "remotePath": "/var/www/html/wkl/Portal/routes/chamados.js"
+    },
+    {
+      "localPath": "routes/contabil.js",
+      "remotePath": "/var/www/html/wkl/Portal/routes/contabil.js"
+    },
+    {
+      "localPath": "routes/contatos.js",
+      "remotePath": "/var/www/html/wkl/Portal/routes/contatos.js"
+    },
+    {
+      "localPath": "routes/financeiro.js",
+      "remotePath": "/var/www/html/wkl/Portal/routes/financeiro.js"
+    },
+    {
+      "localPath": "routes/patrimonio.js",
+      "remotePath": "/var/www/html/wkl/Portal/routes/patrimonio.js"
+    },
+    {
+      "localPath": "routes/portal.js",
+      "remotePath": "/var/www/html/wkl/Portal/routes/portal.js"
+    },
+    {
+      "localPath": "services/cronFinanceiro.js",
+      "remotePath": "/var/www/html/wkl/Portal/services/cronFinanceiro.js"
+    },
+    {
+      "localPath": "services/cronWhatsApp.js",
+      "remotePath": "/var/www/html/wkl/Portal/services/cronWhatsApp.js"
+    },
+    {
+      "localPath": "services/protheusService.js",
+      "remotePath": "/var/www/html/wkl/Portal/services/protheusService.js"
+    },
+    {
+      "localPath": "services/whatsappDispatchService.js",
+      "remotePath": "/var/www/html/wkl/Portal/services/whatsappDispatchService.js"
+    },
+    {
+      "localPath": "services/whatsappService.js",
+      "remotePath": "/var/www/html/wkl/Portal/services/whatsappService.js"
+    },
+    {
+      "localPath": "services/whatsappTemplateService.js",
+      "remotePath": "/var/www/html/wkl/Portal/services/whatsappTemplateService.js"
+    }
+  ]
+}

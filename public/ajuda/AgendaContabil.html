@@ -205,6 +205,14 @@
           <li><strong>Vencido</strong> - item atrasado</li>
         </ul>
         <p>As acoes do modulo sao registradas em <strong>cont_logs</strong>, permitindo trilha basica de auditoria por agenda e item.</p>
+        <div class="doc-card">
+          <h4>Notificacoes WhatsApp ja disponiveis</h4>
+          <p>O modulo ja envia WhatsApp para eventos operacionais em <strong>Configuracoes -> WhatsApp -> Ag. Contabil</strong> nos eventos <code>contabil.novo_item</code>, <code>contabil.item_editado</code>, <code>contabil.item_pago</code> e <code>contabil.item_vencido</code>.</p>
+          <p>Os destinatarios sao definidos por chips, como <strong>Criado por</strong>, <strong>Compartilhados com edicao</strong>, <strong>Gestores do setor</strong>, <strong>Administradores</strong> e <strong>WhatsApp padrao</strong>.</p>
+        </div>
+        <div class="doc-info">
+          Os resultados de envio por WhatsApp aparecem nos <strong>Logs de Atividade</strong> com a acao <strong>NOTIF_WHATSAPP</strong>. Os lembretes agendados desta agenda continuam como evolucao separada.
+        </div>
       </section>
 
       <section class="doc-secao" id="compartilhar">
@@ -257,14 +265,13 @@
         <h2><i class="fas fa-road"></i> Proximos passos</h2>
         <p>A base do modulo ja esta pronta para evolucao. Os proximos blocos previstos sao:</p>
         <ul>
-          <li>Notificacoes reais por e-mail</li>
-          <li>Notificacoes por WhatsApp</li>
-          <li>Uso efetivo da integracao por manifesto</li>
-          <li>Aprimoramento da trilha de auditoria</li>
-          <li>Mais refinamentos na gestao de cadastros e relatorios</li>
+          <li>Automacoes de lembrete e resumo por periodo</li>
+          <li>Mais refinamentos na trilha de auditoria do modulo</li>
+          <li>Aprimoramentos na gestao de cadastros e relatorios</li>
+          <li>Evolucao dos eventos por setor e agenda</li>
         </ul>
         <div class="doc-info">
-          Estes recursos ainda estao em fase de evolucao. A documentacao sera atualizada conforme novas entregas entrarem no Portal.
+          O modulo ja possui disparos operacionais por WhatsApp. Esta secao passa a refletir apenas as evolucoes ainda pendentes.
         </div>
       </section>
     </main>

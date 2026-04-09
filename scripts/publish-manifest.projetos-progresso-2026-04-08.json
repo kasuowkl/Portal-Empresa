@@ -1,0 +1,12 @@
+{
+  "items": [
+    {
+      "localPath": "routes/agendaProjetos.js",
+      "remotePath": "/var/www/html/wkl/Portal/routes/agendaProjetos.js"
+    },
+    {
+      "localPath": "public/agendaProjetos/projeto.html",
+      "remotePath": "/var/www/html/wkl/Portal/public/agendaProjetos/projeto.html"
+    }
+  ]
+}

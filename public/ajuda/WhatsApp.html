@@ -170,26 +170,35 @@
         <i class="fab fa-whatsapp"></i> Integração WhatsApp
       </div>
       <div class="doc-subtitulo">
-        Aprove, reprove e consulte solicitações do Portal WKL diretamente pelo WhatsApp, com login automático por número de telefone.
+        Central de integração WhatsApp do Portal WKL, com bot, painel administrativo, configuração por módulo, logs de envio e controle de delay entre mensagens.
       </div>
 
       <!-- VISÃO GERAL -->
       <section class="doc-secao" id="visao-geral">
         <h2><i class="fas fa-eye"></i> Visão Geral</h2>
-        <p>A integração WhatsApp conecta o Portal WKL ao aplicativo WhatsApp, permitindo que os aprovadores interajam com o sistema de aprovações sem precisar acessar o portal pelo navegador.</p>
+        <p>A integração WhatsApp conecta o Portal WKL ao aplicativo WhatsApp e ao painel administrativo do portal, permitindo notificações operacionais e interações por múltiplos subsistemas.</p>
 
         <h3>O que você pode fazer pelo WhatsApp</h3>
         <ul>
-          <li>Receber notificações de aprovações pendentes</li>
+          <li>Receber notificações de Aprovações, Portal, Chamados, Agenda de Tarefas, Financeiro, Agenda Contábil, Contatos e Patrimônio</li>
           <li>Consultar aprovações pendentes, aprovadas e reprovadas</li>
           <li>Aprovar ou reprovar solicitações respondendo uma mensagem</li>
           <li>Ver detalhes completos de uma aprovação pelo número</li>
-          <li>Acessar automaticamente com seu número de telefone cadastrado</li>
+          <li>Configurar eventos por módulo com chips de destinatários e delay entre envios</li>
+          <li>Acompanhar logs de envio com status ENVIADO, IGNORADO e ERRO</li>
         </ul>
 
+        <h3>Outros módulos já conectados</h3>
+        <ul>
+          <li><strong>Portal</strong> — login, falha de login, usuário bloqueado e criação de usuário</li>
+          <li><strong>Chamados</strong> — novo, atribuído, transferido, nova mensagem, reaberto, concluído e aprovação</li>
+          <li><strong>Agenda de Tarefas</strong> — tarefa criada, editada, concluída, passos e membros</li>
+          <li><strong>Financeiro</strong> — eventos operacionais e lembretes automáticos das 07:00</li>
+          <li><strong>Agenda Contábil</strong>, <strong>Contatos</strong> e <strong>Patrimônio</strong> — eventos operacionais configuráveis no painel</li>
+        </ul>
         <div class="doc-info">
           <i class="fas fa-info-circle" style="color:#00a884; margin-right:6px"></i>
-          O sistema foi desenvolvido pela equipe WKL e roda em 3 serviços independentes integrados ao Portal WKL.
+          O sistema foi desenvolvido pela equipe WKL e hoje já cobre o bot de aprovação, o painel administrativo de configuração por módulo e a fila central de envio do Portal.
         </div>
       </section>
 
@@ -218,6 +227,10 @@
         <div class="doc-warn">
           <i class="fas fa-exclamation-triangle" style="color:#f59e0b; margin-right:6px"></i>
           O serviço <strong>WhatsApp UI (3001)</strong> mantém a sessão do WhatsApp e não deve ser reiniciado desnecessariamente. O <strong>Bot (3002)</strong> e o <strong>Portal (3000)</strong> podem ser reiniciados livremente.
+        </div>
+        <div class="doc-info">
+          <i class="fas fa-info-circle" style="color:#00a884; margin-right:6px"></i>
+          Os envios automáticos do Portal passam pela fila central de WhatsApp e geram logs com status <strong>ENVIADO</strong>, <strong>IGNORADO</strong> ou <strong>ERRO</strong> em <strong>Configurações → Logs</strong> com a ação <strong>NOTIF_WHATSAPP</strong>.
         </div>
       </section>
 
@@ -255,6 +268,10 @@
         <div class="doc-warn">
           <i class="fas fa-exclamation-triangle" style="color:#f59e0b; margin-right:6px"></i>
           O login manual não persiste entre reinícios do bot. Para uso contínuo, cadastre o número no Portal.
+        </div>
+        <div class="doc-info">
+          <i class="fas fa-info-circle" style="color:#00a884; margin-right:6px"></i>
+          Para receber mensagens automáticas dos módulos do Portal, o usuário também precisa ter o campo <strong>WhatsApp</strong> preenchido corretamente em seu cadastro local ou de domínio.
         </div>
       </section>
 
@@ -395,6 +412,11 @@
       <section class="doc-secao" id="configuracao">
         <h2><i class="fas fa-sliders-h"></i> Configuração do Portal</h2>
         <p>Para que a integração funcione, o Portal WKL precisa estar configurado corretamente:</p>
+        <p>No Portal, a configuração principal fica em <strong>Configurações → WhatsApp</strong>, com uma aba de <strong>Configuração</strong> e sub-abas por módulo.</p>
+        <div class="doc-card">
+          <h4><i class="fas fa-cog" style="color:#00a884; margin-right:6px"></i> Campos principais do painel</h4>
+          <p>Preencha a <strong>URL do serviço</strong>, a <strong>API Key</strong>, o <strong>WhatsApp padrão</strong>, a <strong>Mensagem de teste</strong> e o campo <strong>Delay entre envios (ms)</strong>. Esse delay ajuda a espaçar as mensagens automáticas para reduzir risco de bloqueio da conta.</p>
+        </div>
 
         <h3>Pré-requisitos no Portal</h3>
         <ul>
@@ -466,6 +488,10 @@
         <div class="doc-info">
           <i class="fas fa-lightbulb" style="color:#00a884; margin-right:6px"></i>
           Em caso de dúvida, consulte sempre os logs: <strong>Painel Admin → Logs em tempo real</strong> (bot) e <strong>Configurações → Logs → NOTIF_WHATSAPP</strong> (Portal). Juntos mostram exatamente o que aconteceu em cada etapa do envio.
+        </div>
+        <div class="doc-warn">
+          <i class="fas fa-exclamation-triangle" style="color:#f59e0b; margin-right:6px"></i>
+          <strong>Mensagens saem em rajada:</strong> revise o campo <strong>Delay entre envios (ms)</strong> em <strong>Configura??es ? WhatsApp</strong>. Valores como <code>4000</code> ou <code>5000</code> ajudam a espa?ar a fila e reduzem risco de bloqueio da conta.
         </div>
       </section>
 

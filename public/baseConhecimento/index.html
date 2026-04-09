@@ -26,7 +26,7 @@
     <aside class="kb-sidebar">
       <div class="kb-sidebar-header">
         <h2><i class="fas fa-book"></i> Base de Conhecimento</h2>
-        <input type="text" class="kb-busca-input" id="busca-input" placeholder="Buscar artigos..." oninput="buscarArtigos()">
+        <input type="text" class="kb-busca-input" id="busca-input" placeholder="Buscar artigos..." oninput="buscarArtigosSidebar()">
       </div>
 
       <!-- Estatisticas -->
@@ -82,6 +82,34 @@
         </div>
       </div>
 
+      <div class="kb-filtros-barra">
+        <div class="kb-filtro-busca-wrap">
+          <i class="fas fa-search"></i>
+          <input type="text" class="kb-filtro-input" id="busca-avancada-input" placeholder="Pesquisar por título, conteúdo ou tag..." oninput="buscarArtigos()">
+        </div>
+        <select class="kb-filtro-select" id="filtro-categoria" onchange="aplicarFiltrosConhecimento()">
+          <option value="">Todas as categorias</option>
+        </select>
+        <select class="kb-filtro-select" id="filtro-tag" onchange="aplicarFiltrosConhecimento()">
+          <option value="">Todas as tags</option>
+        </select>
+        <select class="kb-filtro-select" id="filtro-criador" onchange="aplicarFiltrosConhecimento()">
+          <option value="">Todos os criadores</option>
+        </select>
+        <select class="kb-filtro-select" id="filtro-status" onchange="aplicarFiltrosConhecimento()">
+          <option value="">Todos os status</option>
+          <option value="publicado">Publicado</option>
+          <option value="rascunho">Rascunho</option>
+        </select>
+        <label class="kb-filtro-check">
+          <input type="checkbox" id="filtro-fixado" onchange="aplicarFiltrosConhecimento()">
+          <span>Somente fixados</span>
+        </label>
+        <button class="kb-btn kb-btn-secundario" onclick="limparFiltrosConhecimento()">
+          <i class="fas fa-eraser"></i> Limpar
+        </button>
+      </div>
+
       <!-- Lista de artigos -->
       <div class="kb-artigos-lista" id="artigos-lista">
         <div class="kb-vazio">
@@ -101,6 +129,18 @@
           <h1 class="kb-view-titulo" id="view-titulo"></h1>
           <div class="kb-view-meta" id="view-meta"></div>
           <div style="margin-top:10px; display:flex; gap:6px;" id="view-acoes"></div>
+        </div>
+
+        <div class="kb-view-modos" id="view-modos" style="display:none">
+          <button class="kb-modo-btn ativo" id="btn-view-modo-pagina" onclick="definirModoVisualizacaoArtigo('pagina')">
+            <i class="fas fa-globe"></i> Página
+          </button>
+          <button class="kb-modo-btn" id="btn-view-modo-codigo" onclick="definirModoVisualizacaoArtigo('codigo')">
+            <i class="fas fa-code"></i> Código HTML
+          </button>
+          <button class="kb-modo-btn" id="btn-view-tela-cheia" onclick="alternarTelaCheiaArtigo()">
+            <i class="fas fa-expand"></i> Tela Cheia
+          </button>
         </div>
 
         <div class="kb-view-conteudo" id="view-conteudo"></div>
@@ -161,30 +201,43 @@
 
         <div class="kb-form-grupo">
           <label>ConteÃºdo * (suporta HTML bÃ¡sico)</label>
+          <div class="kb-editor-modos">
+            <button type="button" class="kb-modo-btn ativo" id="btn-editor-modo-visual" onclick="definirModoEdicaoArtigo('visual')">
+              <i class="fas fa-pen"></i> Visual
+            </button>
+            <button type="button" class="kb-modo-btn" id="btn-editor-modo-codigo" onclick="definirModoEdicaoArtigo('codigo')">
+              <i class="fas fa-code"></i> Código HTML
+            </button>
+            <button type="button" class="kb-modo-btn" id="btn-editor-modo-pagina" onclick="definirModoEdicaoArtigo('pagina')">
+              <i class="fas fa-globe"></i> Página
+            </button>
+          </div>
           <div class="kb-editor-toolbar">
-            <button onclick="inserirTag('b')" title="Negrito"><i class="fas fa-bold"></i></button>
-            <button onclick="inserirTag('i')" title="ItÃ¡lico"><i class="fas fa-italic"></i></button>
-            <button onclick="inserirTag('u')" title="Sublinhado"><i class="fas fa-underline"></i></button>
+            <button type="button" onclick="inserirTag('b')" title="Negrito"><i class="fas fa-bold"></i></button>
+            <button type="button" onclick="inserirTag('i')" title="ItÃ¡lico"><i class="fas fa-italic"></i></button>
+            <button type="button" onclick="inserirTag('u')" title="Sublinhado"><i class="fas fa-underline"></i></button>
             <div class="separador"></div>
-            <button onclick="inserirTag('h2')" title="TÃ­tulo">H2</button>
-            <button onclick="inserirTag('h3')" title="SubtÃ­tulo">H3</button>
+            <button type="button" onclick="inserirTag('h2')" title="TÃ­tulo">H2</button>
+            <button type="button" onclick="inserirTag('h3')" title="SubtÃ­tulo">H3</button>
             <div class="separador"></div>
-            <button onclick="inserirLista('ul')" title="Lista"><i class="fas fa-list-ul"></i></button>
-            <button onclick="inserirLista('ol')" title="Lista numerada"><i class="fas fa-list-ol"></i></button>
+            <button type="button" onclick="inserirLista('ul')" title="Lista"><i class="fas fa-list-ul"></i></button>
+            <button type="button" onclick="inserirLista('ol')" title="Lista numerada"><i class="fas fa-list-ol"></i></button>
             <div class="separador"></div>
-            <button onclick="inserirTag('code')" title="CÃ³digo inline"><i class="fas fa-code"></i></button>
-            <button onclick="inserirBloco('pre')" title="Bloco de cÃ³digo"><i class="fas fa-file-code"></i></button>
-            <button onclick="inserirBloco('blockquote')" title="CitaÃ§Ã£o"><i class="fas fa-quote-right"></i></button>
+            <button type="button" onclick="inserirTag('code')" title="CÃ³digo inline"><i class="fas fa-code"></i></button>
+            <button type="button" onclick="inserirBloco('pre')" title="Bloco de cÃ³digo"><i class="fas fa-file-code"></i></button>
+            <button type="button" onclick="inserirBloco('blockquote')" title="CitaÃ§Ã£o"><i class="fas fa-quote-right"></i></button>
             <div class="separador"></div>
-            <button onclick="inserirTabela()" title="Tabela"><i class="fas fa-table"></i></button>
-            <button onclick="inserirLink()" title="Link"><i class="fas fa-link"></i></button>
-            <button onclick="document.getElementById('input-imagem').click()" title="Inserir imagem"><i class="fas fa-image"></i></button>
+            <button type="button" onclick="inserirTabela()" title="Tabela"><i class="fas fa-table"></i></button>
+            <button type="button" onclick="inserirLink()" title="Link"><i class="fas fa-link"></i></button>
+            <button type="button" onclick="document.getElementById('input-imagem').click()" title="Inserir imagem"><i class="fas fa-image"></i></button>
             <input type="file" id="input-imagem" accept="image/*" multiple style="display:none" onchange="inserirImagensUpload(this)">
             <div class="separador"></div>
-            <button onclick="converterParaHtml()" title="Converter texto puro em HTML formatado"><i class="fas fa-magic"></i> Auto-formatar</button>
-            <button onclick="previewConteudo()" title="Visualizar resultado"><i class="fas fa-eye"></i> Preview</button>
+            <button type="button" onclick="converterParaHtml()" title="Converter texto puro em HTML formatado"><i class="fas fa-magic"></i> Auto-formatar</button>
+            <button type="button" onclick="previewConteudo()" title="Visualizar resultado"><i class="fas fa-eye"></i> Preview</button>
           </div>
           <div id="artigo-editor" class="kb-editor-surface" contenteditable="true" spellcheck="true" data-placeholder="Escreva o conteudo do artigo aqui... (Cole textos formatados e printscreens com Ctrl+V)"></div>
+          <textarea id="artigo-codigo-html" class="kb-editor-source" style="display:none" spellcheck="false" placeholder="Cole ou edite o HTML completo aqui..."></textarea>
+          <iframe id="artigo-preview-frame" class="kb-editor-preview" style="display:none" title="Pré-visualização da página HTML"></iframe>
           <textarea id="artigo-conteudo" class="com-toolbar" style="display:none"></textarea>
           <div id="imagens-preview" style="display:flex; flex-wrap:wrap; gap:8px; margin-top:8px;"></div>
           <small style="color:var(--cor-texto-fraco); font-size:0.75rem;"><i class="fas fa-info-circle"></i> Cole imagens do clipboard com <b>Ctrl+V</b> direto no editor, ou use o botÃ£o <i class="fas fa-image"></i></small>
@@ -211,6 +264,13 @@
           <label>Anexos</label>
           <input type="file" id="artigo-anexos" multiple style="font-size:0.85rem">
           <div id="artigo-anexos-lista" style="margin-top:8px"></div>
+        </div>
+
+        <div class="kb-form-grupo">
+          <label>Documentos (PDF, DOC/DOCX, PPT/PPTX/PTT)</label>
+          <input type="file" id="artigo-documentos" accept=".pdf,.doc,.docx,.ppt,.pptx,.ptt,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation" multiple style="font-size:0.85rem">
+          <div id="artigo-documentos-lista" style="margin-top:8px"></div>
+          <small style="color:var(--cor-texto-fraco); font-size:0.75rem;"><i class="fas fa-info-circle"></i> Você também pode colar arquivos de documento com <b>Ctrl+V</b> quando eles estiverem no clipboard.</small>
         </div>
       </div>
       <div class="kb-modal-footer">

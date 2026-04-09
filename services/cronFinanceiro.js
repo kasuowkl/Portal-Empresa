@@ -1,13 +1,15 @@
-/**
+﻿/**
  * ARQUIVO: services/cronFinanceiro.js
- * VERSÃO:  2.0.0
+ * VERSÃƒO:  2.0.0
  * DATA:    2026-03-17
- * DESCRIÇÃO: Agendador de lembretes financeiros (diário às 07:00)
- *            Envia e-mails personalizados por usuário (dono + membros com edição).
+ * DESCRIÃ‡ÃƒO: Agendador de lembretes financeiros (diÃ¡rio Ã s 07:00)
+ *            Envia e-mails personalizados por usuÃ¡rio (dono + membros com ediÃ§Ã£o).
  */
 
 const sql = require('mssql');
 const { enviarNotificacao } = require('./emailService');
+const { enviarNotificacaoWhatsAppPorChips } = require('./whatsappDispatchService');
+const { renderizarMensagemWhatsApp } = require('./whatsappTemplateService');
 
 /**
  * Formata uma lista de contas em HTML para o corpo do e-mail.
@@ -19,15 +21,15 @@ function montarListaHTML(contas) {
        <td style="padding:6px 10px;border-bottom:1px solid #1e3a5f">${c.descricao}</td>
        <td style="padding:6px 10px;border-bottom:1px solid #1e3a5f;white-space:nowrap">R$ ${parseFloat(c.valor || 0).toFixed(2)}</td>
        <td style="padding:6px 10px;border-bottom:1px solid #1e3a5f;white-space:nowrap">${c.data_fmt}</td>
-       <td style="padding:6px 10px;border-bottom:1px solid #1e3a5f">${c.categoria || '—'}</td>
-       <td style="padding:6px 10px;border-bottom:1px solid #1e3a5f">${c.agenda_nome || '—'}</td>
+       <td style="padding:6px 10px;border-bottom:1px solid #1e3a5f">${c.categoria || 'â€”'}</td>
+       <td style="padding:6px 10px;border-bottom:1px solid #1e3a5f">${c.agenda_nome || 'â€”'}</td>
      </tr>`
   ).join('');
   return `
     <table style="width:100%;border-collapse:collapse;font-size:0.85rem;color:#e0e0e0">
       <thead>
         <tr style="background:#1e3a5f">
-          <th style="padding:6px 10px;text-align:left">Descrição</th>
+          <th style="padding:6px 10px;text-align:left">DescriÃ§Ã£o</th>
           <th style="padding:6px 10px;text-align:left">Valor</th>
           <th style="padding:6px 10px;text-align:left">Vencimento</th>
           <th style="padding:6px 10px;text-align:left">Categoria</th>
@@ -49,7 +51,7 @@ function fmtData(d) {
 }
 
 /**
- * Busca contas pendentes em um intervalo de datas e agrupa por e-mail do destinatário.
+ * Busca contas pendentes em um intervalo de datas e agrupa por e-mail do destinatÃ¡rio.
  * Retorna Map<email, conta[]>
  */
 async function getContasPorUsuario(pool, inicio, fim) {
@@ -58,6 +60,7 @@ async function getContasPorUsuario(pool, inicio, fim) {
     .input('fim',    sql.Date, fim)
     .query(`
       SELECT DISTINCT
+        ud.login        AS login,
         ud.email        AS email,
         c.descricao,
         c.valor,
@@ -110,17 +113,34 @@ async function enviarLembreteHoje(pool) {
       lista_html:       montarListaHTML(contas),
       email_criado_por: email,
     }).catch(e => console.error(`[Cron Financeiro] Erro lembrete_hoje (${email}): ${e.message}`));
+    const mensagemWhatsApp = await renderizarMensagemWhatsApp(pool, 'financeiro.lembrete_hoje', {
+      total: contas.length,
+      data_referencia: fmtData(hoje),
+      link: 'http://192.168.0.80:3132/agendaFinanceira',
+    });
+    await enviarNotificacaoWhatsAppPorChips(pool, {
+      evento: 'financeiro.lembrete_hoje',
+      sistema: 'financeiro',
+      mensagem: mensagemWhatsApp,
+      usuario: contas[0]?.login || 'sistema',
+      ip: '::1',
+      mapaChips: {
+        criado_por_usuario: contas[0]?.login ? [contas[0].login] : [],
+        gestores: contas[0]?.login ? [contas[0].login] : [],
+        gestores_setor: [],
+      },
+    }).catch(() => {});
   }
-  console.log(`[Cron Financeiro] Lembrete hoje enviado para ${porUsuario.size} usuário(s).`);
+  console.log(`[Cron Financeiro] Lembrete hoje enviado para ${porUsuario.size} usuÃ¡rio(s).`);
 }
 
 /**
- * Lembrete: contas que vencem nos próximos 7 dias (excluindo hoje).
+ * Lembrete: contas que vencem nos prÃ³ximos 7 dias (excluindo hoje).
  */
 async function enviarLembrete7Dias(pool) {
   const hoje   = new Date(); hoje.setHours(0, 0, 0, 0);
   const amanha = new Date(hoje); amanha.setDate(amanha.getDate() + 1);
-  const limite = new Date(hoje); limite.setDate(limite.getDate() + 8); // até hoje+7 inclusive
+  const limite = new Date(hoje); limite.setDate(limite.getDate() + 8); // atÃ© hoje+7 inclusive
 
   const porUsuario = await getContasPorUsuario(pool, amanha, limite);
   if (porUsuario.size === 0) {
@@ -134,16 +154,32 @@ async function enviarLembrete7Dias(pool) {
       lista_html:       montarListaHTML(contas),
       email_criado_por: email,
     }).catch(e => console.error(`[Cron Financeiro] Erro lembrete_7dias (${email}): ${e.message}`));
+    const mensagemWhatsApp = await renderizarMensagemWhatsApp(pool, 'financeiro.lembrete_7dias', {
+      total: contas.length,
+      link: 'http://192.168.0.80:3132/agendaFinanceira',
+    });
+    await enviarNotificacaoWhatsAppPorChips(pool, {
+      evento: 'financeiro.lembrete_7dias',
+      sistema: 'financeiro',
+      mensagem: mensagemWhatsApp,
+      usuario: contas[0]?.login || 'sistema',
+      ip: '::1',
+      mapaChips: {
+        criado_por_usuario: contas[0]?.login ? [contas[0].login] : [],
+        gestores: contas[0]?.login ? [contas[0].login] : [],
+        gestores_setor: [],
+      },
+    }).catch(() => {});
   }
-  console.log(`[Cron Financeiro] Lembrete 7 dias enviado para ${porUsuario.size} usuário(s).`);
+  console.log(`[Cron Financeiro] Lembrete 7 dias enviado para ${porUsuario.size} usuÃ¡rio(s).`);
 }
 
 /**
- * Lembrete de lançamento: contas que vencem em N dias (configurável).
- * Usa a configuração `financeiro.dias_lembrete` da tabela `configuracoes`.
+ * Lembrete de lanÃ§amento: contas que vencem em N dias (configurÃ¡vel).
+ * Usa a configuraÃ§Ã£o `financeiro.dias_lembrete` da tabela `configuracoes`.
  */
 async function enviarLembreteLancamento(pool) {
-  // Lê configuração de dias
+  // LÃª configuraÃ§Ã£o de dias
   const cfgR = await pool.request()
     .input('chave', sql.VarChar, 'financeiro.dias_lembrete')
     .query('SELECT valor FROM configuracoes WHERE chave = @chave');
@@ -153,12 +189,13 @@ async function enviarLembreteLancamento(pool) {
   const inicio = new Date(hoje); inicio.setDate(inicio.getDate() + dias);
   const fim    = new Date(inicio); fim.setDate(fim.getDate() + 1);
 
-  // Busca apenas contas que ainda NÃO foram lançadas (status = 'pendente')
+  // Busca apenas contas que ainda NÃƒO foram lanÃ§adas (status = 'pendente')
   const r = await pool.request()
     .input('inicio', sql.Date, inicio)
     .input('fim',    sql.Date, fim)
     .query(`
       SELECT DISTINCT
+        ud.login        AS login,
         ud.email        AS email,
         c.descricao,
         c.valor,
@@ -190,7 +227,7 @@ async function enviarLembreteLancamento(pool) {
   }
 
   if (porUsuario.size === 0) {
-    console.log(`[Cron Financeiro] Lembrete lançamento (${dias}d): nenhuma conta.`);
+    console.log(`[Cron Financeiro] Lembrete lanÃ§amento (${dias}d): nenhuma conta.`);
     return;
   }
 
@@ -201,12 +238,29 @@ async function enviarLembreteLancamento(pool) {
       lista_html:       montarListaHTML(contas),
       email_criado_por: email,
     }).catch(e => console.error(`[Cron Financeiro] Erro lembrete_lancamento (${email}): ${e.message}`));
+    const mensagemWhatsApp = await renderizarMensagemWhatsApp(pool, 'financeiro.lembrete_lancamento', {
+      total: contas.length,
+      dias,
+      link: 'http://192.168.0.80:3132/agendaFinanceira',
+    });
+    await enviarNotificacaoWhatsAppPorChips(pool, {
+      evento: 'financeiro.lembrete_lancamento',
+      sistema: 'financeiro',
+      mensagem: mensagemWhatsApp,
+      usuario: contas[0]?.login || 'sistema',
+      ip: '::1',
+      mapaChips: {
+        criado_por_usuario: contas[0]?.login ? [contas[0].login] : [],
+        gestores: contas[0]?.login ? [contas[0].login] : [],
+        gestores_setor: [],
+      },
+    }).catch(() => {});
   }
-  console.log(`[Cron Financeiro] Lembrete lançamento (${dias}d) enviado para ${porUsuario.size} usuário(s).`);
+  console.log(`[Cron Financeiro] Lembrete lanÃ§amento (${dias}d) enviado para ${porUsuario.size} usuÃ¡rio(s).`);
 }
 
 /**
- * Verificação diária de contas vencidas (para contas que venceram antes de hoje).
+ * VerificaÃ§Ã£o diÃ¡ria de contas vencidas (para contas que venceram antes de hoje).
  */
 async function enviarContasVencidas(pool) {
   const hoje = new Date(); hoje.setHours(0, 0, 0, 0);
@@ -215,6 +269,7 @@ async function enviarContasVencidas(pool) {
     .input('hoje', sql.Date, hoje)
     .query(`
       SELECT DISTINCT
+        ud.login        AS login,
         ud.email        AS email,
         c.descricao,
         c.valor,
@@ -255,15 +310,30 @@ async function enviarContasVencidas(pool) {
       lista_html:       montarListaHTML(contas),
       email_criado_por: email,
     }).catch(e => console.error(`[Cron Financeiro] Erro conta_vencida_diario (${email}): ${e.message}`));
+    const mensagemWhatsApp = await renderizarMensagemWhatsApp(pool, 'financeiro.conta_vencida_diario', {
+      total: contas.length,
+      link: 'http://192.168.0.80:3132/agendaFinanceira',
+    });
+    await enviarNotificacaoWhatsAppPorChips(pool, {
+      evento: 'financeiro.conta_vencida_diario',
+      sistema: 'financeiro',
+      mensagem: mensagemWhatsApp,
+      usuario: contas[0]?.login || 'sistema',
+      ip: '::1',
+      mapaChips: {
+        gestores: contas[0]?.login ? [contas[0].login] : [],
+        gestores_setor: [],
+      },
+    }).catch(() => {});
   }
-  console.log(`[Cron Financeiro] Contas vencidas enviado para ${porUsuario.size} usuário(s).`);
+  console.log(`[Cron Financeiro] Contas vencidas enviado para ${porUsuario.size} usuÃ¡rio(s).`);
 }
 
 /**
- * Inicia o agendador. Verifica a cada minuto se é hora de disparar
+ * Inicia o agendador. Verifica a cada minuto se Ã© hora de disparar
  * os lembretes (08:00 local). Dispara uma vez por dia.
  *
- * @param {object} pool - Pool de conexão MSSQL
+ * @param {object} pool - Pool de conexÃ£o MSSQL
  */
 function iniciarCronFinanceiro(pool) {
   let ultimoDiaExecutado = -1;
@@ -274,7 +344,7 @@ function iniciarCronFinanceiro(pool) {
     const min   = agora.getMinutes();
     const dia   = agora.getDate();
 
-    // Executa às 07:00 e apenas uma vez por dia
+    // Executa Ã s 07:00 e apenas uma vez por dia
     if (hora === 7 && min === 0 && dia !== ultimoDiaExecutado) {
       ultimoDiaExecutado = dia;
       console.log('[Cron Financeiro] Iniciando lembretes das 08:00...');
@@ -285,7 +355,7 @@ function iniciarCronFinanceiro(pool) {
     }
   }, 60 * 1000); // verifica a cada 1 minuto
 
-  console.log('[Cron Financeiro] Agendador v2 iniciado — lembretes diários às 07:00.');
+  console.log('[Cron Financeiro] Agendador v2 iniciado â€” lembretes diÃ¡rios Ã s 07:00.');
 }
 
 module.exports = {
@@ -296,3 +366,4 @@ module.exports = {
   enviarLembreteLancamento,
   enviarContasVencidas,
 };
+

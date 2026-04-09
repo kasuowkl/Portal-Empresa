@@ -372,6 +372,26 @@
         document.getElementById('f-df').value = df;
     }
 
+    function obterPeriodoSelecionado() {
+        if (periodoAtual === 'custom') {
+            return {
+                di: document.getElementById('f-di').value,
+                df: document.getElementById('f-df').value
+            };
+        }
+        const map = {
+            hoje:      [hoje(), hoje()],
+            semana:    [inicioSemana(), fimSemana()],
+            mes:       [inicioMes(), fimMes()],
+            trimestre: [inicioTrimestre(), fimTrimestre()],
+            ano:       [inicioAno(), fimAno()]
+        };
+        const [di, df] = map[periodoAtual] || [inicioMes(), fimMes()];
+        document.getElementById('f-di').value = di;
+        document.getElementById('f-df').value = df;
+        return { di, df };
+    }
+
     function setTipo(t) {
         tipoAtual = t;
         document.getElementById('btn-resumido').classList.toggle('ativo', t === 'resumido');
@@ -396,8 +416,7 @@
 
     // ── Gerar Relatório ──────────────────────────────────────
     async function gerarRelatorio() {
-        const di       = document.getElementById('f-di').value;
-        const df       = document.getElementById('f-df').value;
+        const { di, df } = obterPeriodoSelecionado();
         const criador  = document.getElementById('f-criador').value;
         const consenso = document.getElementById('f-consenso').value;
         const checks   = Array.from(document.querySelectorAll('.status-checks input:checked')).map(c => c.value);
@@ -432,8 +451,7 @@
     function escH(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
     function periodoLabel() {
-        const di = document.getElementById('f-di').value;
-        const df = document.getElementById('f-df').value;
+        const { di, df } = obterPeriodoSelecionado();
         if (di && df) return di.split('-').reverse().join('/') + ' até ' + df.split('-').reverse().join('/');
         if (di) return 'a partir de ' + di.split('-').reverse().join('/');
         return 'Todos os períodos';
@@ -785,8 +803,12 @@
 
     // ── Init ─────────────────────────────────────────────────
     window.onload = async () => {
-        document.getElementById('f-di').value = inicioMes();
-        document.getElementById('f-df').value = fimMes();
+        const btnInicial = document.querySelector('.btn-periodo.ativo');
+        if (btnInicial) setPeriodo('mes', btnInicial);
+        else {
+            document.getElementById('f-di').value = inicioMes();
+            document.getElementById('f-df').value = fimMes();
+        }
         await carregarCriadores();
         gerarRelatorio();
     };

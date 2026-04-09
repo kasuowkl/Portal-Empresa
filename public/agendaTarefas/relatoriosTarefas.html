@@ -369,6 +369,31 @@
         document.getElementById('f-df').value = df;
     }
 
+    function obterPeriodoSelecionado() {
+        if (periodoAtual === 'custom') {
+            return {
+                di: document.getElementById('f-di').value,
+                df: document.getElementById('f-df').value
+            };
+        }
+        if (periodoAtual === 'todos') {
+            document.getElementById('f-di').value = '';
+            document.getElementById('f-df').value = '';
+            return { di: '', df: '' };
+        }
+        const map = {
+            hoje:      [hoje(), hoje()],
+            semana:    [inicioSemana(), fimSemana()],
+            mes:       [inicioMes(), fimMes()],
+            trimestre: [inicioTrimestre(), fimTrimestre()],
+            ano:       [inicioAno(), fimAno()]
+        };
+        const [di, df] = map[periodoAtual] || [inicioMes(), fimMes()];
+        document.getElementById('f-di').value = di;
+        document.getElementById('f-df').value = df;
+        return { di, df };
+    }
+
     function setTipo(t) {
         tipoAtual = t;
         document.getElementById('btn-resumido').classList.toggle('ativo', t === 'resumido');
@@ -456,8 +481,7 @@
 
     // ── Gerar Relatorio ───────────────────────────────────────
     async function gerarRelatorio(pg = 1) {
-        const di        = document.getElementById('f-di').value;
-        const df        = document.getElementById('f-df').value;
+        const { di, df } = obterPeriodoSelecionado();
         const listaIds  = getListasSelecionadas();
         const catId     = document.getElementById('f-categoria').value;
         const status    = document.getElementById('f-status').value;
@@ -816,8 +840,7 @@
 
     // ── Exportar CSV ──────────────────────────────────────────
     async function exportarCSV() {
-        const di        = document.getElementById('f-di').value;
-        const df        = document.getElementById('f-df').value;
+        const { di, df } = obterPeriodoSelecionado();
         const listaIds  = getListasSelecionadas();
         const catId     = document.getElementById('f-categoria').value;
         const status    = document.getElementById('f-status').value;

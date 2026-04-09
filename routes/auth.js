@@ -1,18 +1,18 @@
-/**
+﻿/**
  * ARQUIVO: routes/auth.js
- * VERSÃO:  1.1.0
+ * VERSÃƒO:  1.1.0
  * DATA:    2026-03-03
- * DESCRIÇÃO: Rotas de autenticação — Login local e via Domínio (AD)
+ * DESCRIÃ‡ÃƒO: Rotas de autenticaÃ§Ã£o â€” Login local e via DomÃ­nio (AD)
  *
- * HISTÓRICO:
- * 1.0.0 - 2026-03-02 - Versão inicial (somente usuários locais)
- * 1.1.0 - 2026-03-03 - Suporte a login de usuários do domínio (AD)
+ * HISTÃ“RICO:
+ * 1.0.0 - 2026-03-02 - VersÃ£o inicial (somente usuÃ¡rios locais)
+ * 1.1.0 - 2026-03-03 - Suporte a login de usuÃ¡rios do domÃ­nio (AD)
  *
  * FLUXO DE LOGIN:
- *   1. Busca usuário na tabela `usuarios` (local)
- *   2. Se não encontrado, busca em `usuarios_dominio`
- *   3. Se encontrado no domínio, valida senha contra o AD via LDAP
- *   4. Cria sessão e registra log
+ *   1. Busca usuÃ¡rio na tabela `usuarios` (local)
+ *   2. Se nÃ£o encontrado, busca em `usuarios_dominio`
+ *   3. Se encontrado no domÃ­nio, valida senha contra o AD via LDAP
+ *   4. Cria sessÃ£o e registra log
  */
 
 const express = require('express');
@@ -20,10 +20,35 @@ const bcrypt  = require('bcryptjs');
 const sql     = require('mssql');
 const ad      = require('../lib/ad');
 const { enviarNotificacao } = require('../services/emailService');
+const { enviarNotificacaoWhatsAppPorChips } = require('../services/whatsappDispatchService');
+const { renderizarMensagemWhatsApp } = require('../services/whatsappTemplateService');
 const router  = express.Router();
 
+async function enviarWhatsAppPortal(pool, evento, contexto, meta = {}) {
+  const mensagem = await renderizarMensagemWhatsApp(pool, evento, {
+    nome: contexto.nome || contexto.usuario || 'usuário',
+    usuario: contexto.usuario || '-',
+    tipo: contexto.tipo || '-',
+    motivo: contexto.motivo || '-',
+    ip: contexto.ip || '-',
+    link_portal: 'http://192.168.0.80:3132/portal.html',
+  });
+
+  await enviarNotificacaoWhatsAppPorChips(pool, {
+    evento,
+    sistema: 'portal',
+    mensagem,
+    usuario: meta.usuario || 'sistema',
+    ip: meta.ip || contexto.ip || '',
+    mapaChips: {
+      novo_usuario: contexto.usuario ? [contexto.usuario] : [],
+      gestores_setor: [],
+    },
+  });
+}
+
 // ============================================================
-// POST /login — Autentica o usuário (local ou domínio)
+// POST /login â€” Autentica o usuÃ¡rio (local ou domÃ­nio)
 // ============================================================
 router.post('/login', async (req, res) => {
   const { usuario, senha } = req.body;
@@ -33,14 +58,14 @@ router.post('/login', async (req, res) => {
   const pool         = req.app.locals.pool;
 
   if (!usuario || !senha) {
-    return res.status(400).json({ erro: 'Informe o usuário e a senha.' });
+    return res.status(400).json({ erro: 'Informe o usuÃ¡rio e a senha.' });
   }
 
   const loginLimpo = usuario.trim().toLowerCase();
 
   try {
     // --------------------------------------------------------
-    // 1. Tenta autenticação LOCAL
+    // 1. Tenta autenticaÃ§Ã£o LOCAL
     // --------------------------------------------------------
     const resultadoLocal = await pool.request()
       .input('usuario', sql.VarChar, loginLimpo)
@@ -54,15 +79,16 @@ router.post('/login', async (req, res) => {
 
     if (usuarioLocal) {
       if (!usuarioLocal.ativo) {
-        logAtividade.info(`Login bloqueado (local) — usuário: "${loginLimpo}" | IP: ${ip}`);
-        return res.status(403).json({ erro: 'Usuário bloqueado. Contate o administrador.' });
+        logAtividade.info(`Login bloqueado (local) â€” usuÃ¡rio: "${loginLimpo}" | IP: ${ip}`);
+        return res.status(403).json({ erro: 'UsuÃ¡rio bloqueado. Contate o administrador.' });
       }
 
       const senhaCorreta = await bcrypt.compare(senha, usuarioLocal.senha_hash);
       if (!senhaCorreta) {
-        logAtividade.info(`Login falhou (local) — senha incorreta: "${loginLimpo}" | IP: ${ip}`);
+        logAtividade.info(`Login falhou (local) â€” senha incorreta: "${loginLimpo}" | IP: ${ip}`);
         enviarNotificacao(pool, 'portal.login_falha', { usuario: loginLimpo, motivo: 'Senha incorreta', ip });
-        return res.status(401).json({ erro: 'Usuário ou senha inválidos.' });
+        enviarWhatsAppPortal(pool, 'portal.login_falha', { usuario: loginLimpo, motivo: 'Senha incorreta', ip }, { usuario: loginLimpo, ip }).catch(() => {});
+        return res.status(401).json({ erro: 'UsuÃ¡rio ou senha invÃ¡lidos.' });
       }
 
       req.session.usuario = {
@@ -74,13 +100,14 @@ router.post('/login', async (req, res) => {
       };
 
       await registrarLogin(pool, loginLimpo, ip, usuarioLocal.nivel, 'local');
-      logAtividade.info(`Login realizado (local) — usuário: "${loginLimpo}" | Nível: ${usuarioLocal.nivel} | IP: ${ip}`);
+      logAtividade.info(`Login realizado (local) â€” usuÃ¡rio: "${loginLimpo}" | NÃ­vel: ${usuarioLocal.nivel} | IP: ${ip}`);
       enviarNotificacao(pool, 'portal.login', { usuario: loginLimpo, nome: usuarioLocal.nome, tipo: 'local', ip });
+      enviarWhatsAppPortal(pool, 'portal.login', { usuario: loginLimpo, nome: usuarioLocal.nome, tipo: 'local', ip }, { usuario: loginLimpo, ip }).catch(() => {});
       return res.json({ sucesso: true, redirecionar: '/portal.html' });
     }
 
     // --------------------------------------------------------
-    // 2. Não é usuário local — tenta autenticação de DOMÍNIO
+    // 2. NÃ£o Ã© usuÃ¡rio local â€” tenta autenticaÃ§Ã£o de DOMÃNIO
     // --------------------------------------------------------
     const resultadoDominio = await pool.request()
       .input('login', sql.VarChar, loginLimpo)
@@ -93,31 +120,33 @@ router.post('/login', async (req, res) => {
     const usuarioDominio = resultadoDominio.recordset[0];
 
     if (!usuarioDominio) {
-      logAtividade.info(`Login falhou — usuário inexistente: "${loginLimpo}" | IP: ${ip}`);
-      enviarNotificacao(pool, 'portal.login_falha', { usuario: loginLimpo, motivo: 'Usuário inexistente', ip });
-      return res.status(401).json({ erro: 'Usuário ou senha inválidos.' });
+      logAtividade.info(`Login falhou â€” usuÃ¡rio inexistente: "${loginLimpo}" | IP: ${ip}`);
+      enviarNotificacao(pool, 'portal.login_falha', { usuario: loginLimpo, motivo: 'UsuÃ¡rio inexistente', ip });
+      enviarWhatsAppPortal(pool, 'portal.login_falha', { usuario: loginLimpo, motivo: 'UsuÃ¡rio inexistente', ip }, { usuario: loginLimpo, ip }).catch(() => {});
+      return res.status(401).json({ erro: 'UsuÃ¡rio ou senha invÃ¡lidos.' });
     }
 
     if (!usuarioDominio.ativo) {
-      logAtividade.info(`Login bloqueado (domínio) — usuário: "${loginLimpo}" | IP: ${ip}`);
+      logAtividade.info(`Login bloqueado (domÃ­nio) â€” usuÃ¡rio: "${loginLimpo}" | IP: ${ip}`);
       enviarNotificacao(pool, 'portal.usuario_bloqueado', { usuario: loginLimpo, ip });
-      return res.status(403).json({ erro: 'Usuário bloqueado. Contate o administrador.' });
+      enviarWhatsAppPortal(pool, 'portal.usuario_bloqueado', { usuario: loginLimpo, ip }, { usuario: loginLimpo, ip }).catch(() => {});
+      return res.status(403).json({ erro: 'UsuÃ¡rio bloqueado. Contate o administrador.' });
     }
 
-    // Lê configuração do AD
+    // LÃª configuraÃ§Ã£o do AD
     const configAD = await ad.lerConfigAD(pool);
 
     if (!ad.configValida(configAD)) {
-      logErro.error(`Login de domínio falhou — AD não configurado. Usuário: "${loginLimpo}"`);
-      return res.status(503).json({ erro: 'Autenticação de domínio indisponível. Contate o administrador.' });
+      logErro.error(`Login de domÃ­nio falhou â€” AD nÃ£o configurado. UsuÃ¡rio: "${loginLimpo}"`);
+      return res.status(503).json({ erro: 'AutenticaÃ§Ã£o de domÃ­nio indisponÃ­vel. Contate o administrador.' });
     }
 
     // Valida senha contra o AD
     try {
       await ad.autenticarUsuario(configAD, loginLimpo, senha);
     } catch (errAD) {
-      logAtividade.info(`Login falhou (domínio) — senha incorreta: "${loginLimpo}" | IP: ${ip}`);
-      return res.status(401).json({ erro: 'Usuário ou senha inválidos.' });
+      logAtividade.info(`Login falhou (domÃ­nio) â€” senha incorreta: "${loginLimpo}" | IP: ${ip}`);
+      return res.status(401).json({ erro: 'UsuÃ¡rio ou senha invÃ¡lidos.' });
     }
 
     req.session.usuario = {
@@ -128,9 +157,10 @@ router.post('/login', async (req, res) => {
       tipo:    'dominio'
     };
 
-    await registrarLogin(pool, loginLimpo, ip, usuarioDominio.nivel, 'domínio');
-    logAtividade.info(`Login realizado (domínio) — usuário: "${loginLimpo}" | Nível: ${usuarioDominio.nivel} | IP: ${ip}`);
-    enviarNotificacao(pool, 'portal.login', { usuario: loginLimpo, nome: usuarioDominio.nome, tipo: 'domínio', ip });
+    await registrarLogin(pool, loginLimpo, ip, usuarioDominio.nivel, 'domÃ­nio');
+    logAtividade.info(`Login realizado (domÃ­nio) â€” usuÃ¡rio: "${loginLimpo}" | NÃ­vel: ${usuarioDominio.nivel} | IP: ${ip}`);
+    enviarNotificacao(pool, 'portal.login', { usuario: loginLimpo, nome: usuarioDominio.nome, tipo: 'domÃ­nio', ip });
+    enviarWhatsAppPortal(pool, 'portal.login', { usuario: loginLimpo, nome: usuarioDominio.nome, tipo: 'domÃ­nio', ip }, { usuario: loginLimpo, ip }).catch(() => {});
     return res.json({ sucesso: true, redirecionar: '/portal.html' });
 
   } catch (erro) {
@@ -147,7 +177,7 @@ router.post('/login', async (req, res) => {
 });
 
 // ============================================================
-// GET /logout — Encerra a sessão
+// GET /logout â€” Encerra a sessÃ£o
 // ============================================================
 router.get('/logout', (req, res) => {
   const logAtividade = req.app.locals.logAtividade;
@@ -155,13 +185,13 @@ router.get('/logout', (req, res) => {
   const ip           = req.ip || req.connection.remoteAddress;
 
   req.session.destroy(() => {
-    logAtividade.info(`Logout — usuário: "${usuario}" | IP: ${ip}`);
+    logAtividade.info(`Logout â€” usuÃ¡rio: "${usuario}" | IP: ${ip}`);
     res.redirect('/login.html');
   });
 });
 
 // ============================================================
-// GET /sessao — Dados do usuário logado (usado pelo menu)
+// GET /sessao â€” Dados do usuÃ¡rio logado (usado pelo menu)
 // ============================================================
 router.get('/sessao', (req, res) => {
   if (req.session && req.session.usuario) {
@@ -187,9 +217,10 @@ async function registrarLogin(pool, usuario, ip, nivel, tipo) {
       .input('acao',     sql.VarChar, 'LOGIN')
       .input('ip',       sql.VarChar, ip)
       .input('sistema',  sql.VarChar, 'portal')
-      .input('detalhes', sql.VarChar, `Nível: ${nivel} | Tipo: ${tipo}`)
+      .input('detalhes', sql.VarChar, `NÃ­vel: ${nivel} | Tipo: ${tipo}`)
       .query(`INSERT INTO logs_atividade (usuario, acao, ip, sistema, detalhes) VALUES (@usuario, @acao, @ip, @sistema, @detalhes)`);
   } catch (_) {}
 }
 
 module.exports = router;
+

@@ -1,0 +1,1372 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Portal WKL — Apresentação do Sistema</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: #f0f2f5;
+    color: #1a1a2e;
+    font-size: 12px;
+    line-height: 1.4;
+  }
+
+  /* ── A4 Paisagem ──────────────────────────────────────────────── */
+  .pagina {
+    width: 297mm;
+    min-height: 210mm;
+    margin: 0 auto 20px auto;
+    background: #fff;
+    position: relative;
+    overflow: hidden;
+    page-break-after: always;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+  }
+
+  /* ── CAPA ───────────────────────────────────────────────────── */
+  .capa {
+    background: linear-gradient(145deg, #0f0f2e 0%, #1a1a4e 40%, #0d2060 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 210mm;
+    color: #fff;
+    text-align: center;
+    padding: 28px 40px;
+  }
+
+  .capa-logo {
+    width: 70px; height: 70px;
+    background: linear-gradient(135deg, #3b82f6, #6366f1);
+    border-radius: 18px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 32px; margin-bottom: 18px;
+    box-shadow: 0 8px 32px rgba(59,130,246,0.4);
+  }
+
+  .capa-empresa { font-size: 11px; letter-spacing: 5px; text-transform: uppercase; color: #94a3b8; margin-bottom: 8px; }
+
+  .capa-titulo {
+    font-size: 40px; font-weight: 800; letter-spacing: -1px; margin-bottom: 6px;
+    background: linear-gradient(90deg, #fff 0%, #93c5fd 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  }
+
+  .capa-subtitulo { font-size: 14px; color: #94a3b8; margin-bottom: 22px; }
+
+  .capa-divisor {
+    width: 50px; height: 3px;
+    background: linear-gradient(90deg, #3b82f6, #6366f1);
+    border-radius: 2px; margin: 0 auto 22px auto;
+  }
+
+  .capa-modulos-grid {
+    display: grid; grid-template-columns: repeat(6, 1fr);
+    gap: 8px; width: 100%; max-width: 680px; margin-bottom: 22px;
+  }
+
+  .capa-modulo-chip {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 8px; padding: 8px 5px; font-size: 9px;
+    color: #cbd5e1; display: flex; flex-direction: column; align-items: center; gap: 4px;
+  }
+
+  .capa-modulo-chip i { font-size: 14px; }
+
+  .capa-rodape {
+    position: absolute; bottom: 22px; left: 0; right: 0;
+    display: flex; justify-content: space-between; padding: 0 32px;
+    font-size: 10px; color: #475569;
+  }
+
+  .capa-versao {
+    background: rgba(59,130,246,0.15);
+    border: 1px solid rgba(59,130,246,0.3);
+    border-radius: 20px; padding: 5px 14px; font-size: 10px; color: #93c5fd;
+  }
+
+  /* ── HEADER INTERNO ──────────────────────────────────────────── */
+  .header-pagina {
+    background: linear-gradient(90deg, #0f0f2e 0%, #1a1a4e 100%);
+    padding: 12px 24px; display: flex; align-items: center; justify-content: space-between;
+  }
+
+  .header-pagina-left { display: flex; align-items: center; gap: 10px; }
+
+  .header-icone {
+    width: 34px; height: 34px; border-radius: 9px;
+    display: flex; align-items: center; justify-content: center; font-size: 15px; color: #fff;
+  }
+
+  .header-titulo { font-size: 16px; font-weight: 700; color: #fff; }
+  .header-subtitulo { font-size: 10px; color: #94a3b8; }
+
+  .header-badge {
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 20px; padding: 3px 10px; font-size: 9px; color: #94a3b8;
+  }
+
+  /* ── CONTEÚDO ────────────────────────────────────────────────── */
+  .conteudo { padding: 14px 22px; }
+
+  /* ── SUMÁRIO ─────────────────────────────────────────────────── */
+  .sumario-header { text-align: center; margin-bottom: 14px; }
+  .sumario-header h2 { font-size: 20px; font-weight: 800; color: #0f0f2e; margin-bottom: 4px; }
+  .sumario-header p { color: #64748b; font-size: 11px; }
+
+  .sumario-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+
+  .sumario-card {
+    border: 1.5px solid #e2e8f0; border-radius: 10px; padding: 10px 12px;
+    display: flex; align-items: flex-start; gap: 10px;
+  }
+
+  .sumario-card-icone {
+    width: 36px; height: 36px; border-radius: 9px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; color: #fff; flex-shrink: 0;
+  }
+
+  .sumario-card-info h3 { font-size: 12px; font-weight: 700; color: #1e293b; margin-bottom: 2px; }
+  .sumario-card-info p { font-size: 10px; color: #64748b; line-height: 1.3; }
+  .sumario-card-num { margin-left: auto; font-size: 10px; color: #94a3b8; font-weight: 600; flex-shrink: 0; }
+
+  /* ── MÓDULO ──────────────────────────────────────────────────── */
+  .modulo-descricao {
+    background: #f8fafc; border-left: 3px solid;
+    border-radius: 0 6px 6px 0; padding: 9px 13px; margin-bottom: 12px;
+    font-size: 11px; color: #334155; line-height: 1.5;
+  }
+
+  .secao-titulo {
+    font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px;
+    color: #94a3b8; margin-bottom: 7px; padding-bottom: 4px; border-bottom: 1px solid #e2e8f0;
+  }
+
+  .funcionalidades-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; margin-bottom: 12px;
+  }
+
+  .funcionalidades-grid-2 {
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: 5px; margin-bottom: 12px;
+  }
+
+  .func-item {
+    display: flex; align-items: flex-start; gap: 7px; padding: 7px 9px;
+    background: #f8fafc; border-radius: 7px; border: 1px solid #e2e8f0;
+  }
+
+  .func-item i { font-size: 12px; margin-top: 1px; flex-shrink: 0; }
+  .func-item span { font-size: 11px; color: #334155; line-height: 1.3; }
+
+  .info-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; margin-bottom: 12px; }
+
+  .info-card {
+    background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;
+    padding: 9px; text-align: center;
+  }
+
+  .info-card i { font-size: 16px; margin-bottom: 4px; display: block; }
+  .info-card-label { font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: #94a3b8; margin-bottom: 2px; }
+  .info-card-valor { font-size: 12px; font-weight: 700; color: #1e293b; }
+
+  .perfis-lista { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 12px; }
+
+  .perfil-chip {
+    padding: 4px 10px; border-radius: 20px; font-size: 10px; font-weight: 600;
+    display: flex; align-items: center; gap: 5px;
+  }
+
+  .fluxo { display: flex; align-items: center; margin-bottom: 10px; flex-wrap: nowrap; }
+
+  .fluxo-passo {
+    display: flex; align-items: center; gap: 5px; background: #f8fafc;
+    border: 1px solid #e2e8f0; border-radius: 7px; padding: 7px 9px;
+    font-size: 10px; color: #334155; flex: 1;
+  }
+
+  .fluxo-passo i { font-size: 11px; }
+  .fluxo-seta { font-size: 11px; color: #cbd5e1; padding: 0 3px; flex-shrink: 0; }
+
+  .destaque-box {
+    border-radius: 8px; padding: 9px 13px; margin-bottom: 10px;
+    display: flex; align-items: flex-start; gap: 10px;
+  }
+
+  .destaque-box i { font-size: 15px; margin-top: 1px; flex-shrink: 0; }
+  .destaque-box-texto h4 { font-size: 12px; font-weight: 700; margin-bottom: 3px; }
+  .destaque-box-texto p { font-size: 11px; line-height: 1.4; }
+
+  .dois-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+  /* ── PÁGINA DUPLA LADO A LADO ────────────────────────────────── */
+  .dupla-corpo {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 0; height: calc(210mm - 58px - 34px);
+  }
+
+  .dupla-coluna { padding: 12px 18px; overflow: hidden; }
+
+  .dupla-coluna-sep { width: 1px; background: #e2e8f0; flex-shrink: 0; }
+
+  .sub-header {
+    display: flex; align-items: center; gap: 8px;
+    padding: 7px 0 10px 0; margin-bottom: 10px;
+    border-bottom: 2px solid;
+  }
+
+  .sub-header-icone {
+    width: 28px; height: 28px; border-radius: 7px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; color: #fff; flex-shrink: 0;
+  }
+
+  .sub-header-titulo { font-size: 14px; font-weight: 700; color: #1e293b; }
+  .sub-header-sub { font-size: 9px; color: #64748b; }
+  .sub-header-badge {
+    margin-left: auto; font-size: 9px; color: #64748b;
+    background: #f1f5f9; border-radius: 12px; padding: 2px 8px;
+  }
+
+  /* ── RODAPÉ ──────────────────────────────────────────────────── */
+  .rodape-pagina {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    background: #f8fafc; border-top: 1px solid #e2e8f0;
+    padding: 6px 24px; display: flex; justify-content: space-between; align-items: center;
+    font-size: 9px; color: #94a3b8;
+  }
+
+  .rodape-pagina strong { color: #64748b; }
+
+  /* ── CORES POR MÓDULO ────────────────────────────────────────── */
+  .cor-portal    { background: linear-gradient(135deg, #3b82f6, #6366f1); }
+  .cor-tarefas   { background: linear-gradient(135deg, #10b981, #059669); }
+  .cor-financeiro{ background: linear-gradient(135deg, #f59e0b, #d97706); }
+  .cor-chamados  { background: linear-gradient(135deg, #ef4444, #dc2626); }
+  .cor-patrimonio{ background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
+  .cor-aprovacoes{ background: linear-gradient(135deg, #06b6d4, #0891b2); }
+  .cor-contatos  { background: linear-gradient(135deg, #ec4899, #db2777); }
+  .cor-calendarios{background: linear-gradient(135deg, #f97316, #ea580c); }
+  .cor-whatsapp  { background: linear-gradient(135deg, #25d366, #128c7e); }
+  .cor-projetos  { background: linear-gradient(135deg, #6366f1, #4f46e5); }
+  .cor-contabil  { background: linear-gradient(135deg, #14b8a6, #0d9488); }
+  .cor-conhecimento{background:linear-gradient(135deg, #a78bfa, #8b5cf6); }
+
+  .borda-portal    { border-left-color: #3b82f6; }
+  .borda-tarefas   { border-left-color: #10b981; }
+  .borda-financeiro{ border-left-color: #f59e0b; }
+  .borda-chamados  { border-left-color: #ef4444; }
+  .borda-patrimonio{ border-left-color: #8b5cf6; }
+  .borda-aprovacoes{ border-left-color: #06b6d4; }
+  .borda-contatos  { border-left-color: #ec4899; }
+  .borda-calendarios{border-left-color: #f97316; }
+  .borda-whatsapp  { border-left-color: #25d366; }
+  .borda-projetos  { border-left-color: #6366f1; }
+  .borda-contabil  { border-left-color: #14b8a6; }
+  .borda-conhecimento{border-left-color: #a78bfa; }
+
+  .txt-portal    { color: #3b82f6; }
+  .txt-tarefas   { color: #10b981; }
+  .txt-financeiro{ color: #d97706; }
+  .txt-chamados  { color: #ef4444; }
+  .txt-patrimonio{ color: #8b5cf6; }
+  .txt-aprovacoes{ color: #0891b2; }
+  .txt-contatos  { color: #db2777; }
+  .txt-calendarios{color: #ea580c; }
+  .txt-whatsapp  { color: #128c7e; }
+  .txt-projetos  { color: #4f46e5; }
+  .txt-contabil  { color: #0d9488; }
+  .txt-conhecimento{color: #8b5cf6; }
+
+  .bg-portal    { background: #eff6ff; }
+  .bg-tarefas   { background: #f0fdf4; }
+  .bg-financeiro{ background: #fffbeb; }
+  .bg-chamados  { background: #fef2f2; }
+  .bg-patrimonio{ background: #f5f3ff; }
+  .bg-aprovacoes{ background: #ecfeff; }
+  .bg-contatos  { background: #fdf4ff; }
+  .bg-calendarios{background: #fff7ed; }
+  .bg-whatsapp  { background: #f0fdf4; }
+  .bg-projetos  { background: #eef2ff; }
+  .bg-contabil  { background: #f0fdfa; }
+  .bg-conhecimento{background:#faf5ff; }
+
+  /* ── INTEGRAÇÕES ─────────────────────────────────────────────── */
+  .integ-row {
+    display: flex; align-items: center; gap: 8px;
+    padding: 5px 10px; border-radius: 7px; margin-bottom: 4px;
+    border: 1px solid #e2e8f0; background: #f8fafc;
+  }
+
+  .integ-origem {
+    display: flex; align-items: center; gap: 5px;
+    font-size: 10px; font-weight: 600; flex: 1;
+  }
+
+  .integ-seta { font-size: 10px; color: #94a3b8; flex-shrink: 0; }
+
+  .integ-destino {
+    display: flex; align-items: center; gap: 5px;
+    font-size: 10px; font-weight: 600; flex: 1;
+  }
+
+  .integ-canal {
+    font-size: 9px; color: #64748b; background: #e2e8f0;
+    border-radius: 10px; padding: 1px 7px; flex-shrink: 0;
+  }
+
+  /* ── PRINT ───────────────────────────────────────────────────── */
+  @media print {
+    body { background: #fff; }
+    .pagina { margin: 0; box-shadow: none; page-break-after: always; }
+  }
+
+  @page { size: A4 landscape; margin: 0; }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- PÁGINA 1 — CAPA                                            -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="pagina">
+  <div class="capa">
+    <div class="capa-logo"><i class="fas fa-building-columns"></i></div>
+    <div class="capa-empresa">WKL — Sistema Corporativo</div>
+    <div class="capa-titulo">Portal WKL</div>
+    <div class="capa-subtitulo">Plataforma Integrada de Gestão Empresarial</div>
+    <div class="capa-divisor"></div>
+
+    <div class="capa-modulos-grid">
+      <div class="capa-modulo-chip"><i class="fas fa-list-check" style="color:#10b981"></i>Tarefas</div>
+      <div class="capa-modulo-chip"><i class="fas fa-coins" style="color:#f59e0b"></i>Financeiro</div>
+      <div class="capa-modulo-chip"><i class="fas fa-headset" style="color:#ef4444"></i>Chamados</div>
+      <div class="capa-modulo-chip"><i class="fas fa-barcode" style="color:#8b5cf6"></i>Patrimônio</div>
+      <div class="capa-modulo-chip"><i class="fas fa-stamp" style="color:#06b6d4"></i>Aprovações</div>
+      <div class="capa-modulo-chip"><i class="fas fa-address-book" style="color:#ec4899"></i>Contatos</div>
+      <div class="capa-modulo-chip"><i class="fas fa-calendar-days" style="color:#f97316"></i>Calendários</div>
+      <div class="capa-modulo-chip"><i class="fab fa-whatsapp" style="color:#25d366"></i>WhatsApp Bot</div>
+      <div class="capa-modulo-chip"><i class="fas fa-diagram-project" style="color:#6366f1"></i>Projetos</div>
+      <div class="capa-modulo-chip"><i class="fas fa-calculator" style="color:#14b8a6"></i>Contábil</div>
+      <div class="capa-modulo-chip"><i class="fas fa-book-open" style="color:#a78bfa"></i>Conhecimento</div>
+      <div class="capa-modulo-chip"><i class="fas fa-database" style="color:#94a3b8"></i>Backups</div>
+    </div>
+
+    <div class="capa-versao">Versão 1.3.0 — 2026</div>
+
+    <div class="capa-rodape">
+      <span>Portal WKL — Uso Interno</span>
+      <span>192.168.0.80:3132</span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- PÁGINA 2 — SUMÁRIO                                         -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="pagina">
+  <div class="header-pagina">
+    <div class="header-pagina-left">
+      <div class="header-icone cor-portal"><i class="fas fa-table-list"></i></div>
+      <div>
+        <div class="header-titulo">Visão Geral dos Módulos</div>
+        <div class="header-subtitulo">Portal WKL — Índice de Sistemas</div>
+      </div>
+    </div>
+    <div class="header-badge">12 Módulos Ativos</div>
+  </div>
+
+  <div class="conteudo">
+    <div class="sumario-header">
+      <h2>Portal WKL</h2>
+      <p>Plataforma integrada de gestão corporativa — todos os sistemas em um único acesso</p>
+    </div>
+
+    <div class="sumario-grid">
+      <div class="sumario-card">
+        <div class="sumario-card-icone cor-portal"><i class="fas fa-gauge-high"></i></div>
+        <div class="sumario-card-info"><h3>Portal / Dashboard</h3><p>Acesso centralizado, autenticação local e AD, configurações</p></div>
+        <div class="sumario-card-num">Pág. 4</div>
+      </div>
+      <div class="sumario-card">
+        <div class="sumario-card-icone cor-tarefas"><i class="fas fa-list-check"></i></div>
+        <div class="sumario-card-info"><h3>Agenda de Tarefas</h3><p>Kanban, listas compartilhadas, categorias e relatórios</p></div>
+        <div class="sumario-card-num">Pág. 5</div>
+      </div>
+      <div class="sumario-card">
+        <div class="sumario-card-icone cor-financeiro"><i class="fas fa-coins"></i></div>
+        <div class="sumario-card-info"><h3>Agenda Financeira</h3><p>Contas a pagar/receber, recorrência, lembretes automáticos</p></div>
+        <div class="sumario-card-num">Pág. 6</div>
+      </div>
+      <div class="sumario-card">
+        <div class="sumario-card-icone cor-chamados"><i class="fas fa-headset"></i></div>
+        <div class="sumario-card-info"><h3>Chamados</h3><p>Tickets de suporte com perfis, SLA e TV monitor</p></div>
+        <div class="sumario-card-num">Pág. 7</div>
+      </div>
+      <div class="sumario-card">
+        <div class="sumario-card-icone cor-patrimonio"><i class="fas fa-barcode"></i></div>
+        <div class="sumario-card-info"><h3>Patrimônio</h3><p>Cadastro de bens, histórico, importação Excel, por unidade</p></div>
+        <div class="sumario-card-num">Pág. 8</div>
+      </div>
+      <div class="sumario-card">
+        <div class="sumario-card-icone cor-aprovacoes"><i class="fas fa-stamp"></i></div>
+        <div class="sumario-card-info"><h3>Aprovações</h3><p>Workflow multi-aprovador, consenso configurável, WhatsApp/Email</p></div>
+        <div class="sumario-card-num">Pág. 9</div>
+      </div>
+      <div class="sumario-card">
+        <div class="sumario-card-icone cor-whatsapp"><i class="fab fa-whatsapp"></i></div>
+        <div class="sumario-card-info"><h3>WhatsApp Bot</h3><p>Bot Baileys integrado para aprovações e notificações corporativas</p></div>
+        <div class="sumario-card-num">Pág. 10</div>
+      </div>
+      <div class="sumario-card">
+        <div class="sumario-card-icone cor-contatos"><i class="fas fa-address-book"></i></div>
+        <div class="sumario-card-info"><h3>Contatos + Calendários</h3><p>Agenda corporativa, import CSV/VCF, eventos e sync Google</p></div>
+        <div class="sumario-card-num">Pág. 11</div>
+      </div>
+      <div class="sumario-card">
+        <div class="sumario-card-icone cor-projetos"><i class="fas fa-diagram-project"></i></div>
+        <div class="sumario-card-info"><h3>Agenda de Projetos</h3><p>Projetos, subprojetos, membros e integração com tarefas</p></div>
+        <div class="sumario-card-num">Pág. 12</div>
+      </div>
+      <div class="sumario-card">
+        <div class="sumario-card-icone cor-contabil"><i class="fas fa-calculator"></i></div>
+        <div class="sumario-card-info"><h3>Agenda Contábil</h3><p>Controle de lançamentos contábeis e relatórios por período</p></div>
+        <div class="sumario-card-num">Pág. 12</div>
+      </div>
+      <div class="sumario-card">
+        <div class="sumario-card-icone cor-conhecimento"><i class="fas fa-book-open"></i></div>
+        <div class="sumario-card-info"><h3>Base de Conhecimento</h3><p>Artigos, tutoriais, categorias com busca e avaliações</p></div>
+        <div class="sumario-card-num">Pág. 13</div>
+      </div>
+      <div class="sumario-card">
+        <div class="sumario-card-icone" style="background:linear-gradient(135deg,#6b7280,#4b5563)"><i class="fas fa-database"></i></div>
+        <div class="sumario-card-info"><h3>Backups</h3><p>Backup noturno automatizado de arquivos e banco SQL Server</p></div>
+        <div class="sumario-card-num">Pág. 13</div>
+      </div>
+    </div>
+
+    <div style="margin-top:14px; padding:12px 18px; background:#f8fafc; border-radius:10px; border:1px solid #e2e8f0; display:flex; gap:28px; justify-content:center;">
+      <div style="text-align:center;"><div style="font-size:20px; font-weight:800; color:#3b82f6;">12</div><div style="font-size:10px; color:#64748b;">Módulos</div></div>
+      <div style="text-align:center;"><div style="font-size:16px; font-weight:800; color:#10b981;">Node.js</div><div style="font-size:10px; color:#64748b;">Backend</div></div>
+      <div style="text-align:center;"><div style="font-size:16px; font-weight:800; color:#f59e0b;">SQL Server</div><div style="font-size:10px; color:#64748b;">Banco de Dados</div></div>
+      <div style="text-align:center;"><div style="font-size:20px; font-weight:800; color:#ef4444;">3132</div><div style="font-size:10px; color:#64748b;">Porta</div></div>
+      <div style="text-align:center;"><div style="font-size:20px; font-weight:800; color:#8b5cf6;">AD</div><div style="font-size:10px; color:#64748b;">Autenticação</div></div>
+      <div style="text-align:center;"><div style="font-size:20px; font-weight:800; color:#25d366;">WA</div><div style="font-size:10px; color:#64748b;">WhatsApp Bot</div></div>
+    </div>
+  </div>
+
+  <div class="rodape-pagina">
+    <span><strong>Portal WKL</strong> — Uso Interno</span>
+    <span>Versão 1.3.0 — 2026</span>
+    <span>Página 2 / 13</span>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- PÁGINA 3 — INTEGRAÇÃO ENTRE SUBSISTEMAS                    -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="pagina">
+  <div class="header-pagina">
+    <div class="header-pagina-left">
+      <div class="header-icone" style="background:linear-gradient(135deg,#3b82f6,#6366f1)"><i class="fas fa-circle-nodes"></i></div>
+      <div>
+        <div class="header-titulo">Integração entre Subsistemas</div>
+        <div class="header-subtitulo">Como os módulos se comunicam e compartilham dados em tempo real</div>
+      </div>
+    </div>
+    <div class="header-badge">Arquitetura</div>
+  </div>
+
+  <div class="conteudo">
+    <div class="dois-col" style="gap:20px; align-items:start;">
+
+      <!-- Mapa de integrações -->
+      <div>
+        <div class="secao-titulo">Fluxos de Integração</div>
+
+        <!-- Aprovações <-> WhatsApp -->
+        <div class="integ-row">
+          <div class="integ-origem"><span style="width:8px;height:8px;border-radius:50%;background:#06b6d4;flex-shrink:0;display:inline-block"></span><span class="txt-aprovacoes" style="font-size:10px">Aprovações</span></div>
+          <div class="integ-seta"><i class="fas fa-arrows-left-right"></i></div>
+          <div class="integ-destino"><span style="width:8px;height:8px;border-radius:50%;background:#25d366;flex-shrink:0;display:inline-block"></span><span class="txt-whatsapp" style="font-size:10px">WhatsApp Bot</span></div>
+          <div class="integ-canal">Notificação + Resposta</div>
+        </div>
+
+        <!-- Aprovações -> Email -->
+        <div class="integ-row">
+          <div class="integ-origem"><span style="width:8px;height:8px;border-radius:50%;background:#06b6d4;flex-shrink:0;display:inline-block"></span><span class="txt-aprovacoes" style="font-size:10px">Aprovações</span></div>
+          <div class="integ-seta"><i class="fas fa-arrow-right"></i></div>
+          <div class="integ-destino"><i class="fas fa-envelope" style="color:#f59e0b;font-size:10px"></i><span style="font-size:10px;color:#64748b">E-mail SMTP</span></div>
+          <div class="integ-canal">Aviso + Lembrete 08:00</div>
+        </div>
+
+        <!-- Projetos <-> Tarefas -->
+        <div class="integ-row">
+          <div class="integ-origem"><span style="width:8px;height:8px;border-radius:50%;background:#6366f1;flex-shrink:0;display:inline-block"></span><span class="txt-projetos" style="font-size:10px">Projetos</span></div>
+          <div class="integ-seta"><i class="fas fa-arrows-left-right"></i></div>
+          <div class="integ-destino"><span style="width:8px;height:8px;border-radius:50%;background:#10b981;flex-shrink:0;display:inline-block"></span><span class="txt-tarefas" style="font-size:10px">Agenda de Tarefas</span></div>
+          <div class="integ-canal">Vinculação de tarefas</div>
+        </div>
+
+        <!-- Projetos -> Aprovações -->
+        <div class="integ-row">
+          <div class="integ-origem"><span style="width:8px;height:8px;border-radius:50%;background:#6366f1;flex-shrink:0;display:inline-block"></span><span class="txt-projetos" style="font-size:10px">Projetos</span></div>
+          <div class="integ-seta"><i class="fas fa-arrow-right"></i></div>
+          <div class="integ-destino"><span style="width:8px;height:8px;border-radius:50%;background:#06b6d4;flex-shrink:0;display:inline-block"></span><span class="txt-aprovacoes" style="font-size:10px">Aprovações</span></div>
+          <div class="integ-canal">Aprovação de projeto</div>
+        </div>
+
+        <!-- Financeiro -> Email -->
+        <div class="integ-row">
+          <div class="integ-origem"><span style="width:8px;height:8px;border-radius:50%;background:#f59e0b;flex-shrink:0;display:inline-block"></span><span class="txt-financeiro" style="font-size:10px">Agenda Financeira</span></div>
+          <div class="integ-seta"><i class="fas fa-arrow-right"></i></div>
+          <div class="integ-destino"><i class="fas fa-envelope" style="color:#f59e0b;font-size:10px"></i><span style="font-size:10px;color:#64748b">E-mail SMTP</span></div>
+          <div class="integ-canal">Lembrete 07:00</div>
+        </div>
+
+        <!-- Chamados -> Email -->
+        <div class="integ-row">
+          <div class="integ-origem"><span style="width:8px;height:8px;border-radius:50%;background:#ef4444;flex-shrink:0;display:inline-block"></span><span class="txt-chamados" style="font-size:10px">Chamados</span></div>
+          <div class="integ-seta"><i class="fas fa-arrow-right"></i></div>
+          <div class="integ-destino"><i class="fas fa-envelope" style="color:#f59e0b;font-size:10px"></i><span style="font-size:10px;color:#64748b">E-mail SMTP</span></div>
+          <div class="integ-canal">Notificação por etapa</div>
+        </div>
+
+        <!-- Calendários <-> Google -->
+        <div class="integ-row">
+          <div class="integ-origem"><span style="width:8px;height:8px;border-radius:50%;background:#f97316;flex-shrink:0;display:inline-block"></span><span class="txt-calendarios" style="font-size:10px">Calendários</span></div>
+          <div class="integ-seta"><i class="fas fa-arrows-left-right"></i></div>
+          <div class="integ-destino"><i class="fab fa-google" style="color:#ef4444;font-size:10px"></i><span style="font-size:10px;color:#64748b">Google Calendar</span></div>
+          <div class="integ-canal">CalDAV bidirecional</div>
+        </div>
+
+        <!-- Portal -> AD -->
+        <div class="integ-row">
+          <div class="integ-origem"><span style="width:8px;height:8px;border-radius:50%;background:#3b82f6;flex-shrink:0;display:inline-block"></span><span class="txt-portal" style="font-size:10px">Portal (Auth)</span></div>
+          <div class="integ-seta"><i class="fas fa-arrows-left-right"></i></div>
+          <div class="integ-destino"><i class="fas fa-building-shield" style="color:#3b82f6;font-size:10px"></i><span style="font-size:10px;color:#64748b">Active Directory</span></div>
+          <div class="integ-canal">LDAP / SSO</div>
+        </div>
+      </div>
+
+      <!-- Detalhes das integrações chave -->
+      <div>
+        <div class="secao-titulo">Integrações em Destaque</div>
+
+        <!-- WhatsApp Bot -->
+        <div style="border:1.5px solid #dcfce7; border-radius:9px; padding:10px 13px; margin-bottom:8px; background:#f0fdf4;">
+          <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+            <i class="fab fa-whatsapp txt-whatsapp" style="font-size:16px"></i>
+            <strong style="font-size:12px; color:#1e293b;">WhatsApp Bot — Aprovações</strong>
+          </div>
+          <p style="font-size:11px; color:#334155; line-height:1.4; margin-bottom:5px;">Ao criar uma aprovação no Portal, o bot envia automaticamente mensagem para cada aprovador. O aprovador responde diretamente pelo WhatsApp:</p>
+          <div style="display:flex; gap:6px;">
+            <span style="background:#dcfce7; color:#166534; border-radius:6px; padding:3px 8px; font-size:10px; font-weight:600; font-family:monospace;">aprovar <em>ID</em></span>
+            <span style="background:#fee2e2; color:#991b1b; border-radius:6px; padding:3px 8px; font-size:10px; font-weight:600; font-family:monospace;">reprovar <em>ID motivo</em></span>
+          </div>
+          <p style="font-size:10px; color:#64748b; margin-top:4px;">Login automático por número de telefone — sem senha necessária no chat.</p>
+        </div>
+
+        <!-- Projetos + Tarefas -->
+        <div style="border:1.5px solid #e0e7ff; border-radius:9px; padding:10px 13px; margin-bottom:8px; background:#eef2ff;">
+          <div style="display:flex; align-items:center; gap:8px; margin-bottom:5px;">
+            <i class="fas fa-diagram-project txt-projetos" style="font-size:14px"></i>
+            <strong style="font-size:12px; color:#1e293b;">Projetos ↔ Tarefas</strong>
+          </div>
+          <p style="font-size:11px; color:#334155; line-height:1.4;">Tarefas da Agenda podem ser vinculadas a projetos e subprojetos. O projeto consolida automaticamente o progresso com base no status das tarefas associadas.</p>
+        </div>
+
+        <!-- Log unificado -->
+        <div style="border:1.5px solid #e2e8f0; border-radius:9px; padding:10px 13px; background:#f8fafc;">
+          <div style="display:flex; align-items:center; gap:8px; margin-bottom:5px;">
+            <i class="fas fa-scroll txt-portal" style="font-size:14px"></i>
+            <strong style="font-size:12px; color:#1e293b;">Log de Atividades — Todos os Módulos</strong>
+          </div>
+          <p style="font-size:11px; color:#334155; line-height:1.4;">Toda ação em qualquer módulo é registrada centralmente na tabela <code style="background:#e2e8f0; padding:1px 5px; border-radius:3px; font-size:10px;">logs_atividade</code> com usuário, ação, sistema e timestamp. Acessível pelo painel de administração do Portal.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="rodape-pagina">
+    <span><strong>Portal WKL</strong> — Integração entre Subsistemas</span>
+    <span>Versão 1.3.0 — 2026</span>
+    <span>Página 3 / 13</span>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- PÁGINA 4 — PORTAL / DASHBOARD                              -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="pagina">
+  <div class="header-pagina">
+    <div class="header-pagina-left">
+      <div class="header-icone cor-portal"><i class="fas fa-gauge-high"></i></div>
+      <div>
+        <div class="header-titulo">Portal / Dashboard</div>
+        <div class="header-subtitulo">Acesso centralizado a todos os sistemas</div>
+      </div>
+    </div>
+    <div class="header-badge">Módulo Principal</div>
+  </div>
+
+  <div class="conteudo">
+    <div class="modulo-descricao borda-portal">
+      O Portal é o ponto central de acesso a todos os sistemas WKL. Após o login — autenticado localmente ou via Active Directory — o usuário visualiza o dashboard com todos os módulos disponíveis conforme seu perfil, além de notificações e atalhos rápidos.
+    </div>
+
+    <div class="dois-col" style="gap:18px; align-items:start;">
+      <div>
+        <div class="secao-titulo">Funcionalidades Principais</div>
+        <div class="funcionalidades-grid">
+          <div class="func-item"><i class="fas fa-shield-halved txt-portal"></i><span><strong>Autenticação dupla</strong> — Login local (bcrypt) ou via Active Directory (LDAP)</span></div>
+          <div class="func-item"><i class="fas fa-th txt-portal"></i><span><strong>Dashboard</strong> — Cards de acesso rápido a todos os módulos</span></div>
+          <div class="func-item"><i class="fas fa-user-gear txt-portal"></i><span><strong>Gestão de usuários</strong> — Criar, editar e desativar usuários locais ou AD</span></div>
+          <div class="func-item"><i class="fas fa-sliders txt-portal"></i><span><strong>Configurações</strong> — SMTP, Telegram, integrações pelo painel admin</span></div>
+          <div class="func-item"><i class="fas fa-eye txt-portal"></i><span><strong>Visibilidade</strong> — Exibir ou ocultar módulos por nível de usuário</span></div>
+          <div class="func-item"><i class="fas fa-scroll txt-portal"></i><span><strong>Log de atividades</strong> — Auditoria completa de todas as ações</span></div>
+          <div class="func-item"><i class="fas fa-mobile-screen txt-portal"></i><span><strong>Menu responsivo</strong> — Navegação lateral com todos os módulos</span></div>
+          <div class="func-item"><i class="fas fa-key txt-portal"></i><span><strong>API Key</strong> — Autenticação server-to-server via x-api-key</span></div>
+          <div class="func-item"><i class="fas fa-building-shield txt-portal"></i><span><strong>Active Directory</strong> — SSO com domínio Windows via LDAP</span></div>
+        </div>
+      </div>
+
+      <div>
+        <div class="secao-titulo">Perfis de Acesso</div>
+        <div class="perfis-lista">
+          <div class="perfil-chip bg-portal" style="color:#3b82f6"><i class="fas fa-crown"></i> Administrador</div>
+          <div class="perfil-chip" style="background:#f8fafc; color:#64748b; border:1px solid #e2e8f0"><i class="fas fa-user"></i> Usuário Padrão</div>
+          <div class="perfil-chip" style="background:#f8fafc; color:#64748b; border:1px solid #e2e8f0"><i class="fas fa-building"></i> Domínio (AD)</div>
+        </div>
+        <div class="secao-titulo">Canais de Notificação</div>
+        <div style="display:flex; flex-direction:column; gap:6px; margin-bottom:12px;">
+          <div class="func-item"><i class="fas fa-envelope txt-portal"></i><span>E-mail via SMTP configurável</span></div>
+          <div class="func-item"><i class="fab fa-telegram txt-portal"></i><span>Telegram via Bot Token</span></div>
+          <div class="func-item"><i class="fab fa-whatsapp txt-portal"></i><span>WhatsApp via Bot integrado</span></div>
+        </div>
+        <div class="secao-titulo">Informações Técnicas</div>
+        <div class="info-grid" style="grid-template-columns:1fr 1fr;">
+          <div class="info-card"><i class="fas fa-server txt-portal"></i><div class="info-card-label">Servidor</div><div class="info-card-valor">192.168.0.80</div></div>
+          <div class="info-card"><i class="fas fa-plug txt-portal"></i><div class="info-card-label">Porta</div><div class="info-card-valor">3132</div></div>
+          <div class="info-card"><i class="fas fa-clock txt-portal"></i><div class="info-card-label">Sessão</div><div class="info-card-valor">8 horas</div></div>
+          <div class="info-card"><i class="fas fa-database txt-portal"></i><div class="info-card-label">Banco</div><div class="info-card-valor">SQL Server</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="rodape-pagina">
+    <span><strong>Portal WKL</strong> — Dashboard</span>
+    <span>Versão 1.3.0 — 2026</span>
+    <span>Página 4 / 13</span>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- PÁGINA 5 — AGENDA DE TAREFAS                               -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="pagina">
+  <div class="header-pagina">
+    <div class="header-pagina-left">
+      <div class="header-icone cor-tarefas"><i class="fas fa-list-check"></i></div>
+      <div>
+        <div class="header-titulo">Agenda de Tarefas</div>
+        <div class="header-subtitulo">Gestão colaborativa de tarefas com Kanban e integração com Projetos</div>
+      </div>
+    </div>
+    <div class="header-badge">/agenda</div>
+  </div>
+
+  <div class="conteudo">
+    <div class="modulo-descricao borda-tarefas">
+      Sistema completo de gerenciamento de tarefas com visualização Kanban e modo lista. Listas compartilhadas entre usuários com controle de permissões, categorias coloridas, prazos, responsáveis e integração com a Agenda de Projetos.
+    </div>
+
+    <div class="dois-col" style="gap:18px; align-items:start;">
+      <div>
+        <div class="secao-titulo">Funcionalidades</div>
+        <div class="funcionalidades-grid">
+          <div class="func-item"><i class="fas fa-table-columns txt-tarefas"></i><span><strong>Kanban</strong> — Colunas com drag &amp; drop entre status</span></div>
+          <div class="func-item"><i class="fas fa-list txt-tarefas"></i><span><strong>Modo lista</strong> — Visão tabular com ordenação por campo</span></div>
+          <div class="func-item"><i class="fas fa-users txt-tarefas"></i><span><strong>Compartilhamento</strong> — Permissões por usuário na lista</span></div>
+          <div class="func-item"><i class="fas fa-tag txt-tarefas"></i><span><strong>Categorias</strong> — Cores personalizáveis por lista</span></div>
+          <div class="func-item"><i class="fas fa-calendar-check txt-tarefas"></i><span><strong>Prazos e prioridades</strong> — Data de vencimento e alertas</span></div>
+          <div class="func-item"><i class="fas fa-user-check txt-tarefas"></i><span><strong>Responsável</strong> — Atribuição por tarefa</span></div>
+          <div class="func-item"><i class="fas fa-chart-bar txt-tarefas"></i><span><strong>Relatórios</strong> — Filtros por coluna e exportação</span></div>
+          <div class="func-item"><i class="fas fa-diagram-project txt-tarefas"></i><span><strong>Integração Projetos</strong> — Vincular tarefa a projeto/subprojeto</span></div>
+          <div class="func-item"><i class="fas fa-square-check txt-tarefas"></i><span><strong>Subtarefas</strong> — Checklist de passos dentro da tarefa</span></div>
+        </div>
+      </div>
+
+      <div>
+        <div class="secao-titulo">Status do Kanban</div>
+        <div style="display:flex; flex-direction:column; gap:5px; margin-bottom:12px;">
+          <div class="func-item"><span style="width:9px;height:9px;border-radius:50%;background:#94a3b8;flex-shrink:0;display:inline-block"></span><span>A Fazer</span></div>
+          <div class="func-item"><span style="width:9px;height:9px;border-radius:50%;background:#3b82f6;flex-shrink:0;display:inline-block"></span><span>Em Andamento</span></div>
+          <div class="func-item"><span style="width:9px;height:9px;border-radius:50%;background:#f59e0b;flex-shrink:0;display:inline-block"></span><span>Aguardando</span></div>
+          <div class="func-item"><span style="width:9px;height:9px;border-radius:50%;background:#10b981;flex-shrink:0;display:inline-block"></span><span>Concluído</span></div>
+        </div>
+
+        <div class="secao-titulo">Permissões de Lista</div>
+        <div style="display:flex; flex-direction:column; gap:5px; margin-bottom:12px;">
+          <div class="func-item"><i class="fas fa-crown" style="color:#f59e0b"></i><span><strong>Dono</strong> — Controle total, pode excluir a lista</span></div>
+          <div class="func-item"><i class="fas fa-pen" style="color:#3b82f6"></i><span><strong>Edição</strong> — Criar, editar e concluir tarefas</span></div>
+          <div class="func-item"><i class="fas fa-eye" style="color:#10b981"></i><span><strong>Leitura</strong> — Apenas visualizar</span></div>
+        </div>
+
+        <div class="destaque-box bg-tarefas" style="margin-top:2px;">
+          <i class="fas fa-diagram-project txt-tarefas"></i>
+          <div class="destaque-box-texto">
+            <h4 style="color:#065f46">Integração com Projetos</h4>
+            <p style="color:#064e3b">Tarefas podem ser associadas a projetos e subprojetos, permitindo rastrear o progresso do projeto com base nas tarefas concluídas.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="rodape-pagina">
+    <span><strong>Portal WKL</strong> — Agenda de Tarefas</span>
+    <span>Versão 1.3.0 — 2026</span>
+    <span>Página 5 / 13</span>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- PÁGINA 6 — AGENDA FINANCEIRA                               -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="pagina">
+  <div class="header-pagina">
+    <div class="header-pagina-left">
+      <div class="header-icone cor-financeiro"><i class="fas fa-coins"></i></div>
+      <div>
+        <div class="header-titulo">Agenda Financeira</div>
+        <div class="header-subtitulo">Controle de contas com lembretes automáticos diários</div>
+      </div>
+    </div>
+    <div class="header-badge">/agendaFinanceira</div>
+  </div>
+
+  <div class="conteudo">
+    <div class="modulo-descricao borda-financeiro">
+      Módulo para controle de contas a pagar e receber com suporte a recorrência automática. Envia lembretes diários às 07:00 por email para contas com vencimento próximo. Relatórios com filtros avançados por período, status e categoria.
+    </div>
+
+    <div class="dois-col" style="gap:18px; align-items:start;">
+      <div>
+        <div class="secao-titulo">Funcionalidades</div>
+        <div class="funcionalidades-grid">
+          <div class="func-item"><i class="fas fa-arrow-up txt-financeiro"></i><span><strong>Contas a pagar</strong> — Despesas com valor, data e fornecedor</span></div>
+          <div class="func-item"><i class="fas fa-arrow-down txt-financeiro"></i><span><strong>Contas a receber</strong> — Receitas com cliente e data prevista</span></div>
+          <div class="func-item"><i class="fas fa-rotate txt-financeiro"></i><span><strong>Recorrência</strong> — Parcelas mensais, semanais ou anuais</span></div>
+          <div class="func-item"><i class="fas fa-bell txt-financeiro"></i><span><strong>Lembretes 07:00</strong> — Job automático por e-mail</span></div>
+          <div class="func-item"><i class="fas fa-circle-check txt-financeiro"></i><span><strong>Baixa</strong> — Marcar como pago/recebido com comprovante</span></div>
+          <div class="func-item"><i class="fas fa-tag txt-financeiro"></i><span><strong>Categorias</strong> — Classificação por tipo de despesa/receita</span></div>
+          <div class="func-item"><i class="fas fa-chart-line txt-financeiro"></i><span><strong>Relatórios</strong> — Extrato com totalizadores por período</span></div>
+          <div class="func-item"><i class="fas fa-users txt-financeiro"></i><span><strong>Agendas compartilhadas</strong> — Permissões por usuário</span></div>
+          <div class="func-item"><i class="fas fa-filter txt-financeiro"></i><span><strong>Filtros por coluna</strong> — Busca avançada e exportação</span></div>
+        </div>
+      </div>
+
+      <div>
+        <div class="secao-titulo">Fluxo de uma Conta</div>
+        <div class="fluxo" style="flex-direction:column; gap:5px;">
+          <div class="fluxo-passo"><i class="fas fa-plus txt-financeiro"></i><span>Criação da conta</span></div>
+          <div class="fluxo-seta" style="transform:rotate(90deg)"><i class="fas fa-chevron-right"></i></div>
+          <div class="fluxo-passo"><i class="fas fa-calendar txt-financeiro"></i><span>Controle de vencimento</span></div>
+          <div class="fluxo-seta" style="transform:rotate(90deg)"><i class="fas fa-chevron-right"></i></div>
+          <div class="fluxo-passo"><i class="fas fa-bell txt-financeiro"></i><span>Lembrete automático 07:00</span></div>
+          <div class="fluxo-seta" style="transform:rotate(90deg)"><i class="fas fa-chevron-right"></i></div>
+          <div class="fluxo-passo"><i class="fas fa-circle-check txt-financeiro"></i><span>Baixa com data e comprovante</span></div>
+        </div>
+
+        <div class="destaque-box bg-financeiro" style="margin-top:10px;">
+          <i class="fas fa-clock txt-financeiro"></i>
+          <div class="destaque-box-texto">
+            <h4 style="color:#d97706">Job Automático de Lembretes</h4>
+            <p style="color:#92400e">Todos os dias às <strong>07:00</strong>, o sistema verifica contas com vencimento próximo e envia alertas por e-mail, evitando inadimplência.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="rodape-pagina">
+    <span><strong>Portal WKL</strong> — Agenda Financeira</span>
+    <span>Versão 1.3.0 — 2026</span>
+    <span>Página 6 / 13</span>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- PÁGINA 7 — CHAMADOS                                        -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="pagina">
+  <div class="header-pagina">
+    <div class="header-pagina-left">
+      <div class="header-icone cor-chamados"><i class="fas fa-headset"></i></div>
+      <div>
+        <div class="header-titulo">Sistema de Chamados</div>
+        <div class="header-subtitulo">Suporte técnico com SLA, perfis e TV Monitor</div>
+      </div>
+    </div>
+    <div class="header-badge">/chamados</div>
+  </div>
+
+  <div class="conteudo">
+    <div class="modulo-descricao borda-chamados">
+      Sistema completo de abertura e acompanhamento de chamados de suporte técnico. Perfis diferenciados por função, protocolo automático único, histórico de atendimento e TV Monitor para exibição em telão nos setores de TI.
+    </div>
+
+    <div class="dois-col" style="gap:18px; align-items:start;">
+      <div>
+        <div class="secao-titulo">Perfis de Acesso</div>
+        <div style="display:flex; flex-direction:column; gap:5px; margin-bottom:12px;">
+          <div class="perfil-chip" style="background:#fef2f2; color:#ef4444; border:1px solid #fecaca"><i class="fas fa-crown"></i> ADMINISTRADOR — Controle total</div>
+          <div class="perfil-chip" style="background:#fff7ed; color:#f97316; border:1px solid #fed7aa"><i class="fas fa-user-tie"></i> GESTOR — Acompanhar e escalar</div>
+          <div class="perfil-chip" style="background:#eff6ff; color:#3b82f6; border:1px solid #bfdbfe"><i class="fas fa-wrench"></i> TÉCNICO — Atender chamados</div>
+          <div class="perfil-chip" style="background:#f8fafc; color:#64748b; border:1px solid #e2e8f0"><i class="fas fa-user"></i> SOLICITANTE — Abrir e acompanhar</div>
+        </div>
+
+        <div class="secao-titulo">Status do Chamado</div>
+        <div style="display:flex; flex-direction:column; gap:5px;">
+          <div class="func-item"><span style="width:9px;height:9px;border-radius:50%;background:#f59e0b;flex-shrink:0;display:inline-block"></span><span>Aberto</span></div>
+          <div class="func-item"><span style="width:9px;height:9px;border-radius:50%;background:#3b82f6;flex-shrink:0;display:inline-block"></span><span>Em Atendimento</span></div>
+          <div class="func-item"><span style="width:9px;height:9px;border-radius:50%;background:#8b5cf6;flex-shrink:0;display:inline-block"></span><span>Aguardando Usuário</span></div>
+          <div class="func-item"><span style="width:9px;height:9px;border-radius:50%;background:#10b981;flex-shrink:0;display:inline-block"></span><span>Resolvido</span></div>
+          <div class="func-item"><span style="width:9px;height:9px;border-radius:50%;background:#94a3b8;flex-shrink:0;display:inline-block"></span><span>Fechado</span></div>
+        </div>
+      </div>
+
+      <div>
+        <div class="secao-titulo">Funcionalidades</div>
+        <div class="funcionalidades-grid">
+          <div class="func-item"><i class="fas fa-hashtag txt-chamados"></i><span>Protocolo único automático</span></div>
+          <div class="func-item"><i class="fas fa-clock txt-chamados"></i><span>Controle de SLA e tempo</span></div>
+          <div class="func-item"><i class="fas fa-timeline txt-chamados"></i><span>Histórico completo</span></div>
+          <div class="func-item"><i class="fas fa-paperclip txt-chamados"></i><span>Anexo de arquivos/imagens</span></div>
+          <div class="func-item"><i class="fas fa-envelope txt-chamados"></i><span>Notificações por e-mail</span></div>
+          <div class="func-item"><i class="fas fa-chart-pie txt-chamados"></i><span>Relatórios por técnico e período</span></div>
+          <div class="func-item"><i class="fas fa-layer-group txt-chamados"></i><span>Categorias e setores</span></div>
+          <div class="func-item"><i class="fas fa-tv txt-chamados"></i><span>TV Monitor — painel telão</span></div>
+          <div class="func-item"><i class="fas fa-rotate txt-chamados"></i><span>Atualização automática 30s</span></div>
+        </div>
+
+        <div class="destaque-box bg-chamados" style="margin-top:4px;">
+          <i class="fas fa-tv txt-chamados"></i>
+          <div class="destaque-box-texto">
+            <h4 style="color:#dc2626">TV Monitor</h4>
+            <p style="color:#991b1b">Painel especial para telões do setor de TI exibindo chamados abertos em tempo real, com atualização automática a cada 30 segundos.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="rodape-pagina">
+    <span><strong>Portal WKL</strong> — Chamados</span>
+    <span>Versão 1.3.0 — 2026</span>
+    <span>Página 7 / 13</span>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- PÁGINA 8 — PATRIMÔNIO                                      -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="pagina">
+  <div class="header-pagina">
+    <div class="header-pagina-left">
+      <div class="header-icone cor-patrimonio"><i class="fas fa-barcode"></i></div>
+      <div>
+        <div class="header-titulo">Gestão de Patrimônio</div>
+        <div class="header-subtitulo">Controle de bens e ativos da empresa</div>
+      </div>
+    </div>
+    <div class="header-badge">/patrimonio</div>
+  </div>
+
+  <div class="conteudo">
+    <div class="modulo-descricao borda-patrimonio">
+      Controle e rastreamento de bens patrimoniais da empresa. Registra todos os ativos com localização, responsável, categoria e histórico completo de movimentações. Suporta importação em massa via planilha Excel e etiquetas de identificação.
+    </div>
+
+    <div class="dois-col" style="gap:18px; align-items:start;">
+      <div>
+        <div class="secao-titulo">Funcionalidades</div>
+        <div class="funcionalidades-grid">
+          <div class="func-item"><i class="fas fa-plus txt-patrimonio"></i><span><strong>Cadastro</strong> — Código, descrição, valor e localização</span></div>
+          <div class="func-item"><i class="fas fa-building txt-patrimonio"></i><span><strong>Por unidade</strong> — Organização por setor da empresa</span></div>
+          <div class="func-item"><i class="fas fa-timeline txt-patrimonio"></i><span><strong>Histórico</strong> — Movimentações e alterações do bem</span></div>
+          <div class="func-item"><i class="fas fa-file-excel txt-patrimonio"></i><span><strong>Importação Excel</strong> — Carga em massa via planilha</span></div>
+          <div class="func-item"><i class="fas fa-user-shield txt-patrimonio"></i><span><strong>Permissões</strong> — Visualizar ou editar por usuário</span></div>
+          <div class="func-item"><i class="fas fa-magnifying-glass txt-patrimonio"></i><span><strong>Busca avançada</strong> — Filtro por código, categoria e local</span></div>
+          <div class="func-item"><i class="fas fa-folder-tree txt-patrimonio"></i><span><strong>Categorias</strong> — Informática, mobiliário, veículos etc.</span></div>
+          <div class="func-item"><i class="fas fa-print txt-patrimonio"></i><span><strong>Etiquetas</strong> — Impressão de identificação patrimonial</span></div>
+          <div class="func-item"><i class="fas fa-chart-bar txt-patrimonio"></i><span><strong>Relatórios</strong> — Por categoria, unidade e período</span></div>
+        </div>
+      </div>
+
+      <div>
+        <div class="secao-titulo">Tabelas do Banco de Dados</div>
+        <div class="info-grid" style="grid-template-columns:1fr 1fr;">
+          <div class="info-card"><i class="fas fa-table txt-patrimonio"></i><div class="info-card-label">pat_bens</div><div class="info-card-valor">Bens</div></div>
+          <div class="info-card"><i class="fas fa-table txt-patrimonio"></i><div class="info-card-label">pat_historico</div><div class="info-card-valor">Movimentações</div></div>
+          <div class="info-card"><i class="fas fa-table txt-patrimonio"></i><div class="info-card-label">pat_categorias</div><div class="info-card-valor">Categorias</div></div>
+          <div class="info-card"><i class="fas fa-table txt-patrimonio"></i><div class="info-card-label">pat_unidades</div><div class="info-card-valor">Unidades</div></div>
+          <div class="info-card"><i class="fas fa-table txt-patrimonio"></i><div class="info-card-label">pat_permissoes</div><div class="info-card-valor">Permissões</div></div>
+          <div class="info-card"><i class="fas fa-file-excel txt-patrimonio"></i><div class="info-card-label">Importação</div><div class="info-card-valor">PATRIMONIOS.xlsx</div></div>
+        </div>
+
+        <div class="destaque-box bg-patrimonio" style="margin-top:4px;">
+          <i class="fas fa-user-shield txt-patrimonio"></i>
+          <div class="destaque-box-texto">
+            <h4 style="color:#6d28d9">Controle de Acesso</h4>
+            <p style="color:#4c1d95">Administradores têm acesso irrestrito. Usuários comuns precisam de permissão explícita para visualizar ou editar bens específicos.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="rodape-pagina">
+    <span><strong>Portal WKL</strong> — Patrimônio</span>
+    <span>Versão 1.3.0 — 2026</span>
+    <span>Página 8 / 13</span>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- PÁGINA 9 — APROVAÇÕES                                      -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="pagina">
+  <div class="header-pagina">
+    <div class="header-pagina-left">
+      <div class="header-icone cor-aprovacoes"><i class="fas fa-stamp"></i></div>
+      <div>
+        <div class="header-titulo">Workflow de Aprovações</div>
+        <div class="header-subtitulo">Aprovações multi-nível com notificações via WhatsApp e E-mail</div>
+      </div>
+    </div>
+    <div class="header-badge">/aprovacoes</div>
+  </div>
+
+  <div class="conteudo">
+    <div class="modulo-descricao borda-aprovacoes">
+      Workflow para aprovações corporativas com múltiplos aprovadores, tipos de consenso configuráveis e notificações automáticas via WhatsApp e e-mail. Suporta anexos, comentários, relatórios e histórico completo de decisões com canal de resposta registrado.
+    </div>
+
+    <div class="dois-col" style="gap:18px; align-items:start;">
+      <div>
+        <div class="secao-titulo">Tipos de Consenso</div>
+        <div style="display:flex; flex-direction:column; gap:5px; margin-bottom:12px;">
+          <div class="func-item"><i class="fas fa-star txt-aprovacoes"></i><span><strong>Unanimidade</strong> — Todos devem aprovar</span></div>
+          <div class="func-item"><i class="fas fa-chart-pie txt-aprovacoes"></i><span><strong>Maioria</strong> — Mais da metade aprova</span></div>
+          <div class="func-item"><i class="fas fa-user-check txt-aprovacoes"></i><span><strong>Qualquer um</strong> — Basta um aprovar</span></div>
+          <div class="func-item"><i class="fas fa-percent txt-aprovacoes"></i><span><strong>Percentual</strong> — Mínimo configurável</span></div>
+        </div>
+
+        <div class="secao-titulo">Status de Aprovação</div>
+        <div style="display:flex; flex-direction:column; gap:5px; margin-bottom:12px;">
+          <div class="func-item"><span style="width:9px;height:9px;border-radius:50%;background:#f59e0b;flex-shrink:0;display:inline-block"></span><span>Pendente</span></div>
+          <div class="func-item"><span style="width:9px;height:9px;border-radius:50%;background:#10b981;flex-shrink:0;display:inline-block"></span><span>Aprovado</span></div>
+          <div class="func-item"><span style="width:9px;height:9px;border-radius:50%;background:#ef4444;flex-shrink:0;display:inline-block"></span><span>Reprovado</span></div>
+          <div class="func-item"><span style="width:9px;height:9px;border-radius:50%;background:#94a3b8;flex-shrink:0;display:inline-block"></span><span>Cancelado</span></div>
+        </div>
+
+        <div class="secao-titulo">Fluxo de Aprovação</div>
+        <div class="fluxo" style="flex-direction:column; gap:4px;">
+          <div class="fluxo-passo"><i class="fas fa-plus txt-aprovacoes"></i><span>Solicitação criada</span></div>
+          <div class="fluxo-seta" style="transform:rotate(90deg)"><i class="fas fa-chevron-right"></i></div>
+          <div class="fluxo-passo"><i class="fab fa-whatsapp txt-aprovacoes"></i><span>Notificação enviada (WA + Email)</span></div>
+          <div class="fluxo-seta" style="transform:rotate(90deg)"><i class="fas fa-chevron-right"></i></div>
+          <div class="fluxo-passo"><i class="fas fa-reply txt-aprovacoes"></i><span>Aprovadores respondem</span></div>
+          <div class="fluxo-seta" style="transform:rotate(90deg)"><i class="fas fa-chevron-right"></i></div>
+          <div class="fluxo-passo"><i class="fas fa-flag-checkered txt-aprovacoes"></i><span>Consenso calculado → Resultado</span></div>
+        </div>
+      </div>
+
+      <div>
+        <div class="secao-titulo">Funcionalidades</div>
+        <div class="funcionalidades-grid">
+          <div class="func-item"><i class="fas fa-user-plus txt-aprovacoes"></i><span>Múltiplos aprovadores por solicitação</span></div>
+          <div class="func-item"><i class="fab fa-whatsapp txt-aprovacoes"></i><span>Resposta via WhatsApp com comandos</span></div>
+          <div class="func-item"><i class="fas fa-envelope txt-aprovacoes"></i><span>Notificação por e-mail aos aprovadores</span></div>
+          <div class="func-item"><i class="fas fa-paperclip txt-aprovacoes"></i><span>Anexo de documentos até 50MB</span></div>
+          <div class="func-item"><i class="fas fa-comment txt-aprovacoes"></i><span>Campo de justificativa na resposta</span></div>
+          <div class="func-item"><i class="fas fa-history txt-aprovacoes"></i><span>Histórico com canal de resposta</span></div>
+          <div class="func-item"><i class="fas fa-chart-bar txt-aprovacoes"></i><span>Relatórios por período e aprovador</span></div>
+          <div class="func-item"><i class="fas fa-bell txt-aprovacoes"></i><span>Lembretes automáticos às 08:00</span></div>
+          <div class="func-item"><i class="fas fa-diagram-project txt-aprovacoes"></i><span>Vinculação a projeto específico</span></div>
+        </div>
+
+        <div class="destaque-box bg-aprovacoes" style="margin-top:4px;">
+          <i class="fab fa-whatsapp txt-aprovacoes"></i>
+          <div class="destaque-box-texto">
+            <h4 style="color:#0e7490">Resposta via WhatsApp</h4>
+            <p style="color:#155e75">O aprovador recebe mensagem pelo WhatsApp e responde com <code style="background:#cffafe; padding:1px 5px; border-radius:3px; font-size:10px;">aprovar ID</code> ou <code style="background:#cffafe; padding:1px 5px; border-radius:3px; font-size:10px;">reprovar ID motivo</code>. Login automático por telefone.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="rodape-pagina">
+    <span><strong>Portal WKL</strong> — Aprovações</span>
+    <span>Versão 1.3.0 — 2026</span>
+    <span>Página 9 / 13</span>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- PÁGINA 10 — WHATSAPP BOT                                   -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="pagina">
+  <div class="header-pagina" style="background: linear-gradient(90deg, #003d1f 0%, #00522a 100%);">
+    <div class="header-pagina-left">
+      <div class="header-icone cor-whatsapp"><i class="fab fa-whatsapp"></i></div>
+      <div>
+        <div class="header-titulo">WhatsApp Bot</div>
+        <div class="header-subtitulo">Bot Baileys integrado ao Portal para aprovações e comunicação corporativa</div>
+      </div>
+    </div>
+    <div class="header-badge">Porta 3200 / 3210</div>
+  </div>
+
+  <div class="conteudo">
+    <div class="modulo-descricao borda-whatsapp">
+      Bot WhatsApp desenvolvido com Baileys, integrado ao Portal WKL. Permite que aprovadores respondam solicitações diretamente pelo WhatsApp com comandos de texto, com login automático por número de telefone. A interface web do Portal exibe o chat em tempo real.
+    </div>
+
+    <div class="dois-col" style="gap:18px; align-items:start;">
+      <div>
+        <div class="secao-titulo">Comandos do Bot</div>
+        <div style="display:flex; flex-direction:column; gap:5px; margin-bottom:12px;">
+          <div class="func-item" style="font-family:monospace;">
+            <i class="fas fa-list txt-whatsapp"></i>
+            <span><strong>1</strong> ou <strong>pendentes</strong> — Lista aprovações pendentes</span>
+          </div>
+          <div class="func-item" style="font-family:monospace;">
+            <i class="fas fa-check txt-whatsapp"></i>
+            <span><strong>aprovar <em>ID</em></strong> — Aprova a solicitação</span>
+          </div>
+          <div class="func-item" style="font-family:monospace;">
+            <i class="fas fa-times txt-whatsapp"></i>
+            <span><strong>reprovar <em>ID motivo</em></strong> — Reprova com justificativa</span>
+          </div>
+          <div class="func-item" style="font-family:monospace;">
+            <i class="fas fa-info txt-whatsapp"></i>
+            <span><strong>detalhar <em>ID</em></strong> — Detalhes da solicitação</span>
+          </div>
+          <div class="func-item" style="font-family:monospace;">
+            <i class="fas fa-bars txt-whatsapp"></i>
+            <span><strong>menu</strong> ou <strong>0</strong> — Exibe o menu de opções</span>
+          </div>
+        </div>
+
+        <div class="secao-titulo">Arquitetura</div>
+        <div class="info-grid" style="grid-template-columns:1fr 1fr;">
+          <div class="info-card"><i class="fab fa-node-js txt-whatsapp"></i><div class="info-card-label">Engine</div><div class="info-card-valor">Baileys</div></div>
+          <div class="info-card"><i class="fas fa-plug txt-whatsapp"></i><div class="info-card-label">API Bot</div><div class="info-card-valor">:3200</div></div>
+          <div class="info-card"><i class="fas fa-wifi txt-whatsapp"></i><div class="info-card-label">WebSocket</div><div class="info-card-valor">:3210</div></div>
+          <div class="info-card"><i class="fas fa-server txt-whatsapp"></i><div class="info-card-label">Process</div><div class="info-card-valor">PM2</div></div>
+        </div>
+      </div>
+
+      <div>
+        <div class="secao-titulo">Funcionalidades</div>
+        <div class="funcionalidades-grid">
+          <div class="func-item"><i class="fas fa-stamp txt-whatsapp"></i><span>Aprovações via chat sem abrir o sistema</span></div>
+          <div class="func-item"><i class="fas fa-mobile-screen txt-whatsapp"></i><span>Login automático por número de telefone</span></div>
+          <div class="func-item"><i class="fas fa-terminal txt-whatsapp"></i><span>Menu de comandos interativos</span></div>
+          <div class="func-item"><i class="fas fa-comment-dots txt-whatsapp"></i><span>Interface web de chat no Portal</span></div>
+          <div class="func-item"><i class="fas fa-shield-halved txt-whatsapp"></i><span>Painel admin com logs em tempo real</span></div>
+          <div class="func-item"><i class="fas fa-users txt-whatsapp"></i><span>Busca de destinatários (usuários, AD, contatos)</span></div>
+          <div class="func-item"><i class="fas fa-qrcode txt-whatsapp"></i><span>Vinculação via QR Code</span></div>
+          <div class="func-item"><i class="fas fa-broadcast-tower txt-whatsapp"></i><span>Notificações automáticas de aprovação</span></div>
+          <div class="func-item"><i class="fas fa-eye txt-whatsapp"></i><span>Registro do canal de resposta no histórico</span></div>
+        </div>
+
+        <div class="destaque-box bg-whatsapp" style="margin-top:4px;">
+          <i class="fas fa-link txt-whatsapp"></i>
+          <div class="destaque-box-texto">
+            <h4 style="color:#065f46">Integração com Aprovações</h4>
+            <p style="color:#064e3b">Ao criar aprovação no Portal, o bot notifica automaticamente cada aprovador pelo WhatsApp. A resposta é registrada com canal <strong>"WhatsApp"</strong> no histórico, junto com o portal web e e-mail.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="rodape-pagina">
+    <span><strong>Portal WKL</strong> — WhatsApp Bot</span>
+    <span>Versão 1.3.0 — 2026</span>
+    <span>Página 10 / 13</span>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- PÁGINA 11 — CONTATOS + CALENDÁRIOS (lado a lado)           -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="pagina">
+  <div class="header-pagina">
+    <div class="header-pagina-left">
+      <div class="header-icone cor-contatos"><i class="fas fa-address-book"></i></div>
+      <div>
+        <div class="header-titulo">Agenda de Contatos &amp; Calendários</div>
+        <div class="header-subtitulo">Agenda corporativa centralizada com sincronização Google Calendar</div>
+      </div>
+    </div>
+    <div class="header-badge">Pág. 11</div>
+  </div>
+
+  <div style="display:grid; grid-template-columns:1fr 1px 1fr; height:calc(210mm - 58px - 34px);">
+
+    <!-- Contatos -->
+    <div class="dupla-coluna">
+      <div class="sub-header" style="border-color:#ec4899;">
+        <div class="sub-header-icone cor-contatos"><i class="fas fa-address-book"></i></div>
+        <div><div class="sub-header-titulo">Agenda de Contatos</div><div class="sub-header-sub">Contatos corporativos com import/export</div></div>
+        <div class="sub-header-badge">/agendaContatos</div>
+      </div>
+
+      <div class="modulo-descricao borda-contatos">
+        Agenda corporativa centralizada com suporte a importação e exportação nos formatos CSV e VCF (vCard). Integração com o Active Directory para busca de colaboradores.
+      </div>
+
+      <div class="secao-titulo">Funcionalidades</div>
+      <div class="funcionalidades-grid-2">
+        <div class="func-item"><i class="fas fa-user-plus txt-contatos"></i><span>Cadastro com nome, cargo, telefone, e-mail e empresa</span></div>
+        <div class="func-item"><i class="fas fa-file-csv txt-contatos"></i><span>Importação e exportação CSV e VCF (vCard)</span></div>
+        <div class="func-item"><i class="fas fa-magnifying-glass txt-contatos"></i><span>Busca rápida por nome, empresa ou cargo</span></div>
+        <div class="func-item"><i class="fas fa-building-user txt-contatos"></i><span>Integração com Active Directory</span></div>
+        <div class="func-item"><i class="fas fa-address-card txt-contatos"></i><span>Grupos de contatos organizados</span></div>
+        <div class="func-item"><i class="fas fa-share txt-contatos"></i><span>Compartilhamento de contatos entre usuários</span></div>
+      </div>
+    </div>
+
+    <!-- Divisor -->
+    <div style="background:#e2e8f0;"></div>
+
+    <!-- Calendários -->
+    <div class="dupla-coluna">
+      <div class="sub-header" style="border-color:#f97316;">
+        <div class="sub-header-icone cor-calendarios"><i class="fas fa-calendar-days"></i></div>
+        <div><div class="sub-header-titulo">Calendários</div><div class="sub-header-sub">Eventos com sincronização CalDAV / Google</div></div>
+        <div class="sub-header-badge">/agendaCalendarios</div>
+      </div>
+
+      <div class="modulo-descricao borda-calendarios">
+        Calendários com interface FullCalendar, múltiplos calendários compartilhados, drag &amp; drop, recorrência e sincronização bidirecional com Google Calendar via CalDAV.
+      </div>
+
+      <div class="secao-titulo">Funcionalidades</div>
+      <div class="funcionalidades-grid-2">
+        <div class="func-item"><i class="fas fa-calendar txt-calendarios"></i><span><strong>FullCalendar</strong> — Visão mensal, semanal e diária</span></div>
+        <div class="func-item"><i class="fas fa-hand-pointer txt-calendarios"></i><span><strong>Drag &amp; Drop</strong> — Arrastar eventos para reagendar</span></div>
+        <div class="func-item"><i class="fas fa-rotate txt-calendarios"></i><span><strong>Recorrência</strong> — Eventos que se repetem automaticamente</span></div>
+        <div class="func-item"><i class="fab fa-google txt-calendarios"></i><span><strong>Google Calendar</strong> — Sincronização CalDAV bidirecional</span></div>
+        <div class="func-item"><i class="fas fa-users txt-calendarios"></i><span><strong>Múltiplos calendários</strong> — Com permissões por usuário</span></div>
+        <div class="func-item"><i class="fas fa-bell txt-calendarios"></i><span><strong>Lembretes</strong> — Notificações antes do evento</span></div>
+      </div>
+
+      <div class="destaque-box bg-calendarios" style="margin-top:6px;">
+        <i class="fab fa-google txt-calendarios"></i>
+        <div class="destaque-box-texto">
+          <h4 style="color:#c2410c">Sincronização Google Calendar</h4>
+          <p style="color:#9a3412">Protocolo CalDAV bidirecional — eventos criados no Portal aparecem no Google e vice-versa. Requer <code style="background:#ffedd5; padding:1px 4px; border-radius:3px;">ENCRYPTION_KEY</code> de 32 chars.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="rodape-pagina">
+    <span><strong>Portal WKL</strong> — Contatos &amp; Calendários</span>
+    <span>Versão 1.3.0 — 2026</span>
+    <span>Página 11 / 13</span>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- PÁGINA 12 — PROJETOS + CONTÁBIL (lado a lado)              -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="pagina">
+  <div class="header-pagina" style="background: linear-gradient(90deg, #1e1b4b 0%, #312e81 100%);">
+    <div class="header-pagina-left">
+      <div class="header-icone cor-projetos"><i class="fas fa-diagram-project"></i></div>
+      <div>
+        <div class="header-titulo">Agenda de Projetos &amp; Agenda Contábil</div>
+        <div class="header-subtitulo">Gestão de projetos integrada com tarefas e aprovações</div>
+      </div>
+    </div>
+    <div class="header-badge">Pág. 12</div>
+  </div>
+
+  <div style="display:grid; grid-template-columns:1fr 1px 1fr; height:calc(210mm - 58px - 34px);">
+
+    <!-- Projetos -->
+    <div class="dupla-coluna">
+      <div class="sub-header" style="border-color:#6366f1;">
+        <div class="sub-header-icone cor-projetos"><i class="fas fa-diagram-project"></i></div>
+        <div><div class="sub-header-titulo">Agenda de Projetos</div><div class="sub-header-sub">Hierarquia: Projeto → Subprojeto → Tarefa → Subtarefa</div></div>
+        <div class="sub-header-badge">/agendaProjetos</div>
+      </div>
+
+      <div class="modulo-descricao borda-projetos">
+        Gerenciamento de projetos e subprojetos com equipes, prazos e integração com a Agenda de Tarefas. Permite rastrear progresso com base nas tarefas vinculadas e conectar aprovações formais ao projeto.
+      </div>
+
+      <div class="secao-titulo">Funcionalidades</div>
+      <div class="funcionalidades-grid-2">
+        <div class="func-item"><i class="fas fa-folder-plus txt-projetos"></i><span><strong>Projeto Pai</strong> — Hierarquia com subprojetos e prazos</span></div>
+        <div class="func-item"><i class="fas fa-users txt-projetos"></i><span><strong>Equipes</strong> — Membros com permissões leitura/edição</span></div>
+        <div class="func-item"><i class="fas fa-list-check txt-projetos"></i><span><strong>Tarefas vinculadas</strong> — Associar tarefas da Agenda ao projeto</span></div>
+        <div class="func-item"><i class="fas fa-stamp txt-projetos"></i><span><strong>Aprovação integrada</strong> — Vincular aprovação ao projeto</span></div>
+        <div class="func-item"><i class="fas fa-palette txt-projetos"></i><span><strong>Cor do projeto</strong> — Identificação visual por cor</span></div>
+        <div class="func-item"><i class="fas fa-chart-gantt txt-projetos"></i><span><strong>Status</strong> — Planejado, em andamento, concluído</span></div>
+      </div>
+
+      <div class="destaque-box bg-projetos" style="margin-top:4px;">
+        <i class="fas fa-sitemap txt-projetos"></i>
+        <div class="destaque-box-texto">
+          <h4 style="color:#3730a3">Hierarquia Completa</h4>
+          <p style="color:#1e1b4b">Projeto Pai → Subprojetos → Tarefas (Agenda de Tarefas) → Subtarefas (checklist). Progresso consolidado automaticamente.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Divisor -->
+    <div style="background:#e2e8f0;"></div>
+
+    <!-- Contábil -->
+    <div class="dupla-coluna">
+      <div class="sub-header" style="border-color:#14b8a6;">
+        <div class="sub-header-icone cor-contabil"><i class="fas fa-calculator"></i></div>
+        <div><div class="sub-header-titulo">Agenda Contábil</div><div class="sub-header-sub">Lançamentos e obrigações contábeis da empresa</div></div>
+        <div class="sub-header-badge">/agendaContabil</div>
+      </div>
+
+      <div class="modulo-descricao borda-contabil">
+        Módulo para registro e acompanhamento de obrigações e lançamentos contábeis com relatórios por período e controle de vencimentos de obrigações fiscais e tributárias.
+      </div>
+
+      <div class="secao-titulo">Funcionalidades</div>
+      <div class="funcionalidades-grid-2">
+        <div class="func-item"><i class="fas fa-plus txt-contabil"></i><span>Registro de lançamentos contábeis</span></div>
+        <div class="func-item"><i class="fas fa-calendar-check txt-contabil"></i><span>Controle de obrigações e vencimentos</span></div>
+        <div class="func-item"><i class="fas fa-chart-bar txt-contabil"></i><span>Relatórios por período e tipo</span></div>
+        <div class="func-item"><i class="fas fa-filter txt-contabil"></i><span>Filtros avançados por coluna</span></div>
+        <div class="func-item"><i class="fas fa-users txt-contabil"></i><span>Agendas compartilhadas por equipe</span></div>
+        <div class="func-item"><i class="fas fa-bell txt-contabil"></i><span>Lembretes de vencimento automáticos</span></div>
+      </div>
+
+      <div class="destaque-box bg-contabil" style="margin-top:4px;">
+        <i class="fas fa-file-invoice txt-contabil"></i>
+        <div class="destaque-box-texto">
+          <h4 style="color:#0f766e">Obrigações Fiscais</h4>
+          <p style="color:#115e59">Registre e monitore SPED, DCTF, SEFIP e demais obrigações contábeis com alertas de vencimento e relatórios de conformidade.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="rodape-pagina">
+    <span><strong>Portal WKL</strong> — Projetos &amp; Contábil</span>
+    <span>Versão 1.3.0 — 2026</span>
+    <span>Página 12 / 13</span>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- PÁGINA 13 — BASE DE CONHECIMENTO + BACKUPS (lado a lado)   -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="pagina">
+  <div class="header-pagina" style="background: linear-gradient(90deg, #2e1065 0%, #4c1d95 100%);">
+    <div class="header-pagina-left">
+      <div class="header-icone cor-conhecimento"><i class="fas fa-book-open"></i></div>
+      <div>
+        <div class="header-titulo">Base de Conhecimento &amp; Backups</div>
+        <div class="header-subtitulo">Documentação interna centralizada e backup automatizado do sistema</div>
+      </div>
+    </div>
+    <div class="header-badge">Pág. 13</div>
+  </div>
+
+  <div style="display:grid; grid-template-columns:1fr 1px 1fr; height:calc(210mm - 58px - 34px);">
+
+    <!-- Base de Conhecimento -->
+    <div class="dupla-coluna">
+      <div class="sub-header" style="border-color:#a78bfa;">
+        <div class="sub-header-icone cor-conhecimento"><i class="fas fa-book-open"></i></div>
+        <div><div class="sub-header-titulo">Base de Conhecimento</div><div class="sub-header-sub">Artigos, tutoriais e documentação interna</div></div>
+        <div class="sub-header-badge">/baseConhecimento</div>
+      </div>
+
+      <div class="modulo-descricao borda-conhecimento">
+        Portal de conhecimento interno com editor de artigos, categorias organizadas, sistema de avaliações e busca. Centraliza documentação técnica, procedimentos e tutoriais da empresa.
+      </div>
+
+      <div class="secao-titulo">Funcionalidades</div>
+      <div class="funcionalidades-grid-2">
+        <div class="func-item"><i class="fas fa-pen txt-conhecimento"></i><span><strong>Editor de artigos</strong> — Criação com formatação rica</span></div>
+        <div class="func-item"><i class="fas fa-folder txt-conhecimento"></i><span><strong>Categorias</strong> — Organização com ícone e cor</span></div>
+        <div class="func-item"><i class="fas fa-magnifying-glass txt-conhecimento"></i><span><strong>Busca</strong> — Por título, conteúdo e tags</span></div>
+        <div class="func-item"><i class="fas fa-thumbs-up txt-conhecimento"></i><span><strong>Avaliações</strong> — Usuários marcam se foi útil</span></div>
+        <div class="func-item"><i class="fas fa-paperclip txt-conhecimento"></i><span><strong>Anexos</strong> — Arquivos vinculados ao artigo</span></div>
+        <div class="func-item"><i class="fas fa-history txt-conhecimento"></i><span><strong>Histórico</strong> — Log de edições por usuário</span></div>
+        <div class="func-item"><i class="fas fa-star txt-conhecimento"></i><span><strong>Artigos em destaque</strong> — Fixar na página inicial</span></div>
+        <div class="func-item"><i class="fas fa-shield txt-conhecimento"></i><span><strong>Permissões</strong> — Controle de quem pode editar</span></div>
+      </div>
+    </div>
+
+    <!-- Divisor -->
+    <div style="background:#e2e8f0;"></div>
+
+    <!-- Backups -->
+    <div class="dupla-coluna">
+      <div class="sub-header" style="border-color:#6b7280;">
+        <div class="sub-header-icone" style="background:linear-gradient(135deg,#6b7280,#4b5563)"><i class="fas fa-database"></i></div>
+        <div><div class="sub-header-titulo">Backups &amp; Versionamento</div><div class="sub-header-sub">Backup noturno automatizado de arquivos e banco</div></div>
+        <div class="sub-header-badge">/backups</div>
+      </div>
+
+      <div class="modulo-descricao" style="border-left-color:#6b7280;">
+        Sistema de backup noturno automático que salva cópias dos arquivos do Portal e do banco de dados SQL Server, com interface web para monitorar e gerenciar backups.
+      </div>
+
+      <div class="secao-titulo">Funcionalidades</div>
+      <div class="funcionalidades-grid-2">
+        <div class="func-item"><i class="fas fa-moon" style="color:#6b7280"></i><span><strong>Backup noturno</strong> — Script automático via cron</span></div>
+        <div class="func-item"><i class="fas fa-database" style="color:#6b7280"></i><span><strong>Backup do banco</strong> — Export JSON do SQL Server</span></div>
+        <div class="func-item"><i class="fas fa-rotate-left" style="color:#6b7280"></i><span><strong>Restauração</strong> — Script PowerShell para restore</span></div>
+        <div class="func-item"><i class="fas fa-display" style="color:#6b7280"></i><span><strong>Interface web</strong> — Painel de backups disponíveis</span></div>
+        <div class="func-item"><i class="fas fa-clock" style="color:#6b7280"></i><span><strong>Histórico</strong> — Lista de backups por data</span></div>
+        <div class="func-item"><i class="fas fa-cloud-arrow-down" style="color:#6b7280"></i><span><strong>Download</strong> — Baixar backup específico</span></div>
+      </div>
+
+      <div style="background:#f8fafc; border:1.5px solid #e2e8f0; border-radius:8px; padding:10px 13px; margin-top:6px;">
+        <div style="display:flex; align-items:center; gap:8px; margin-bottom:5px;">
+          <i class="fas fa-server" style="font-size:14px; color:#4b5563;"></i>
+          <strong style="font-size:12px; color:#1e293b;">Ambiente de Produção</strong>
+        </div>
+        <p style="font-size:11px; color:#334155; line-height:1.4;">Servidor: <strong>192.168.0.80</strong> · Banco: <strong>192.168.0.209:1433</strong> · Processo: <strong>PM2</strong> · Deploy: <strong>SCP + pm2 restart portal</strong></p>
+      </div>
+    </div>
+  </div>
+
+  <div class="rodape-pagina">
+    <span><strong>Portal WKL</strong> — Base de Conhecimento &amp; Backups</span>
+    <span>Versão 1.3.0 — 2026</span>
+    <span>Página 13 / 13</span>
+  </div>
+</div>
+
+</body>
+</html>

@@ -271,7 +271,7 @@
           <h4><i class="fas fa-list" style="color:#8b5cf6; margin-right:6px"></i> Relatório Detalhado</h4>
           <p>Tabela completa com todas as solicitações do período, filtros por coluna (título, criador, status, consenso), ordenação e exportação CSV.</p>
         </div>
-        <p>Use os <strong>filtros de período</strong> (Hoje, Semana, Mês, Trimestre, Ano, Personalizado) e o filtro por <strong>Criador</strong> para segmentar os resultados.</p>
+        <p>Use os <strong>filtros de período</strong> (Hoje, Semana, Mês, Trimestre, Ano, Personalizado) e o filtro por <strong>Criador</strong> para segmentar os resultados. O relatÃ³rio recalcula o perÃ­odo selecionado no momento da geraÃ§Ã£o para evitar divergÃªncia entre o botÃ£o ativo e as datas consultadas.</p>
       </section>
 
       <!-- NOTIFICAÇÕES -->
@@ -296,9 +296,10 @@
 
         <h3><i class="fab fa-whatsapp" style="color:#25d366;margin-right:6px"></i> WhatsApp</h3>
         <p>Ao criar uma solicitação, o sistema envia automaticamente uma mensagem WhatsApp para cada aprovador que tiver o número cadastrado no Portal. A mensagem inclui o título, solicitante e os comandos para responder diretamente pelo WhatsApp.</p>
+        <p>Os eventos e destinatÃ¡rios podem ser controlados em <strong>ConfiguraÃ§Ãµes â†’ WhatsApp â†’ AprovaÃ§Ãµes</strong>, incluindo <strong>Aprovadores</strong>, <strong>Aprovadores pendentes</strong>, <strong>Observadores</strong>, <strong>Gestores do setor</strong>, <strong>Administradores</strong> e <strong>WhatsApp padrÃ£o</strong>.</p>
         <div class="doc-info">
           <i class="fas fa-info-circle" style="color:#8b5cf6; margin-right:6px"></i>
-          Para receber notificações WhatsApp, o aprovador precisa ter o campo <strong>WhatsApp</strong> preenchido em seu cadastro (Configurações → Usuários). O resultado de cada envio (sucesso, erro ou número não cadastrado) fica registrado nos <strong>Logs de Atividade</strong> com ação <strong>NOTIF_WHATSAPP</strong>.
+          Para receber notificações WhatsApp, o aprovador precisa ter o campo <strong>WhatsApp</strong> preenchido em seu cadastro (Configurações → Usuários). O resultado de cada envio (sucesso, erro, evento desativado ou número não cadastrado) fica registrado nos <strong>Logs de Atividade</strong> com ação <strong>NOTIF_WHATSAPP</strong>.
         </div>
 
         <h3><i class="fab fa-whatsapp" style="color:#25d366;margin-right:6px"></i> Reenviar WhatsApp (Admin)</h3>
@@ -346,7 +347,7 @@
             <tr><td>APROVACAO / REPROVACAO</td><td>Voto registrado — solicitação, votante e decisão</td></tr>
             <tr><td>CANCELAMENTO</td><td>Solicitação cancelada — título</td></tr>
             <tr><td>EXCLUSAO</td><td>Solicitação excluída — título</td></tr>
-            <tr><td>NOTIF_WHATSAPP</td><td>Resultado de cada envio WhatsApp — aprovador, número e resultado (enviado / ERRO / número não cadastrado)</td></tr>
+            <tr><td>NOTIF_WHATSAPP</td><td>Resultado de cada envio WhatsApp — aprovador, número, evento, status (ENVIADO / IGNORADO / ERRO) e detalhe da tentativa</td></tr>
             <tr><td>REENVIO_WHATSAPP</td><td>Admin reenviou lembrete WhatsApp — quantos aprovadores foram notificados</td></tr>
           </tbody>
         </table>

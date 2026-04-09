@@ -463,6 +463,20 @@ async function criarTabelas(pool) {
   `);
   console.log('  Tabela: fin_logs — OK');
 
+  await pool.request().query(`
+    IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='fin_contas_aprovacoes' AND xtype='U')
+    BEGIN
+      CREATE TABLE fin_contas_aprovacoes (
+        id           INT IDENTITY(1,1) PRIMARY KEY,
+        conta_id      INT          NOT NULL REFERENCES fin_contas(id),
+        aprovacao_id  INT          NOT NULL REFERENCES aprovacoes(id),
+        criado_por    VARCHAR(100) NOT NULL,
+        criado_em     DATETIME     NOT NULL DEFAULT GETDATE()
+      )
+    END
+  `);
+  console.log('  Tabela: fin_contas_aprovacoes — OK');
+
   // —— Agenda Contábil ——————————————————————————————————————
 
   await pool.request().query(`
@@ -925,6 +939,7 @@ async function criarTabelas(pool) {
         id            INT IDENTITY(1,1) PRIMARY KEY,
         titulo        VARCHAR(200)  NOT NULL,
         objetivo      VARCHAR(MAX),
+        aplica_em     VARCHAR(30)   NOT NULL DEFAULT 'Portal e SubSistemas',
         criado_por    VARCHAR(100)  NOT NULL,
         criado_por_nome VARCHAR(200),
         status        VARCHAR(20)   NOT NULL DEFAULT 'Pendente',
@@ -994,6 +1009,22 @@ async function criarTabelas(pool) {
   await pool.request().query(`
     IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('aprovacoes') AND name = 'consenso_valor')
       ALTER TABLE aprovacoes ADD consenso_valor INT NULL
+  `);
+  await pool.request().query(`
+    IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('aprovacoes') AND name = 'aplica_em')
+      ALTER TABLE aprovacoes ADD aplica_em VARCHAR(30) NOT NULL DEFAULT 'Portal e SubSistemas'
+  `);
+  await pool.request().query(`
+    IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='agenda_tarefas_aprovacoes' AND xtype='U')
+    BEGIN
+      CREATE TABLE agenda_tarefas_aprovacoes (
+        id           INT IDENTITY(1,1) PRIMARY KEY,
+        tarefa_id     INT          NOT NULL REFERENCES agenda_tarefas(id),
+        aprovacao_id  INT          NOT NULL REFERENCES aprovacoes(id),
+        criado_por    VARCHAR(100) NOT NULL,
+        criado_em     DATETIME     NOT NULL DEFAULT GETDATE()
+      )
+    END
   `);
   console.log('  Tabelas: aprovacoes — OK');
 
@@ -1334,7 +1365,18 @@ async function inserirDadosIniciais(pool) {
         .input('descricao', sql.VarChar, sistema.descricao)
         .query(`
           UPDATE sistemas
-          SET url = @url, icone = @icone, descricao = @descricao
+          SET url = CASE
+                      WHEN url IS NULL OR LTRIM(RTRIM(url)) = '' THEN @url
+                      ELSE url
+                    END,
+              icone = CASE
+                        WHEN icone IS NULL OR LTRIM(RTRIM(icone)) = '' THEN @icone
+                        ELSE icone
+                      END,
+              descricao = CASE
+                            WHEN descricao IS NULL OR LTRIM(RTRIM(descricao)) = '' THEN @descricao
+                            ELSE descricao
+                          END
           WHERE nome = @nome
         `);
       console.log(`  Sistema já existe: ${sistema.nome}`);

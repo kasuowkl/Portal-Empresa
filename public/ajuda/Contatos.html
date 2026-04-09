@@ -431,6 +431,7 @@
       <section class="doc-secao" id="logs">
         <h2><i class="fas fa-history"></i> Logs de Auditoria</h2>
         <p>Todas as ações realizadas no módulo Contatos são registradas automaticamente.</p>
+        <p>O evento <strong>novo contato</strong> também pode disparar WhatsApp em <strong>Configurações → WhatsApp → Contatos</strong>, com destinatários definidos por chips.</p>
         <table class="perm-table">
           <thead>
             <tr><th>Ação</th><th>O que é registrado</th></tr>
@@ -445,6 +446,7 @@
             <tr><td>Contato copiado</td><td>Nome do contato, lista origem e lista destino</td></tr>
             <tr><td>Cópia em massa</td><td>Quantidade copiada, lista origem e lista destino</td></tr>
             <tr><td>Importação</td><td>Quantidade importada e lista de destino</td></tr>
+            <tr><td>NOTIF_WHATSAPP</td><td>Resultado da notificação de novo contato enviada via integração WhatsApp</td></tr>
           </tbody>
         </table>
         <p>Para consultar os logs, acesse <strong>Configurações → Logs</strong> e filtre por <strong>Sistema: Contatos</strong>.</p>

@@ -431,6 +431,8 @@
     // ──────────────────────────────────────────────────────────
     document.addEventListener('DOMContentLoaded', async () => {
       await carregarLista();
+      const abrirId = parseInt(new URLSearchParams(window.location.search).get('abrir') || '', 10);
+      if (abrirId) abrirDetalhe(abrirId, true);
       carregarUsuarios();
       verificarNotificacoesAprov();
       // Exibe botão de relatórios apenas para admin/gestor

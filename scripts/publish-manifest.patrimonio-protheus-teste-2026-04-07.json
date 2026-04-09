@@ -1,0 +1,20 @@
+{
+  "items": [
+    {
+      "localPath": "routes/patrimonio.js",
+      "remotePath": "/var/www/html/wkl/Portal/routes/patrimonio.js"
+    },
+    {
+      "localPath": "services/protheusService.js",
+      "remotePath": "/var/www/html/wkl/Portal/services/protheusService.js"
+    },
+    {
+      "localPath": "public/patrimonio/index.html",
+      "remotePath": "/var/www/html/wkl/Portal/public/patrimonio/index.html"
+    },
+    {
+      "localPath": "public/patrimonio/protheus-teste.html",
+      "remotePath": "/var/www/html/wkl/Portal/public/patrimonio/protheus-teste.html"
+    }
+  ]
+}

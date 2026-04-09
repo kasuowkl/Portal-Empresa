@@ -347,6 +347,9 @@
   <div class="pat-header">
     <h1><i class="fas fa-box-open"></i> Gestão de Patrimônio</h1>
     <div style="display:flex;gap:8px">
+      <a class="btn btn-neutral btn-sm" href="/patrimonio/protheus-teste" title="Teste Protheus">
+        <i class="fas fa-database"></i> Protheus Teste
+      </a>
       <button class="btn btn-neutral btn-sm" id="btn-acesso" onclick="abrirGerenciarAcesso()" style="display:none" title="Gerenciar Acesso">
         <i class="fas fa-users-cog"></i> Acesso
       </button>
@@ -1121,6 +1124,7 @@ function renderTabela() {
       <td>
         ${esc(b.descricao)}
         ${b.marca ? `<br><small style="color:var(--cor-texto-fraco)">${esc(b.marca)}</small>` : ''}
+        ${b.ultimo_tipo ? `<br><small style="color:var(--cor-destaque)">Últ. ocorrência: ${esc(b.ultimo_tipo)}${b.ultima_data_evt ? ' em ' + new Date(String(b.ultima_data_evt).substring(0,10) + 'T12:00:00').toLocaleDateString('pt-BR') : ''}</small>` : ''}
       </td>
       <td>${b.loc_tipo ? esc(b.loc_tipo) + (b.loc_detalhe ? ' — ' + esc(b.loc_detalhe) : '') : '—'}</td>
       <td>${badgeStatus(b.status)}</td>
@@ -1130,6 +1134,10 @@ function renderTabela() {
         <button class="btn btn-neutral btn-sm" onclick="abrirEdicao(${b.id})" title="${patNivel === 'editar' ? 'Editar' : 'Visualizar'}">
           <i class="fas fa-${patNivel === 'editar' ? 'edit' : 'eye'}"></i>
         </button>
+        ${(b.ultimo_numero_termo || tipoGeraTermoPatrimonio(b.ultimo_tipo)) ? `
+        <button class="btn btn-neutral btn-sm" onclick="reimprimirUltimoTermo(${b.id})" title="Reimprimir ${b.ultimo_numero_termo ? 'termo ' + esc(b.ultimo_numero_termo) : 'termo da última ocorrência'}" style="margin-left:4px">
+          <i class="fas fa-file-alt"></i>
+        </button>` : ''}
         ${patNivel === 'editar' ? `
         <button class="btn btn-sm" onclick="registroRapido(${b.id})" title="Novo Registro / Ocorrência" style="margin-left:4px;background:#f59e0b;color:#fff">
           <i class="fas fa-plus-circle"></i>
@@ -1352,8 +1360,8 @@ function renderHistorico(hist) {
     const dePara = h.responsavel_de || h.responsavel_para
       ? `<small>${h.responsavel_de ? esc(h.responsavel_de) + ' →' : '→'} ${esc(h.responsavel_para || '')}</small>`
       : '—';
-    const termoBtn = h.numero_termo
-      ? `<button class="btn btn-neutral btn-sm" onclick='gerarTermo(${JSON.stringify(h)})' title="Gerar Termo ${esc(h.numero_termo)}">
+    const termoBtn = (h.numero_termo || tipoGeraTermoPatrimonio(h.tipo))
+      ? `<button class="btn btn-neutral btn-sm" onclick='gerarTermo(${JSON.stringify(h)})' title="Gerar ${esc(obterNumeroTermoExibicao(h))}">
            <i class="fas fa-file-alt"></i>
          </button>`
       : '';
@@ -1386,6 +1394,26 @@ function abrirModalHist() {
   document.getElementById('mod-obs').value              = '';
   atualizarCamposModal('Disponibilizado');
   document.getElementById('modal-hist-overlay').classList.add('visivel');
+}
+
+async function reimprimirUltimoTermo(id) {
+  try {
+    const r = await fetch('/api/patrimonio/bens/' + id);
+    if (r.status === 401) { window.location.href = '/login.html'; return; }
+    const d = await r.json();
+    if (!d.sucesso) { alert('Erro: ' + d.erro); return; }
+
+    bemEditId = d.bem.id;
+    bemAtual = d.bem;
+    const hist = (d.historico || []).find(item => item.numero_termo || tipoGeraTermoPatrimonio(item.tipo));
+    if (!hist) {
+      alert('Nenhuma ocorrência com termo encontrada para este bem.');
+      return;
+    }
+    gerarTermo(hist);
+  } catch (e) {
+    alert('Erro ao reimprimir termo.');
+  }
 }
 
 // ============================================================
@@ -1504,7 +1532,8 @@ async function salvarHist() {
         if (payload.nova_loc_detalhe) document.getElementById('f-loc_detalhe').value = payload.nova_loc_detalhe;
       } else {
         // Veio do registro rápido na lista — atualiza a tabela
-        carregarLista();
+        await carregarLista();
+        alert(`Ocorrência "${payload.tipo}" salva com sucesso.${d.numero_termo ? ' Termo ' + d.numero_termo + ' gerado.' : ''}`);
       }
 
       // Abre o termo automaticamente se gerado e checkbox marcado
@@ -1554,6 +1583,7 @@ function voltarLista() {
 // ============================================================
 async function gerarTermo(hist) {
   const b = bemAtual || {};
+  hist.numero_termo = hist.numero_termo || obterNumeroTermoExibicao(hist);
   const data = hist.data_evt ? hist.data_evt.substring(0,10) : '';
   const dataFmt = data ? new Date(data + 'T12:00:00').toLocaleDateString('pt-BR') : '—';
   const hoje = new Date().toLocaleDateString('pt-BR');
@@ -1690,6 +1720,34 @@ async function gerarTermo(hist) {
 function esc(s) {
   if (s == null) return '';
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function normalizarTipoEventoPatrimonio(tipo) {
+  return String(tipo || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim();
+}
+
+function tipoGeraTermoPatrimonio(tipo) {
+  return [
+    'disponibilizado',
+    'transferido',
+    'devolvido',
+    'emprestimo',
+    'avaria',
+    'sinistro',
+    'descarte',
+    'manutencao'
+  ].includes(normalizarTipoEventoPatrimonio(tipo));
+}
+
+function obterNumeroTermoExibicao(hist) {
+  if (hist?.numero_termo) return hist.numero_termo;
+  const dataBase = String(hist?.data_evt || '').substring(0, 10).replace(/-/g, '') || new Date().toISOString().substring(0, 10).replace(/-/g, '');
+  const idBase = String(hist?.id || hist?.bem_id || bemEditId || 'SN').padStart(4, '0');
+  return `TERM-${dataBase}-${idBase}`;
 }
 
 function badgeStatus(s) {

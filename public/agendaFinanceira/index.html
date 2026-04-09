@@ -1,15 +1,15 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <!--
   ARQUIVO: public/agendaFinanceira/index.html
-  VERSÃO:  1.0.0
+  VERSÃƒO:  1.0.0
   DATA:    2026-03-04
-  DESCRIÇÃO: Agenda Financeira — módulo integrado ao Portal WKL
+  DESCRIÃ‡ÃƒO: Agenda Financeira â€” mÃ³dulo integrado ao Portal WKL
 -->
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Portal WKL — Agenda Financeira</title>
+  <title>Portal WKL â€” Agenda Financeira</title>
 
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="/css/style.css">
@@ -17,7 +17,39 @@
   <link rel="stylesheet" href="/agendaFinanceira/css/financeiro.css">
 
   <style>
-    body { padding-top: var(--altura-menu); overflow: hidden; }
+    body {
+      padding-top: var(--altura-menu);
+      overflow: hidden;
+      --border: var(--cor-borda);
+      --text: var(--cor-texto);
+      --gray: var(--cor-texto-fraco);
+      --primary: var(--cor-destaque);
+      --card: var(--cor-fundo-2);
+    }
+    .chip-selector { border: 1px solid var(--border); border-radius: 8px; background: var(--cor-fundo); position: relative; }
+    .chip-selector-top { display: flex; flex-wrap: wrap; gap: 6px; padding: 8px 10px; min-height: 42px; align-items: center; cursor: text; }
+    .chip-selector-top input { background: transparent; border: none; outline: none; color: var(--text); font-size: 0.85rem; font-family: inherit; flex: 1; min-width: 130px; }
+    .chip-selector-top input::placeholder { color: var(--gray); }
+    .chip-selector:focus-within { border-color: var(--primary); }
+    .chip { display: inline-flex; align-items: center; gap: 5px; background: rgba(59,130,246,0.15); border: 1px solid rgba(59,130,246,0.4); border-radius: 20px; padding: 3px 8px 3px 10px; font-size: 0.78rem; color: var(--text); white-space: nowrap; }
+    .chip-obs { background: rgba(16,185,129,0.12); border-color: rgba(16,185,129,0.4); }
+    .chip-rem { cursor: pointer; color: var(--gray); line-height: 1; font-size: 1rem; padding: 0 2px; border-radius: 50%; transition: 0.15s; }
+    .chip-rem:hover { color: #ef4444; background: rgba(239,68,68,0.15); }
+    .chip-dropdown { border-top: 1px solid var(--border); max-height: 180px; overflow-y: auto; display: none; border-radius: 0 0 8px 8px; }
+    .chip-dropdown.aberto { display: block; }
+    .chip-item { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; cursor: pointer; border-bottom: 1px solid var(--border); transition: background .15s; }
+    .chip-item:last-child { border-bottom: none; }
+    .chip-item:hover { background: rgba(59,130,246,0.08); }
+    .chip-item.selecionado { background: rgba(59,130,246,0.06); }
+    .chip-item-nome { font-size: 0.85rem; }
+    .chip-item-login { font-size: 0.75rem; color: var(--gray); }
+    .consenso-select { width: 100%; background: var(--cor-fundo); border: 1px solid var(--border); border-radius: 8px; padding: 10px 32px 10px 14px; color: var(--text); font-size: 0.9rem; font-family: inherit; cursor: pointer; transition: border-color .2s; appearance: none; background-image: url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2394a3b8' d='M6 8L1 3h10z'/%3E%3C/svg%3E\"); background-repeat: no-repeat; background-position: right 12px center; }
+    .consenso-select:focus { outline: none; border-color: var(--primary); }
+    .campo-grupo { margin-bottom: 16px; }
+    .campo-grupo label { display: block; font-size: 0.7rem; font-weight: 700; color: var(--gray); margin-bottom: 6px; text-transform: uppercase; letter-spacing: .06em; }
+    .campo-grupo input, .campo-grupo textarea { width: 100%; background: var(--cor-fundo); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; color: var(--text); font-size: 0.9rem; font-family: inherit; transition: border-color .2s; resize: vertical; }
+    .campo-grupo input:focus, .campo-grupo textarea:focus { outline: none; border-color: var(--primary); }
+    .campo-grupo input::placeholder, .campo-grupo textarea::placeholder { color: var(--gray); }
   </style>
 </head>
 <body>
@@ -25,15 +57,15 @@
   <!-- Menu compartilhado -->
   <div id="menu-container"></div>
 
-  <!-- Toast de notificação -->
+  <!-- Toast de notificaÃ§Ã£o -->
   <div class="fin-toast" id="toast"></div>
 
-  <!-- ═══════════════════════════════════════════════════════════
+  <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
        LAYOUT PRINCIPAL
-       ═══════════════════════════════════════════════════════════ -->
+       â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
   <div class="fin-layout">
 
-    <!-- ── Sidebar: lista de agendas ── -->
+    <!-- â”€â”€ Sidebar: lista de agendas â”€â”€ -->
     <aside class="fin-sidebar" id="sidebar">
       <div class="sidebar-titulo">Minhas Agendas</div>
       <div id="agendas-minhas"></div>
@@ -50,10 +82,10 @@
       </div>
 
       <div class="sidebar-separador"></div>
-      <div class="sidebar-titulo">Configurações</div>
+      <div class="sidebar-titulo">ConfiguraÃ§Ãµes</div>
       <div style="padding:0 12px 12px">
         <label style="font-size:11px; color:var(--cor-texto-fraco); display:block; margin-bottom:4px">
-          <i class="fas fa-bell"></i> Dias antecedência lembrete
+          <i class="fas fa-bell"></i> Dias antecedÃªncia lembrete
         </label>
         <div style="display:flex; gap:6px; align-items:center">
           <input type="number" id="input-dias-lembrete" min="1" max="60" value="3"
@@ -65,7 +97,7 @@
       </div>
     </aside>
 
-    <!-- ── Conteúdo principal ── -->
+    <!-- â”€â”€ ConteÃºdo principal â”€â”€ -->
     <main class="fin-conteudo" id="conteudo">
 
       <!-- Tela de boas-vindas -->
@@ -77,10 +109,10 @@
         </button>
       </div>
 
-      <!-- Painel da agenda (oculto até selecionar) -->
+      <!-- Painel da agenda (oculto atÃ© selecionar) -->
       <div id="painel-agenda" class="fin-painel" style="display:none">
 
-        <!-- Cabeçalho -->
+        <!-- CabeÃ§alho -->
         <div class="fin-header">
           <span class="fin-header-cor" id="hdr-cor"></span>
           <div class="fin-header-nome-wrap">
@@ -90,7 +122,7 @@
           <div class="fin-header-acoes" id="hdr-acoes"></div>
         </div>
 
-        <!-- Área com scroll -->
+        <!-- Ãrea com scroll -->
         <div class="fin-scroll">
 
           <!-- Cards de resumo -->
@@ -98,13 +130,13 @@
 
           <!-- Busca -->
           <div class="fin-search">
-            <input type="text" id="busca" placeholder="🔍 Buscar por descrição, categoria..." oninput="filtrarBusca(this.value)">
+            <input type="text" id="busca" placeholder="ðŸ” Buscar por descriÃ§Ã£o, categoria..." oninput="filtrarBusca(this.value)">
           </div>
 
-          <!-- Calendário + Lista -->
+          <!-- CalendÃ¡rio + Lista -->
           <div class="fin-main-layout">
 
-            <!-- Calendário -->
+            <!-- CalendÃ¡rio -->
             <aside id="calendario-container"></aside>
 
             <!-- Lista -->
@@ -125,9 +157,9 @@
     </main>
   </div><!-- /fin-layout -->
 
-  <!-- ═══════════════════════════════════════════════════════════
+  <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
        MODAL: CRIAR / EDITAR AGENDA
-       ═══════════════════════════════════════════════════════════ -->
+       â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
   <div class="modal-overlay" id="modal-agenda">
     <div class="modal-card">
       <div class="modal-header">
@@ -148,13 +180,23 @@
           </div>
         </div>
         <div class="input-group" style="margin-bottom:0">
-          <label>Cor de identificação</label>
+          <label>Cor de identificaÃ§Ã£o</label>
           <div class="cor-opcoes" id="cor-opcoes">
             <!-- gerado pelo JS -->
           </div>
           <input type="hidden" id="agenda-cor" value="#3b82f6">
         </div>
       </div>
+      <div id="secao-aprovacao-financeiro" style="display:none;margin-top:16px">
+        <div class="label-with-action" style="margin-bottom:6px">
+          <label><i class="fas fa-clipboard-check" style="font-size:0.82rem;margin-right:5px;opacity:.7"></i>Aprovações vinculadas</label>
+        </div>
+        <div id="aprovacao-financeiro-resumo" style="font-size:0.82rem;color:var(--cor-texto-fraco);padding:10px 12px;background:var(--cor-fundo-3);border:1px solid var(--cor-borda);border-radius:8px">
+          Nenhuma aprovação vinculada a este lançamento.
+        </div>
+        <div id="aprovacao-financeiro-lista" style="display:flex;flex-direction:column;gap:8px;margin-top:10px"></div>
+      </div>
+
       <div class="modal-footer">
         <button class="btn btn-outline-sm" onclick="fecharModalAgenda()">Cancelar</button>
         <button class="btn btn-primario" onclick="salvarAgenda()">Salvar</button>
@@ -162,9 +204,9 @@
     </div>
   </div>
 
-  <!-- ═══════════════════════════════════════════════════════════
+  <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
        MODAL: CRIAR / EDITAR CONTA
-       ═══════════════════════════════════════════════════════════ -->
+       â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
   <div class="modal-overlay" id="modal-conta">
     <div class="modal-card" style="position:relative">
 
@@ -217,7 +259,7 @@
           <div class="input-group">
             <div class="label-with-action">
               <label>Categoria</label>
-              <span class="btn-manage" id="btn-gerenciar-cat" onclick="abrirGerenciador()">⚙️</span>
+              <span class="btn-manage" id="btn-gerenciar-cat" onclick="abrirGerenciador()">âš™ï¸</span>
             </div>
             <select id="cad-cat">
               <option value="Geral">Geral</option>
@@ -229,7 +271,7 @@
           <div class="input-group">
             <div class="label-with-action">
               <label>Empresa</label>
-              <span class="btn-manage" id="btn-gerenciar-emp" onclick="abrirGerenciadorEmpresas()">⚙️</span>
+              <span class="btn-manage" id="btn-gerenciar-emp" onclick="abrirGerenciadorEmpresas()">âš™ï¸</span>
             </div>
             <select id="cad-emp">
               <option value="">— Nenhuma —</option>
@@ -269,17 +311,96 @@
           </div>
         </div>
 
+        <div id="secao-aprovacao-financeiro-conta" style="display:none;margin-top:16px">
+          <div class="label-with-action" style="margin-bottom:6px">
+            <label><i class="fas fa-clipboard-check" style="font-size:0.82rem;margin-right:5px;opacity:.7"></i>Aprovações vinculadas</label>
+          </div>
+          <div id="aprovacao-financeiro-resumo-conta" style="font-size:0.82rem;color:var(--cor-texto-fraco);padding:10px 12px;background:var(--cor-fundo-3);border:1px solid var(--cor-borda);border-radius:8px">
+            Nenhuma aprovação vinculada a este lançamento.
+          </div>
+          <div id="aprovacao-financeiro-lista-conta" style="display:flex;flex-direction:column;gap:8px;margin-top:10px"></div>
+        </div>
+
       </div>
       <div class="modal-footer">
+        <button id="btn-abrir-aprovacao-financeiro" class="btn btn-outline-sm" type="button" onclick="abrirUltimaAprovacaoFinanceiro()" style="display:none">
+          <i class="fas fa-folder-open"></i> Abrir Aprovação
+        </button>
+        <button id="btn-solicitar-aprovacao-financeiro" class="btn btn-outline-sm" type="button" onclick="abrirModalSolicitarAprovacaoFinanceiro()" style="display:none">
+          <i class="fas fa-clipboard-check"></i> Solicitar Aprovação
+        </button>
         <button class="btn btn-outline-sm" onclick="fecharModalConta()">Cancelar</button>
         <button class="btn btn-primario" onclick="salvarConta()"><i class="fas fa-save"></i> Salvar Lançamento</button>
       </div>
     </div>
   </div>
 
-  <!-- ═══════════════════════════════════════════════════════════
+  <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
        MODAL: MEMBROS
-       ═══════════════════════════════════════════════════════════ -->
+       â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+  <div class="modal-overlay" id="modal-form-aprovacao-financeiro">
+    <div class="modal-card modal-lg">
+      <div class="modal-header">
+        <h3 id="modal-form-titulo-financeiro" style="color:var(--cor-destaque);display:flex;align-items:center;gap:8px">
+          <i class="fas fa-plus-circle"></i> Nova Aprovação
+        </h3>
+        <button class="modal-fechar" onclick="fecharModalSolicitarAprovacaoFinanceiro()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="campo-grupo">
+          <label>Título *</label>
+          <input type="text" id="inp-titulo-financeiro" placeholder="Ex: Aprovação de compra de equipamentos" maxlength="200" />
+        </div>
+        <div class="campo-grupo">
+          <label>Objetivo / Descrição</label>
+          <textarea id="inp-objetivo-financeiro" rows="4" placeholder="Descreva o que está sendo solicitado para aprovação..."></textarea>
+        </div>
+        <div class="campo-grupo">
+          <label>Tipo de Consenso</label>
+          <select class="consenso-select" id="inp-consenso-financeiro" onchange="atualizarConsensoAprovacaoFinanceiro()">
+            <option value="unanimidade">Unanimidade — todos os aprovadores devem aprovar</option>
+            <option value="maioria_simples">Maioria Simples — mais da metade (50% + 1)</option>
+            <option value="maioria_qualificada">Maioria Qualificada — percentual mínimo personalizado</option>
+            <option value="quorum_minimo">Quórum Mínimo — número mínimo de participantes</option>
+          </select>
+          <div id="consenso-extra-financeiro" style="display:none;margin-top:10px">
+            <div style="display:flex;align-items:center;gap:8px">
+              <input type="number" id="inp-consenso-valor-financeiro" class="consenso-select" style="width:110px;padding:8px 12px" min="1" max="99" placeholder="Ex: 67" />
+              <span id="consenso-extra-sufixo-financeiro" style="color:var(--gray);font-size:.85rem"></span>
+            </div>
+            <small id="consenso-extra-hint-financeiro" style="color:var(--gray);font-size:.75rem;margin-top:4px;display:block"></small>
+          </div>
+        </div>
+        <div class="campo-grupo">
+          <label>Aprovadores *</label>
+          <div class="chip-selector" id="chip-selector-financeiro">
+            <div class="chip-selector-top" onclick="document.getElementById('chip-busca-financeiro').focus()">
+              <div id="chips-container-financeiro"></div>
+              <input type="text" id="chip-busca-financeiro" placeholder="Buscar e adicionar aprovador..." oninput="filtrarChipDropdownFinanceiro()" onfocus="abrirChipDropdownFinanceiro()" onblur="fecharChipDropdownFinanceiro()" />
+            </div>
+            <div class="chip-dropdown" id="chip-dropdown-financeiro"></div>
+          </div>
+        </div>
+        <div class="campo-grupo">
+          <label>Observadores <span style="font-weight:400;text-transform:none;font-size:.75rem;opacity:.7">(opcional — recebem notificações)</span></label>
+          <div class="chip-selector" id="chip-selector-obs-financeiro">
+            <div class="chip-selector-top" onclick="document.getElementById('chip-busca-obs-financeiro').focus()">
+              <div id="chips-container-obs-financeiro"></div>
+              <input type="text" id="chip-busca-obs-financeiro" placeholder="Buscar e adicionar observador..." oninput="filtrarChipDropdownObsFinanceiro()" onfocus="abrirChipDropdownObsFinanceiro()" onblur="fecharChipDropdownObsFinanceiro()" />
+            </div>
+            <div class="chip-dropdown" id="chip-dropdown-obs-financeiro"></div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline-sm" onclick="fecharModalSolicitarAprovacaoFinanceiro()">Cancelar</button>
+        <button class="btn btn-primario" id="btn-form-submit-financeiro" onclick="solicitarAprovacaoFinanceiro()">
+          <i class="fas fa-paper-plane"></i> Criar Aprovação
+        </button>
+      </div>
+    </div>
+  </div>
+
   <div class="modal-overlay" id="modal-membros">
     <div class="modal-card modal-lg">
       <div class="modal-header">
@@ -323,9 +444,9 @@
     </div>
   </div>
 
-  <!-- ═══════════════════════════════════════════════════════════
+  <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
        MODAL: LOGS DE AUDITORIA
-       ═══════════════════════════════════════════════════════════ -->
+       â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
   <div class="modal-overlay" id="modal-logs">
     <div class="modal-card modal-lg">
       <div class="modal-header">
@@ -338,7 +459,7 @@
             <thead>
               <tr>
                 <th>Data/Hora</th>
-                <th>Ação</th>
+                <th>AÃ§Ã£o</th>
                 <th>Conta</th>
                 <th>Detalhes</th>
                 <th>Usuário</th>
@@ -354,21 +475,30 @@
     </div>
   </div>
 
-  <!-- ═══════════════════════════════════════════════════════════
+  <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
        SCRIPTS
-       ═══════════════════════════════════════════════════════════ -->
+       â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
   <script src="/js/menu.js"></script>
   <script>
-    // ── Constantes ──────────────────────────────────────────────
+    // â”€â”€ Constantes â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     const API = '/api/financeiro';
     const CORES_AGENDA = ['#3b82f6','#8b5cf6','#ec4899','#f59e0b','#10b981','#ef4444','#06b6d4','#84cc16','#f97316','#64748b'];
 
-    // ── Helpers ──────────────────────────────────────────────────
+    // â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     function parseData(d) {
       return new Date((d || '').substring(0, 10) + 'T00:00:00');
     }
 
-    // ── Estado global ────────────────────────────────────────────
+    function esc(s) {
+      return String(s ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    // â”€â”€ Estado global â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     let agendaSelecionada = null;
     let dadosContas       = [];
     let filtroStatus      = 'pendente';
@@ -384,8 +514,12 @@
     let modoEdicaoRecorrente  = false;
     let modoEdicaoPai         = false;
     let usuarioLogado     = null;
+    let usuariosAprovacaoFinanceiro = [];
+    let aprovadoresFinanceiroSelecionados = [];
+    let observadoresFinanceiroSelecionados = [];
+    let aprovacoesFinanceiro = [];
 
-    // ── Inicialização ────────────────────────────────────────────
+    // â”€â”€ InicializaÃ§Ã£o â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     window.onload = async () => {
       try {
         const r = await fetch('/sessao');
@@ -396,7 +530,7 @@
         await carregarAgendas();
         await carregarDiasLembrete();
       } catch (e) {
-        console.error('Erro na inicialização:', e);
+        console.error('Erro na inicializaÃ§Ã£o:', e);
       }
     };
 
@@ -408,7 +542,7 @@
         const dias = d.config?.['financeiro.dias_lembrete'];
         const input = document.getElementById('input-dias-lembrete');
         if (dias) input.value = dias;
-        // Bloquear edição se não for admin
+        // Bloquear ediÃ§Ã£o se nÃ£o for admin
         if (usuarioLogado?.nivel !== 'admin') input.disabled = true;
       } catch (e) { /* silencioso */ }
     }
@@ -426,12 +560,12 @@
         const d = await r.json();
         if (!d.sucesso) { mostrarToast(d.erro || 'Erro.', 'erro'); return; }
         mostrarToast(`Lembrete configurado para ${dias} dias.`);
-      } catch (e) { mostrarToast('Erro ao salvar configuração.', 'erro'); }
+      } catch (e) { mostrarToast('Erro ao salvar configuraÃ§Ã£o.', 'erro'); }
     }
 
-    // ════════════════════════════════════════════════════════════
-    // SIDEBAR — AGENDAS
-    // ════════════════════════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    // SIDEBAR â€” AGENDAS
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     async function carregarAgendas() {
       const r = await fetch(`${API}/agendas`);
       const d = await r.json();
@@ -453,7 +587,7 @@
         secComp.style.display = 'none';
       }
 
-      // Restaura última agenda aberta
+      // Restaura Ãºltima agenda aberta
       if (!agendaSelecionada) {
         const ultimaId = parseInt(localStorage.getItem('financeiro_ultima_agenda'));
         if (ultimaId) {
@@ -476,9 +610,9 @@
         </div>`;
     }
 
-    // ════════════════════════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     // SELECIONAR AGENDA
-    // ════════════════════════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     async function selecionarAgenda(agenda) {
       agendaSelecionada = agenda;
       permissaoAtual    = agenda.permissao;
@@ -490,12 +624,12 @@
       // Sincroniza visual das tabs
       document.querySelectorAll('.fin-tab').forEach(t => t.classList.remove('ativa'));
       const tabs = document.querySelectorAll('.fin-tab');
-      if (tabs[1]) tabs[1].classList.add('ativa'); // índice 1 = Pendentes
+      if (tabs[1]) tabs[1].classList.add('ativa'); // Ã­ndice 1 = Pendentes
 
       document.getElementById('tela-boas-vindas').style.display = 'none';
       document.getElementById('painel-agenda').style.display    = 'flex';
 
-      // Cabeçalho
+      // CabeÃ§alho
       document.getElementById('hdr-cor').style.background = agenda.cor;
       document.getElementById('hdr-nome').textContent     = agenda.nome;
       const elDono = document.getElementById('hdr-dono');
@@ -531,9 +665,9 @@
       el.innerHTML = html;
     }
 
-    // ════════════════════════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     // CARREGAR CONTAS
-    // ════════════════════════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     async function carregarContas() {
       const r = await fetch(`${API}/agendas/${agendaSelecionada.id}/contas`);
       const d = await r.json();
@@ -544,16 +678,16 @@
       atualizarInterface();
     }
 
-    // ════════════════════════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     // INTERFACE
-    // ════════════════════════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     function atualizarInterface() {
       renderResumo();
       renderCalendario();
       renderLista();
     }
 
-    // ── Cards de resumo ──────────────────────────────────────────
+    // â”€â”€ Cards de resumo â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     function renderResumo() {
       const container = document.getElementById('resumo-container');
       const hoje = new Date(); hoje.setHours(0,0,0,0);
@@ -589,7 +723,7 @@
 
       container.innerHTML = `
         <div class="summary-card" onclick="setFiltroResumo('pendente_mes')">
-          <span>PENDÊNCIAS MENSAL</span>
+          <span>PENDÃŠNCIAS MENSAL</span>
           <h2 class="txt-blue">${pendentesMes.length} <small>(${fmt(totalPendMes)})</small></h2>
         </div>
         <div class="summary-card" onclick="setFiltroResumo('vencidas')">
@@ -597,28 +731,28 @@
           <h2 class="txt-red">${vencidas.length} <small>(${fmt(totalVencidas)})</small></h2>
         </div>
         <div class="summary-card" onclick="setFiltroResumo('prox7')">
-          <span>PRÓXIMOS 7 DIAS</span>
+          <span>PRÃ“XIMOS 7 DIAS</span>
           <h2 class="txt-orange">${prox7.length} <small>(${fmt(total7)})</small></h2>
         </div>
         <div class="summary-card" onclick="setFiltroResumo('pagas_mes')">
-          <span>PAGAS NO MÊS</span>
+          <span>PAGAS NO MÃŠS</span>
           <h2 class="txt-green">${pagas.length} <small>(${fmt(totalPagas)})</small></h2>
         </div>`;
     }
 
-    // ── Calendário ───────────────────────────────────────────────
+    // â”€â”€ CalendÃ¡rio â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     function renderCalendario() {
       const container = document.getElementById('calendario-container');
-      const nomes = ["JANEIRO","FEVEREIRO","MARÇO","ABRIL","MAIO","JUNHO","JULHO","AGOSTO","SETEMBRO","OUTUBRO","NOVEMBRO","DEZEMBRO"];
+      const nomes = ["JANEIRO","FEVEREIRO","MARÃ‡O","ABRIL","MAIO","JUNHO","JULHO","AGOSTO","SETEMBRO","OUTUBRO","NOVEMBRO","DEZEMBRO"];
       const primeiroDia  = new Date(anoSelecionado, mesSelecionado, 1).getDay();
       const ultimoDiaMes = new Date(anoSelecionado, mesSelecionado + 1, 0).getDate();
 
       let html = `
         <div class="calendar-widget">
           <header class="cal-header">
-            <button class="cal-btn" onclick="mudarMes(-1)">‹</button>
+            <button class="cal-btn" onclick="mudarMes(-1)">â€¹</button>
             <span>${nomes[mesSelecionado]} ${anoSelecionado}</span>
-            <button class="cal-btn" onclick="mudarMes(1)">›</button>
+            <button class="cal-btn" onclick="mudarMes(1)">â€º</button>
           </header>
           <div class="cal-grid-header">
             <span>D</span><span>S</span><span>T</span><span>Q</span><span>Q</span><span>S</span><span>S</span>
@@ -650,7 +784,7 @@
       html += `</div>
           <div class="cal-footer">
             <div class="cal-legend" onclick="setFiltroResumo('pendente_mes')"><i class="cal-dot dot-red"></i> PENDENTE</div>
-            <div class="cal-legend" onclick="filtrarStatus('lancado')"><i class="cal-dot" style="background:#f97316"></i> LANÇADO</div>
+            <div class="cal-legend" onclick="filtrarStatus('lancado')"><i class="cal-dot" style="background:#f97316"></i> LANÃ‡ADO</div>
             <div class="cal-legend" onclick="setFiltroResumo('pagas_mes')"><i class="cal-dot dot-green"></i> PAGO</div>
             <button class="btn-limpar-cal" onclick="limparFiltros()">LIMPAR</button>
           </div>
@@ -658,14 +792,14 @@
       container.innerHTML = html;
     }
 
-    // ── Lista de contas ──────────────────────────────────────────
+    // â”€â”€ Lista de contas â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     function renderLista() {
       const container = document.getElementById('lista-container');
       const hoje = new Date(); hoje.setHours(0,0,0,0);
 
       let filtradas = [...dadosContas];
 
-      // Filtro por dia ou mês
+      // Filtro por dia ou mÃªs
       if (diaFiltro) {
         filtradas = filtradas.filter(c => c.data && c.data.trim().substring(0,10) === diaFiltro);
       } else if (!['vencidas','prox7'].includes(filtroStatus)) {
@@ -707,19 +841,19 @@
 
       const soma  = filtradas.reduce((a,c) => a + parseFloat(c.valor||0), 0);
       const fmt   = v => v.toLocaleString('pt-br', { minimumFractionDigits: 2, style: 'currency', currency: 'BRL' });
-      const nomes = ["JANEIRO","FEVEREIRO","MARÇO","ABRIL","MAIO","JUNHO","JULHO","AGOSTO","SETEMBRO","OUTUBRO","NOVEMBRO","DEZEMBRO"];
+      const nomes = ["JANEIRO","FEVEREIRO","MARÃ‡O","ABRIL","MAIO","JUNHO","JULHO","AGOSTO","SETEMBRO","OUTUBRO","NOVEMBRO","DEZEMBRO"];
       const titulo = diaFiltro ? diaFiltro.substring(0,10).split('-').reverse().join('/') : `${nomes[mesSelecionado]} / ${anoSelecionado}`;
       const canEdit = temPermissao(permissaoAtual, 'edicao');
 
       if (filtradas.length === 0) {
-        container.innerHTML = `<div style="text-align:center; padding:80px 0; color:var(--cor-texto-fraco)">Nenhum registro encontrado para este período.</div>`;
+        container.innerHTML = `<div style="text-align:center; padding:80px 0; color:var(--cor-texto-fraco)">Nenhum registro encontrado para este perÃ­odo.</div>`;
         return;
       }
 
       container.innerHTML = `
         <h3 style="margin-bottom:16px; font-size:13px; color:var(--cor-texto-fraco)">
           ${titulo}
-          <span style="color:var(--cor-destaque); margin-left:8px">(${filtradas.length}) — ${fmt(soma)}</span>
+          <span style="color:var(--cor-destaque); margin-left:8px">(${filtradas.length}) â€” ${fmt(soma)}</span>
         </h3>`;
 
       filtradas.forEach(c => {
@@ -739,9 +873,9 @@
           <div class="item-info-col">
             <strong>${(c.descricao || '').toUpperCase()}</strong>
             <div class="meta-info">
-              <span class="badge-info">📁 ${c.categoria || 'Geral'}</span>
-              <span class="badge-info">🔁 ${c.frequencia || 'Única'}</span>
-              <span class="badge-info ${vencida ? 'badge-vencida' : ''}">📅 ${dataFmt}</span>
+              <span class="badge-info">ðŸ“ ${c.categoria || 'Geral'}</span>
+              <span class="badge-info">ðŸ” ${c.frequencia || 'Ãšnica'}</span>
+              <span class="badge-info ${vencida ? 'badge-vencida' : ''}">ðŸ“… ${dataFmt}</span>
             </div>
           </div>
           <div class="item-valor-col ${valorCor}">
@@ -749,9 +883,9 @@
           </div>
           <div class="item-acoes-col">
             ${canEdit && c.status === 'pendente' ? `<button class="btn-acao btn-lancar" onclick="marcarComoLancado(${c.id})">Lançar</button>` : ''}
-            ${c.status === 'lancado' ? '<span style="color:#f97316; font-size:11px; font-weight:700">LANÇADO 🟠</span>' : ''}
+            ${c.status === 'lancado' ? '<span style="color:#f97316; font-size:11px; font-weight:700">LANÃ‡ADO ðŸŸ </span>' : ''}
             ${canEdit && (c.status === 'pendente' || c.status === 'lancado') ? `<button class="btn-acao btn-pagar" onclick="marcarComoPago(${c.id})">Pagar</button>` : ''}
-            ${c.status === 'pago' ? '<span style="color:#10b981; font-size:11px; font-weight:700">PAGO ✅</span>' : ''}
+            ${c.status === 'pago' ? '<span style="color:#10b981; font-size:11px; font-weight:700">PAGO âœ…</span>' : ''}
             ${canEdit ? `<button class="btn-acao btn-editar" onclick="prepararEdicao(${c.id})">Editar</button>` : ''}
             ${canEdit ? (ehPai && ehRecorr
               ? `<button class="btn-acao btn-excluir" onclick="excluirGrupo('${c.recorrencia_id}')">Excluir Grupo</button>`
@@ -761,9 +895,9 @@
       });
     }
 
-    // ════════════════════════════════════════════════════════════
-    // FILTROS E NAVEGAÇÃO
-    // ════════════════════════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    // FILTROS E NAVEGAÃ‡ÃƒO
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     function filtrarStatus(novoFiltro) {
       filtroStatus = novoFiltro;
       diaFiltro    = null;
@@ -808,17 +942,17 @@
       atualizarInterface();
     }
 
-    // ════════════════════════════════════════════════════════════
-    // HELPERS DE PERMISSÃO
-    // ════════════════════════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    // HELPERS DE PERMISSÃƒO
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     const NIVEL = { leitura: 1, edicao: 2, dono: 3 };
     function temPermissao(perm, min) {
       return !!perm && (NIVEL[perm] || 0) >= (NIVEL[min] || 0);
     }
 
-    // ════════════════════════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     // MODAL: AGENDA
-    // ════════════════════════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     function abrirModalAgenda(id = null) {
       modoEdicaoAgenda = !!id;
       idEdicaoAgenda   = id;
@@ -885,20 +1019,288 @@
     }
 
     async function excluirAgenda() {
-      if (!confirm(`Excluir a agenda "${agendaSelecionada.nome}" e TODOS os lançamentos? Esta ação não pode ser desfeita.`)) return;
+      if (!confirm(`Excluir a agenda "${agendaSelecionada.nome}" e TODOS os lanÃ§amentos? Esta aÃ§Ã£o nÃ£o pode ser desfeita.`)) return;
       const r = await fetch(`${API}/agendas/${agendaSelecionada.id}`, { method: 'DELETE' });
       const d = await r.json();
       if (!d.sucesso) { mostrarToast(d.erro || 'Erro.', 'erro'); return; }
-      mostrarToast('Agenda excluída.');
+      mostrarToast('Agenda excluÃ­da.');
       agendaSelecionada = null;
       document.getElementById('painel-agenda').style.display    = 'none';
       document.getElementById('tela-boas-vindas').style.display = 'flex';
       await carregarAgendas();
     }
 
-    // ════════════════════════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     // MODAL: CONTA
-    // ════════════════════════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    async function carregarUsuariosAprovacaoFinanceiro() {
+      if (usuariosAprovacaoFinanceiro.length) return;
+      try {
+        const r = await fetch('/api/financeiro/usuarios');
+        const d = await r.json();
+        if (r.ok && d.sucesso) usuariosAprovacaoFinanceiro = d.usuarios || [];
+      } catch (_) {}
+    }
+
+    function renderChipsFinanceiro() {
+      document.getElementById('chips-container-financeiro').innerHTML = aprovadoresFinanceiroSelecionados.map(u => `
+        <span class="chip">${esc(u.nome || u.login)}
+          <span class="chip-rem" onmousedown="event.preventDefault();removerChipFinanceiro('${esc(u.login)}')">&times;</span>
+        </span>`).join('');
+    }
+
+    function adicionarChipFinanceiro(login, nome) {
+      if (aprovadoresFinanceiroSelecionados.find(u => u.login === login)) { removerChipFinanceiro(login); return; }
+      aprovadoresFinanceiroSelecionados.push({ login, nome });
+      renderChipsFinanceiro();
+      renderChipDropdownFinanceiro();
+      document.getElementById('chip-busca-financeiro').value = '';
+    }
+
+    function removerChipFinanceiro(login) {
+      aprovadoresFinanceiroSelecionados = aprovadoresFinanceiroSelecionados.filter(u => u.login !== login);
+      renderChipsFinanceiro();
+      renderChipDropdownFinanceiro();
+    }
+
+    function abrirChipDropdownFinanceiro() {
+      document.getElementById('chip-dropdown-financeiro').classList.add('aberto');
+      renderChipDropdownFinanceiro();
+    }
+
+    function fecharChipDropdownFinanceiro() {
+      setTimeout(() => document.getElementById('chip-dropdown-financeiro').classList.remove('aberto'), 180);
+    }
+
+    function filtrarChipDropdownFinanceiro() {
+      document.getElementById('chip-dropdown-financeiro').classList.add('aberto');
+      renderChipDropdownFinanceiro();
+    }
+
+    function renderChipDropdownFinanceiro() {
+      const q = (document.getElementById('chip-busca-financeiro').value || '').toLowerCase();
+      const el = document.getElementById('chip-dropdown-financeiro');
+      const lista = usuariosAprovacaoFinanceiro.filter(u => (u.nome || '').toLowerCase().includes(q) || String(u.login || '').toLowerCase().includes(q));
+      if (!lista.length) {
+        el.innerHTML = '<div style="padding:10px 14px;font-size:.82rem;color:var(--gray)">Nenhum resultado.</div>';
+        return;
+      }
+      el.innerHTML = lista.map(u => {
+        const sel = aprovadoresFinanceiroSelecionados.find(a => a.login === u.login);
+        return `<div class="chip-item ${sel ? 'selecionado' : ''}" onmousedown="event.preventDefault();adicionarChipFinanceiro('${esc(u.login)}','${esc(u.nome || u.login)}')">
+          <span class="chip-item-nome">${esc(u.nome || u.login)}</span>
+          <span style="display:flex;gap:6px;align-items:center">
+            <span class="chip-item-login">${esc(u.login)}</span>
+            ${sel ? '<i class="fas fa-check" style="color:var(--primary);font-size:.72rem"></i>' : ''}
+          </span>
+        </div>`;
+      }).join('');
+    }
+
+    function renderChipsObsFinanceiro() {
+      document.getElementById('chips-container-obs-financeiro').innerHTML = observadoresFinanceiroSelecionados.map(u => `
+        <span class="chip chip-obs">${esc(u.nome || u.login)}
+          <span class="chip-rem" onmousedown="event.preventDefault();removerChipObsFinanceiro('${esc(u.login)}')">&times;</span>
+        </span>`).join('');
+    }
+
+    function adicionarChipObsFinanceiro(login, nome) {
+      if (observadoresFinanceiroSelecionados.find(u => u.login === login)) { removerChipObsFinanceiro(login); return; }
+      observadoresFinanceiroSelecionados.push({ login, nome });
+      renderChipsObsFinanceiro();
+      renderChipDropdownObsFinanceiro();
+      document.getElementById('chip-busca-obs-financeiro').value = '';
+    }
+
+    function removerChipObsFinanceiro(login) {
+      observadoresFinanceiroSelecionados = observadoresFinanceiroSelecionados.filter(u => u.login !== login);
+      renderChipsObsFinanceiro();
+      renderChipDropdownObsFinanceiro();
+    }
+
+    function abrirChipDropdownObsFinanceiro() {
+      document.getElementById('chip-dropdown-obs-financeiro').classList.add('aberto');
+      renderChipDropdownObsFinanceiro();
+    }
+
+    function fecharChipDropdownObsFinanceiro() {
+      setTimeout(() => document.getElementById('chip-dropdown-obs-financeiro').classList.remove('aberto'), 180);
+    }
+
+    function filtrarChipDropdownObsFinanceiro() {
+      document.getElementById('chip-dropdown-obs-financeiro').classList.add('aberto');
+      renderChipDropdownObsFinanceiro();
+    }
+
+    function renderChipDropdownObsFinanceiro() {
+      const q = (document.getElementById('chip-busca-obs-financeiro').value || '').toLowerCase();
+      const el = document.getElementById('chip-dropdown-obs-financeiro');
+      const lista = usuariosAprovacaoFinanceiro.filter(u => (u.nome || '').toLowerCase().includes(q) || String(u.login || '').toLowerCase().includes(q));
+      if (!lista.length) {
+        el.innerHTML = '<div style="padding:10px 14px;font-size:.82rem;color:var(--gray)">Nenhum resultado.</div>';
+        return;
+      }
+      el.innerHTML = lista.map(u => {
+        const sel = observadoresFinanceiroSelecionados.find(a => a.login === u.login);
+        return `<div class="chip-item ${sel ? 'selecionado' : ''}" onmousedown="event.preventDefault();adicionarChipObsFinanceiro('${esc(u.login)}','${esc(u.nome || u.login)}')">
+          <span class="chip-item-nome">${esc(u.nome || u.login)}</span>
+          <span style="display:flex;gap:6px;align-items:center">
+            <span class="chip-item-login">${esc(u.login)}</span>
+            ${sel ? '<i class="fas fa-check" style="color:var(--primary);font-size:.72rem"></i>' : ''}
+          </span>
+        </div>`;
+      }).join('');
+    }
+
+    function atualizarConsensoAprovacaoFinanceiro() {
+      const tipo = document.getElementById('inp-consenso-financeiro').value;
+      const div  = document.getElementById('consenso-extra-financeiro');
+      const inp  = document.getElementById('inp-consenso-valor-financeiro');
+      const suf  = document.getElementById('consenso-extra-sufixo-financeiro');
+      const hint = document.getElementById('consenso-extra-hint-financeiro');
+      if (tipo === 'maioria_qualificada') {
+        div.style.display = 'block';
+        inp.min = 51; inp.max = 99; inp.placeholder = 'Ex: 67';
+        if (!inp.value) inp.value = 67;
+        suf.textContent = '%';
+        hint.textContent = 'Ex: 67 = dois terços (2/3), 75 = três quartos (3/4)';
+      } else if (tipo === 'quorum_minimo') {
+        div.style.display = 'block';
+        inp.min = 1; inp.max = 9999; inp.placeholder = 'Ex: 3';
+        if (!inp.value) inp.value = 1;
+        suf.textContent = 'pessoas';
+        hint.textContent = 'A aprovação só é computada após este número de respostas.';
+      } else {
+        div.style.display = 'none';
+        inp.value = '';
+        suf.textContent = '';
+        hint.textContent = '';
+      }
+    }
+
+    async function carregarAprovacoesFinanceiro(contaId) {
+      const secao = document.getElementById('secao-aprovacao-financeiro-conta');
+      const btnSolicitar = document.getElementById('btn-solicitar-aprovacao-financeiro');
+      const btnAbrir = document.getElementById('btn-abrir-aprovacao-financeiro');
+      aprovacoesFinanceiro = [];
+      if (!contaId) {
+        secao.style.display = 'none';
+        btnSolicitar.style.display = 'none';
+        btnAbrir.style.display = 'none';
+        return;
+      }
+      secao.style.display = '';
+      try {
+        const r = await fetch(`/api/financeiro/contas/${contaId}/aprovacoes`);
+        const d = await r.json();
+        if (r.ok && d.sucesso) aprovacoesFinanceiro = d.aprovacoes || [];
+      } catch (_) {}
+      renderAprovacoesFinanceiro();
+    }
+
+    function renderAprovacoesFinanceiro() {
+      const resumo = document.getElementById('aprovacao-financeiro-resumo-conta');
+      const lista = document.getElementById('aprovacao-financeiro-lista-conta');
+      const btnAbrir = document.getElementById('btn-abrir-aprovacao-financeiro');
+      const btnSolicitar = document.getElementById('btn-solicitar-aprovacao-financeiro');
+      const canEdit = temPermissao(permissaoAtual, 'edicao');
+
+      btnSolicitar.style.display = idEdicaoConta && canEdit ? '' : 'none';
+      btnAbrir.style.display = aprovacoesFinanceiro.length ? '' : 'none';
+
+      if (!aprovacoesFinanceiro.length) {
+        resumo.textContent = 'Nenhuma aprovação vinculada a este lançamento.';
+        lista.innerHTML = '';
+        return;
+      }
+
+      resumo.textContent = `${aprovacoesFinanceiro.length} aprovação(ões) vinculada(s) a este lançamento.`;
+      lista.innerHTML = aprovacoesFinanceiro.map(apr => `
+        <div style="display:flex;justify-content:space-between;gap:10px;align-items:center;background:rgba(255,255,255,0.02);border:1px solid var(--cor-borda);border-radius:10px;padding:10px 12px">
+          <div style="min-width:0">
+            <div style="font-weight:700;font-size:0.88rem">#${apr.id} - ${esc(apr.titulo)}</div>
+            <div style="font-size:0.78rem;color:var(--cor-texto-fraco);margin-top:3px">
+              Status: ${esc(apr.status)} • ${new Date(apr.criado_em).toLocaleDateString('pt-BR')}
+            </div>
+          </div>
+          <button class="btn btn-outline-sm" type="button" onclick="abrirAprovacaoPorIdFinanceiro(${apr.id})" style="width:auto">
+            <i class="fas fa-external-link-alt"></i> Abrir
+          </button>
+        </div>
+      `).join('');
+    }
+
+    async function abrirModalSolicitarAprovacaoFinanceiro() {
+      if (!idEdicaoConta) { mostrarToast('Salve o lançamento antes de solicitar aprovação.', 'erro'); return; }
+      await carregarUsuariosAprovacaoFinanceiro();
+      aprovadoresFinanceiroSelecionados = [];
+      observadoresFinanceiroSelecionados = [];
+      renderChipsFinanceiro();
+      renderChipsObsFinanceiro();
+      document.getElementById('inp-titulo-financeiro').value = `Aprovação do lançamento: ${document.getElementById('cad-desc').value.trim() || 'Sem descrição'}`;
+      document.getElementById('inp-objetivo-financeiro').value = [
+        `Agenda: ${agendaSelecionada?.nome || 'Agenda Financeira'}`,
+        `Lançamento: ${document.getElementById('cad-desc').value.trim() || 'Sem descrição'}`,
+        `Valor: ${parseFloat(document.getElementById('cad-valor').value || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`,
+        `Vencimento: ${document.getElementById('cad-data').value ? new Date(document.getElementById('cad-data').value + 'T00:00:00').toLocaleDateString('pt-BR') : '—'}`,
+        `Categoria: ${document.getElementById('cad-cat').value || 'Geral'}`,
+        document.getElementById('cad-emp').value ? `Empresa: ${document.getElementById('cad-emp').value}` : '',
+      ].filter(Boolean).join('\n');
+      document.getElementById('inp-consenso-financeiro').value = 'unanimidade';
+      document.getElementById('inp-consenso-valor-financeiro').value = '';
+      document.getElementById('chip-busca-financeiro').value = '';
+      document.getElementById('chip-busca-obs-financeiro').value = '';
+      atualizarConsensoAprovacaoFinanceiro();
+      renderChipDropdownFinanceiro();
+      renderChipDropdownObsFinanceiro();
+      document.getElementById('modal-form-aprovacao-financeiro').classList.add('ativo');
+    }
+
+    function fecharModalSolicitarAprovacaoFinanceiro() {
+      document.getElementById('modal-form-aprovacao-financeiro').classList.remove('ativo');
+    }
+
+    function abrirAprovacaoPorIdFinanceiro(id) {
+      window.open(`/aprovacoes?abrir=${id}`, '_blank');
+    }
+
+    function abrirUltimaAprovacaoFinanceiro() {
+      if (aprovacoesFinanceiro.length) abrirAprovacaoPorIdFinanceiro(aprovacoesFinanceiro[0].id);
+    }
+
+    async function solicitarAprovacaoFinanceiro() {
+      if (!idEdicaoConta) { mostrarToast('Salve o lançamento antes de solicitar aprovação.', 'erro'); return; }
+      const titulo = document.getElementById('inp-titulo-financeiro').value.trim();
+      const objetivo = document.getElementById('inp-objetivo-financeiro').value.trim();
+      const tipo_consenso = document.getElementById('inp-consenso-financeiro').value;
+      const consenso_valor = parseInt(document.getElementById('inp-consenso-valor-financeiro').value) || null;
+      const aprovadores = aprovadoresFinanceiroSelecionados.map(u => u.login);
+      const observadores = observadoresFinanceiroSelecionados.map(u => u.login);
+      if (!titulo) { mostrarToast('Informe o título da aprovação.', 'erro'); return; }
+      if (!aprovadores.length) { mostrarToast('Selecione ao menos um aprovador.', 'erro'); return; }
+
+      const btn = document.getElementById('btn-form-submit-financeiro');
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Criando...';
+      try {
+        const r = await fetch(`/api/financeiro/contas/${idEdicaoConta}/solicitar-aprovacao`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ titulo, objetivo, aprovadores, observadores, tipo_consenso, consenso_valor })
+        });
+        const d = await r.json();
+        if (!r.ok) throw new Error(d.erro || 'Erro ao solicitar aprovação.');
+        fecharModalSolicitarAprovacaoFinanceiro();
+        mostrarToast(d.mensagem || 'Solicitação criada com sucesso!');
+        await carregarAprovacoesFinanceiro(idEdicaoConta);
+      } catch (e) {
+        mostrarToast(e.message || 'Erro ao solicitar aprovação.', 'erro');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-paper-plane"></i> Criar Aprovação';
+      }
+    }
+
     async function abrirModalConta() {
       modoEdicaoConta = false;
       idEdicaoConta   = null;
@@ -924,6 +1326,11 @@
       await carregarCategorias();
       await carregarEmpresas();
       document.getElementById('cad-emp').value = '';
+      document.getElementById('secao-aprovacao-financeiro-conta').style.display = 'none';
+      document.getElementById('aprovacao-financeiro-resumo-conta').textContent = 'Nenhuma aprovação vinculada a este lançamento.';
+      document.getElementById('aprovacao-financeiro-lista-conta').innerHTML = '';
+      document.getElementById('btn-solicitar-aprovacao-financeiro').style.display = 'none';
+      document.getElementById('btn-abrir-aprovacao-financeiro').style.display = 'none';
       document.getElementById('modal-conta').classList.add('ativo');
     }
 
@@ -935,7 +1342,7 @@
       const ehRecorrente   = !!(c.recorrencia_id);
       const ehPai          = c.eh_pai === true || c.eh_pai === 1;
       modoEdicaoRecorrente = ehRecorrente && !ehPai;  // parcela normal: restrito
-      modoEdicaoPai        = ehRecorrente && ehPai;   // primeira parcela: edição completa + propaga
+      modoEdicaoPai        = ehRecorrente && ehPai;   // primeira parcela: ediÃ§Ã£o completa + propaga
 
       document.getElementById('modal-conta-titulo').textContent = 'Editar Lançamento';
       document.getElementById('cad-desc').value  = c.descricao;
@@ -948,7 +1355,7 @@
       document.getElementById('cad-cat').value  = c.categoria || 'Geral';
       document.getElementById('cad-emp').value  = c.empresa || '';
 
-      // Parcela normal (não é pai): bloqueia desc/cat/emp
+      // Parcela normal (nÃ£o Ã© pai): bloqueia desc/cat/emp
       const camposFixos = ['cad-desc', 'cad-cat', 'cad-emp'];
       camposFixos.forEach(fId => {
         const el = document.getElementById(fId);
@@ -974,12 +1381,13 @@
         aviso.style.display = '';
       } else if (modoEdicaoPai) {
         aviso.style.cssText += ';background:#1c3a1e;border:1px solid #22c55e;color:#86efac';
-        aviso.innerHTML = '<i class="fas fa-sync-alt"></i> Conta pai: as alterações de <strong>descrição</strong>, <strong>categoria</strong> e <strong>empresa</strong> serão aplicadas a todas as parcelas do grupo.';
+        aviso.innerHTML = '<i class="fas fa-sync-alt"></i> Conta pai: as alteraÃ§Ãµes de <strong>descriÃ§Ã£o</strong>, <strong>categoria</strong> e <strong>empresa</strong> serÃ£o aplicadas a todas as parcelas do grupo.';
         aviso.style.display = '';
       } else {
         aviso.style.display = 'none';
       }
 
+      await carregarAprovacoesFinanceiro(id);
       document.getElementById('modal-conta').classList.add('ativo');
     }
 
@@ -987,6 +1395,7 @@
       fecharGerenciador();
       fecharGerenciadorEmpresas();
       document.getElementById('modal-conta').classList.remove('ativo');
+      document.getElementById('modal-form-aprovacao-financeiro').classList.remove('ativo');
     }
 
     function toggleRecorrencia() {
@@ -996,7 +1405,7 @@
       if (ativa) sincronizarPorFrequenciaOuData();
     }
 
-    // ── Cálculo automático de parcelas / data de término ─────────
+    // â”€â”€ CÃ¡lculo automÃ¡tico de parcelas / data de tÃ©rmino â”€â”€â”€â”€â”€â”€â”€â”€â”€
     let _atualizandoRecorr = false;
 
     function _proxOcorrencia(d, freq) {
@@ -1026,7 +1435,7 @@
       return d.toISOString().split('T')[0];
     }
 
-    // Frequência ou data de início mudou → recalcula parcelas (mantém data-fim ou usa fim do ano)
+    // Frequência ou data de inÃ­cio mudou â†’ recalcula parcelas (mantÃ©m data-fim ou usa fim do ano)
     function sincronizarPorFrequenciaOuData() {
       if (_atualizandoRecorr) return;
       const dataInicio = document.getElementById('cad-data').value;
@@ -1045,7 +1454,7 @@
       _atualizandoRecorr = false;
     }
 
-    // Data de término mudou → recalcula parcelas
+    // Data de tÃ©rmino mudou â†’ recalcula parcelas
     function sincronizarPorDataFim() {
       if (_atualizandoRecorr) return;
       const dataInicio = document.getElementById('cad-data').value;
@@ -1057,7 +1466,7 @@
       _atualizandoRecorr = false;
     }
 
-    // Nº de parcelas mudou → recalcula data de término
+    // NÂº de parcelas mudou â†’ recalcula data de tÃ©rmino
     function sincronizarPorParcelas() {
       if (_atualizandoRecorr) return;
       const dataInicio = document.getElementById('cad-data').value;
@@ -1118,7 +1527,7 @@
       lista.innerHTML = emps.length ? emps.map(e => `
         <div style="display:flex; justify-content:space-between; align-items:center; padding:5px 0; border-bottom:1px solid var(--cor-borda)">
           <span style="font-size:13px; color:var(--cor-texto)">${e.nome}</span>
-          <button onclick="excluirEmpresa(${e.id})" style="background:none; border:none; color:#ef4444; cursor:pointer; font-size:14px">✕</button>
+          <button onclick="excluirEmpresa(${e.id})" style="background:none; border:none; color:#ef4444; cursor:pointer; font-size:14px">âœ•</button>
         </div>`).join('') : '<p style="font-size:12px; color:var(--cor-texto-sec); text-align:center">Nenhuma empresa cadastrada.</p>';
     }
 
@@ -1139,7 +1548,7 @@
     }
 
     async function excluirEmpresa(id) {
-      if (!confirm('Excluir empresa? Os lançamentos vinculados ficarão sem empresa.')) return;
+      if (!confirm('Excluir empresa? Os lanÃ§amentos vinculados ficarÃ£o sem empresa.')) return;
       await fetch(`${API}/empresas/${id}`, { method: 'DELETE' });
       await atualizarListaEmpresasGerenciador();
       await carregarEmpresas();
@@ -1156,14 +1565,14 @@
       const dataFim    = document.getElementById('cad-data-fim').value;
       const maxParc    = parseInt(document.getElementById('cad-max-parcelas').value) || 12;
 
-      if (!modoEdicaoRecorrente && !descricao) { mostrarToast('Informe a descrição.', 'erro'); return; }
-      if (!valor || valor <= 0) { mostrarToast('Informe um valor válido.', 'erro'); return; }
+      if (!modoEdicaoRecorrente && !descricao) { mostrarToast('Informe a descriÃ§Ã£o.', 'erro'); return; }
+      if (!valor || valor <= 0) { mostrarToast('Informe um valor vÃ¡lido.', 'erro'); return; }
       if (!data) { mostrarToast('Informe a data de vencimento.', 'erro'); return; }
 
       if (modoEdicaoConta) {
-        // Edição: parcela restrita → só valor e data
-        //         pai (primeira parcela) → tudo + propaga desc/cat/emp ao grupo
-        //         normal → tudo sem propagar
+        // Edição: parcela restrita â†’ sÃ³ valor e data
+        //         pai (primeira parcela) â†’ tudo + propaga desc/cat/emp ao grupo
+        //         normal â†’ tudo sem propagar
         let corpo;
         if (modoEdicaoRecorrente) {
           corpo = { valor, data };
@@ -1172,7 +1581,7 @@
           corpo = { descricao, valor, data, categoria, empresa,
                     propagarGrupo: true, recorrencia_id: contaPai?.recorrencia_id };
         } else {
-          corpo = { descricao, valor, data, categoria, empresa, frequencia: 'Única' };
+          corpo = { descricao, valor, data, categoria, empresa, frequencia: 'Ãšnica' };
         }
         const r = await fetch(`${API}/contas/${idEdicaoConta}`, {
           method: 'PUT',
@@ -1183,12 +1592,12 @@
         if (!d.sucesso) { mostrarToast(d.erro || 'Erro.', 'erro'); return; }
         mostrarToast('Lançamento atualizado.');
       } else {
-        // Criação (com ou sem recorrência)
+        // CriaÃ§Ã£o (com ou sem recorrÃªncia)
         let contas;
         if (recorrente) {
           contas = gerarParcelas({ descricao, valor, data, categoria, empresa, frequencia, status: 'pendente' }, dataFim, maxParc);
         } else {
-          contas = [{ descricao, valor, data, categoria, empresa, frequencia: 'Única', status: 'pendente', recorrencia_id: null, eh_pai: 0 }];
+          contas = [{ descricao, valor, data, categoria, empresa, frequencia: 'Ãšnica', status: 'pendente', recorrencia_id: null, eh_pai: 0 }];
         }
         const r = await fetch(`${API}/agendas/${agendaSelecionada.id}/contas`, {
           method: 'POST',
@@ -1204,7 +1613,7 @@
       await carregarContas();
     }
 
-    // ── Lógica de recorrência ────────────────────────────────────
+    // â”€â”€ LÃ³gica de recorrÃªncia â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     function gerarParcelas(dados, dataTermino, maxParcelas) {
       const parcelas    = [];
       const dataInicio  = new Date(dados.data + 'T00:00:00');
@@ -1223,7 +1632,7 @@
           case 'Mensal': {
             const dia = base.getDate();
             d.setMonth(d.getMonth() + n);
-            // Corrige se o mês destino tem menos dias
+            // Corrige se o mÃªs destino tem menos dias
             const ultimo = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
             d.setDate(Math.min(dia, ultimo));
             break;
@@ -1262,9 +1671,9 @@
       return parcelas;
     }
 
-    // ── Ações da lista ────────────────────────────────────────────
+    // â”€â”€ AÃ§Ãµes da lista â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     async function marcarComoLancado(id) {
-      if (!confirm('Registrar lançamento desta conta?')) return;
+      if (!confirm('Registrar lanÃ§amento desta conta?')) return;
       const r = await fetch(`${API}/contas/${id}/status`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
@@ -1290,7 +1699,7 @@
     }
 
     async function excluirConta(id) {
-      if (!confirm('Excluir este lançamento?')) return;
+      if (!confirm('Excluir este lanÃ§amento?')) return;
       const r = await fetch(`${API}/contas/${id}`, { method: 'DELETE' });
       const d = await r.json();
       if (!d.sucesso) { mostrarToast(d.erro || 'Erro.', 'erro'); return; }
@@ -1299,15 +1708,15 @@
     }
 
     async function excluirGrupo(recorrenciaId) {
-      if (!confirm('Excluir TODAS as parcelas deste grupo recorrente? Esta ação não pode ser desfeita.')) return;
+      if (!confirm('Excluir TODAS as parcelas deste grupo recorrente? Esta aÃ§Ã£o nÃ£o pode ser desfeita.')) return;
       const r = await fetch(`${API}/contas/recorrencia/${encodeURIComponent(recorrenciaId)}`, { method: 'DELETE' });
       const d = await r.json();
       if (!d.sucesso) { mostrarToast(d.erro || 'Erro.', 'erro'); return; }
-      mostrarToast('Grupo excluído.');
+      mostrarToast('Grupo excluÃ­do.');
       await carregarContas();
     }
 
-    // ── Gerenciador de categorias ─────────────────────────────────
+    // â”€â”€ Gerenciador de categorias â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     function abrirGerenciador() {
       atualizarListaCategoriasGerenciador();
       document.getElementById('subModalCategorias').style.display = 'block';
@@ -1326,7 +1735,7 @@
           ? cats.map(c => `
             <div class="list-manage-item">
               <span>${c.nome}</span>
-              <button class="btn-del-list" onclick="excluirCategoria(${c.id})">🗑️</button>
+              <button class="btn-del-list" onclick="excluirCategoria(${c.id})">ðŸ—‘ï¸</button>
             </div>`).join('')
           : '<p style="font-size:11px; color:var(--cor-texto-fraco); padding:6px">Nenhuma categoria.</p>';
     }
@@ -1348,28 +1757,28 @@
     }
 
     async function excluirCategoria(id) {
-      if (!confirm('Excluir categoria? Os lançamentos vinculados voltarão para "Geral".')) return;
+      if (!confirm('Excluir categoria? Os lanÃ§amentos vinculados voltarÃ£o para "Geral".')) return;
       await fetch(`${API}/categorias/${id}`, { method: 'DELETE' });
       await atualizarListaCategoriasGerenciador();
       await carregarCategorias();
     }
 
-    // ════════════════════════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     // MODAL: MEMBROS
-    // ════════════════════════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     async function abrirModalMembros() {
       document.getElementById('modal-membros').classList.add('ativo');
       const sel = document.getElementById('sel-usuario-membro');
 
-      // Carregar usuários disponíveis para o select
+      // Carregar usuÃ¡rios disponÃ­veis para o select
       try {
         const ru = await fetch(`${API}/usuarios`);
         const du = await ru.json();
         sel.innerHTML = '<option value="">Selecione...</option>' +
           (du.usuarios || []).map(u => `<option value="${u.login}">${u.nome || u.login} (${u.login})</option>`).join('');
       } catch (e) {
-        sel.innerHTML = '<option value="">Erro ao carregar usuários</option>';
-        console.error('[Membros] Erro ao buscar usuários:', e);
+        sel.innerHTML = '<option value="">Erro ao carregar usuÃ¡rios</option>';
+        console.error('[Membros] Erro ao buscar usuÃ¡rios:', e);
       }
 
       // Carregar membros atuais (sempre executa, independente do erro acima)
@@ -1412,7 +1821,7 @@
     async function adicionarMembro() {
       const usuario   = document.getElementById('sel-usuario-membro').value;
       const permissao = document.getElementById('sel-permissao-membro').value;
-      if (!usuario) { mostrarToast('Selecione um usuário.', 'erro'); return; }
+      if (!usuario) { mostrarToast('Selecione um usuÃ¡rio.', 'erro'); return; }
       const r = await fetch(`${API}/agendas/${agendaSelecionada.id}/membros`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -1445,9 +1854,9 @@
       await atualizarListaMembros();
     }
 
-    // ════════════════════════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     // MODAL: LOGS
-    // ════════════════════════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     async function abrirModalLogs() {
       document.getElementById('modal-logs').classList.add('ativo');
       const r = await fetch(`${API}/agendas/${agendaSelecionada.id}/logs`);
@@ -1466,7 +1875,7 @@
         return `<tr>
           <td style="white-space:nowrap">${data}</td>
           <td><span class="${cls}">${l.acao}</span></td>
-          <td><strong>${l.descricao_conta ? l.descricao_conta.toUpperCase() : (l.conta_id ? 'ID:'+l.conta_id : '—')}</strong></td>
+          <td><strong>${l.descricao_conta ? l.descricao_conta.toUpperCase() : (l.conta_id ? 'ID:'+l.conta_id : 'â€”')}</strong></td>
           <td style="color:var(--cor-texto-fraco); font-style:italic">${l.detalhes}</td>
           <td><small>${l.usuario}</small></td>
         </tr>`;
@@ -1477,9 +1886,9 @@
       document.getElementById('modal-logs').classList.remove('ativo');
     }
 
-    // ════════════════════════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     // TOAST
-    // ════════════════════════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     let toastTimer = null;
     function mostrarToast(msg, tipo = 'sucesso') {
       const el = document.getElementById('toast');
@@ -1491,3 +1900,6 @@
   </script>
 </body>
 </html>
+
+
+

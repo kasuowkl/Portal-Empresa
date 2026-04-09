@@ -32,17 +32,127 @@
     return /<img\b|<table\b|<ul\b|<ol\b|<blockquote\b|<pre\b/i.test(htmlLimpo);
   }
 
+  function clipboardTemHtmlCompleto(clipboardData) {
+    if (!clipboardData) return false;
+    let html = '';
+    let texto = '';
+    try { html = clipboardData.getData('text/html') || ''; } catch (erro) {}
+    try { texto = clipboardData.getData('text/plain') || ''; } catch (erro) {}
+    return ehHtmlDocumentoCompleto(html) || ehHtmlDocumentoCompleto(texto);
+  }
+
+  function extrairHtmlCompletoClipboard(clipboardData) {
+    if (!clipboardData) return '';
+    let html = '';
+    let texto = '';
+    try { html = clipboardData.getData('text/html') || ''; } catch (erro) {}
+    try { texto = clipboardData.getData('text/plain') || ''; } catch (erro) {}
+    const bruto = ehHtmlDocumentoCompleto(texto) ? texto : html;
+    return normalizarHtmlDocumentoCompleto(bruto);
+  }
+
+  function ehDocumentoClipboard(file) {
+    if (!file) return false;
+    const nome = String(file.name || '').toLowerCase();
+    const tipo = String(file.type || '').toLowerCase();
+    return tipo === 'application/pdf' ||
+      tipo === 'application/msword' ||
+      tipo === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
+      tipo === 'application/vnd.ms-powerpoint' ||
+      tipo === 'application/vnd.openxmlformats-officedocument.presentationml.presentation' ||
+      nome.endsWith('.pdf') ||
+      nome.endsWith('.doc') ||
+      nome.endsWith('.docx') ||
+      nome.endsWith('.ppt') ||
+      nome.endsWith('.pptx') ||
+      nome.endsWith('.ptt');
+  }
+
+  function extrairDocumentosClipboard(clipboardData) {
+    if (!clipboardData) return [];
+    const files = Array.from(clipboardData.files || []).filter(ehDocumentoClipboard);
+    const items = Array.from(clipboardData.items || []);
+    for (const item of items) {
+      const file = item.getAsFile ? item.getAsFile() : null;
+      if (file && ehDocumentoClipboard(file)) files.push(file);
+    }
+    return files.filter((file, index, array) => array.findIndex((other) =>
+      other.name === file.name &&
+      other.size === file.size &&
+      other.type === file.type
+    ) === index);
+  }
+
+  function adicionarDocumentosDoClipboard(arquivos) {
+    if (!arquivos || !arquivos.length) return;
+    window.KBState.documentosPendentes = window.KBState.documentosPendentes || [];
+    arquivos.forEach((arquivo) => {
+      const item = {
+        file: arquivo,
+        token: 'kbdoc_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8),
+        embedNoConteudo: true,
+        origemClipboard: true
+      };
+      item.file._origemClipboard = true;
+      const jaExiste = window.KBState.documentosPendentes.some((pendente) =>
+        pendente.file &&
+        pendente.file.name === arquivo.name &&
+        pendente.file.size === arquivo.size &&
+        pendente.file.type === arquivo.type
+      );
+      if (!jaExiste) {
+        window.KBState.documentosPendentes.push(item);
+        window.inserirMarcadorDocumentoPendente(item);
+      }
+    });
+    window.renderizarArquivosSelecionados('artigo-documentos', 'artigo-documentos-lista');
+  }
+
   document.addEventListener('DOMContentLoaded', () => {
     window.carregarCategorias();
+    window.carregarFacetas();
     window.carregarArtigos();
     window.carregarEstatisticas();
 
     const editor = window.getEditor();
+    const codeEditor = window.getCodeEditor();
+    const anexosInput = document.getElementById('artigo-anexos');
+    const docsInput = document.getElementById('artigo-documentos');
     editor.setAttribute('tabindex', '0');
     editor.addEventListener('input', window.syncEditorSource);
+    if (codeEditor) {
+      codeEditor.addEventListener('input', window.atualizarPreviewEditor);
+    }
+    if (anexosInput) {
+      anexosInput.addEventListener('change', () => window.renderizarArquivosSelecionados('artigo-anexos', 'artigo-anexos-lista'));
+    }
+    if (docsInput) {
+      docsInput.addEventListener('change', () => window.renderizarArquivosSelecionados('artigo-documentos', 'artigo-documentos-lista'));
+    }
     editor.addEventListener('paste', async (event) => {
       const clipboardData = event.clipboardData || window.clipboardData;
       if (!clipboardData) return;
+
+      if (clipboardTemHtmlCompleto(clipboardData)) {
+        event.preventDefault();
+        event.stopPropagation();
+        const htmlCompleto = extrairHtmlCompletoClipboard(clipboardData);
+        if (htmlCompleto) {
+          window.setEditorHtml(htmlCompleto);
+          window.definirModoEdicaoArtigo('codigo');
+          window.toast('HTML completo detectado. O conteúdo foi enviado para Código HTML para preservar classes, ids e scripts.');
+        }
+        return;
+      }
+
+      const documentos = extrairDocumentosClipboard(clipboardData);
+      if (documentos.length) {
+        event.preventDefault();
+        event.stopPropagation();
+        adicionarDocumentosDoClipboard(documentos);
+        window.toast(documentos.length + ' documento(s) adicionados ao artigo.');
+        return;
+      }
 
       if (window.clipboardTemImagem(clipboardData)) {
         event.preventDefault();
@@ -77,6 +187,27 @@
 
       const clipboardData = event.clipboardData || window.clipboardData;
       if (!clipboardData) return;
+
+      if (clipboardTemHtmlCompleto(clipboardData)) {
+        event.preventDefault();
+        event.stopPropagation();
+        const htmlCompleto = extrairHtmlCompletoClipboard(clipboardData);
+        if (htmlCompleto) {
+          window.setEditorHtml(htmlCompleto);
+          window.definirModoEdicaoArtigo('codigo');
+          window.toast('HTML completo detectado. O conteúdo foi enviado para Código HTML para preservar classes, ids e scripts.');
+        }
+        return;
+      }
+
+      const documentos = extrairDocumentosClipboard(clipboardData);
+      if (documentos.length) {
+        event.preventDefault();
+        event.stopPropagation();
+        adicionarDocumentosDoClipboard(documentos);
+        window.toast(documentos.length + ' documento(s) adicionados ao artigo.');
+        return;
+      }
 
       if (window.clipboardTemImagem(clipboardData)) {
         event.preventDefault();

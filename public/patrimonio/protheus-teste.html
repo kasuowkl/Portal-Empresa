@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Patrimonio + Protheus - Testes</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/menu.css">
+  <style>
+    .page{max-width:1440px;margin:0 auto;padding:32px 24px 56px}
+    .hero{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:18px}
+    .hero h1{font-size:28px;color:var(--cor-texto);display:flex;align-items:center;gap:10px}
+    .hero p{margin-top:8px;color:var(--cor-texto-fraco);max-width:920px;line-height:1.55}
+    .actions{display:flex;gap:10px;flex-wrap:wrap}
+    .btn{padding:9px 14px;border-radius:8px;border:1px solid var(--cor-borda);background:var(--cor-fundo-3);color:var(--cor-texto);font-weight:700;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:8px}
+    .btn-primary{background:var(--cor-destaque);border-color:var(--cor-destaque);color:#fff}
+    .btn-success{background:#10b981;border-color:#10b981;color:#fff}
+    .alert{display:none;padding:12px 14px;border-radius:10px;margin-bottom:14px}
+    .alert.ok{display:block;background:rgba(6,95,70,.18);border:1px solid rgba(52,211,153,.35);color:#d1fae5}
+    .alert.err{display:block;background:rgba(127,29,29,.18);border:1px solid rgba(248,113,113,.35);color:#fecaca}
+    .card{background:var(--cor-fundo-2);border:1px solid var(--cor-borda);border-radius:14px;padding:18px;margin-bottom:18px}
+    .card h2{font-size:17px;color:var(--cor-texto);margin-bottom:10px}
+    .hint{background:rgba(30,64,175,.18);border:1px solid rgba(96,165,250,.2);border-left:3px solid #22c55e;border-radius:10px;padding:12px 14px;color:#cbd5e1;margin-bottom:16px;line-height:1.5}
+    .grid{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(420px,.95fr);gap:18px;align-items:start}
+    .grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+    .grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+    .cad-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+    .cad-section{margin-bottom:16px;padding:14px;border:1px solid rgba(255,255,255,.06);border-radius:12px;background:rgba(255,255,255,.02)}
+    .cad-section h3{font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:var(--cor-texto-fraco);margin-bottom:12px}
+    .span-2{grid-column:span 2}
+    .field{display:flex;flex-direction:column;gap:6px}
+    .field label{font-size:12px;font-weight:700;color:var(--cor-texto-fraco)}
+    .field input,.field select,.field textarea{padding:9px 11px;border-radius:8px;border:1px solid var(--cor-borda);background:var(--cor-fundo-3);color:var(--cor-texto)}
+    .field textarea{min-height:96px;resize:vertical}
+    .toolbar{display:grid;grid-template-columns:1fr 1fr 1fr 1.35fr auto;gap:12px;align-items:end}
+    .toolbar2{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;align-items:end;margin-top:12px}
+    .table-wrap{overflow:auto;border:1px solid var(--cor-borda);border-radius:12px}
+    table{width:100%;border-collapse:collapse;font-size:13px}
+    th,td{padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);text-align:left;vertical-align:top}
+    th{background:var(--cor-fundo-3);color:var(--cor-texto-fraco);font-size:11px;text-transform:uppercase;letter-spacing:.04em}
+    tr:hover td{background:rgba(255,255,255,.02)}
+    .badge{display:inline-block;padding:4px 8px;border-radius:999px;font-size:11px;font-weight:700}
+    .badge-info{background:rgba(78,154,241,.14);color:#4e9af1}
+    details{border:1px solid var(--cor-borda);border-radius:12px;background:rgba(255,255,255,.02)}
+    summary{padding:14px 16px;cursor:pointer;font-weight:700;color:var(--cor-texto)}
+    .advanced{padding:0 16px 16px}
+    .small-list{margin:0;padding-left:18px;color:var(--cor-texto-fraco);line-height:1.6;font-size:13px}
+    .muted{color:var(--cor-texto-fraco)}
+    .result-label{white-space:pre-line}
+    @media (max-width:1200px){.grid{grid-template-columns:1fr}}
+    @media (max-width:1100px){.grid3,.toolbar,.toolbar2,.cad-grid{grid-template-columns:1fr}.grid2{grid-template-columns:1fr}.span-2{grid-column:auto}}
+  </style>
+</head>
+<body>
+<div id="menu-container"></div>
+<div class="page">
+  <div class="hero">
+    <div>
+      <h1><i class="fas fa-database" style="color:#60a5fa"></i> Teste de Integracao Patrimonio + Protheus</h1>
+      <p>Esta tela foi simplificada para ajudar no processo real: localizar o ativo no Protheus, escolher empresa, filial, localizacao, fornecedor e nota fiscal, e importar para um cadastro de teste no Patrimonio do Portal.</p>
+    </div>
+    <div class="actions">
+      <a class="btn" href="/patrimonio/"><i class="fas fa-arrow-left"></i> Voltar ao Patrimonio</a>
+      <button class="btn btn-primary" type="button" id="btn-salvar-mapeamento"><i class="fas fa-save"></i> Salvar mapeamento</button>
+    </div>
+  </div>
+
+  <div id="alerta" class="alert"></div>
+
+  <div class="hint">
+    <strong>Como usar:</strong> primeiro escolha <strong>Empresa</strong>, <strong>Filial</strong> e, se quiser, <strong>Fornecedor</strong>, <strong>Nota Fiscal</strong> e <strong>Localizacao</strong>.
+    Depois clique em <strong>Buscar</strong>, importe o ativo desejado e revise o cadastro antes de salvar no Patrimonio do Portal.
+  </div>
+
+  <div class="card">
+    <h2>1. Pesquisa guiada de ativos no Protheus</h2>
+    <div class="toolbar">
+      <div class="field">
+        <label>Empresa</label>
+        <select id="filtro-empresa"></select>
+      </div>
+      <div class="field">
+        <label>Filial</label>
+        <select id="filtro-filial"></select>
+      </div>
+      <div class="field">
+        <label>Localizacao</label>
+        <select id="filtro-local"></select>
+      </div>
+      <div class="field">
+        <label>Fornecedor</label>
+        <select id="filtro-fornecedor"></select>
+      </div>
+      <button class="btn btn-primary" type="button" id="btn-buscar"><i class="fas fa-search"></i> Buscar</button>
+    </div>
+    <div class="toolbar2">
+      <div class="field">
+        <label>Nota fiscal</label>
+        <select id="filtro-nota"></select>
+      </div>
+      <div class="field">
+        <label>Status</label>
+        <select id="filtro-status"></select>
+      </div>
+      <div class="field">
+        <label>Buscar por</label>
+        <select id="filtro-campo-busca">
+          <option value="codigo">Codigo</option>
+          <option value="descricao">Descricao</option>
+          <option value="serie">Numero de serie</option>
+          <option value="nota">Nota fiscal</option>
+          <option value="barra">Codigo de barras</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Valor da busca</label>
+        <input id="filtro-q" placeholder="Ex.: VEIC0005">
+      </div>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div>
+      <div class="card">
+        <h2>2. Resultado da pesquisa</h2>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Empresa</th>
+                <th>Filial</th>
+                <th>Codigo</th>
+                <th>Descricao</th>
+                <th>Fornecedor</th>
+                <th>NF</th>
+                <th>Local</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="tbody-ativos">
+              <tr><td colspan="8" class="muted">Carregando ativos...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>3. O que cada informacao significa</h2>
+        <ul class="small-list">
+          <li><strong>Empresa:</strong> codigo e nome reais do cadastro de empresas no Protheus.</li>
+          <li><strong>Filial:</strong> codigo completo da filial e nome da unidade no Protheus.</li>
+          <li><strong>Localizacao:</strong> codigo e descricao do local do bem no Protheus.</li>
+          <li><strong>Fornecedor:</strong> fornecedor vinculado ao ativo, exibido como codigo + nome.</li>
+          <li><strong>Nota fiscal:</strong> documento fiscal vinculado ao ativo.</li>
+          <li><strong>Codigo e descricao:</strong> campos minimos para criar o bem no Portal.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div>
+      <div class="card">
+        <h2>4. Cadastro de teste no Patrimonio do Portal</h2>
+
+        <div class="cad-section">
+          <h3>Dados principais</h3>
+          <div class="cad-grid">
+            <div class="field"><label>Codigo *</label><input id="cad-codigo"></div>
+            <div class="field"><label>Descricao *</label><input id="cad-descricao"></div>
+            <div class="field span-2"><label>Categoria</label><select id="cad-categoria"></select></div>
+          </div>
+        </div>
+
+        <div class="cad-section">
+          <h3>Origem Protheus</h3>
+          <div class="cad-grid">
+            <div class="field"><label>Empresa (Protheus)</label><select id="cad-empresa"></select></div>
+            <div class="field"><label>Filial (Protheus)</label><select id="cad-filial"></select></div>
+            <div class="field span-2"><label>Localizacao (Protheus)</label><select id="cad-local"></select></div>
+            <div class="field"><label>Status do bem (N1_STATUS)</label><select id="cad-status-protheus"></select></div>
+            <div class="field"><label>Motivo (FN6_MOTIVO)</label><select id="cad-motivo"></select></div>
+            <div class="field span-2"><label>Fornecedor</label><select id="cad-fornecedor"></select></div>
+            <div class="field"><label>Nota fiscal</label><select id="cad-nota"></select></div>
+            <div class="field"><label>Numero de serie</label><input id="cad-serie"></div>
+          </div>
+        </div>
+
+        <div class="cad-section">
+          <h3>Controle interno</h3>
+          <div class="cad-grid">
+            <div class="field"><label>Marca / Modelo</label><input id="cad-marca"></div>
+            <div class="field"><label>Unidade / tipo local no Portal</label><select id="cad-loc-tipo"></select></div>
+            <div class="field"><label>Status no Portal</label><select id="cad-status"><option>Ativo</option><option>Disponivel</option><option>Manutencao</option><option>Baixado</option></select></div>
+            <div class="field"><label>Estado</label><select id="cad-estado"><option>Novo</option><option selected>Bom</option><option>Regular</option><option>Danificado</option></select></div>
+            <div class="field"><label>Responsavel atual</label><input id="cad-responsavel" list="usuarios-datalist"></div>
+            <div class="field"><label>Setor atual</label><input id="cad-setor"></div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Observacoes</label>
+          <textarea id="cad-obs" placeholder="Nesta fase de teste, Empresa e Filial serao registradas aqui tambem para rastreabilidade."></textarea>
+        </div>
+
+        <div class="actions" style="margin-top:14px">
+          <button class="btn btn-success" type="button" id="btn-salvar-local"><i class="fas fa-floppy-disk"></i> Salvar no Patrimonio</button>
+          <button class="btn" type="button" id="btn-limpar-form"><i class="fas fa-eraser"></i> Limpar formulario</button>
+        </div>
+      </div>
+
+      <details>
+        <summary><i class="fas fa-sliders"></i> Avancado: mapeamento tecnico da tabela no Protheus</summary>
+        <div class="advanced">
+          <div class="grid2">
+            <div class="field"><label>Tabela de patrimonio</label><input id="map-tabela" value="SN1010"></div>
+            <div class="field"><label>Campo da filial</label><select id="map-filial"></select></div>
+            <div class="field"><label>Campo do codigo</label><select id="map-codigo"></select></div>
+            <div class="field"><label>Campo da descricao</label><select id="map-descricao"></select></div>
+            <div class="field"><label>Campo do fornecedor</label><select id="map-fornecedor"></select></div>
+            <div class="field"><label>Campo do local</label><select id="map-local"></select></div>
+            <div class="field"><label>Campo do numero de serie</label><select id="map-serie"></select></div>
+            <div class="field"><label>Campo da nota fiscal</label><select id="map-nota"></select></div>
+            <div class="field"><label>Campo do status</label><select id="map-status"></select></div>
+            <div class="field"><label>Campo do codigo de barras</label><select id="map-barra"></select></div>
+          </div>
+        </div>
+      </details>
+    </div>
+  </div>
+</div>
+
+<datalist id="usuarios-datalist"></datalist>
+
+<script>
+const STATUS_BEM_LABELS = {
+  '0': '0 - Pendente de classificacao',
+  '1': '1 - Em Uso',
+  '2': '2 - Bloqueado por usuario',
+  '3': '3 - Bloqueado por local',
+  '4': '4 - Transferencia interna entre filiais',
+};
+
+const MOTIVO_LABELS = {
+  '01': '01 - VENDA',
+  '02': '02 - EXTRAVIO',
+  '03': '03 - ROUBO',
+  '04': '04 - DOACAO',
+  '05': '05 - AVARIA',
+  '06': '06 - OBSOLESCENCIA',
+  '07': '07 - SUCATEAMENTO',
+  '09': '09 - REAVALIACAO A MENOR',
+  '10': '10 - TRANSFERENCIA',
+  '12': '12 - PENHORA',
+  '20': '20 - REVISAO DE PROJETO',
+  '21': '21 - ENCERRAMENTO DE PROJETO',
+  '22': '22 - REVISAO DO AJUSTE A VALOR PRESENTE',
+  '23': '23 - DEVOLUCAO',
+};
+
+const state = { schema: null, ativos: [], fornecedorMap: {}, empresaMap: {}, filialMap: {}, localMap: {}, filiaisCadastro: [], locaisCadastro: [] };
+
+function showAlert(msg, type = 'ok') {
+  const el = document.getElementById('alerta');
+  if (!msg) {
+    el.className = 'alert';
+    el.textContent = '';
+    return;
+  }
+  el.className = `alert ${type === 'err' ? 'err' : 'ok'}`;
+  el.innerHTML = msg;
+}
+
+function esc(v) {
+  return String(v ?? '').replace(/[&<>"]/g, (s) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[s]));
+}
+
+function fillSelect(id, items, selected = '', placeholder = 'Todos') {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.innerHTML = [`<option value="">${esc(placeholder)}</option>`]
+    .concat(items.map((item) => {
+      const value = typeof item === 'string' ? item : item.value;
+      const label = typeof item === 'string' ? item : (item.label || item.value);
+      return `<option value="${esc(value)}" ${String(value) === String(selected) ? 'selected' : ''}>${esc(label)}</option>`;
+    }))
+    .join('');
+}
+
+function optionListFromColumns(columns) {
+  return columns
+    .map((c) => c.COLUMN_NAME || c.column_name || c)
+    .map((v) => `<option value="${esc(v)}">${esc(v)}</option>`)
+    .join('');
+}
+
+function fornecedorLabel(f) {
+  return f.nome ? `${f.codigo}/${f.loja} - ${f.nome}` : `${f.codigo}/${f.loja}`;
+}
+
+function labelFromMap(mapObj, value, fallback = '') {
+  return mapObj?.[String(value || '')] || fallback || String(value || '');
+}
+
+function formatResultLabel(label) {
+  return String(label || '').replace(/\s-\s/g, ' -\n');
+}
+
+function buildStatusOptions(items) {
+  const options = (items || []).map((item) => {
+    const value = String(item.value || item).trim();
+    return { value, label: STATUS_BEM_LABELS[value] || value };
+  }).filter((item) => item.value);
+
+  if (!options.length) {
+    return Object.entries(STATUS_BEM_LABELS).map(([value, label]) => ({ value, label }));
+  }
+  return options;
+}
+
+function buildMotivoOptions(items) {
+  const options = (items || []).map((item) => {
+    const value = String(item.value || item).trim();
+    return { value, label: MOTIVO_LABELS[value] || value };
+  }).filter((item) => item.value);
+
+  if (!options.length) {
+    return Object.entries(MOTIVO_LABELS).map(([value, label]) => ({ value, label }));
+  }
+  return options;
+}
+
+function atualizarFiliaisCadastro() {
+  const empresaSelecionada = document.getElementById('cad-empresa').value || '';
+  const filialAtual = document.getElementById('cad-filial').value || '';
+  const filiaisBase = state.filiaisCadastro || [];
+  const filiaisFiltradas = empresaSelecionada
+    ? filiaisBase.filter((item) => String(item.empresa || '') === empresaSelecionada)
+    : filiaisBase;
+
+  fillSelect('cad-filial', filiaisFiltradas, filialAtual, 'Selecione...');
+
+  if (empresaSelecionada && filialAtual && !filiaisFiltradas.some((item) => String(item.value) === String(filialAtual))) {
+    document.getElementById('cad-filial').value = '';
+  }
+}
+
+async function carregarSchema() {
+  const r = await fetch('/api/patrimonio/protheus/schema');
+  const d = await r.json();
+  if (!r.ok || !d.sucesso) throw new Error(d.erro || 'Erro ao carregar schema do Protheus.');
+
+  state.schema = d;
+  state.empresaMap = {};
+  state.filialMap = {};
+  state.localMap = {};
+  state.filiaisCadastro = d.filiaisCadastro || d.filiais || [];
+  state.locaisCadastro = d.locaisCadastro || d.locais || [];
+
+  document.getElementById('map-tabela').value = d.tabela || 'SN1010';
+  const opts = optionListFromColumns(d.colunas || []);
+  ['map-codigo', 'map-descricao', 'map-fornecedor', 'map-local', 'map-serie', 'map-nota', 'map-status', 'map-barra', 'map-filial']
+    .forEach((id) => { document.getElementById(id).innerHTML = opts; });
+
+  document.getElementById('map-codigo').value = d.sugestoes.codigo;
+  document.getElementById('map-descricao').value = d.sugestoes.descricao;
+  document.getElementById('map-fornecedor').value = d.sugestoes.fornecedor;
+  document.getElementById('map-local').value = d.sugestoes.local;
+  document.getElementById('map-serie').value = d.sugestoes.serie;
+  document.getElementById('map-nota').value = d.sugestoes.nota;
+  document.getElementById('map-status').value = d.sugestoes.status;
+  document.getElementById('map-barra').value = d.sugestoes.barra;
+  document.getElementById('map-filial').value = d.sugestoes.filial;
+
+  (d.empresasCadastro || d.empresas || []).forEach((item) => { state.empresaMap[String(item.value || item)] = item.label || item.value || item; });
+  (d.filiaisCadastro || d.filiais || []).forEach((item) => { state.filialMap[String(item.value || item)] = item.label || item.value || item; });
+  (d.locaisCadastro || d.locais || []).forEach((item) => { state.localMap[String(item.value || item)] = item.label || item.value || item; });
+
+  fillSelect('filtro-empresa', d.empresas || [], '', 'Todas as empresas');
+  fillSelect('filtro-filial', d.filiais || [], '', 'Todas as filiais');
+  fillSelect('filtro-local', d.locais || [], '', 'Todas as localizacoes');
+  fillSelect('filtro-status', d.status || [], '', 'Todos os status');
+  fillSelect('filtro-nota', d.notas || [], '', 'Todas as notas');
+
+  const fornecedores = (d.fornecedores || []).map((f) => ({ value: f.codigo, label: fornecedorLabel(f) }));
+  (d.fornecedores || []).forEach((f) => { state.fornecedorMap[f.codigo] = fornecedorLabel(f); });
+  fillSelect('filtro-fornecedor', fornecedores, '', 'Todos os fornecedores');
+
+  fillSelect('cad-empresa', d.empresasCadastro || d.empresas || [], '', 'Selecione...');
+  fillSelect('cad-filial', state.filiaisCadastro, '', 'Selecione...');
+  fillSelect('cad-local', state.locaisCadastro, '', 'Selecione...');
+  fillSelect('cad-status-protheus', buildStatusOptions(d.statusBemCadastro || []), '', 'Selecione...');
+  fillSelect('cad-motivo', buildMotivoOptions(d.motivosCadastro || []), '', 'Selecione...');
+  fillSelect('cad-nota', d.notas || [], '', 'Selecione...');
+  fillSelect('cad-fornecedor', fornecedores, '', 'Selecione...');
+  atualizarFiliaisCadastro();
+}
+
+async function carregarCategorias() {
+  const r = await fetch('/api/patrimonio/categorias');
+  const d = await r.json();
+  if (!d.sucesso) return;
+  document.getElementById('cad-categoria').innerHTML = '<option value="">Selecione...</option>' + d.categorias.map((c) => `<option value="${esc(c.nome)}">${esc(c.nome)}</option>`).join('');
+}
+
+async function carregarUnidades() {
+  const r = await fetch('/api/patrimonio/unidades');
+  const d = await r.json();
+  if (!d.sucesso) return;
+  document.getElementById('cad-loc-tipo').innerHTML = '<option value="">Selecione...</option>' + d.unidades.map((u) => `<option value="${esc(u.nome)}">${esc(u.nome)}</option>`).join('');
+}
+
+async function carregarUsuarios() {
+  const r = await fetch('/api/patrimonio/usuarios');
+  const d = await r.json();
+  if (!d.sucesso) return;
+  document.getElementById('usuarios-datalist').innerHTML = d.usuarios.map((u) => `<option value="${esc(u.nome)}">${esc(u.login)}</option>`).join('');
+}
+
+function getMapeamento() {
+  return {
+    tabela: document.getElementById('map-tabela').value.trim() || 'SN1010',
+    campoCodigo: document.getElementById('map-codigo').value,
+    campoDescricao: document.getElementById('map-descricao').value,
+    campoFornecedor: document.getElementById('map-fornecedor').value,
+    campoLocal: document.getElementById('map-local').value,
+    campoSerie: document.getElementById('map-serie').value,
+    campoNota: document.getElementById('map-nota').value,
+    campoStatus: document.getElementById('map-status').value,
+    campoBarra: document.getElementById('map-barra').value,
+    campoFilial: document.getElementById('map-filial').value,
+  };
+}
+
+async function buscarAtivos() {
+  showAlert('');
+  const params = new URLSearchParams({
+    ...getMapeamento(),
+    empresa: document.getElementById('filtro-empresa').value,
+    filial: document.getElementById('filtro-filial').value,
+    local: document.getElementById('filtro-local').value,
+    fornecedor: document.getElementById('filtro-fornecedor').value,
+    nota: document.getElementById('filtro-nota').value,
+    status: document.getElementById('filtro-status').value,
+    campoBusca: document.getElementById('filtro-campo-busca').value,
+    q: document.getElementById('filtro-q').value.trim(),
+    limite: '80',
+  });
+
+  const tbody = document.getElementById('tbody-ativos');
+  tbody.innerHTML = '<tr><td colspan="8" class="muted">Buscando ativos no Protheus...</td></tr>';
+
+  const r = await fetch('/api/patrimonio/protheus/ativos?' + params.toString());
+  const d = await r.json();
+  if (!r.ok || !d.sucesso) throw new Error(d.erro || 'Erro ao buscar ativos.');
+
+  state.ativos = d.ativos || [];
+  if (!state.ativos.length) {
+    tbody.innerHTML = '<tr><td colspan="8" class="muted">Nenhum ativo encontrado.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = state.ativos.map((item, i) => {
+    const empresaLabel = item.empresa_label || labelFromMap(state.empresaMap, item.empresa, item.empresa) || '-';
+    const filialLabel = item.filial_label || labelFromMap(state.filialMap, item.filial, item.filial) || '-';
+    const localLabel = item.local_label || labelFromMap(state.localMap, item.local, item.local) || '-';
+    return `<tr>
+      <td class="result-label">${esc(formatResultLabel(empresaLabel))}</td>
+      <td class="result-label">${esc(formatResultLabel(filialLabel))}</td>
+      <td><span class="badge badge-info">${esc(item.codigo || '-')}</span></td>
+      <td>${esc((item.descricao || '').trim() || '-')}</td>
+      <td>${esc(state.fornecedorMap[item.fornecedor] || item.fornecedor || '-')}</td>
+      <td>${esc(item.nota_fiscal || '-')}</td>
+      <td class="result-label">${esc(formatResultLabel(localLabel))}</td>
+      <td><button class="btn btn-primary" type="button" onclick="importarAtivo(${i})">Importar</button></td>
+    </tr>`;
+  }).join('');
+}
+
+window.importarAtivo = function importarAtivo(idx) {
+  const item = state.ativos[idx];
+  if (!item) return;
+
+  const empresaLabel = item.empresa_label || labelFromMap(state.empresaMap, item.empresa, item.empresa) || '-';
+  const filialLabel = item.filial_label || labelFromMap(state.filialMap, item.filial, item.filial) || '-';
+  const localLabel = item.local_label || labelFromMap(state.localMap, item.local, item.local) || '-';
+
+  document.getElementById('cad-codigo').value = item.codigo || '';
+  document.getElementById('cad-descricao').value = (item.descricao || '').trim();
+  document.getElementById('cad-fornecedor').value = item.fornecedor || '';
+  document.getElementById('cad-nota').value = item.nota_fiscal || '';
+  document.getElementById('cad-serie').value = item.num_serie || '';
+  document.getElementById('cad-status-protheus').value = item.status || '';
+  document.getElementById('cad-empresa').value = item.empresa || '';
+  atualizarFiliaisCadastro();
+  document.getElementById('cad-filial').value = item.filial || '';
+  document.getElementById('cad-local').value = item.local || '';
+  document.getElementById('cad-obs').value =
+    `Importado do Protheus (${document.getElementById('map-tabela').value})\n` +
+    `Empresa: ${empresaLabel}\n` +
+    `Filial: ${filialLabel}\n` +
+    `Fornecedor: ${state.fornecedorMap[item.fornecedor] || item.fornecedor || '-'}\n` +
+    `Status Protheus: ${item.status || '-'}\n` +
+    `Localizacao: ${localLabel}\n` +
+    `Codigo de barras: ${item.codigo_barras || '-'}`;
+
+  showAlert(`Ativo ${esc(item.codigo || '')} importado para o formulario de teste.`);
+};
+
+async function salvarMapeamento() {
+  const map = getMapeamento();
+  const payload = {
+    protheus_patrimonio_tabela: map.tabela,
+    protheus_patrimonio_alias: map.tabela,
+    protheus_patrimonio_campo_codigo: map.campoCodigo,
+    protheus_patrimonio_campo_descricao: map.campoDescricao,
+    protheus_patrimonio_campo_fornecedor: map.campoFornecedor,
+    protheus_patrimonio_campo_local: map.campoLocal,
+    protheus_patrimonio_campo_num_serie: map.campoSerie,
+    protheus_patrimonio_campo_nota_fiscal: map.campoNota,
+    protheus_patrimonio_campo_status: map.campoStatus,
+    protheus_patrimonio_campo_codigo_barras: map.campoBarra,
+    protheus_patrimonio_campo_filial: map.campoFilial,
+  };
+
+  const r = await fetch('/api/configuracoes', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ grupo: 'protheus', configuracoes: payload }),
+  });
+  const d = await r.json().catch(() => ({}));
+  if (!r.ok || d.erro) throw new Error(d.erro || 'Erro ao salvar mapeamento.');
+  showAlert('Mapeamento tecnico salvo com sucesso.');
+}
+
+async function salvarLocal() {
+  const empresa = document.getElementById('cad-empresa').value || '';
+  const filial = document.getElementById('cad-filial').value || '';
+  const local = document.getElementById('cad-local').value || '';
+  const statusProtheus = document.getElementById('cad-status-protheus').value || '';
+  const motivo = document.getElementById('cad-motivo').value || '';
+  const fornecedorCodigo = document.getElementById('cad-fornecedor').value || '';
+  const notaFiscal = document.getElementById('cad-nota').value || '';
+
+  const obsExtra = [
+    document.getElementById('cad-obs').value.trim(),
+    empresa ? `Empresa Protheus: ${labelFromMap(state.empresaMap, empresa, empresa)}` : '',
+    filial ? `Filial Protheus: ${labelFromMap(state.filialMap, filial, filial)}` : '',
+    local ? `Localizacao Protheus: ${labelFromMap(state.localMap, local, local)}` : '',
+    statusProtheus ? `Status Protheus: ${statusProtheus}` : '',
+    motivo ? `Motivo Protheus: ${motivo}` : '',
+    fornecedorCodigo ? `Fornecedor Protheus: ${state.fornecedorMap[fornecedorCodigo] || fornecedorCodigo}` : '',
+    notaFiscal ? `NF Protheus: ${notaFiscal}` : '',
+  ].filter(Boolean).join('\n');
+
+  const payload = {
+    codigo: document.getElementById('cad-codigo').value.trim(),
+    descricao: document.getElementById('cad-descricao').value.trim(),
+    categoria: document.getElementById('cad-categoria').value || null,
+    marca: document.getElementById('cad-marca').value.trim() || null,
+    num_serie: document.getElementById('cad-serie').value.trim() || null,
+    fornecedor: state.fornecedorMap[fornecedorCodigo] || fornecedorCodigo || null,
+    nota_fiscal: notaFiscal || null,
+    loc_tipo: document.getElementById('cad-loc-tipo').value || null,
+    loc_detalhe: labelFromMap(state.localMap, local, local) || null,
+    loc_obs: obsExtra || null,
+    estado: document.getElementById('cad-estado').value,
+    status: document.getElementById('cad-status').value,
+    responsavel_atual: document.getElementById('cad-responsavel').value.trim() || null,
+    setor_atual: document.getElementById('cad-setor').value.trim() || null,
+  };
+
+  const r = await fetch('/api/patrimonio/bens', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  const d = await r.json().catch(() => ({}));
+  if (!r.ok || d.erro) throw new Error(d.erro || 'Erro ao salvar no Patrimonio.');
+  showAlert(`Cadastro de teste salvo com sucesso. Bem #${d.id}.`);
+}
+
+function limparFormulario() {
+  ['cad-codigo', 'cad-descricao', 'cad-serie', 'cad-marca', 'cad-responsavel', 'cad-setor', 'cad-obs'].forEach((id) => {
+    document.getElementById(id).value = '';
+  });
+  ['cad-categoria', 'cad-empresa', 'cad-filial', 'cad-local', 'cad-status-protheus', 'cad-motivo', 'cad-fornecedor', 'cad-nota', 'cad-loc-tipo'].forEach((id) => {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('cad-status').value = 'Ativo';
+  document.getElementById('cad-estado').value = 'Bom';
+}
+
+document.getElementById('btn-buscar').addEventListener('click', () => buscarAtivos().catch((e) => showAlert(e.message, 'err')));
+document.getElementById('btn-salvar-mapeamento').addEventListener('click', () => salvarMapeamento().catch((e) => showAlert(e.message, 'err')));
+document.getElementById('btn-salvar-local').addEventListener('click', () => salvarLocal().catch((e) => showAlert(e.message, 'err')));
+document.getElementById('btn-limpar-form').addEventListener('click', limparFormulario);
+document.getElementById('cad-empresa').addEventListener('change', atualizarFiliaisCadastro);
+
+(async function init() {
+  try {
+    await Promise.all([carregarSchema(), carregarCategorias(), carregarUnidades(), carregarUsuarios()]);
+    await buscarAtivos();
+  } catch (e) {
+    showAlert(e.message, 'err');
+  }
+}());
+</script>
+<script src="/js/menu.js"></script>
+</body>
+</html>

@@ -1,0 +1,32 @@
+{
+  "items": [
+    {
+      "localPath": "public/baseConhecimento/index.html",
+      "remotePath": "/var/www/html/wkl/Portal/public/baseConhecimento/index.html"
+    },
+    {
+      "localPath": "public/baseConhecimento/css/conhecimento.css",
+      "remotePath": "/var/www/html/wkl/Portal/public/baseConhecimento/css/conhecimento.css"
+    },
+    {
+      "localPath": "public/baseConhecimento/js/core-editor.js",
+      "remotePath": "/var/www/html/wkl/Portal/public/baseConhecimento/js/core-editor.js"
+    },
+    {
+      "localPath": "public/baseConhecimento/js/core-artigos.js",
+      "remotePath": "/var/www/html/wkl/Portal/public/baseConhecimento/js/core-artigos.js"
+    },
+    {
+      "localPath": "public/baseConhecimento/js/core-init.js",
+      "remotePath": "/var/www/html/wkl/Portal/public/baseConhecimento/js/core-init.js"
+    },
+    {
+      "localPath": "public/baseConhecimento/js/core-ui.js",
+      "remotePath": "/var/www/html/wkl/Portal/public/baseConhecimento/js/core-ui.js"
+    },
+    {
+      "localPath": "public/baseConhecimento/js/core-state.js",
+      "remotePath": "/var/www/html/wkl/Portal/public/baseConhecimento/js/core-state.js"
+    }
+  ]
+}

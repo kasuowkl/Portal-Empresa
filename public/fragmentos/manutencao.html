@@ -220,6 +220,12 @@
     <button class="man-btn-limpeza" onclick="abrirModalLimpeza('contatos','Agenda Contatos')">
       <i class="fas fa-address-book"></i> Agenda Contatos
     </button>
+    <button class="man-btn-limpeza" onclick="abrirModalLimpeza('projetos','Agenda Projetos')">
+      <i class="fas fa-diagram-project"></i> Agenda Projetos
+    </button>
+    <button class="man-btn-limpeza" onclick="abrirModalLimpeza('conhecimento','Base de Conhecimento')">
+      <i class="fas fa-book"></i> Base de Conhecimento
+    </button>
     <button class="man-btn-limpeza" onclick="abrirModalLimpeza('logs','Logs de Atividade')">
       <i class="fas fa-clipboard-list"></i> Logs de Atividade
     </button>
@@ -270,6 +276,10 @@
     <label>
       <input type="checkbox" id="chk-contatos" checked>
       <i class="fas fa-address-book" style="color:var(--cor-destaque)"></i> Agenda Contatos
+    </label>
+    <label>
+      <input type="checkbox" id="chk-projetos" checked>
+      <i class="fas fa-diagram-project" style="color:var(--cor-destaque)"></i> Agenda Projetos
     </label>
     <label>
       <input type="checkbox" id="chk-calendarios" checked>
@@ -483,6 +493,7 @@
     if (document.getElementById('chk-financeiro').checked)   sistemas.push('financeiro');
     if (document.getElementById('chk-contabil').checked)     sistemas.push('contabil');
     if (document.getElementById('chk-contatos').checked)     sistemas.push('contatos');
+    if (document.getElementById('chk-projetos').checked)     sistemas.push('projetos');
     if (document.getElementById('chk-calendarios').checked)  sistemas.push('calendarios');
 
     if (!origem || !destino)       { mostrarAlerta('Selecione origem e destino.', 'erro'); return; }

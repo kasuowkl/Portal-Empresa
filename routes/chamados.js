@@ -17,6 +17,8 @@ const router  = express.Router();
 const sql     = require('mssql');
 const { enviarNotificacao } = require('../services/emailService');
 const { registrarLog }     = require('../services/logService');
+const { enviarNotificacaoWhatsAppPorChips, normalizarLogins } = require('../services/whatsappDispatchService');
+const { renderizarMensagemWhatsApp } = require('../services/whatsappTemplateService');
 
 // ── Middleware ─────────────────────────────────────────────────
 function verificarLogin(req, res, next) {
@@ -83,6 +85,86 @@ async function addHistorico(pool, chamadoId, login, narrativa, msg = null) {
     .input('msg',        sql.VarChar, msg)
     .query(`INSERT INTO chamados_historico (chamado_id, login, narrativa, msg)
             VALUES (@chamado_id, @login, @narrativa, @msg)`);
+}
+
+async function garantirSetor(pool, setor) {
+  if (!setor) return;
+  await pool.request()
+    .input('nome', sql.VarChar, setor)
+    .query(`
+      IF NOT EXISTS (SELECT 1 FROM chamados_setores WHERE nome = @nome)
+        INSERT INTO chamados_setores (nome) VALUES (@nome)
+    `);
+}
+
+function montarBlocoLinhas(titulo, linhas) {
+  const validas = (linhas || []).filter(Boolean);
+  if (!validas.length) return '';
+  return `${titulo}\n${validas.map(l => `- ${l}`).join('\n')}`;
+}
+
+function montarDetalheSolicitacaoUsuario(payload, solicitante) {
+  const colaborador = payload?.colaborador || {};
+  const acessos = Array.isArray(payload?.acessos) ? payload.acessos : [];
+  const equipamentos = Array.isArray(payload?.equipamentos) ? payload.equipamentos : [];
+
+  const blocoSolicitante = montarBlocoLinhas('SOLICITANTE', [
+    `Nome: ${solicitante?.nome || solicitante?.login || '-'}`,
+    `Login: ${solicitante?.login || '-'}`,
+    solicitante?.tipo ? `Tipo: ${solicitante.tipo}` : null,
+  ]);
+
+  const blocoColaborador = montarBlocoLinhas('DADOS DO COLABORADOR', [
+    colaborador.nome_completo ? `Nome completo: ${colaborador.nome_completo}` : null,
+    colaborador.nome_social ? `Nome social: ${colaborador.nome_social}` : null,
+    colaborador.cpf ? `CPF: ${colaborador.cpf}` : null,
+    colaborador.data_nascimento ? `Data de nascimento: ${colaborador.data_nascimento}` : null,
+    colaborador.empresa ? `Empresa/Unidade: ${colaborador.empresa}` : null,
+    colaborador.filial ? `Filial/Local: ${colaborador.filial}` : null,
+    colaborador.departamento ? `Departamento: ${colaborador.departamento}` : null,
+    colaborador.centro_custo ? `Centro de custo: ${colaborador.centro_custo}` : null,
+    colaborador.cargo ? `Cargo/Função: ${colaborador.cargo}` : null,
+    colaborador.gestor ? `Gestor imediato: ${colaborador.gestor}` : null,
+    colaborador.tipo_vinculo ? `Vínculo: ${colaborador.tipo_vinculo}` : null,
+    colaborador.data_admissao ? `Data de admissão: ${colaborador.data_admissao}` : null,
+    colaborador.jornada ? `Jornada/Turno: ${colaborador.jornada}` : null,
+  ]);
+
+  const blocoConta = montarBlocoLinhas('IDENTIDADE DIGITAL', [
+    colaborador.login_desejado ? `Login desejado: ${colaborador.login_desejado}` : null,
+    colaborador.email_pessoal ? `E-mail pessoal: ${colaborador.email_pessoal}` : null,
+    colaborador.telefone ? `Telefone/Ramal: ${colaborador.telefone}` : null,
+  ]);
+
+  const blocoAcessos = montarBlocoLinhas('ACESSOS E PERMISSOES', acessos.map((item) => {
+    const nome = String(item?.nome || '').trim();
+    if (!nome) return null;
+    const perfil = String(item?.perfil || '').trim();
+    return perfil ? `${nome} | Perfil/Permissão: ${perfil}` : nome;
+  }));
+
+  const blocoEquipamentos = montarBlocoLinhas('EQUIPAMENTOS E RECURSOS', equipamentos.map((item) => {
+    const nome = String(item?.nome || '').trim();
+    if (!nome) return null;
+    const detalhe = String(item?.detalhe || '').trim();
+    return detalhe ? `${nome} | Detalhe: ${detalhe}` : nome;
+  }));
+
+  const blocoOperacional = montarBlocoLinhas('ENTREGA E OBSERVACOES', [
+    payload?.prazo_necessario ? `Data necessária: ${payload.prazo_necessario}` : null,
+    payload?.prioridade ? `Prioridade: ${payload.prioridade}` : null,
+    payload?.observacoes ? `Observações: ${payload.observacoes}` : null,
+  ]);
+
+  return [
+    'Solicitação de criação de usuário enviada pelo RH.',
+    blocoSolicitante,
+    blocoColaborador,
+    blocoConta,
+    blocoAcessos,
+    blocoEquipamentos,
+    blocoOperacional,
+  ].filter(Boolean).join('\n\n');
 }
 
 /** Formata e envia notificação Telegram para um evento de chamado (fire-and-forget) */
@@ -157,6 +239,84 @@ async function buscarEmailsSetor(pool, setor, cargos) {
   } catch (e) { return []; }
 }
 
+async function buscarLoginsSetor(pool, setor, cargos) {
+  try {
+    const lista = cargos.map(c => `'${c}'`).join(',');
+    const r = await pool.request()
+      .query(`SELECT p.login, p.setores
+              FROM chamados_perfis p
+              WHERE p.cargo IN (${lista})`);
+    return normalizarLogins(r.recordset
+      .filter(row => {
+        const s = JSON.parse(row.setores || '[]');
+        return s.length === 0 || s.includes(setor);
+      })
+      .map(row => row.login));
+  } catch {
+    return [];
+  }
+}
+
+async function enviarNotificacaoWhatsAppChamado(pool, logErro, chamado, evento) {
+  try {
+    const mapa = {
+      'Aberto':         'chamados.novo',
+      'Em Atendimento': 'chamados.atribuido',
+      'Respondido':     'chamados.nova_mensagem',
+      'Finalizado':     'chamados.concluido',
+      'Reaberto':       'chamados.reaberto',
+      'TRANSFERIDO':    'chamados.transferido',
+      'APROVACAO':      'chamados.aprovacao_solicitada',
+      'APROVADO':       'chamados.aprovacao_concluida',
+      'REPROVADO':      'chamados.aprovacao_concluida',
+    };
+    const tipo = mapa[evento];
+    if (!tipo) return;
+    const eventoLabel = {
+      'Aberto': 'Novo chamado',
+      'Em Atendimento': 'Chamado em atendimento',
+      'Respondido': 'Nova resposta no chamado',
+      'Finalizado': 'Chamado finalizado',
+      'Reaberto': 'Chamado reaberto',
+      'TRANSFERIDO': 'Chamado transferido',
+      'APROVACAO': 'Aprovação solicitada',
+      'APROVADO': 'Aprovação concluída: aprovado',
+      'REPROVADO': 'Aprovação concluída: reprovado',
+    };
+
+    const [tecnicos, gestores] = await Promise.all([
+      buscarLoginsSetor(pool, chamado.setor, ['TECNICO']),
+      buscarLoginsSetor(pool, chamado.setor, ['GESTOR']),
+    ]);
+
+    const mensagem = await renderizarMensagemWhatsApp(pool, 'chamados.evento_padrao', {
+      evento_label: eventoLabel[evento] || evento,
+      protocolo: chamado.protocolo || '-',
+      setor: chamado.setor || '-',
+      assunto: String(chamado.assunto || '').substring(0, 120),
+      solicitante: chamado.nome_solicitante || chamado.login_solicitante || '-',
+      link: 'http://192.168.0.80:3132/chamados/',
+    });
+
+    await enviarNotificacaoWhatsAppPorChips(pool, {
+      evento: tipo,
+      sistema: 'chamados',
+      mensagem,
+      usuario: chamado.login_solicitante || chamado.login_atendedor || 'sistema',
+      ip: '::1',
+      mapaChips: {
+        tecnicos_setor: tecnicos,
+        gestores_setor: gestores,
+        solicitante: chamado.login_solicitante ? [chamado.login_solicitante] : [],
+        tecnico_responsavel: chamado.login_atendedor ? [chamado.login_atendedor] : [],
+        aprovador: chamado.aprovador_login ? [chamado.aprovador_login] : [],
+      },
+    });
+  } catch (e) {
+    if (logErro?.error) logErro.error(`WhatsApp chamados [${evento}]: ${e.message}`);
+  }
+}
+
 /** Envia notificação por email para um evento de chamado (fire-and-forget) */
 async function enviarNotificacaoEmail(pool, logErro, chamado, evento) {
   console.log(`[Email chamados] enviarNotificacaoEmail chamada: evento=${evento} setor=${chamado?.setor} protocolo=${chamado?.protocolo}`);
@@ -193,6 +353,7 @@ async function enviarNotificacaoEmail(pool, logErro, chamado, evento) {
       aprovado: evento === 'APROVADO',
       observacao: chamado.justificativa,
     });
+    await enviarNotificacaoWhatsAppChamado(pool, logErro, chamado, evento);
   } catch (e) {
     if (logErro?.error) logErro.error(`Email chamados [${evento}]: ${e.message}`);
   }
@@ -224,6 +385,10 @@ router.get('/chamados/tv', verificarLogin, (_req, res) => {
 
 router.get('/chamados/relatorios', verificarLogin, (req, res) => {
   res.sendFile(path.join(__dirname, '../public/chamados/relatoriosChamados.html'));
+});
+
+router.get('/solicitacoes/novo-usuario', verificarLogin, (req, res) => {
+  res.sendFile(path.join(__dirname, '../public/solicitacoes/novo-usuario.html'));
 });
 
 // ============================================================
@@ -402,6 +567,120 @@ router.post('/api/chamados/sincronizar-setores-dominio', verificarLogin, async (
 
     res.json({ ok: true, criados, total: r.recordset.length });
   } catch (e) { res.status(500).json({ erro: e.message }); }
+});
+
+router.get('/api/chamados/solicitacao-usuario/base', verificarLogin, async (req, res) => {
+  try {
+    const pool = req.app.locals.pool;
+    const u = req.session.usuario || {};
+
+    const [depsR, usuariosR] = await Promise.all([
+      pool.request().query(`
+        SELECT DISTINCT LTRIM(RTRIM(departamento)) AS departamento
+        FROM usuarios_dominio
+        WHERE ativo = 1
+          AND departamento IS NOT NULL
+          AND LTRIM(RTRIM(departamento)) <> ''
+        ORDER BY departamento
+      `),
+      pool.request().query(`
+        SELECT nome, login
+        FROM usuarios_dominio
+        WHERE ativo = 1
+        UNION
+        SELECT nome, usuario AS login
+        FROM usuarios
+        WHERE ativo = 1
+        ORDER BY nome
+      `),
+    ]);
+
+    res.json({
+      solicitante: {
+        nome: u.nome || '',
+        login: u.usuario || u.login || '',
+        nivel: u.nivel || '',
+        tipo: u.tipo || 'local',
+      },
+      departamentos: depsR.recordset.map(r => r.departamento).filter(Boolean),
+      usuarios: usuariosR.recordset,
+    });
+  } catch (e) {
+    res.status(500).json({ erro: e.message });
+  }
+});
+
+router.post('/api/chamados/solicitacao-usuario', verificarLogin, async (req, res) => {
+  try {
+    const pool  = req.app.locals.pool;
+    const u     = req.session.usuario || {};
+    const login = u.usuario || u.login;
+    const payload = req.body || {};
+    const colaborador = payload.colaborador || {};
+
+    const nomeCompleto = String(colaborador.nome_completo || '').trim();
+    const departamento = String(colaborador.departamento || '').trim();
+    const cargo = String(colaborador.cargo || '').trim();
+    const dataAdmissao = String(colaborador.data_admissao || '').trim();
+
+    if (!nomeCompleto || !departamento || !cargo || !dataAdmissao) {
+      return res.status(400).json({ erro: 'Preencha nome completo, departamento, cargo e data de admissão.' });
+    }
+
+    const acessos = Array.isArray(payload.acessos) ? payload.acessos.filter(i => i && i.nome) : [];
+    const equipamentos = Array.isArray(payload.equipamentos) ? payload.equipamentos.filter(i => i && i.nome) : [];
+    if (!acessos.length && !equipamentos.length) {
+      return res.status(400).json({ erro: 'Selecione ao menos um acesso/permissão ou equipamento.' });
+    }
+
+    const setor = 'TI';
+    await garantirSetor(pool, setor);
+
+    const assunto = `Criacao de usuario - ${nomeCompleto}`;
+    const detalhe = montarDetalheSolicitacaoUsuario(payload, {
+      nome: u.nome || login,
+      login,
+      tipo: u.tipo || 'local',
+    });
+    const protocolo = await gerarProtocolo(pool, setor);
+
+    const r = await pool.request()
+      .input('protocolo',         sql.VarChar, protocolo)
+      .input('login_solicitante', sql.VarChar, login)
+      .input('nome_solicitante',  sql.VarChar, u.nome || login)
+      .input('setor',             sql.VarChar, setor)
+      .input('assunto',           sql.VarChar, assunto)
+      .input('detalhe',           sql.VarChar, detalhe)
+      .query(`INSERT INTO chamados
+               (protocolo, login_solicitante, nome_solicitante, setor, assunto, detalhe, status)
+              OUTPUT INSERTED.id
+              VALUES (@protocolo,@login_solicitante,@nome_solicitante,@setor,@assunto,@detalhe,'Aberto')`);
+
+    const id = r.recordset[0].id;
+    await addHistorico(pool, id, login, `${u.nome || login} abriu uma solicitacao de criacao de usuario`, detalhe);
+
+    const notif = {
+      protocolo,
+      setor,
+      assunto,
+      nome_solicitante: u.nome || login,
+      login_solicitante: login,
+    };
+    enviarNotificacaoTelegram(pool, req.app.locals.logErro, notif, 'Aberto').catch(() => {});
+    enviarNotificacaoEmail(pool, req.app.locals.logErro, notif, 'Aberto').catch(() => {});
+    enviarNotificacaoWhatsAppChamado(pool, req.app.locals.logErro, notif, 'Aberto').catch(() => {});
+    registrarLog(pool, {
+      usuario: login,
+      ip: req.ip,
+      acao: 'CRIACAO',
+      sistema: 'chamados',
+      detalhes: `Solicitacao de criacao de usuario enviada para TI - ${nomeCompleto}`,
+    });
+
+    res.json({ id, protocolo, mensagem: 'Solicitação enviada para a TI com sucesso.' });
+  } catch (e) {
+    res.status(500).json({ erro: e.message });
+  }
 });
 
 // ============================================================

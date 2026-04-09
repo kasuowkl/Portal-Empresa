@@ -181,6 +181,7 @@
         <h4>Nesta página</h4>
         <a href="#login">Login e Sessão</a>
         <a href="#navegacao">Navegação</a>
+        <a href="#integracao">Integra&ccedil;&atilde;o Central</a>
         <a href="#modulos">Módulos</a>
         <a href="#sistemas">Sistemas e Serviços</a>
         <a href="#configuracoes">Configurações</a>
@@ -208,7 +209,7 @@
         <i class="fas fa-home"></i> Portal WKL
       </div>
       <div class="doc-subtitulo">
-        Guia de uso do portal de sistemas e serviços internos.
+        Guia de uso do Portal WKL como ponto central de acesso, integra&ccedil;&atilde;o, autentica&ccedil;&atilde;o, notifica&ccedil;&otilde;es e auditoria dos sistemas internos.
       </div>
 
       <!-- LOGIN -->
@@ -244,6 +245,53 @@
       </section>
 
       <!-- MÓDULOS -->
+
+      <!-- INTEGRACAO -->
+      <section class="doc-secao" id="integracao">
+        <h2><i class="fas fa-project-diagram"></i> Integra&ccedil;&atilde;o Central</h2>
+        <p>O Portal WKL n&atilde;o &eacute; apenas uma tela inicial. Ele funciona como a <strong>camada central de integra&ccedil;&atilde;o</strong> entre acesso, usu&aacute;rios, configura&ccedil;&otilde;es, notificadores, logs e subsistemas operacionais da empresa.</p>
+
+        <div class="doc-card">
+          <h4><i class="fas fa-users" style="color:#4e9af1; margin-right:6px"></i> Usu&aacute;rios Locais e Usu&aacute;rios AD</h4>
+          <p>O portal concentra o cadastro, ativa&ccedil;&atilde;o, permiss&otilde;es, senhas, n&iacute;vel de acesso e dados de contato dos usu&aacute;rios locais, al&eacute;m do controle de quais usu&aacute;rios do Active Directory podem entrar nos m&oacute;dulos da plataforma.</p>
+        </div>
+
+        <div class="doc-card">
+          <h4><i class="fas fa-bell" style="color:#f59e0b; margin-right:6px"></i> Notifica&ccedil;&otilde;es</h4>
+          <p>As notifica&ccedil;&otilde;es dos m&oacute;dulos passam pelo portal, que centraliza regras por evento, destinat&aacute;rios e ativa&ccedil;&atilde;o de envios. Hoje isso cobre e-mail, WhatsApp, Telegram e alertas internos do sistema, conforme o m&oacute;dulo integrado.</p>
+        </div>
+
+        <div class="doc-card">
+          <h4><i class="fab fa-telegram-plane" style="color:#0088cc; margin-right:6px"></i> Telegram</h4>
+          <p>O portal guarda token, grupos e regras de entrega usados por integra&ccedil;&otilde;es que enviam alertas para equipes e setores.</p>
+        </div>
+
+        <div class="doc-card">
+          <h4><i class="fab fa-whatsapp" style="color:#00a884; margin-right:6px"></i> WhatsApp</h4>
+          <p>O portal controla a URL do servi&ccedil;o, API Key, n&uacute;mero padr&atilde;o, delay entre mensagens, eventos por subsistema, chips de destinat&aacute;rios e os logs de cada tentativa de envio.</p>
+        </div>
+
+        <div class="doc-card">
+          <h4><i class="fas fa-envelope" style="color:#f59e0b; margin-right:6px"></i> E-mail (SMTP)</h4>
+          <p>O servidor SMTP e os eventos por m&oacute;dulo ficam centralizados no portal, permitindo testar envios, ativar/desativar notifica&ccedil;&otilde;es e definir destinat&aacute;rios por chips.</p>
+        </div>
+
+        <div class="doc-card">
+          <h4><i class="fas fa-clipboard-list" style="color:#6b7280; margin-right:6px"></i> Logs e Auditoria</h4>
+          <p>Os registros de login, cria&ccedil;&atilde;o, edi&ccedil;&atilde;o, exclus&atilde;o, automa&ccedil;&otilde;es, notifica&ccedil;&otilde;es e integra&ccedil;&otilde;es ficam consolidados em <strong>Configura&ccedil;&otilde;es &rarr; Logs</strong>, facilitando rastrear o que aconteceu em cada m&oacute;dulo.</p>
+        </div>
+
+        <div class="doc-card">
+          <h4><i class="fas fa-plug" style="color:#8b5cf6; margin-right:6px"></i> Sistemas, Servi&ccedil;os e M&oacute;dulos</h4>
+          <p>O portal tamb&eacute;m concentra os atalhos, manifesta&ccedil;&atilde;o visual e configura&ccedil;&otilde;es compartilhadas dos sistemas integrados, como Agenda de Tarefas, Agenda Financeira, Agenda Cont&aacute;bil, Chamados, Patrim&ocirc;nio, Aprova&ccedil;&otilde;es, Contatos, Conhecimento e outros servi&ccedil;os internos.</p>
+        </div>
+
+        <div class="doc-info">
+          <i class="fas fa-info-circle" style="color:var(--cor-destaque); margin-right:6px"></i>
+          Em resumo, o Portal WKL &eacute; o lugar onde a empresa administra <strong>quem acessa</strong>, <strong>o que aparece</strong>, <strong>como os alertas s&atilde;o enviados</strong> e <strong>como tudo &eacute; auditado</strong>.
+        </div>
+      </section>
+
       <section class="doc-secao" id="modulos">
         <h2><i class="fas fa-th-large"></i> Módulos Disponíveis</h2>
         <p>O Portal WKL integra os seguintes módulos acessíveis pelo menu superior:</p>
@@ -313,8 +361,12 @@
           <p>Configurar notificações Telegram do portal (token do bot e grupos por funcionalidade).</p>
         </div>
         <div class="doc-card">
+          <h4><i class="fab fa-whatsapp" style="color:#00a884; margin-right:6px"></i> WhatsApp</h4>
+          <p>Configurar integração do WhatsApp por módulo, com URL do serviço, API Key, número padrão, delay entre envios e eventos separados por sub-abas como Portal, Chamados, Ag. Tarefas, Financeiro, Ag. Contábil, Contatos, Patrimônio e Aprovações.</p>
+        </div>
+        <div class="doc-card">
           <h4><i class="fas fa-envelope" style="color:#f59e0b; margin-right:6px"></i> Email (SMTP)</h4>
-          <p>Configurar servidor de e-mail e notificações por módulo. Organizado em sub-abas: <strong>Configuração</strong>, Portal, Chamados, Patrimônio, Ag. Tarefas, Financeiro e Contatos. Em cada sub-aba é possível ativar eventos individualmente e escolher destinatários por chips clicáveis. <a href="#email-smtp" style="color:var(--cor-destaque)">Ver detalhes →</a></p>
+          <p>Configurar servidor de e-mail e notificações por módulo. Organizado em sub-abas: <strong>Configuração</strong>, Portal, Chamados, Patrimônio, Ag. Tarefas, Financeiro, Contatos e Aprovações. Em cada sub-aba é possível ativar eventos individualmente e escolher destinatários por chips clicáveis. <a href="#email-smtp" style="color:var(--cor-destaque)">Ver detalhes →</a></p>
         </div>
         <div class="doc-card">
           <h4><i class="fas fa-shield-alt" style="color:#ef4444; margin-right:6px"></i> Segurança</h4>
@@ -373,6 +425,10 @@
           <i class="fas fa-info-circle" style="color:var(--cor-destaque);margin-right:6px"></i>
           O toggle global de e-mail precisa estar <strong>ativo</strong> (salvo na aba Configuração) para que qualquer notificação seja enviada.
         </div>
+        <div class="doc-card">
+          <h4><i class="fab fa-whatsapp" style="color:#00a884;margin-right:6px"></i> Painel WhatsApp</h4>
+          <p>A aba <strong>Configurações → WhatsApp</strong> segue o mesmo padrão do Email, com sub-abas por sistema e chips de destinatários. Na aba <strong>Configuração</strong> ficam a URL do serviço, a API Key, o número padrão de teste e o campo <strong>Delay entre envios (ms)</strong>, usado para espaçar as mensagens e reduzir o risco de bloqueio da conta.</p>
+        </div>
       </section>
 
       <!-- LOGS -->
@@ -382,7 +438,7 @@
 
         <div class="doc-card">
           <h4><i class="fas fa-layer-group" style="color:#4e9af1;margin-right:6px"></i> Módulos cobertos</h4>
-          <p>Portal (Login/Logout), Chamados, Financeiro, Patrimônio, Agenda de Tarefas e Contatos. Cada ação é registrada com usuário, data/hora, tipo de ação, sistema e detalhes.</p>
+          <p>Portal, Chamados, Financeiro, Agenda Contábil, Patrimônio, Agenda de Tarefas, Contatos, Aprovações, Calendários e Base de Conhecimento. Cada ação é registrada com usuário, data/hora, tipo de ação, sistema e detalhes.</p>
         </div>
 
         <div class="doc-card">
@@ -390,8 +446,8 @@
           <ul style="margin:8px 0 0 14px">
             <li><strong>Usuário</strong> — busca parcial pelo login</li>
             <li><strong>Buscar nos detalhes</strong> — busca livre no texto do evento</li>
-            <li><strong>Ação</strong> — Login, Logout, Criação, Edição, Exclusão</li>
-            <li><strong>Sistema</strong> — Portal, Chamados, Financeiro, Patrimônio, Ag. Tarefas, Contatos</li>
+            <li><strong>A&ccedil;&atilde;o</strong> &mdash; Login, Logout, Cria&ccedil;&atilde;o, Edi&ccedil;&atilde;o, Exclus&atilde;o, NOTIF_WHATSAPP, REENVIO_WHATSAPP e outras a&ccedil;&otilde;es espec&iacute;ficas dos m&oacute;dulos</li>
+            <li><strong>Sistema</strong> — Portal, Chamados, Financeiro, Agenda Contábil, Patrimônio, Ag. Tarefas, Contatos, Aprovações, Calendários e Conhecimento</li>
             <li><strong>Data inicial / Data final</strong> — intervalo de datas</li>
           </ul>
         </div>
@@ -424,7 +480,7 @@
             <li><strong>Todos os usuários</strong> — remove todos os dados do sistema selecionado</li>
             <li><strong>Usuário específico</strong> — remove apenas os dados pertencentes a um usuário escolhido</li>
           </ul>
-          <p style="margin-top:8px">Sistemas disponíveis: <em>Chamados, Agenda Tarefas, Agenda Financeira, Logs de Atividade, Tudo</em>.</p>
+          <p style="margin-top:8px">Sistemas disponíveis: <em>Chamados, Agenda Tarefas, Agenda Financeira, Agenda Contábil, Patrimônio, Contatos, Aprovações, Calendários, Logs de Atividade e Tudo</em>.</p>
         </div>
 
         <div class="doc-card">

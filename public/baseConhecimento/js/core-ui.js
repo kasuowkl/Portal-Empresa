@@ -54,8 +54,53 @@
     return /<(h[1-6]|p|ul|ol|li|table|div|br|blockquote|pre|strong|em)\b/i.test(texto);
   }
 
+  function ehHtmlDocumentoCompleto(texto) {
+    return /<!doctype|<html\b|<head\b|<body\b|<style\b|<script\b|<meta\b|<title\b|<link\b/i.test(String(texto || ''));
+  }
+
   function textoParaHtml(texto) {
     return texto.split(/\r?\n/).filter(Boolean).map((linha) => '<p>' + esc(linha) + '</p>').join('\n');
+  }
+
+  function decodificarHtmlEscapado(texto) {
+    const tmp = document.createElement('textarea');
+    tmp.innerHTML = String(texto || '');
+    return tmp.value;
+  }
+
+  function normalizarHtmlDocumentoCompleto(texto) {
+    const htmlOriginal = decodificarHtmlEscapado(texto);
+    if (!ehHtmlDocumentoCompleto(htmlOriginal)) return String(texto || '');
+
+    const pareceHtmlQuebradoPorBr = /<!DOCTYPE[^>]*>\s*<br\s*\/?>|<html\b[^>]*>\s*<br\s*\/?>|<\/[a-z0-9:-]+>\s*<br\s*\/?>\s*</i.test(htmlOriginal);
+    if (!pareceHtmlQuebradoPorBr) return htmlOriginal.replace(/\u00a0/g, ' ');
+
+    return htmlOriginal
+      .replace(/>\s*<br\s*\/?>\s*</gi, '>\n<')
+      .replace(/<!DOCTYPE([^>]*)>\s*<br\s*\/?>/gi, '<!DOCTYPE$1>\n')
+      .replace(/(<html\b[^>]*>)\s*<br\s*\/?>/gi, '$1\n')
+      .replace(/(<head\b[^>]*>)\s*<br\s*\/?>/gi, '$1\n')
+      .replace(/(<body\b[^>]*>)\s*<br\s*\/?>/gi, '$1\n')
+      .replace(/\u00a0/g, ' ');
+  }
+
+  function prepararHtmlDocumentoParaIframe(texto) {
+    const html = normalizarHtmlDocumentoCompleto(texto);
+    if (!ehHtmlDocumentoCompleto(html)) return html;
+
+    const origemBase = window.location.origin + '/';
+    const possuiBase = /<base\b[^>]*href=/i.test(html);
+    if (possuiBase) return html;
+
+    if (/<head\b[^>]*>/i.test(html)) {
+      return html.replace(/<head\b[^>]*>/i, (headTag) => headTag + '<base href="' + origemBase + '">');
+    }
+
+    if (/<html\b[^>]*>/i.test(html)) {
+      return html.replace(/<html\b[^>]*>/i, (htmlTag) => htmlTag + '<head><base href="' + origemBase + '"></head>');
+    }
+
+    return '<!DOCTYPE html><html lang="pt-BR"><head><base href="' + origemBase + '"></head><body>' + html + '</body></html>';
   }
 
   function formatarTamanho(bytes) {
@@ -81,6 +126,10 @@
   window.esc = esc;
   window.stripHtml = stripHtml;
   window.contemHtml = contemHtml;
+  window.ehHtmlDocumentoCompleto = ehHtmlDocumentoCompleto;
+  window.decodificarHtmlEscapado = decodificarHtmlEscapado;
+  window.normalizarHtmlDocumentoCompleto = normalizarHtmlDocumentoCompleto;
+  window.prepararHtmlDocumentoParaIframe = prepararHtmlDocumentoParaIframe;
   window.textoParaHtml = textoParaHtml;
   window.formatarTamanho = formatarTamanho;
   window.lerArquivoBase64 = lerArquivoBase64;

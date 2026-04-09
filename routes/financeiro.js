@@ -1,8 +1,8 @@
-/**
+﻿/**
  * ARQUIVO: routes/financeiro.js
- * VERSÃO:  1.0.0
+ * VERSÃƒO:  1.0.0
  * DATA:    2026-03-04
- * DESCRIÇÃO: Rotas da Agenda Financeira
+ * DESCRIÃ‡ÃƒO: Rotas da Agenda Financeira
  */
 
 const express              = require('express');
@@ -11,10 +11,12 @@ const path                 = require('path');
 const verificarLogin       = require('../middleware/verificarLogin');
 const { enviarNotificacao } = require('../services/emailService');
 const { registrarLog }     = require('../services/logService');
+const { enviarNotificacaoWhatsAppPorChips } = require('../services/whatsappDispatchService');
+const { renderizarMensagemWhatsApp } = require('../services/whatsappTemplateService');
 const router               = express.Router();
 
 // ============================================================
-// Helper: retorna array de emails do dono + membros com edição
+// Helper: retorna array de emails do dono + membros com ediÃ§Ã£o
 // ============================================================
 async function getEmailsAgenda(pool, agendaId) {
   try {
@@ -39,8 +41,143 @@ async function getEmailsAgenda(pool, agendaId) {
   }
 }
 
+async function getLoginsAgenda(pool, agendaId) {
+  try {
+    const r = await pool.request()
+      .input('agenda_id', sql.Int, agendaId)
+      .query(`
+        SELECT dono AS login
+        FROM fin_agendas
+        WHERE id = @agenda_id
+        UNION
+        SELECT usuario AS login
+        FROM fin_membros
+        WHERE agenda_id = @agenda_id AND permissao IN ('edicao', 'dono')
+      `);
+    return r.recordset.map((row) => String(row.login || '').toLowerCase()).filter(Boolean);
+  } catch {
+    return [];
+  }
+}
+
+async function enviarWhatsAppFinanceiro(pool, evento, contexto, meta = {}) {
+  const eventoLabel = {
+    'financeiro.nova_conta': 'Novo lançamento financeiro',
+    'financeiro.conta_editada': 'Lançamento financeiro editado',
+    'financeiro.conta_paga': 'Lançamento marcado como pago',
+    'financeiro.conta_vencida': 'Lançamento vencido',
+    'financeiro.lancamento': 'Lançamento a realizar',
+  };
+  const mensagem = await renderizarMensagemWhatsApp(pool, 'financeiro.evento_padrao', {
+    evento_label: eventoLabel[evento] || evento,
+    descricao_item: contexto.descricao || '-',
+    agenda_nome: contexto.agenda_nome || '-',
+    valor: contexto.valor || '-',
+    data: contexto.data || '-',
+    link: 'http://192.168.0.80:3132/agendaFinanceira',
+  });
+
+  await enviarNotificacaoWhatsAppPorChips(pool, {
+    evento,
+    sistema: 'financeiro',
+    mensagem,
+    usuario: meta.usuario || contexto.criado_por || 'sistema',
+    ip: meta.ip || '',
+    mapaChips: {
+      criado_por_usuario: contexto.criado_por ? [contexto.criado_por] : [],
+      gestores: contexto.logins_agenda || [],
+      gestores_setor: [],
+    },
+  });
+}
+
+async function buscarEmailAprovacaoFinanceiro(pool, login) {
+  if (!login) return null;
+  try {
+    const r = await pool.request().input('login', sql.VarChar, login)
+      .query('SELECT email FROM usuarios_dominio WHERE login = @login AND ativo = 1');
+    return r.recordset[0]?.email || null;
+  } catch {
+    return null;
+  }
+}
+
+async function buscarEmailsListaAprovacaoFinanceiro(pool, logins) {
+  if (!logins || !logins.length) return [];
+  const emails = await Promise.all(logins.map((login) => buscarEmailAprovacaoFinanceiro(pool, login)));
+  return emails.filter(Boolean);
+}
+
+async function buscarEmailsAdminsAprovacaoFinanceiro(pool) {
+  try {
+    const r = await pool.request().query(`
+      SELECT ud.email
+      FROM usuarios u
+      LEFT JOIN usuarios_dominio ud ON ud.login = u.usuario
+      WHERE u.nivel = 'admin' AND u.ativo = 1 AND ud.email IS NOT NULL AND ud.ativo = 1
+    `);
+    return r.recordset.map((x) => x.email).filter(Boolean);
+  } catch {
+    return [];
+  }
+}
+
+async function buscarWhatsAppAprovadoresFinanceiro(pool, logins) {
+  const unicos = [...new Set((logins || []).map((l) => String(l || '').trim()).filter(Boolean))];
+  if (!unicos.length) return {};
+  try {
+    const lista = unicos.map((l) => `'${l.replace(/'/g, '')}'`).join(',');
+    const r = await pool.request().query(`
+      SELECT login, whatsapp FROM usuarios_dominio WHERE login IN (${lista}) AND whatsapp IS NOT NULL AND whatsapp <> ''
+      UNION ALL
+      SELECT usuario AS login, whatsapp FROM usuarios WHERE usuario IN (${lista}) AND whatsapp IS NOT NULL AND whatsapp <> ''
+    `);
+    const mapa = {};
+    for (const row of r.recordset) mapa[row.login] = row.whatsapp;
+    return mapa;
+  } catch {
+    return {};
+  }
+}
+
+async function montarDadosNotifAprovacaoFinanceiro(pool, aprovacaoId) {
+  const apr = await pool.request().input('id', sql.Int, aprovacaoId)
+    .query('SELECT titulo, objetivo, criado_por, criado_por_nome, tipo_consenso, consenso_valor FROM aprovacoes WHERE id = @id');
+  const a = apr.recordset[0];
+  if (!a) return null;
+
+  const partsR = await pool.request().input('id', sql.Int, aprovacaoId)
+    .query('SELECT aprovador_login, aprovador_nome FROM aprovacoes_participantes WHERE aprovacao_id = @id');
+  const obsR = await pool.request().input('id', sql.Int, aprovacaoId)
+    .query('SELECT observador_login, observador_nome FROM aprovacoes_observadores WHERE aprovacao_id = @id');
+  const anexosR = await pool.request().input('id', sql.Int, aprovacaoId)
+    .query('SELECT COUNT(*) AS qtd FROM aprovacoes_anexos WHERE aprovacao_id = @id');
+
+  const nomes_aprovadores = partsR.recordset.map((p) => p.aprovador_nome || p.aprovador_login);
+  const nomes_observadores = obsR.recordset.map((o) => o.observador_nome || o.observador_login);
+  const qtd_anexos = anexosR.recordset[0]?.qtd || 0;
+
+  const [email_solicitante, email_aprovadores, email_observadores, email_admins] = await Promise.all([
+    buscarEmailAprovacaoFinanceiro(pool, a.criado_por),
+    buscarEmailsListaAprovacaoFinanceiro(pool, partsR.recordset.map((p) => p.aprovador_login)),
+    buscarEmailsListaAprovacaoFinanceiro(pool, obsR.recordset.map((o) => o.observador_login)),
+    buscarEmailsAdminsAprovacaoFinanceiro(pool),
+  ]);
+
+  return {
+    ...a,
+    email_solicitante,
+    email_aprovadores,
+    email_observadores,
+    email_admins,
+    nomes_aprovadores,
+    nomes_observadores,
+    qtd_anexos,
+  };
+}
+
 // ============================================================
-// Helper: permissão do usuário na agenda financeira
+// Helper: permissÃ£o do usuÃ¡rio na agenda financeira
 // Retorna: 'dono' | 'edicao' | 'leitura' | null
 // ============================================================
 async function getPermissao(pool, agendaId, usuario) {
@@ -66,7 +203,7 @@ function temPermissao(perm, nivelMinimo) {
 }
 
 // ============================================================
-// GET /agendaFinanceira — Serve a página HTML
+// GET /agendaFinanceira — Serve a pÃ¡gina HTML
 // ============================================================
 router.get('/agendaFinanceira', verificarLogin, (req, res) => {
   res.sendFile(path.join(__dirname, '../public/agendaFinanceira/index.html'));
@@ -181,8 +318,8 @@ router.delete('/api/financeiro/agendas/:id', verificarLogin, async (req, res) =>
     await pool.request().input('id', sql.Int, id).query('DELETE FROM fin_empresas   WHERE agenda_id=@id');
     await pool.request().input('id', sql.Int, id).query('DELETE FROM fin_membros    WHERE agenda_id=@id');
     await pool.request().input('id', sql.Int, id).query('DELETE FROM fin_agendas    WHERE id=@id');
-    registrarLog(pool, { usuario, ip: req.ip, acao: 'EXCLUSAO', sistema: 'financeiro', detalhes: `Agenda #${id} excluída` });
-    res.json({ sucesso: true, mensagem: 'Agenda excluída.' });
+    registrarLog(pool, { usuario, ip: req.ip, acao: 'EXCLUSAO', sistema: 'financeiro', detalhes: `Agenda #${id} excluÃ­da` });
+    res.json({ sucesso: true, mensagem: 'Agenda excluÃ­da.' });
   } catch (erro) {
     logErro.error(`Erro ao excluir agenda financeira: ${erro.message}`);
     res.status(500).json({ erro: 'Erro ao excluir agenda.' });
@@ -233,7 +370,7 @@ router.post('/api/financeiro/agendas/:id/membros', verificarLogin, async (req, r
 
   const perm = await getPermissao(pool, id, usuario);
   if (perm !== 'dono')  return res.status(403).json({ erro: 'Apenas o dono pode adicionar membros.' });
-  if (!novo)            return res.status(400).json({ erro: 'Informe o usuário.' });
+  if (!novo)            return res.status(400).json({ erro: 'Informe o usuÃ¡rio.' });
   if (novo === usuario) return res.status(400).json({ erro: 'Você já é o dono da agenda.' });
 
   try {
@@ -309,6 +446,200 @@ router.get('/api/financeiro/agendas/:id/contas', verificarLogin, async (req, res
 });
 
 // ============================================================
+// GET /api/financeiro/contas/:id/aprovacoes
+// ============================================================
+router.get('/api/financeiro/contas/:id/aprovacoes', verificarLogin, async (req, res) => {
+  const pool = req.app.locals.pool;
+  const logErro = req.app.locals.logErro;
+  const usuario = req.session.usuario.usuario;
+  const id = parseInt(req.params.id, 10);
+
+  try {
+    const contaR = await pool.request()
+      .input('id', sql.Int, id)
+      .query('SELECT id, agenda_id FROM fin_contas WHERE id = @id');
+    const conta = contaR.recordset[0];
+    if (!conta) return res.status(404).json({ erro: 'Lançamento não encontrado.' });
+
+    const perm = await getPermissao(pool, conta.agenda_id, usuario);
+    if (!perm) return res.status(403).json({ erro: 'Sem acesso.' });
+
+    const r = await pool.request()
+      .input('conta_id', sql.Int, id)
+      .query(`
+        SELECT a.id, a.titulo, a.status, a.criado_em, a.atualizado_em, a.tipo_consenso, a.consenso_valor,
+               a.criado_por, a.criado_por_nome
+        FROM fin_contas_aprovacoes fca
+        JOIN aprovacoes a ON a.id = fca.aprovacao_id
+        WHERE fca.conta_id = @conta_id
+        ORDER BY fca.id DESC
+      `);
+
+    res.json({ sucesso: true, aprovacoes: r.recordset });
+  } catch (erro) {
+    logErro.error(`Erro ao listar aprovações do financeiro: ${erro.message}`);
+    res.status(500).json({ erro: 'Erro ao carregar aprovações do lançamento.' });
+  }
+});
+
+// ============================================================
+// POST /api/financeiro/contas/:id/solicitar-aprovacao
+// ============================================================
+router.post('/api/financeiro/contas/:id/solicitar-aprovacao', verificarLogin, async (req, res) => {
+  const pool = req.app.locals.pool;
+  const logErro = req.app.locals.logErro;
+  const login = req.session.usuario.usuario || req.session.usuario.login;
+  const nome = req.session.usuario.nome || login;
+  const id = parseInt(req.params.id, 10);
+  const { titulo, objetivo, aprovadores, observadores, tipo_consenso, consenso_valor } = req.body || {};
+
+  if (!Array.isArray(aprovadores) || !aprovadores.length) {
+    return res.status(400).json({ erro: 'Selecione ao menos um aprovador.' });
+  }
+
+  const tiposValidos = ['unanimidade', 'maioria_simples', 'maioria_qualificada', 'quorum_minimo'];
+  const tipoFinal = tiposValidos.includes(tipo_consenso) ? tipo_consenso : 'unanimidade';
+  const valorFinal = (tipoFinal === 'maioria_qualificada' || tipoFinal === 'quorum_minimo')
+    ? (parseInt(consenso_valor, 10) || null)
+    : null;
+
+  try {
+    const contaR = await pool.request()
+      .input('id', sql.Int, id)
+      .query(`
+        SELECT c.id, c.agenda_id, c.descricao, c.valor, c.data, c.categoria, c.empresa, a.nome AS agenda_nome
+        FROM fin_contas c
+        LEFT JOIN fin_agendas a ON a.id = c.agenda_id
+        WHERE c.id = @id
+      `);
+    const conta = contaR.recordset[0];
+    if (!conta) return res.status(404).json({ erro: 'Lançamento não encontrado.' });
+
+    const perm = await getPermissao(pool, conta.agenda_id, login);
+    if (!temPermissao(perm, 'edicao')) {
+      return res.status(403).json({ erro: 'Sem permissão para solicitar aprovação deste lançamento.' });
+    }
+
+    const nomesR = await pool.request().query(`
+      SELECT usuario AS login, nome FROM usuarios WHERE nivel != 'inativo'
+      UNION ALL
+      SELECT login, nome FROM usuarios_dominio
+    `);
+    const mapaUsuarios = {};
+    nomesR.recordset.forEach((u) => { mapaUsuarios[u.login] = u.nome; });
+
+    const valorFmt = parseFloat(conta.valor || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    const dataFmt = conta.data ? new Date(conta.data).toLocaleDateString('pt-BR') : '—';
+    const linkFinanceiro = `http://192.168.0.80:3132/agendaFinanceira`;
+    const tituloFinal = String(titulo || '').trim() || `Aprovação do lançamento: ${conta.descricao}`;
+    const objetivoFinal = [
+      (objetivo || '').trim(),
+      '',
+      'Origem: Agenda Financeira',
+      `Agenda: ${conta.agenda_nome || 'Agenda Financeira'}`,
+      `Lançamento: ${conta.descricao}`,
+      `Valor: ${valorFmt}`,
+      `Vencimento: ${dataFmt}`,
+      `Categoria: ${conta.categoria || 'Geral'}`,
+      conta.empresa ? `Empresa: ${conta.empresa}` : '',
+      `Link: ${linkFinanceiro}`,
+    ].filter((parte, idx, arr) => parte || (idx > 0 && arr[idx - 1])).join('\n').trim();
+
+    const ins = await pool.request()
+      .input('titulo', sql.VarChar, tituloFinal)
+      .input('objetivo', sql.VarChar, objetivoFinal || null)
+      .input('criado_por', sql.VarChar, login)
+      .input('criado_por_nome', sql.VarChar, nome)
+      .input('tipo_consenso', sql.VarChar, tipoFinal)
+      .input('consenso_valor', sql.Int, valorFinal)
+      .query(`
+        INSERT INTO aprovacoes (titulo, objetivo, criado_por, criado_por_nome, tipo_consenso, consenso_valor)
+        OUTPUT INSERTED.id
+        VALUES (@titulo, @objetivo, @criado_por, @criado_por_nome, @tipo_consenso, @consenso_valor)
+      `);
+    const aprovacaoId = ins.recordset[0].id;
+
+    for (const aprLogin of aprovadores) {
+      const aprNome = mapaUsuarios[aprLogin] || aprLogin;
+      await pool.request()
+        .input('aprovacao_id', sql.Int, aprovacaoId)
+        .input('aprovador_login', sql.VarChar, aprLogin)
+        .input('aprovador_nome', sql.VarChar, aprNome)
+        .query(`
+          INSERT INTO aprovacoes_participantes (aprovacao_id, aprovador_login, aprovador_nome)
+          VALUES (@aprovacao_id, @aprovador_login, @aprovador_nome)
+        `);
+    }
+
+    if (Array.isArray(observadores) && observadores.length) {
+      for (const obsLogin of observadores) {
+        const obsNome = mapaUsuarios[obsLogin] || obsLogin;
+        await pool.request()
+          .input('aprovacao_id', sql.Int, aprovacaoId)
+          .input('observador_login', sql.VarChar, obsLogin)
+          .input('observador_nome', sql.VarChar, obsNome)
+          .query(`
+            INSERT INTO aprovacoes_observadores (aprovacao_id, observador_login, observador_nome)
+            VALUES (@aprovacao_id, @observador_login, @observador_nome)
+          `);
+      }
+    }
+
+    await pool.request()
+      .input('conta_id', sql.Int, id)
+      .input('aprovacao_id', sql.Int, aprovacaoId)
+      .input('criado_por', sql.VarChar, login)
+      .query(`
+        INSERT INTO fin_contas_aprovacoes (conta_id, aprovacao_id, criado_por)
+        VALUES (@conta_id, @aprovacao_id, @criado_por)
+      `);
+
+    await pool.request()
+      .input('aprovacao_id', sql.Int, aprovacaoId)
+      .input('usuario', sql.VarChar, login)
+      .input('acao', sql.VarChar, `${nome} criou a aprovação via lançamento financeiro #${id}`)
+      .query('INSERT INTO aprovacoes_log (aprovacao_id, usuario, acao) VALUES (@aprovacao_id, @usuario, @acao)');
+
+    registrarLog(pool, { usuario: login, ip: req.ip, acao: 'CRIACAO', sistema: 'financeiro', detalhes: `Lançamento #${id}: aprovação #${aprovacaoId} solicitada` });
+    registrarLog(pool, { usuario: login, ip: req.ip, acao: 'CRIACAO', sistema: 'aprovacoes', detalhes: `Aprovação #${aprovacaoId} criada via Agenda Financeira (#${id})` });
+
+    montarDadosNotifAprovacaoFinanceiro(pool, aprovacaoId).then((dados) => {
+      if (dados) enviarNotificacao(pool, 'aprovacoes.nova_solicitacao', dados).catch(() => {});
+    }).catch(() => {});
+
+    buscarWhatsAppAprovadoresFinanceiro(pool, aprovadores).then(async (mapaWhatsApp) => {
+      for (const [aprLogin, numero] of Object.entries(mapaWhatsApp)) {
+        const aprNome = mapaUsuarios[aprLogin] || aprLogin;
+        const msg = await renderizarMensagemWhatsApp(pool, 'financeiro.aprovacao_lancamento', {
+          aprovador_nome: aprNome,
+          aprovacao_id: aprovacaoId,
+          titulo: tituloFinal,
+          agenda_nome: conta.agenda_nome || 'Agenda Financeira',
+          lancamento: conta.descricao,
+          solicitante: nome,
+          link_item: linkFinanceiro,
+          link_aprovacoes: 'http://192.168.0.80:3132/aprovacoes',
+        });
+
+        await enviarNotificacaoWhatsAppPorChips(pool, {
+          evento: 'aprovacoes.nova_solicitacao',
+          sistema: 'aprovacoes',
+          mensagem: msg,
+          usuario: login,
+          ip: req.ip,
+          mapaChips: { whatsapp_padrao: [String(numero || '').replace(/\D/g, '')] },
+        });
+      }
+    }).catch(() => {});
+
+    res.json({ sucesso: true, id: aprovacaoId, mensagem: 'Solicitação de aprovação criada com sucesso.' });
+  } catch (erro) {
+    logErro.error(`Erro ao solicitar aprovação do lançamento #${id}: ${erro.message}`);
+    res.status(500).json({ erro: 'Erro ao solicitar aprovação do lançamento.' });
+  }
+});
+
+// ============================================================
 // POST /api/financeiro/agendas/:id/contas — Criar conta(s)
 // Aceita array de contas para suportar recorrência
 // ============================================================
@@ -364,6 +695,7 @@ router.post('/api/financeiro/agendas/:id/contas', verificarLogin, async (req, re
 
         for (const c of contas) {
           if (!c.descricao?.trim()) continue;
+          const loginsAgenda = await getLoginsAgenda(pool, id);
           const dados = {
             descricao:   c.descricao.trim(),
             valor:       (parseFloat(c.valor) || 0).toFixed(2),
@@ -371,19 +703,22 @@ router.post('/api/financeiro/agendas/:id/contas', verificarLogin, async (req, re
             agenda_nome: agendaNome,
             criado_por:  usuario,
             email_direto: emailsAgenda,
+            logins_agenda: loginsAgenda,
           };
           enviarNotificacao(pool, 'financeiro.nova_conta', dados).catch(() => {});
+          enviarWhatsAppFinanceiro(pool, 'financeiro.nova_conta', dados, { usuario, ip: req.ip }).catch(() => {});
           if (c.data) {
-            // Compara apenas a parte da data em UTC para evitar problema de fuso horário
+            // Compara apenas a parte da data em UTC para evitar problema de fuso horÃ¡rio
             const dataContaStr = new Date(c.data).toISOString().slice(0, 10);
             const hojeStr      = new Date().toISOString().slice(0, 10);
             if (dataContaStr < hojeStr && c.status !== 'pago') {
               enviarNotificacao(pool, 'financeiro.conta_vencida', dados).catch(() => {});
+              enviarWhatsAppFinanceiro(pool, 'financeiro.conta_vencida', dados, { usuario, ip: req.ip }).catch(() => {});
             }
           }
         }
       } catch (eEmail) {
-        logErro.warn(`[Email financeiro] Erro ao enviar notificação nova_conta: ${eEmail.message}`);
+        logErro.warn(`[Email financeiro] Erro ao enviar notificaÃ§Ã£o nova_conta: ${eEmail.message}`);
       }
     })();
 
@@ -398,7 +733,7 @@ router.post('/api/financeiro/agendas/:id/contas', verificarLogin, async (req, re
 
 // ============================================================
 // DELETE /api/financeiro/contas/recorrencia/:rid
-// DEVE vir ANTES de /contas/:id para não conflitar
+// DEVE vir ANTES de /contas/:id para nÃ£o conflitar
 // ============================================================
 router.delete('/api/financeiro/contas/recorrencia/:rid', verificarLogin, async (req, res) => {
   const pool    = req.app.locals.pool;
@@ -408,10 +743,10 @@ router.delete('/api/financeiro/contas/recorrencia/:rid', verificarLogin, async (
 
   const c = await pool.request().input('rid', sql.VarChar, rid)
     .query('SELECT TOP 1 agenda_id, descricao FROM fin_contas WHERE recorrencia_id=@rid');
-  if (!c.recordset[0]) return res.status(404).json({ erro: 'Grupo não encontrado.' });
+  if (!c.recordset[0]) return res.status(404).json({ erro: 'Grupo nÃ£o encontrado.' });
 
   const perm = await getPermissao(pool, c.recordset[0].agenda_id, usuario);
-  if (!temPermissao(perm, 'edicao')) return res.status(403).json({ erro: 'Sem permissão.' });
+  if (!temPermissao(perm, 'edicao')) return res.status(403).json({ erro: 'Sem permissÃ£o.' });
 
   try {
     await pool.request().input('rid', sql.VarChar, rid)
@@ -419,11 +754,11 @@ router.delete('/api/financeiro/contas/recorrencia/:rid', verificarLogin, async (
     await pool.request()
       .input('agenda_id', sql.Int,     c.recordset[0].agenda_id)
       .input('acao',      sql.VarChar, 'EXCLUIR')
-      .input('detalhes',  sql.VarChar, `Grupo recorrente excluído: ${c.recordset[0].descricao}`)
+      .input('detalhes',  sql.VarChar, `Grupo recorrente excluÃ­do: ${c.recordset[0].descricao}`)
       .input('usuario',   sql.VarChar, usuario)
       .query(`INSERT INTO fin_logs (agenda_id, acao, detalhes, usuario) VALUES (@agenda_id, @acao, @detalhes, @usuario)`);
-    registrarLog(pool, { usuario, ip: req.ip, acao: 'EXCLUSAO', sistema: 'financeiro', detalhes: `Grupo recorrente excluído: ${c.recordset[0].descricao}` });
-    res.json({ sucesso: true, mensagem: 'Grupo excluído.' });
+    registrarLog(pool, { usuario, ip: req.ip, acao: 'EXCLUSAO', sistema: 'financeiro', detalhes: `Grupo recorrente excluÃ­do: ${c.recordset[0].descricao}` });
+    res.json({ sucesso: true, mensagem: 'Grupo excluÃ­do.' });
   } catch (erro) {
     logErro.error(`Erro ao excluir grupo recorrente: ${erro.message}`);
     res.status(500).json({ erro: 'Erro ao excluir grupo.' });
@@ -442,12 +777,12 @@ router.put('/api/financeiro/contas/:id', verificarLogin, async (req, res) => {
 
   const c = await pool.request().input('id', sql.Int, id)
     .query('SELECT agenda_id, descricao FROM fin_contas WHERE id=@id');
-  if (!c.recordset[0]) return res.status(404).json({ erro: 'Conta não encontrada.' });
+  if (!c.recordset[0]) return res.status(404).json({ erro: 'Conta nÃ£o encontrada.' });
 
   const perm = await getPermissao(pool, c.recordset[0].agenda_id, usuario);
-  if (!temPermissao(perm, 'edicao')) return res.status(403).json({ erro: 'Sem permissão.' });
+  if (!temPermissao(perm, 'edicao')) return res.status(403).json({ erro: 'Sem permissÃ£o.' });
 
-  // Edição de parcela restrita (sem descrição) → só valor e data
+  // EdiÃ§Ã£o de parcela restrita (sem descriÃ§Ã£o) â†’ sÃ³ valor e data
   const somenteValorData = !descricao?.trim();
   if (somenteValorData && !propagarGrupo) {
     // parcela recorrente filha: apenas valor e data
@@ -465,7 +800,7 @@ router.put('/api/financeiro/contas/:id', verificarLogin, async (req, res) => {
     return;
   }
 
-  if (!descricao?.trim()) return res.status(400).json({ erro: 'Informe a descrição.' });
+  if (!descricao?.trim()) return res.status(400).json({ erro: 'Informe a descriÃ§Ã£o.' });
 
   try {
     // Atualiza a conta principal
@@ -482,7 +817,7 @@ router.put('/api/financeiro/contas/:id', verificarLogin, async (req, res) => {
                   categoria=@categoria, empresa=@empresa, frequencia=@frequencia, atualizado_em=GETDATE()
               WHERE id=@id`);
 
-    // Se é pai, propaga descricao/categoria/empresa para as demais parcelas do grupo
+    // Se Ã© pai, propaga descricao/categoria/empresa para as demais parcelas do grupo
     if (propagarGrupo && recorrencia_id) {
       await pool.request()
         .input('rid',       sql.VarChar, recorrencia_id)
@@ -520,14 +855,14 @@ router.patch('/api/financeiro/contas/:id/status', verificarLogin, async (req, re
   const { status } = req.body;
 
   if (!['pendente', 'pago', 'lancado'].includes(status))
-    return res.status(400).json({ erro: 'Status inválido.' });
+    return res.status(400).json({ erro: 'Status invÃ¡lido.' });
 
   const c = await pool.request().input('id', sql.Int, id)
     .query('SELECT agenda_id, descricao FROM fin_contas WHERE id=@id');
-  if (!c.recordset[0]) return res.status(404).json({ erro: 'Conta não encontrada.' });
+  if (!c.recordset[0]) return res.status(404).json({ erro: 'Conta nÃ£o encontrada.' });
 
   const perm = await getPermissao(pool, c.recordset[0].agenda_id, usuario);
-  if (!temPermissao(perm, 'edicao')) return res.status(403).json({ erro: 'Sem permissão.' });
+  if (!temPermissao(perm, 'edicao')) return res.status(403).json({ erro: 'Sem permissÃ£o.' });
 
   try {
     await pool.request()
@@ -540,13 +875,13 @@ router.patch('/api/financeiro/contas/:id/status', verificarLogin, async (req, re
       .input('acao',      sql.VarChar, status === 'lancado' ? 'LANCAMENTO' : 'ATUALIZAR')
       .input('detalhes',  sql.VarChar, status === 'lancado'
         ? `Lançamento registrado: ${c.recordset[0].descricao}`
-        : `Status → ${status}: ${c.recordset[0].descricao}`)
+        : `Status â†’ ${status}: ${c.recordset[0].descricao}`)
       .input('usuario',   sql.VarChar, usuario)
       .query(`INSERT INTO fin_logs (agenda_id, conta_id, acao, detalhes, usuario) VALUES (@agenda_id, @conta_id, @acao, @detalhes, @usuario)`);
-    registrarLog(pool, { usuario, ip: req.ip, acao: status === 'lancado' ? 'LANCAMENTO' : 'EDICAO', sistema: 'financeiro', detalhes: status === 'lancado' ? `Lançamento registrado: "${c.recordset[0].descricao}"` : `Status da conta "${c.recordset[0].descricao}" → ${status}` });
+    registrarLog(pool, { usuario, ip: req.ip, acao: status === 'lancado' ? 'LANCAMENTO' : 'EDICAO', sistema: 'financeiro', detalhes: status === 'lancado' ? `Lançamento registrado: "${c.recordset[0].descricao}"` : `Status da conta "${c.recordset[0].descricao}" â†’ ${status}` });
     res.json({ sucesso: true, mensagem: 'Status atualizado.' });
 
-    // Notificações de e-mail assíncronas
+    // NotificaÃ§Ãµes de e-mail assÃ­ncronas
     if (status === 'lancado' || status === 'pago') {
       ;(async () => {
         try {
@@ -564,9 +899,11 @@ router.patch('/api/financeiro/contas/:id/status', verificarLogin, async (req, re
             agenda_nome:  agR.recordset[0]?.nome || '',
             criado_por:   usuario,
             email_direto: emailsAgenda,
+            logins_agenda: await getLoginsAgenda(pool, c.recordset[0].agenda_id),
           };
           const tipo = status === 'lancado' ? 'financeiro.lancamento' : 'financeiro.conta_paga';
           enviarNotificacao(pool, tipo, dados).catch(() => {});
+          enviarWhatsAppFinanceiro(pool, tipo, dados, { usuario, ip: req.ip }).catch(() => {});
         } catch (eEmail) {
           logErro.warn(`[Email financeiro] Erro ao enviar notif status: ${eEmail.message}`);
         }
@@ -589,10 +926,10 @@ router.delete('/api/financeiro/contas/:id', verificarLogin, async (req, res) => 
 
   const c = await pool.request().input('id', sql.Int, id)
     .query('SELECT agenda_id, descricao, recorrencia_id, eh_pai FROM fin_contas WHERE id=@id');
-  if (!c.recordset[0]) return res.status(404).json({ erro: 'Conta não encontrada.' });
+  if (!c.recordset[0]) return res.status(404).json({ erro: 'Conta nÃ£o encontrada.' });
 
   const perm = await getPermissao(pool, c.recordset[0].agenda_id, usuario);
-  if (!temPermissao(perm, 'edicao')) return res.status(403).json({ erro: 'Sem permissão.' });
+  if (!temPermissao(perm, 'edicao')) return res.status(403).json({ erro: 'Sem permissÃ£o.' });
 
   try {
     await pool.request().input('id', sql.Int, id)
@@ -600,10 +937,10 @@ router.delete('/api/financeiro/contas/:id', verificarLogin, async (req, res) => 
     await pool.request()
       .input('agenda_id', sql.Int,     c.recordset[0].agenda_id)
       .input('acao',      sql.VarChar, 'EXCLUIR')
-      .input('detalhes',  sql.VarChar, `Conta excluída: ${c.recordset[0].descricao}`)
+      .input('detalhes',  sql.VarChar, `Conta excluÃ­da: ${c.recordset[0].descricao}`)
       .input('usuario',   sql.VarChar, usuario)
       .query(`INSERT INTO fin_logs (agenda_id, acao, detalhes, usuario) VALUES (@agenda_id, @acao, @detalhes, @usuario)`);
-    res.json({ sucesso: true, mensagem: 'Conta excluída.' });
+    res.json({ sucesso: true, mensagem: 'Conta excluÃ­da.' });
   } catch (erro) {
     logErro.error(`Erro ao excluir conta: ${erro.message}`);
     res.status(500).json({ erro: 'Erro ao excluir conta.' });
@@ -643,7 +980,7 @@ router.post('/api/financeiro/agendas/:id/categorias', verificarLogin, async (req
   const { nome } = req.body;
 
   const perm = await getPermissao(pool, id, usuario);
-  if (!temPermissao(perm, 'edicao')) return res.status(403).json({ erro: 'Sem permissão.' });
+  if (!temPermissao(perm, 'edicao')) return res.status(403).json({ erro: 'Sem permissÃ£o.' });
   if (!nome?.trim())                 return res.status(400).json({ erro: 'Informe o nome.' });
 
   try {
@@ -671,10 +1008,10 @@ router.delete('/api/financeiro/categorias/:id', verificarLogin, async (req, res)
 
   const c = await pool.request().input('id', sql.Int, id)
     .query('SELECT agenda_id, nome FROM fin_categorias WHERE id=@id');
-  if (!c.recordset[0]) return res.status(404).json({ erro: 'Categoria não encontrada.' });
+  if (!c.recordset[0]) return res.status(404).json({ erro: 'Categoria nÃ£o encontrada.' });
 
   const perm = await getPermissao(pool, c.recordset[0].agenda_id, usuario);
-  if (!temPermissao(perm, 'edicao')) return res.status(403).json({ erro: 'Sem permissão.' });
+  if (!temPermissao(perm, 'edicao')) return res.status(403).json({ erro: 'Sem permissÃ£o.' });
 
   try {
     await pool.request()
@@ -682,7 +1019,7 @@ router.delete('/api/financeiro/categorias/:id', verificarLogin, async (req, res)
       .query("UPDATE fin_contas SET categoria='Geral' WHERE categoria=@nome AND agenda_id=(SELECT agenda_id FROM fin_categorias WHERE nome=@nome)");
     await pool.request().input('id', sql.Int, id)
       .query('DELETE FROM fin_categorias WHERE id=@id');
-    res.json({ sucesso: true, mensagem: 'Categoria excluída.' });
+    res.json({ sucesso: true, mensagem: 'Categoria excluÃ­da.' });
   } catch (erro) {
     logErro.error(`Erro ao excluir categoria: ${erro.message}`);
     res.status(500).json({ erro: 'Erro ao excluir categoria.' });
@@ -722,7 +1059,7 @@ router.post('/api/financeiro/agendas/:id/empresas', verificarLogin, async (req, 
   const { nome } = req.body;
 
   const perm = await getPermissao(pool, id, usuario);
-  if (!temPermissao(perm, 'edicao')) return res.status(403).json({ erro: 'Sem permissão.' });
+  if (!temPermissao(perm, 'edicao')) return res.status(403).json({ erro: 'Sem permissÃ£o.' });
   if (!nome?.trim())                 return res.status(400).json({ erro: 'Informe o nome.' });
 
   try {
@@ -750,10 +1087,10 @@ router.delete('/api/financeiro/empresas/:id', verificarLogin, async (req, res) =
 
   const e = await pool.request().input('id', sql.Int, id)
     .query('SELECT agenda_id, nome FROM fin_empresas WHERE id=@id');
-  if (!e.recordset[0]) return res.status(404).json({ erro: 'Empresa não encontrada.' });
+  if (!e.recordset[0]) return res.status(404).json({ erro: 'Empresa nÃ£o encontrada.' });
 
   const perm = await getPermissao(pool, e.recordset[0].agenda_id, usuario);
-  if (!temPermissao(perm, 'edicao')) return res.status(403).json({ erro: 'Sem permissão.' });
+  if (!temPermissao(perm, 'edicao')) return res.status(403).json({ erro: 'Sem permissÃ£o.' });
 
   try {
     await pool.request()
@@ -762,7 +1099,7 @@ router.delete('/api/financeiro/empresas/:id', verificarLogin, async (req, res) =
       .query('UPDATE fin_contas SET empresa=NULL WHERE empresa=@nome AND agenda_id=@agenda_id');
     await pool.request().input('id', sql.Int, id)
       .query('DELETE FROM fin_empresas WHERE id=@id');
-    res.json({ sucesso: true, mensagem: 'Empresa excluída.' });
+    res.json({ sucesso: true, mensagem: 'Empresa excluÃ­da.' });
   } catch (erro) {
     logErro.error(`Erro ao excluir empresa: ${erro.message}`);
     res.status(500).json({ erro: 'Erro ao excluir empresa.' });
@@ -800,14 +1137,14 @@ router.get('/api/financeiro/agendas/:id/logs', verificarLogin, async (req, res) 
 });
 
 // ============================================================
-// GET /agendaFinanceira/relatorios — Serve a página de relatórios
+// GET /agendaFinanceira/relatorios — Serve a pÃ¡gina de relatÃ³rios
 // ============================================================
 router.get('/agendaFinanceira/relatorios', verificarLogin, (req, res) => {
   res.sendFile(path.join(__dirname, '../public/agendaFinanceira/relatoriosFinanceiro.html'));
 });
 
 // ============================================================
-// GET /api/financeiro/relatorios — Dados para relatórios
+// GET /api/financeiro/relatorios — Dados para relatÃ³rios
 // ============================================================
 router.get('/api/financeiro/relatorios', verificarLogin, async (req, res) => {
   const pool    = req.app.locals.pool;
@@ -815,13 +1152,13 @@ router.get('/api/financeiro/relatorios', verificarLogin, async (req, res) => {
   const usuario = req.session.usuario.usuario;
   const { tipo, dataInicio, dataFim, agenda_id: agId, agenda_ids: agIds, categoria, empresa, status, page } = req.query;
 
-  // Se uma agenda específica for selecionada, verificar permissão
+  // Se uma agenda especÃ­fica for selecionada, verificar permissÃ£o
   if (agId) {
     const perm = await getPermissao(pool, parseInt(agId), usuario);
-    if (!perm) return res.status(403).json({ erro: 'Sem acesso à agenda.' });
+    if (!perm) return res.status(403).json({ erro: 'Sem acesso Ã  agenda.' });
   }
 
-  // Parsear múltiplos IDs de agendas (validar que são números)
+  // Parsear mÃºltiplos IDs de agendas (validar que sÃ£o nÃºmeros)
   let agendaIdsFiltro = [];
   if (agIds) {
     agendaIdsFiltro = agIds.split(',').map(id => parseInt(id.trim())).filter(id => !isNaN(id) && id > 0);
@@ -923,13 +1260,13 @@ router.get('/api/financeiro/usuarios', verificarLogin, async (req, res) => {
     `);
     res.json({ sucesso: true, usuarios: result.recordset.filter(u => u.login !== usuario) });
   } catch (erro) {
-    logErro.error(`Erro ao listar usuários: ${erro.message}`);
-    res.status(500).json({ erro: 'Erro ao carregar usuários.' });
+    logErro.error(`Erro ao listar usuÃ¡rios: ${erro.message}`);
+    res.status(500).json({ erro: 'Erro ao carregar usuÃ¡rios.' });
   }
 });
 
 // ============================================================
-// GET /api/financeiro/config — Configurações públicas do módulo
+// GET /api/financeiro/config — ConfiguraÃ§Ãµes pÃºblicas do mÃ³dulo
 // ============================================================
 router.get('/api/financeiro/config', verificarLogin, async (req, res) => {
   const pool = req.app.locals.pool;
@@ -950,10 +1287,10 @@ router.get('/api/financeiro/config', verificarLogin, async (req, res) => {
 router.post('/api/financeiro/config', verificarLogin, async (req, res) => {
   const pool    = req.app.locals.pool;
   const usuario = req.session.usuario;
-  if (usuario.nivel !== 'admin') return res.status(403).json({ erro: 'Sem permissão.' });
+  if (usuario.nivel !== 'admin') return res.status(403).json({ erro: 'Sem permissÃ£o.' });
 
   const dias = parseInt(req.body.dias_lembrete);
-  if (isNaN(dias) || dias < 1) return res.status(400).json({ erro: 'Valor inválido.' });
+  if (isNaN(dias) || dias < 1) return res.status(400).json({ erro: 'Valor invÃ¡lido.' });
 
   try {
     await pool.request()
@@ -964,7 +1301,7 @@ router.post('/api/financeiro/config', verificarLogin, async (req, res) => {
           UPDATE configuracoes SET valor = @valor WHERE chave = @chave
         ELSE
           INSERT INTO configuracoes (chave, valor, grupo, descricao)
-          VALUES (@chave, @valor, 'financeiro', 'Dias de antecedência para lembrete de vencimento')
+          VALUES (@chave, @valor, 'financeiro', 'Dias de antecedÃªncia para lembrete de vencimento')
       `);
     res.json({ sucesso: true });
   } catch (erro) {
@@ -973,3 +1310,6 @@ router.post('/api/financeiro/config', verificarLogin, async (req, res) => {
 });
 
 module.exports = router;
+
+
+

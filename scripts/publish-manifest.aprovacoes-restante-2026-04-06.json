@@ -1,0 +1,16 @@
+{
+  "items": [
+    {
+      "localPath": "public/aprovacoes/index.html",
+      "remotePath": "/var/www/html/wkl/Portal/public/aprovacoes/index.html"
+    },
+    {
+      "localPath": "routes/aprovacoes.js",
+      "remotePath": "/var/www/html/wkl/Portal/routes/aprovacoes.js"
+    },
+    {
+      "localPath": "criarBancoPortal.js",
+      "remotePath": "/var/www/html/wkl/Portal/criarBancoPortal.js"
+    }
+  ]
+}

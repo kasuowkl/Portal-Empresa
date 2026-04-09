@@ -11,6 +11,117 @@ const verificarLogin = require('../middleware/verificarLogin');
 const { registrarLog } = require('../services/logService');
 const sql = require('mssql');
 const path = require('path');
+const fs = require('fs/promises');
+const os = require('os');
+const { execFile } = require('child_process');
+const { promisify } = require('util');
+
+const execFileAsync = promisify(execFile);
+
+function escHtml(valor) {
+  return String(valor || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function converterTextoPdfParaHtml(textoBruto, nomeArquivo, anexoId) {
+  const texto = String(textoBruto || '')
+    .replace(/\r/g, '')
+    .replace(/\u0000/g, '')
+    .trim();
+
+  const urlBase = `/api/conhecimento/anexos/${anexoId}`;
+  const urlAbrir = `${urlBase}?inline=1`;
+  const nome = escHtml(nomeArquivo || 'Documento PDF');
+  const blocos = texto
+    ? texto
+      .split(/\n{2,}/)
+      .map((trecho) => trecho.split('\n').map((linha) => linha.trim()).filter(Boolean).join(' '))
+      .filter(Boolean)
+    : [];
+
+  const corpo = blocos.length
+    ? blocos.map((paragrafo) => `<p>${escHtml(paragrafo)}</p>`).join('')
+    : '<p>Não foi possível extrair texto legível deste PDF.</p>';
+
+  return '' +
+    '<div class="kb-doc-embed kb-doc-embed-pdf">' +
+      '<div class="kb-doc-embed-header">' +
+        '<div class="kb-doc-embed-meta"><i class="fas fa-file-pdf"></i><div><strong>' + nome + '</strong><small>Conteúdo convertido automaticamente do PDF</small></div></div>' +
+        '<div class="kb-doc-embed-acoes">' +
+          '<a class="kb-anexo-item" href="' + urlAbrir + '" target="_blank" rel="noopener noreferrer"><i class="fas fa-up-right-from-square"></i> Abrir</a>' +
+          '<a class="kb-anexo-item" href="' + urlBase + '" target="_blank" rel="noopener noreferrer"><i class="fas fa-download"></i> Baixar</a>' +
+        '</div>' +
+      '</div>' +
+      '<div class="kb-doc-embed-body kb-doc-converted-body">' +
+        '<div class="kb-doc-converted-notice">Conversão automática para leitura. O arquivo original permanece anexado.</div>' +
+        '<div class="kb-doc-converted-content">' + corpo + '</div>' +
+      '</div>' +
+    '</div>';
+}
+
+function converterPaginasPdfParaHtml(imagensBase64, nomeArquivo, anexoId) {
+  const urlBase = `/api/conhecimento/anexos/${anexoId}`;
+  const urlAbrir = `${urlBase}?inline=1`;
+  const nome = escHtml(nomeArquivo || 'Documento PDF');
+
+  const corpoHtml = Array.isArray(imagensBase64) && imagensBase64.length
+    ? imagensBase64.map((imagemBase64, indice) => (
+      '<figure class="kb-pdf-page">' +
+        `<img src="data:image/png;base64,${imagemBase64}" alt="PÃ¡gina ${indice + 1} do PDF" loading="lazy">` +
+        `<figcaption>PÃ¡gina ${indice + 1}</figcaption>` +
+      '</figure>'
+    )).join('')
+    : '<p>NÃ£o foi possÃ­vel converter este PDF em pÃ¡ginas visuais.</p>';
+
+  return '' +
+    '<div class="kb-doc-embed kb-doc-embed-pdf">' +
+      '<div class="kb-doc-embed-header">' +
+        '<div class="kb-doc-embed-meta"><i class="fas fa-file-pdf"></i><div><strong>' + nome + '</strong><small>PÃ¡ginas visuais geradas automaticamente do PDF</small></div></div>' +
+        '<div class="kb-doc-embed-acoes">' +
+          '<a class="kb-anexo-item" href="' + urlAbrir + '" target="_blank" rel="noopener noreferrer"><i class="fas fa-up-right-from-square"></i> Abrir</a>' +
+          '<a class="kb-anexo-item" href="' + urlBase + '" target="_blank" rel="noopener noreferrer"><i class="fas fa-download"></i> Baixar</a>' +
+        '</div>' +
+      '</div>' +
+      '<div class="kb-doc-embed-body kb-doc-converted-body">' +
+        '<div class="kb-doc-converted-notice">ConversÃ£o automÃ¡tica para leitura visual. O arquivo original permanece anexado.</div>' +
+        '<div class="kb-doc-converted-content kb-pdf-pages">' + corpoHtml + '</div>' +
+      '</div>' +
+    '</div>';
+}
+
+async function converterPdfBufferParaPaginasBase64(buffer) {
+  const pastaTemp = await fs.mkdtemp(path.join(os.tmpdir(), 'kb-pdf-'));
+  const arquivoPdf = path.join(pastaTemp, 'documento.pdf');
+  const prefixoSaida = path.join(pastaTemp, 'pagina');
+
+  try {
+    await fs.writeFile(arquivoPdf, buffer);
+    await execFileAsync('pdftoppm', ['-png', arquivoPdf, prefixoSaida], {
+      maxBuffer: 20 * 1024 * 1024
+    });
+
+    const arquivos = (await fs.readdir(pastaTemp))
+      .filter((nome) => /^pagina-\d+\.png$/i.test(nome))
+      .sort((a, b) => {
+        const numeroA = parseInt((a.match(/(\d+)/) || [])[1] || '0', 10);
+        const numeroB = parseInt((b.match(/(\d+)/) || [])[1] || '0', 10);
+        return numeroA - numeroB;
+      });
+
+    const paginas = [];
+    for (const arquivo of arquivos) {
+      const dados = await fs.readFile(path.join(pastaTemp, arquivo));
+      paginas.push(dados.toString('base64'));
+    }
+    return paginas;
+  } finally {
+    await fs.rm(pastaTemp, { recursive: true, force: true }).catch(() => null);
+  }
+}
 
 // ============================================================
 // PAGINAS HTML
@@ -119,7 +230,7 @@ router.delete('/api/conhecimento/categorias/:id', verificarLogin, async (req, re
 router.get('/api/conhecimento/artigos', verificarLogin, async (req, res) => {
   const pool = req.app.locals.pool;
   const usuario = req.session.usuario.usuario;
-  const { categoria_id, busca, tag, status } = req.query;
+  const { categoria_id, busca, tag, status, criado_por, fixado } = req.query;
   try {
     let where = ['1=1'];
     const request = pool.request()
@@ -137,6 +248,10 @@ router.get('/api/conhecimento/artigos', verificarLogin, async (req, res) => {
       request.input('tag', sql.NVarChar, `%${tag}%`);
       where.push('a.tags LIKE @tag');
     }
+    if (criado_por) {
+      request.input('criado_por', sql.NVarChar, criado_por);
+      where.push('a.criado_por = @criado_por');
+    }
     if (status) {
       if (status === 'rascunho') {
         where.push("a.status = 'rascunho'");
@@ -147,6 +262,9 @@ router.get('/api/conhecimento/artigos', verificarLogin, async (req, res) => {
       }
     } else {
       where.push("(a.status = 'publicado' OR (a.status = 'rascunho' AND a.criado_por = @usuario))");
+    }
+    if (fixado === '1') {
+      where.push('a.fixado = 1');
     }
 
     const r = await request.query(`
@@ -162,6 +280,36 @@ router.get('/api/conhecimento/artigos', verificarLogin, async (req, res) => {
   } catch (erro) {
     req.app.locals.logErro.error(erro.message);
     res.status(500).json({ erro: 'Erro ao carregar artigos.' });
+  }
+});
+
+router.get('/api/conhecimento/filtros', verificarLogin, async (req, res) => {
+  const pool = req.app.locals.pool;
+  const usuario = req.session.usuario.usuario;
+  try {
+    const r = await pool.request()
+      .input('usuario', sql.NVarChar, usuario)
+      .query(`
+        SELECT DISTINCT criado_por
+        FROM kb_artigos
+        WHERE status = 'publicado' OR (status = 'rascunho' AND criado_por = @usuario)
+        ORDER BY criado_por;
+
+        SELECT DISTINCT LTRIM(RTRIM(value)) AS tag
+        FROM kb_artigos
+        CROSS APPLY STRING_SPLIT(ISNULL(tags, ''), ',')
+        WHERE LTRIM(RTRIM(value)) <> ''
+          AND (status = 'publicado' OR (status = 'rascunho' AND criado_por = @usuario))
+        ORDER BY tag;
+      `);
+
+    res.json({
+      criadores: (r.recordsets[0] || []).map((item) => item.criado_por).filter(Boolean),
+      tags: (r.recordsets[1] || []).map((item) => item.tag).filter(Boolean)
+    });
+  } catch (erro) {
+    req.app.locals.logErro.error(erro.message);
+    res.status(500).json({ erro: 'Erro ao carregar filtros.' });
   }
 });
 
@@ -411,6 +559,7 @@ router.post('/api/conhecimento/artigos/:id/avaliar', verificarLogin, async (req,
 router.get('/api/conhecimento/anexos/:id', verificarLogin, async (req, res) => {
   const pool = req.app.locals.pool;
   const { id } = req.params;
+  const inline = req.query.inline === '1';
   try {
     const r = await pool.request()
       .input('id', sql.Int, id)
@@ -419,12 +568,55 @@ router.get('/api/conhecimento/anexos/:id', verificarLogin, async (req, res) => {
 
     const anexo = r.recordset[0];
     const buffer = Buffer.from(anexo.dados_base64, 'base64');
-    res.setHeader('Content-Disposition', `attachment; filename="${anexo.nome_original}"`);
-    res.setHeader('Content-Type', anexo.tipo_mime || 'application/octet-stream');
+    const nome = String(anexo.nome_original || '');
+    const nomeLower = nome.toLowerCase();
+    let tipoMime = String(anexo.tipo_mime || '').trim().toLowerCase();
+    if (!tipoMime || tipoMime === 'application/octet-stream') {
+      if (nomeLower.endsWith('.pdf')) tipoMime = 'application/pdf';
+      else if (nomeLower.endsWith('.doc')) tipoMime = 'application/msword';
+      else if (nomeLower.endsWith('.docx')) tipoMime = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+      else if (nomeLower.endsWith('.ppt')) tipoMime = 'application/vnd.ms-powerpoint';
+      else if (nomeLower.endsWith('.pptx') || nomeLower.endsWith('.ptt')) tipoMime = 'application/vnd.openxmlformats-officedocument.presentationml.presentation';
+      else tipoMime = 'application/octet-stream';
+    }
+    res.setHeader('Content-Disposition', `${inline ? 'inline' : 'attachment'}; filename="${anexo.nome_original}"`);
+    res.setHeader('Content-Type', tipoMime);
+    res.setHeader('Content-Length', buffer.length);
+    res.setHeader('Cache-Control', 'private, max-age=300');
+    if (tipoMime === 'application/pdf') {
+      res.setHeader('Accept-Ranges', 'bytes');
+    }
     res.send(buffer);
   } catch (erro) {
     req.app.locals.logErro.error(erro.message);
     res.status(500).json({ erro: 'Erro ao baixar anexo.' });
+  }
+});
+
+router.get('/api/conhecimento/anexos/:id/pdf-html', verificarLogin, async (req, res) => {
+  const pool = req.app.locals.pool;
+  const { id } = req.params;
+  try {
+    const r = await pool.request()
+      .input('id', sql.Int, id)
+      .query('SELECT id, nome_original, tipo_mime, dados_base64 FROM kb_anexos WHERE id = @id');
+    if (r.recordset.length === 0) return res.status(404).json({ erro: 'Anexo não encontrado.' });
+
+    const anexo = r.recordset[0];
+    const nome = String(anexo.nome_original || '').toLowerCase();
+    const tipo = String(anexo.tipo_mime || '').toLowerCase();
+    const ehPdf = tipo === 'application/pdf' || nome.endsWith('.pdf');
+    if (!ehPdf) {
+      return res.status(400).json({ erro: 'O anexo informado não é um PDF.' });
+    }
+
+    const buffer = Buffer.from(anexo.dados_base64, 'base64');
+    const paginas = await converterPdfBufferParaPaginasBase64(buffer);
+    const html = converterPaginasPdfParaHtml(paginas, anexo.nome_original, anexo.id);
+    res.json({ sucesso: true, html });
+  } catch (erro) {
+    req.app.locals.logErro.error(erro.message);
+    res.status(500).json({ erro: 'Erro ao converter PDF.' });
   }
 });
 

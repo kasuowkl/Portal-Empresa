@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Solicitação de Criação de Usuário</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/menu.css">
+  <style>
+    .rh-shell {
+      display: grid;
+      gap: 20px;
+    }
+    .rh-hero {
+      background:
+        radial-gradient(circle at top right, rgba(78,154,241,0.22), transparent 28%),
+        linear-gradient(135deg, #16213e 0%, #10253f 100%);
+      border: 1px solid var(--cor-borda);
+      border-radius: 16px;
+      padding: 28px;
+      box-shadow: var(--sombra);
+    }
+    .rh-hero h1 {
+      font-size: 1.8rem;
+      margin-bottom: 10px;
+    }
+    .rh-hero p {
+      color: var(--cor-texto-fraco);
+      max-width: 820px;
+    }
+    .rh-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 16px;
+    }
+    .rh-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(78,154,241,0.28);
+      background: rgba(78,154,241,0.12);
+      color: var(--cor-texto);
+      font-size: 0.9rem;
+    }
+    .rh-grid {
+      display: grid;
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+      gap: 16px;
+    }
+    .rh-card {
+      background: var(--cor-fundo-2);
+      border: 1px solid var(--cor-borda);
+      border-radius: 14px;
+      padding: 22px;
+      box-shadow: var(--sombra);
+    }
+    .rh-card h2 {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 1.08rem;
+      color: var(--cor-destaque);
+      margin-bottom: 4px;
+    }
+    .rh-card p {
+      color: var(--cor-texto-fraco);
+      margin-bottom: 18px;
+      font-size: 0.92rem;
+    }
+    .span-12 { grid-column: span 12; }
+    .span-8 { grid-column: span 8; }
+    .span-6 { grid-column: span 6; }
+    .span-4 { grid-column: span 4; }
+    .span-3 { grid-column: span 3; }
+    .rh-field label {
+      display: block;
+      margin-bottom: 6px;
+      color: var(--cor-texto-fraco);
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+    .rh-field input,
+    .rh-field select,
+    .rh-field textarea {
+      width: 100%;
+      border: 1px solid var(--cor-borda);
+      background: var(--cor-fundo-3);
+      color: var(--cor-texto);
+      border-radius: 10px;
+      padding: 12px 14px;
+      font: inherit;
+      outline: none;
+      transition: border-color .15s ease, box-shadow .15s ease;
+    }
+    .rh-field textarea {
+      min-height: 110px;
+      resize: vertical;
+    }
+    .rh-field input:focus,
+    .rh-field select:focus,
+    .rh-field textarea:focus {
+      border-color: var(--cor-destaque);
+      box-shadow: 0 0 0 3px rgba(78,154,241,0.14);
+    }
+    .rh-check-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 14px;
+    }
+    .rh-access {
+      border: 1px solid var(--cor-borda);
+      background: rgba(255,255,255,0.02);
+      border-radius: 12px;
+      padding: 14px;
+    }
+    .rh-access-top {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .rh-access-top input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--cor-destaque);
+    }
+    .rh-access-top label {
+      margin: 0;
+      font-weight: 700;
+      color: var(--cor-texto);
+      cursor: pointer;
+    }
+    .rh-access small {
+      display: block;
+      color: var(--cor-texto-fraco);
+      margin-top: 6px;
+    }
+    .rh-alerta {
+      display: none;
+      padding: 14px 16px;
+      border-radius: 12px;
+      border: 1px solid transparent;
+      font-weight: 600;
+    }
+    .rh-alerta.visivel { display: block; }
+    .rh-alerta.sucesso {
+      background: rgba(76,175,80,0.12);
+      border-color: rgba(76,175,80,0.34);
+      color: #7ddc83;
+    }
+    .rh-alerta.erro {
+      background: rgba(233,69,96,0.12);
+      border-color: rgba(233,69,96,0.34);
+      color: #ff8b9f;
+    }
+    .rh-acoes {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: flex-end;
+    }
+    .rh-resumo {
+      border: 1px dashed rgba(78,154,241,0.32);
+      border-radius: 12px;
+      padding: 16px;
+      background: rgba(78,154,241,0.06);
+      color: var(--cor-texto-fraco);
+      font-size: 0.92rem;
+    }
+    @media (max-width: 900px) {
+      .span-8, .span-6, .span-4, .span-3 { grid-column: span 12; }
+      .rh-acoes { justify-content: stretch; }
+      .rh-acoes .btn { width: 100%; justify-content: center; }
+    }
+  </style>
+</head>
+<body>
+  <div id="menu-container"></div>
+
+  <div class="container">
+    <div class="rh-shell">
+      <section class="rh-hero">
+        <h1><i class="fas fa-user-plus"></i> Solicitação de Criação de Usuário</h1>
+        <p>
+          Formulário para o RH solicitar à TI a criação de usuário, e-mail, equipamentos e acessos a sistemas como RM, Protheus, Fluig, PIMS, VPN e outros.
+          Ao enviar, o portal gera um chamado estruturado para o setor de TI com o nome do solicitante logado.
+        </p>
+        <div class="rh-meta">
+          <span class="rh-chip"><i class="fas fa-building"></i> RH → TI</span>
+          <span class="rh-chip" id="chip-solicitante"><i class="fas fa-user"></i> Carregando solicitante...</span>
+          <span class="rh-chip"><i class="fas fa-ticket-alt"></i> Gera protocolo automático</span>
+        </div>
+      </section>
+
+      <div id="rh-alerta" class="rh-alerta"></div>
+
+      <form id="form-solicitacao" class="rh-shell">
+        <section class="rh-card">
+          <h2><i class="fas fa-id-card"></i> Dados do Colaborador</h2>
+          <p>Informações principais para cadastro no domínio, e-mail e sistemas corporativos.</p>
+          <div class="rh-grid">
+            <div class="rh-field span-6">
+              <label for="nome-completo">Nome completo *</label>
+              <input id="nome-completo" required placeholder="Nome do novo colaborador">
+            </div>
+            <div class="rh-field span-6">
+              <label for="nome-social">Nome social</label>
+              <input id="nome-social" placeholder="Opcional">
+            </div>
+            <div class="rh-field span-3">
+              <label for="cpf">CPF</label>
+              <input id="cpf" placeholder="000.000.000-00">
+            </div>
+            <div class="rh-field span-3">
+              <label for="data-nascimento">Data de nascimento</label>
+              <input id="data-nascimento" type="date">
+            </div>
+            <div class="rh-field span-3">
+              <label for="tipo-vinculo">Vínculo</label>
+              <select id="tipo-vinculo">
+                <option value="">Selecione</option>
+                <option>CLT</option>
+                <option>PJ</option>
+                <option>Estágio</option>
+                <option>Aprendiz</option>
+                <option>Temporário</option>
+                <option>Terceirizado</option>
+              </select>
+            </div>
+            <div class="rh-field span-3">
+              <label for="data-admissao">Data de admissão *</label>
+              <input id="data-admissao" type="date" required>
+            </div>
+            <div class="rh-field span-4">
+              <label for="empresa">Empresa/Unidade</label>
+              <input id="empresa" placeholder="Ex: WKL / Matriz">
+            </div>
+            <div class="rh-field span-4">
+              <label for="filial">Filial/Local</label>
+              <input id="filial" placeholder="Ex: Obra, Escritório, Filial">
+            </div>
+            <div class="rh-field span-4">
+              <label for="centro-custo">Centro de custo</label>
+              <input id="centro-custo" placeholder="Opcional">
+            </div>
+            <div class="rh-field span-4">
+              <label for="departamento">Departamento *</label>
+              <input id="departamento" list="lista-departamentos" required placeholder="Ex: RH, Financeiro, Engenharia">
+              <datalist id="lista-departamentos"></datalist>
+            </div>
+            <div class="rh-field span-4">
+              <label for="cargo">Cargo/Função *</label>
+              <input id="cargo" required placeholder="Ex: Analista de RH">
+            </div>
+            <div class="rh-field span-4">
+              <label for="gestor">Gestor imediato</label>
+              <input id="gestor" list="lista-usuarios" placeholder="Selecione ou digite">
+              <datalist id="lista-usuarios"></datalist>
+            </div>
+            <div class="rh-field span-6">
+              <label for="jornada">Jornada/Turno</label>
+              <input id="jornada" placeholder="Ex: Comercial / 08h às 18h">
+            </div>
+            <div class="rh-field span-6">
+              <label for="prazo-necessario">Data necessária para liberação</label>
+              <input id="prazo-necessario" type="date">
+            </div>
+          </div>
+        </section>
+
+        <section class="rh-card">
+          <h2><i class="fas fa-at"></i> Identidade Digital</h2>
+          <p>Dados para criação de login, conta de e-mail e informações de contato.</p>
+          <div class="rh-grid">
+            <div class="rh-field span-4">
+              <label for="login-desejado">Login desejado</label>
+              <input id="login-desejado" placeholder="Ex: joao.silva">
+            </div>
+            <div class="rh-field span-4">
+              <label for="email-pessoal">E-mail pessoal</label>
+              <input id="email-pessoal" type="email" placeholder="Opcional">
+            </div>
+            <div class="rh-field span-4">
+              <label for="telefone">Telefone/Ramal</label>
+              <input id="telefone" placeholder="Opcional">
+            </div>
+          </div>
+        </section>
+
+        <section class="rh-card">
+          <h2><i class="fas fa-shield-alt"></i> Acessos e Permissões</h2>
+          <p>Marque os recursos necessários e, se quiser, descreva o perfil, grupo, papel ou permissão esperada.</p>
+          <div id="acessos-grid" class="rh-check-grid"></div>
+        </section>
+
+        <section class="rh-card">
+          <h2><i class="fas fa-laptop"></i> Equipamentos e Recursos</h2>
+          <p>Selecione os itens que a TI deve separar ou providenciar para a entrada do colaborador.</p>
+          <div id="equipamentos-grid" class="rh-check-grid"></div>
+        </section>
+
+        <section class="rh-card">
+          <h2><i class="fas fa-clipboard-list"></i> Prioridade e Observações</h2>
+          <p>Contexto adicional para a TI, incluindo urgência, acessos especiais ou necessidades específicas.</p>
+          <div class="rh-grid">
+            <div class="rh-field span-4">
+              <label for="prioridade">Prioridade</label>
+              <select id="prioridade">
+                <option value="Normal">Normal</option>
+                <option value="Alta">Alta</option>
+                <option value="Crítica">Crítica</option>
+              </select>
+            </div>
+            <div class="rh-field span-8">
+              <label for="observacoes">Observações</label>
+              <textarea id="observacoes" placeholder="Ex: acesso somente leitura no Protheus, notebook para obra, e-mail com alias específico, perfil de aprovação no Fluig..."></textarea>
+            </div>
+            <div class="span-12">
+              <div class="rh-resumo">
+                O chamado será aberto automaticamente para o setor <strong>TI</strong> com o nome do usuário logado como solicitante.
+                A equipe técnica receberá no detalhe todas as marcações do formulário.
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <div class="rh-acoes">
+          <a class="btn" href="/portal" style="background:var(--cor-fundo-3);color:var(--cor-texto)">Voltar</a>
+          <button class="btn btn-primario" type="submit" id="btn-enviar">
+            <i class="fas fa-paper-plane"></i>
+            <span>Enviar para a TI</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="/js/menu.js"></script>
+  <script>
+    const ACESSOS = [
+      { nome: 'Email Corporativo', dica: 'Criar caixa postal e credenciais de acesso.' },
+      { nome: 'Portal WKL', dica: 'Acesso ao portal e seus módulos internos.' },
+      { nome: 'RM', dica: 'Perfil, coligada, menus ou permissões no RM.' },
+      { nome: 'Protheus', dica: 'Módulos, ambiente, empresa, filial ou perfil.' },
+      { nome: 'Fluig', dica: 'Papéis, grupos, processos e publicações.' },
+      { nome: 'PIMS', dica: 'Perfil operacional ou acesso de consulta.' },
+      { nome: 'VPN', dica: 'Acesso remoto à rede corporativa.' },
+      { nome: 'Pastas de Rede', dica: 'Pastas compartilhadas, unidades e permissões.' },
+      { nome: 'Impressoras', dica: 'Mapeamento de impressoras e filas necessárias.' },
+      { nome: 'Wi-Fi Corporativo', dica: 'Acesso à rede sem fio interna.' },
+      { nome: 'Biometria / Catraca', dica: 'Integração com controle de acesso físico.' },
+      { nome: 'Outro Sistema', dica: 'Use o campo de permissão para detalhar qual sistema.' },
+    ];
+
+    const EQUIPAMENTOS = [
+      { nome: 'Computador Desktop', dica: 'Estação fixa para posto de trabalho.' },
+      { nome: 'Notebook', dica: 'Equipamento portátil para mobilidade.' },
+      { nome: 'Monitor Extra', dica: 'Tela adicional para operação.' },
+      { nome: 'Headset', dica: 'Atendimento, reuniões e chamadas.' },
+      { nome: 'Teclado e Mouse', dica: 'Kit de periféricos.' },
+      { nome: 'Docking Station', dica: 'Base de conexão para notebook.' },
+      { nome: 'Telefone / Ramal', dica: 'Ramal físico ou configuração VoIP.' },
+      { nome: 'Celular Corporativo', dica: 'Linha e aparelho móvel.' },
+      { nome: 'Token / MFA', dica: 'Segundo fator ou dispositivo de autenticação.' },
+      { nome: 'Outro Recurso', dica: 'Use o campo de detalhe para especificar.' },
+    ];
+
+    (function () {
+      const alerta = document.getElementById('rh-alerta');
+      const btnEnviar = document.getElementById('btn-enviar');
+
+      renderChecklist('acessos-grid', ACESSOS, 'acc');
+      renderChecklist('equipamentos-grid', EQUIPAMENTOS, 'eqp', true);
+      carregarBase();
+
+      document.getElementById('form-solicitacao').addEventListener('submit', enviarFormulario);
+
+      function renderChecklist(containerId, items, prefixo, detalheLivre) {
+        const container = document.getElementById(containerId);
+        container.innerHTML = items.map((item, idx) => `
+          <div class="rh-access">
+            <div class="rh-access-top">
+              <input type="checkbox" id="${prefixo}-check-${idx}" data-nome="${escapeHtml(item.nome)}">
+              <label for="${prefixo}-check-${idx}">${escapeHtml(item.nome)}</label>
+            </div>
+            <div class="rh-field" style="margin-bottom:0">
+              <label for="${prefixo}-perfil-${idx}">${detalheLivre ? 'Detalhe/observação' : 'Perfil/Permissão'}</label>
+              <input id="${prefixo}-perfil-${idx}" placeholder="${detalheLivre ? 'Ex: notebook com mochila e mouse sem fio' : 'Ex: perfil gestor, somente leitura, módulo financeiro'}">
+              <small>${escapeHtml(item.dica || '')}</small>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      async function carregarBase() {
+        try {
+          const resp = await fetch('/api/chamados/solicitacao-usuario/base');
+          const dados = await resp.json();
+          if (!resp.ok) throw new Error(dados.erro || 'Erro ao carregar dados do formulário.');
+
+          document.getElementById('chip-solicitante').innerHTML =
+            `<i class="fas fa-user"></i> Solicitante: ${escapeHtml(dados.solicitante?.nome || dados.solicitante?.login || '-')}`;
+
+          document.getElementById('lista-departamentos').innerHTML = (dados.departamentos || [])
+            .map(dep => `<option value="${escapeHtml(dep)}"></option>`).join('');
+
+          document.getElementById('lista-usuarios').innerHTML = (dados.usuarios || [])
+            .map(u => `<option value="${escapeHtml(u.nome || u.login)}"></option>`).join('');
+        } catch (erro) {
+          mostrarAlerta(erro.message, 'erro');
+        }
+      }
+
+      async function enviarFormulario(ev) {
+        ev.preventDefault();
+
+        const payload = {
+          colaborador: {
+            nome_completo: valor('nome-completo'),
+            nome_social: valor('nome-social'),
+            cpf: valor('cpf'),
+            data_nascimento: valor('data-nascimento'),
+            tipo_vinculo: valor('tipo-vinculo'),
+            data_admissao: valor('data-admissao'),
+            empresa: valor('empresa'),
+            filial: valor('filial'),
+            centro_custo: valor('centro-custo'),
+            departamento: valor('departamento'),
+            cargo: valor('cargo'),
+            gestor: valor('gestor'),
+            jornada: valor('jornada'),
+            login_desejado: valor('login-desejado'),
+            email_pessoal: valor('email-pessoal'),
+            telefone: valor('telefone'),
+          },
+          prazo_necessario: valor('prazo-necessario'),
+          prioridade: valor('prioridade') || 'Normal',
+          observacoes: valor('observacoes'),
+          acessos: coletarItens(ACESSOS, 'acc', 'perfil'),
+          equipamentos: coletarItens(EQUIPAMENTOS, 'eqp', 'detalhe'),
+        };
+
+        btnEnviar.disabled = true;
+        btnEnviar.querySelector('span').textContent = 'Enviando...';
+        mostrarAlerta('', '');
+
+        try {
+          const resp = await fetch('/api/chamados/solicitacao-usuario', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+          });
+          const dados = await resp.json();
+          if (!resp.ok) throw new Error(dados.erro || 'Erro ao enviar solicitação.');
+
+          mostrarAlerta(`${dados.mensagem || 'Solicitação enviada.'} Protocolo: ${dados.protocolo}.`, 'sucesso');
+          document.getElementById('form-solicitacao').reset();
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        } catch (erro) {
+          mostrarAlerta(erro.message, 'erro');
+        } finally {
+          btnEnviar.disabled = false;
+          btnEnviar.querySelector('span').textContent = 'Enviar para a TI';
+        }
+      }
+
+      function coletarItens(items, prefixo, campoTexto) {
+        return items.flatMap((item, idx) => {
+          const marcado = document.getElementById(`${prefixo}-check-${idx}`).checked;
+          const texto = document.getElementById(`${prefixo}-perfil-${idx}`).value.trim();
+          if (!marcado && !texto) return [];
+          return [{
+            nome: item.nome,
+            [campoTexto]: texto,
+          }];
+        });
+      }
+
+      function valor(id) {
+        return document.getElementById(id).value.trim();
+      }
+
+      function mostrarAlerta(msg, tipo) {
+        alerta.className = 'rh-alerta';
+        alerta.textContent = msg || '';
+        if (!msg) return;
+        alerta.classList.add('visivel', tipo || 'sucesso');
+      }
+
+      function escapeHtml(txt) {
+        return String(txt || '')
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#39;');
+      }
+    })();
+  </script>
+</body>
+</html>

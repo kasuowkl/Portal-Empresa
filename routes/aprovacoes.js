@@ -1,43 +1,18 @@
 /**
  * ARQUIVO: routes/aprovacoes.js
- * VERSÃO:  1.0.0
+ * VERSÃƒO:  1.0.0
  * DATA:    2026-03-13
- * DESCRIÇÃO: Rotas do sistema de Aprovações
+ * DESCRIÃ‡ÃƒO: Rotas do sistema de AprovaÃ§Ãµes
  */
 
 const express        = require('express');
 const sql            = require('mssql');
 const path           = require('path');
-const http           = require('http');
 const verificarLogin   = require('../middleware/verificarLogin');
 const { registrarLog } = require('../services/logService');
 const { enviarNotificacao } = require('../services/emailService');
-
-const WHATSAPP_URL = process.env.WHATSAPP_SERVICE_URL || 'http://localhost:3200';
-const WHATSAPP_KEY = process.env.WHATSAPP_API_KEY || '';
-
-// Envia notificação WhatsApp e retorna Promise<{ ok, status, erro }>
-function notificarWhatsApp(numero, mensagem) {
-  return new Promise((resolve) => {
-    try {
-      const body = JSON.stringify({ numero, mensagem });
-      const url  = new URL('/api/notificar', WHATSAPP_URL);
-      const opts = {
-        hostname: url.hostname, port: url.port || 3200,
-        path: url.pathname, method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body), 'x-api-key': WHATSAPP_KEY },
-      };
-      const req = http.request(opts, (res) => {
-        resolve({ ok: res.statusCode >= 200 && res.statusCode < 300, status: res.statusCode });
-      });
-      req.on('error', (e) => resolve({ ok: false, erro: e.message }));
-      req.write(body);
-      req.end();
-    } catch (e) {
-      resolve({ ok: false, erro: e.message });
-    }
-  });
-}
+const { enviarWhatsApp } = require('../services/whatsappService');
+const { renderizarMensagemWhatsApp } = require('../services/whatsappTemplateService');
 
 async function buscarWhatsAppAprovadores(pool, logins) {
   if (!logins.length) return {};
@@ -56,7 +31,7 @@ async function buscarWhatsAppAprovadores(pool, logins) {
 
 const router           = express.Router();
 
-// ── Helpers de e-mail ─────────────────────────────────────────
+// â”€â”€ Helpers de e-mail â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 async function buscarEmail(pool, login) {
   if (!login) return null;
   try {
@@ -112,7 +87,7 @@ async function montarDadosNotif(pool, aprovacaoId) {
 }
 
 // ============================================================
-// LÓGICA DE CONSENSO
+// LÃ“GICA DE CONSENSO
 // ============================================================
 function calcularConsenso(decisoes, tipoConsenso, consensoValor) {
   const total      = decisoes.length;
@@ -124,7 +99,7 @@ function calcularConsenso(decisoes, tipoConsenso, consensoValor) {
     case 'maioria_simples': {
       const needed = Math.floor(total / 2) + 1;
       if (aprovados  >= needed)         return 'Aprovado';
-      if (reprovados > total - needed)  return 'Reprovado'; // impossível atingir
+      if (reprovados > total - needed)  return 'Reprovado'; // impossÃ­vel atingir
       return null;
     }
     case 'maioria_qualificada': {
@@ -137,8 +112,8 @@ function calcularConsenso(decisoes, tipoConsenso, consensoValor) {
     case 'quorum_minimo': {
       const quorum      = consensoValor || Math.ceil(total / 2);
       const respondidos = aprovados + reprovados;
-      if (respondidos < quorum) return null; // quórum não atingido
-      // Com quórum atingido: maioria simples entre os respondentes
+      if (respondidos < quorum) return null; // quÃ³rum nÃ£o atingido
+      // Com quÃ³rum atingido: maioria simples entre os respondentes
       if (aprovados  > reprovados) return 'Aprovado';
       if (reprovados >= aprovados) return 'Reprovado';
       return null;
@@ -152,14 +127,14 @@ function calcularConsenso(decisoes, tipoConsenso, consensoValor) {
 }
 
 // ============================================================
-// GET /aprovacoes — Serve a página HTML
+// GET /aprovacoes - Serve a pÃ¡gina HTML
 // ============================================================
 router.get('/aprovacoes', verificarLogin, (req, res) => {
   res.sendFile(path.join(__dirname, '../public/aprovacoes/index.html'));
 });
 
 // ============================================================
-// GET /api/aprovacoes — Lista aprovações onde sou criador OU aprovador
+// GET /api/aprovacoes - Lista aprovaÃ§Ãµes onde sou criador OU aprovador
 // ============================================================
 router.get('/api/aprovacoes', verificarLogin, async (req, res) => {
   const pool    = req.app.locals.pool;
@@ -187,13 +162,13 @@ router.get('/api/aprovacoes', verificarLogin, async (req, res) => {
       `);
     res.json({ sucesso: true, aprovacoes: result.recordset });
   } catch (erro) {
-    logErro.error(`Erro ao listar aprovações: ${erro.message}`);
-    res.status(500).json({ erro: 'Erro ao carregar aprovações.' });
+    logErro.error(`Erro ao listar aprovaÃ§Ãµes: ${erro.message}`);
+    res.status(500).json({ erro: 'Erro ao carregar aprovaÃ§Ãµes.' });
   }
 });
 
 // ============================================================
-// POST /api/aprovacoes — Cria nova aprovação
+// POST /api/aprovacoes - Cria nova aprovaÃ§Ã£o
 // ============================================================
 router.post('/api/aprovacoes', verificarLogin, async (req, res) => {
   const pool    = req.app.locals.pool;
@@ -202,7 +177,7 @@ router.post('/api/aprovacoes', verificarLogin, async (req, res) => {
   const nome    = req.session.usuario.nome || login;
   const { titulo, objetivo, aprovadores, observadores, tipo_consenso, consenso_valor } = req.body;
 
-  if (!titulo?.trim()) return res.status(400).json({ erro: 'Título é obrigatório.' });
+  if (!titulo?.trim()) return res.status(400).json({ erro: 'TÃ­tulo Ã© obrigatÃ³rio.' });
   if (!Array.isArray(aprovadores) || !aprovadores.length)
     return res.status(400).json({ erro: 'Selecione ao menos um aprovador.' });
 
@@ -210,9 +185,8 @@ router.post('/api/aprovacoes', verificarLogin, async (req, res) => {
   const tipoFinal    = tiposValidos.includes(tipo_consenso) ? tipo_consenso : 'unanimidade';
   const valorFinal   = (tipoFinal === 'maioria_qualificada' || tipoFinal === 'quorum_minimo')
     ? (parseInt(consenso_valor) || null) : null;
-
   try {
-    // Insere aprovação principal
+    // Insere aprovaÃ§Ã£o principal
     const ins = await pool.request()
       .input('titulo',          sql.VarChar, titulo.trim())
       .input('objetivo',        sql.VarChar, objetivo || null)
@@ -261,11 +235,11 @@ router.post('/api/aprovacoes', verificarLogin, async (req, res) => {
       }
     }
 
-    // Registra no log da aprovação
+    // Registra no log da aprovaÃ§Ã£o
     await pool.request()
       .input('aprovacao_id', sql.Int,     aprovacaoId)
       .input('usuario',      sql.VarChar, login)
-      .input('acao',         sql.VarChar, `${nome} criou a aprovação`)
+      .input('acao',         sql.VarChar, `${nome} criou a aprovaÃ§Ã£o`)
       .query(`INSERT INTO aprovacoes_log (aprovacao_id, usuario, acao) VALUES (@aprovacao_id, @usuario, @acao)`);
 
     registrarLog(pool, {
@@ -278,7 +252,7 @@ router.post('/api/aprovacoes', verificarLogin, async (req, res) => {
     }).catch(() => {});
 
     // Notificação WhatsApp automática para cada aprovador com número cadastrado
-    // Envia com intervalo de 3s entre cada para evitar bloqueio do WhatsApp
+    // Envia com intervalo entre cada mensagem para evitar bloqueio do WhatsApp
     buscarWhatsAppAprovadores(pool, aprovadores).then(async (mapaWhatsApp) => {
       const entries = Object.entries(mapaWhatsApp);
       const semNumero = aprovadores.filter(a => !mapaWhatsApp[a]);
@@ -286,22 +260,28 @@ router.post('/api/aprovacoes', verificarLogin, async (req, res) => {
       for (const aprLogin of semNumero) {
         registrarLog(pool, {
           usuario: login, ip: '::1', acao: 'NOTIF_WHATSAPP', sistema: 'aprovacoes',
-          detalhes: `Aprovação #${aprovacaoId}: WhatsApp NÃO enviado para ${aprLogin} — número não cadastrado`
+          detalhes: `Aprovação #${aprovacaoId}: WhatsApp NÃO enviado para ${aprLogin} - número não cadastrado`
         });
       }
       for (let i = 0; i < entries.length; i++) {
         const [aprLogin, numero] = entries[i];
         const aprNome = mapaUsuarios[aprLogin] || aprLogin;
-        const msg =
-          `*Portal WKL — Aprovação Pendente* 🔔\n\n` +
-          `Olá, *${aprNome}*! Você tem uma nova solicitação aguardando sua resposta:\n\n` +
-          `*#${aprovacaoId}* — ${titulo.trim()}\n` +
-          `Solicitante: ${nome}\n` +
-          (objetivo ? `Objetivo: ${objetivo}\n` : '') +
-          `\nPara responder:\n✅ *aprovar ${aprovacaoId}*\n❌ *reprovar ${aprovacaoId} [motivo]*\n\n` +
-          `Ou acesse: http://192.168.0.80:3132/aprovacoes`;
-        if (i > 0) await new Promise(r => setTimeout(r, 3000));
-        const result = await notificarWhatsApp(numero, msg);
+        const msg = await renderizarMensagemWhatsApp(pool, 'aprovacoes.nova_solicitacao', {
+          aprovador_nome: aprNome,
+          aprovacao_id: aprovacaoId,
+          titulo: titulo.trim(),
+          solicitante: nome,
+          objetivo: objetivo ? `\nObjetivo: ${objetivo}` : '',
+          link_aprovacoes: 'http://192.168.0.80:3132/aprovacoes',
+        });
+        const result = await enviarWhatsApp(pool, {
+          numero,
+          mensagem: msg,
+          evento: 'aprovacoes.nova_solicitacao',
+          usuario: login,
+          ip: '::1',
+          sistema: 'aprovacoes',
+        });
         if (result.ok) {
           console.log(`[WhatsApp] Notificação enviada para ${aprLogin} (${numero}) [${i + 1}/${entries.length}]`);
           registrarLog(pool, {
@@ -313,7 +293,7 @@ router.post('/api/aprovacoes', verificarLogin, async (req, res) => {
           console.error(`[WhatsApp] Falha ao notificar ${aprLogin} (${numero}): ${motivo}`);
           registrarLog(pool, {
             usuario: login, ip: '::1', acao: 'NOTIF_WHATSAPP', sistema: 'aprovacoes',
-            detalhes: `Aprovação #${aprovacaoId}: WhatsApp ERRO para ${aprLogin} (${numero}) — ${motivo}`
+            detalhes: `Aprovação #${aprovacaoId}: WhatsApp ERRO para ${aprLogin} (${numero}) - ${motivo}`
           });
         }
       }
@@ -321,13 +301,13 @@ router.post('/api/aprovacoes', verificarLogin, async (req, res) => {
 
     res.json({ sucesso: true, id: aprovacaoId });
   } catch (erro) {
-    logErro.error(`Erro ao criar aprovação: ${erro.message}`);
-    res.status(500).json({ erro: 'Erro ao criar aprovação.' });
+    logErro.error(`Erro ao criar aprovaÃ§Ã£o: ${erro.message}`);
+    res.status(500).json({ erro: 'Erro ao criar aprovaÃ§Ã£o.' });
   }
 });
 
 // ============================================================
-// GET /api/aprovacoes/relatorios — Dados para relatórios
+// GET /api/aprovacoes/relatorios - Dados para relatÃ³rios
 // ============================================================
 router.get('/api/aprovacoes/relatorios', verificarLogin, async (req, res) => {
   const pool    = req.app.locals.pool;
@@ -410,13 +390,13 @@ router.get('/api/aprovacoes/relatorios', verificarLogin, async (req, res) => {
       porCriador:      porCriadorR.recordset
     });
   } catch (erro) {
-    logErro.error(`Erro ao gerar relatório de aprovações: ${erro.message}`);
-    res.status(500).json({ erro: 'Erro ao gerar relatório.' });
+    logErro.error(`Erro ao gerar relatÃ³rio de aprovaÃ§Ãµes: ${erro.message}`);
+    res.status(500).json({ erro: 'Erro ao gerar relatÃ³rio.' });
   }
 });
 
 // ============================================================
-// GET /api/aprovacoes/:id — Detalhes da aprovação
+// GET /api/aprovacoes/:id - Detalhes da aprovaÃ§Ã£o
 // ============================================================
 router.get('/api/aprovacoes/:id', verificarLogin, async (req, res) => {
   const pool    = req.app.locals.pool;
@@ -425,7 +405,7 @@ router.get('/api/aprovacoes/:id', verificarLogin, async (req, res) => {
   const id      = parseInt(req.params.id);
 
   try {
-    // Busca aprovação
+    // Busca aprovaÃ§Ã£o
     const aprR = await pool.request()
       .input('id',    sql.Int,     id)
       .input('login', sql.VarChar, login)
@@ -445,7 +425,7 @@ router.get('/api/aprovacoes/:id', verificarLogin, async (req, res) => {
                           WHERE aprovacao_id = a.id AND observador_login = @login))
       `);
 
-    if (!aprR.recordset.length) return res.status(404).json({ erro: 'Aprovação não encontrada ou sem acesso.' });
+    if (!aprR.recordset.length) return res.status(404).json({ erro: 'AprovaÃ§Ã£o nÃ£o encontrada ou sem acesso.' });
 
     // Busca participantes
     const partsR = await pool.request()
@@ -496,13 +476,13 @@ router.get('/api/aprovacoes/:id', verificarLogin, async (req, res) => {
       log:           logR.recordset
     });
   } catch (erro) {
-    logErro.error(`Erro ao buscar aprovação #${id}: ${erro.message}`);
-    res.status(500).json({ erro: 'Erro ao carregar aprovação.' });
+    logErro.error(`Erro ao buscar aprovaÃ§Ã£o #${id}: ${erro.message}`);
+    res.status(500).json({ erro: 'Erro ao carregar aprovaÃ§Ã£o.' });
   }
 });
 
 // ============================================================
-// PUT /api/aprovacoes/:id — Edita aprovação (criador, só Pendente)
+// PUT /api/aprovacoes/:id - Edita aprovaÃ§Ã£o (criador, sÃ³ Pendente)
 // ============================================================
 router.put('/api/aprovacoes/:id', verificarLogin, async (req, res) => {
   const pool    = req.app.locals.pool;
@@ -512,7 +492,7 @@ router.put('/api/aprovacoes/:id', verificarLogin, async (req, res) => {
   const id      = parseInt(req.params.id);
   const { titulo, objetivo, aprovadores, observadores, tipo_consenso, consenso_valor } = req.body;
 
-  if (!titulo?.trim()) return res.status(400).json({ erro: 'Título é obrigatório.' });
+  if (!titulo?.trim()) return res.status(400).json({ erro: 'TÃ­tulo Ã© obrigatÃ³rio.' });
   if (!Array.isArray(aprovadores) || !aprovadores.length)
     return res.status(400).json({ erro: 'Selecione ao menos um aprovador.' });
 
@@ -520,18 +500,17 @@ router.put('/api/aprovacoes/:id', verificarLogin, async (req, res) => {
   const tipoFinal2    = tiposValidos2.includes(tipo_consenso) ? tipo_consenso : 'unanimidade';
   const valorFinal2   = (tipoFinal2 === 'maioria_qualificada' || tipoFinal2 === 'quorum_minimo')
     ? (parseInt(consenso_valor) || null) : null;
-
   try {
-    // Verifica existência e permissão
+    // Verifica existÃªncia e permissÃ£o
     const aprR = await pool.request()
       .input('id', sql.Int, id)
       .query(`SELECT criado_por, status FROM aprovacoes WHERE id = @id`);
-    if (!aprR.recordset.length) return res.status(404).json({ erro: 'Aprovação não encontrada.' });
+    if (!aprR.recordset.length) return res.status(404).json({ erro: 'AprovaÃ§Ã£o nÃ£o encontrada.' });
     const apr = aprR.recordset[0];
     if (apr.criado_por !== login) return res.status(403).json({ erro: 'Apenas o criador pode editar.' });
-    if (apr.status !== 'Pendente') return res.status(400).json({ erro: 'Apenas aprovações pendentes podem ser editadas.' });
+    if (apr.status !== 'Pendente') return res.status(400).json({ erro: 'Apenas aprovaÃ§Ãµes pendentes podem ser editadas.' });
 
-    // Atualiza título, objetivo e consenso
+    // Atualiza tÃ­tulo, objetivo e consenso
     await pool.request()
       .input('id',             sql.Int,     id)
       .input('titulo',         sql.VarChar, titulo.trim())
@@ -548,7 +527,7 @@ router.put('/api/aprovacoes/:id', verificarLogin, async (req, res) => {
     const loginsPendentes = partsAtual.filter(p => p.decisao === 'Pendente').map(p => p.aprovador_login);
     const loginsRespondidos = partsAtual.filter(p => p.decisao !== 'Pendente').map(p => p.aprovador_login);
 
-    // Remove pendentes que não estão mais na nova lista
+    // Remove pendentes que nÃ£o estÃ£o mais na nova lista
     for (const lp of loginsPendentes) {
       if (!aprovadores.includes(lp)) {
         await pool.request()
@@ -567,7 +546,7 @@ router.put('/api/aprovacoes/:id', verificarLogin, async (req, res) => {
     const mapaUsuarios = {};
     nomesR.recordset.forEach(u => { mapaUsuarios[u.login] = u.nome; });
 
-    // Adiciona novos aprovadores que não existem ainda
+    // Adiciona novos aprovadores que nÃ£o existem ainda
     for (const aprLogin of aprovadores) {
       const jaExiste = partsAtual.find(p => p.aprovador_login === aprLogin);
       if (!jaExiste) {
@@ -599,7 +578,7 @@ router.put('/api/aprovacoes/:id', verificarLogin, async (req, res) => {
     await pool.request()
       .input('aprovacao_id', sql.Int,     id)
       .input('usuario',      sql.VarChar, login)
-      .input('acao',         sql.VarChar, `${nome} editou a aprovação`)
+      .input('acao',         sql.VarChar, `${nome} editou a aprovaÃ§Ã£o`)
       .query(`INSERT INTO aprovacoes_log (aprovacao_id, usuario, acao) VALUES (@aprovacao_id, @usuario, @acao)`);
 
     registrarLog(pool, {
@@ -613,13 +592,13 @@ router.put('/api/aprovacoes/:id', verificarLogin, async (req, res) => {
 
     res.json({ sucesso: true });
   } catch (erro) {
-    logErro.error(`Erro ao editar aprovação #${id}: ${erro.message}`);
-    res.status(500).json({ erro: 'Erro ao editar aprovação.' });
+    logErro.error(`Erro ao editar aprovaÃ§Ã£o #${id}: ${erro.message}`);
+    res.status(500).json({ erro: 'Erro ao editar aprovaÃ§Ã£o.' });
   }
 });
 
 // ============================================================
-// PUT /api/aprovacoes/:id/responder — Responde como aprovador
+// PUT /api/aprovacoes/:id/responder - Responde como aprovador
 // ============================================================
 router.put('/api/aprovacoes/:id/responder', verificarLogin, async (req, res) => {
   const pool    = req.app.locals.pool;
@@ -631,26 +610,26 @@ router.put('/api/aprovacoes/:id/responder', verificarLogin, async (req, res) => 
   const viaWhatsApp = !!_whatsapp_login;
 
   if (!['Aprovado', 'Reprovado'].includes(decisao))
-    return res.status(400).json({ erro: 'Decisão inválida. Use "Aprovado" ou "Reprovado".' });
+    return res.status(400).json({ erro: 'DecisÃ£o invÃ¡lida. Use "Aprovado" ou "Reprovado".' });
 
   try {
-    // Verifica que a aprovação existe e está Pendente
+    // Verifica que a aprovaÃ§Ã£o existe e estÃ¡ Pendente
     const aprR = await pool.request()
       .input('id', sql.Int, id)
       .query(`SELECT status, tipo_consenso, consenso_valor FROM aprovacoes WHERE id = @id`);
-    if (!aprR.recordset.length) return res.status(404).json({ erro: 'Aprovação não encontrada.' });
+    if (!aprR.recordset.length) return res.status(404).json({ erro: 'AprovaÃ§Ã£o nÃ£o encontrada.' });
     if (aprR.recordset[0].status !== 'Pendente')
-      return res.status(400).json({ erro: 'Esta aprovação não está mais pendente.' });
+      return res.status(400).json({ erro: 'Esta aprovaÃ§Ã£o nÃ£o estÃ¡ mais pendente.' });
     const { tipo_consenso: tipoC, consenso_valor: valorC } = aprR.recordset[0];
 
-    // Verifica que sou participante com decisão Pendente
+    // Verifica que sou participante com decisÃ£o Pendente
     const partR = await pool.request()
       .input('id',    sql.Int,     id)
       .input('login', sql.VarChar, login)
       .query(`SELECT id, decisao FROM aprovacoes_participantes WHERE aprovacao_id = @id AND aprovador_login = @login`);
-    if (!partR.recordset.length) return res.status(403).json({ erro: 'Você não é aprovador desta aprovação.' });
+    if (!partR.recordset.length) return res.status(403).json({ erro: 'VocÃª nÃ£o Ã© aprovador desta aprovaÃ§Ã£o.' });
     if (partR.recordset[0].decisao !== 'Pendente')
-      return res.status(400).json({ erro: 'Você já respondeu esta aprovação.' });
+      return res.status(400).json({ erro: 'VocÃª jÃ¡ respondeu esta aprovaÃ§Ã£o.' });
 
     // Atualiza participante
     await pool.request()
@@ -664,7 +643,7 @@ router.put('/api/aprovacoes/:id/responder', verificarLogin, async (req, res) => 
         WHERE aprovacao_id = @id AND aprovador_login = @login
       `);
 
-    // Verifica se deve atualizar status da aprovação (usando regra de consenso)
+    // Verifica se deve atualizar status da aprovaÃ§Ã£o (usando regra de consenso)
     const todosR = await pool.request()
       .input('id', sql.Int, id)
       .query(`SELECT decisao FROM aprovacoes_participantes WHERE aprovacao_id = @id`);
@@ -678,11 +657,11 @@ router.put('/api/aprovacoes/:id/responder', verificarLogin, async (req, res) => 
         .query(`UPDATE aprovacoes SET status = @status, atualizado_em = GETDATE() WHERE id = @id`);
     }
 
-    // Registra no log da aprovação
+    // Registra no log da aprovaÃ§Ã£o
     const canalSufixo = viaWhatsApp ? ' (via WhatsApp)' : '';
     const acaoLog = decisao === 'Aprovado'
       ? `${nome} aprovou${canalSufixo}`
-      : `${nome} reprovou${motivo ? ` — ${motivo}` : ''}${canalSufixo}`;
+      : `${nome} reprovou${motivo ? ` - ${motivo}` : ''}${canalSufixo}`;
     await pool.request()
       .input('aprovacao_id', sql.Int,     id)
       .input('usuario',      sql.VarChar, login)
@@ -694,7 +673,7 @@ router.put('/api/aprovacoes/:id/responder', verificarLogin, async (req, res) => 
       await pool.request()
         .input('aprovacao_id', sql.Int,     id)
         .input('usuario',      sql.VarChar, 'sistema')
-        .input('acao',         sql.VarChar, `Status alterado para ${novoStatus} — ${resumo}`)
+        .input('acao',         sql.VarChar, `Status alterado para ${novoStatus} - ${resumo}`)
         .query(`INSERT INTO aprovacoes_log (aprovacao_id, usuario, acao) VALUES (@aprovacao_id, @usuario, @acao)`);
     }
 
@@ -712,13 +691,13 @@ router.put('/api/aprovacoes/:id/responder', verificarLogin, async (req, res) => 
 
     res.json({ sucesso: true, novoStatus });
   } catch (erro) {
-    logErro.error(`Erro ao responder aprovação #${id}: ${erro.message}`);
+    logErro.error(`Erro ao responder aprovaÃ§Ã£o #${id}: ${erro.message}`);
     res.status(500).json({ erro: 'Erro ao registrar resposta.' });
   }
 });
 
 // ============================================================
-// DELETE /api/aprovacoes/:id — Cancela aprovação (só criador, só Pendente)
+// DELETE /api/aprovacoes/:id - Cancela aprovaÃ§Ã£o (sÃ³ criador, sÃ³ Pendente)
 // ============================================================
 router.delete('/api/aprovacoes/:id', verificarLogin, async (req, res) => {
   const pool    = req.app.locals.pool;
@@ -731,10 +710,10 @@ router.delete('/api/aprovacoes/:id', verificarLogin, async (req, res) => {
     const aprR = await pool.request()
       .input('id', sql.Int, id)
       .query(`SELECT criado_por, status, titulo FROM aprovacoes WHERE id = @id`);
-    if (!aprR.recordset.length) return res.status(404).json({ erro: 'Aprovação não encontrada.' });
+    if (!aprR.recordset.length) return res.status(404).json({ erro: 'AprovaÃ§Ã£o nÃ£o encontrada.' });
     const apr = aprR.recordset[0];
     if (apr.criado_por !== login) return res.status(403).json({ erro: 'Apenas o criador pode cancelar.' });
-    if (apr.status !== 'Pendente') return res.status(400).json({ erro: 'Apenas aprovações pendentes podem ser canceladas.' });
+    if (apr.status !== 'Pendente') return res.status(400).json({ erro: 'Apenas aprovaÃ§Ãµes pendentes podem ser canceladas.' });
 
     await pool.request()
       .input('id', sql.Int, id)
@@ -743,7 +722,7 @@ router.delete('/api/aprovacoes/:id', verificarLogin, async (req, res) => {
     await pool.request()
       .input('aprovacao_id', sql.Int,     id)
       .input('usuario',      sql.VarChar, login)
-      .input('acao',         sql.VarChar, `${nome} cancelou a aprovação`)
+      .input('acao',         sql.VarChar, `${nome} cancelou a aprovaÃ§Ã£o`)
       .query(`INSERT INTO aprovacoes_log (aprovacao_id, usuario, acao) VALUES (@aprovacao_id, @usuario, @acao)`);
 
     registrarLog(pool, {
@@ -757,13 +736,13 @@ router.delete('/api/aprovacoes/:id', verificarLogin, async (req, res) => {
 
     res.json({ sucesso: true });
   } catch (erro) {
-    logErro.error(`Erro ao cancelar aprovação #${id}: ${erro.message}`);
-    res.status(500).json({ erro: 'Erro ao cancelar aprovação.' });
+    logErro.error(`Erro ao cancelar aprovaÃ§Ã£o #${id}: ${erro.message}`);
+    res.status(500).json({ erro: 'Erro ao cancelar aprovaÃ§Ã£o.' });
   }
 });
 
 // ============================================================
-// GET /api/aprovacoes/:id/anexos/:anexoId — Download de anexo (com base64)
+// GET /api/aprovacoes/:id/anexos/:anexoId - Download de anexo (com base64)
 // ============================================================
 router.get('/api/aprovacoes/:id/anexos/:anexoId', verificarLogin, async (req, res) => {
   const pool    = req.app.locals.pool;
@@ -773,7 +752,7 @@ router.get('/api/aprovacoes/:id/anexos/:anexoId', verificarLogin, async (req, re
   const anexoId = parseInt(req.params.anexoId);
 
   try {
-    // Verifica acesso à aprovação
+    // Verifica acesso Ã  aprovaÃ§Ã£o
     const acesso = await pool.request()
       .input('id',    sql.Int,     id)
       .input('login', sql.VarChar, login)
@@ -790,7 +769,7 @@ router.get('/api/aprovacoes/:id/anexos/:anexoId', verificarLogin, async (req, re
       .input('id', sql.Int, anexoId)
       .input('aprovacaoId', sql.Int, id)
       .query(`SELECT nome_original, tipo_mime, dados_base64 FROM aprovacoes_anexos WHERE id = @id AND aprovacao_id = @aprovacaoId`);
-    if (!r.recordset.length) return res.status(404).json({ erro: 'Anexo não encontrado.' });
+    if (!r.recordset.length) return res.status(404).json({ erro: 'Anexo nÃ£o encontrado.' });
 
     res.json({ sucesso: true, ...r.recordset[0] });
   } catch (erro) {
@@ -800,7 +779,7 @@ router.get('/api/aprovacoes/:id/anexos/:anexoId', verificarLogin, async (req, re
 });
 
 // ============================================================
-// POST /api/aprovacoes/:id/anexos — Envia novo anexo
+// POST /api/aprovacoes/:id/anexos - Envia novo anexo
 // ============================================================
 router.post('/api/aprovacoes/:id/anexos', verificarLogin, async (req, res) => {
   const pool    = req.app.locals.pool;
@@ -811,12 +790,12 @@ router.post('/api/aprovacoes/:id/anexos', verificarLogin, async (req, res) => {
   const { nome_original, tipo_mime, tamanho, dados_base64 } = req.body;
 
   if (!nome_original || !dados_base64)
-    return res.status(400).json({ erro: 'Dados do arquivo inválidos.' });
+    return res.status(400).json({ erro: 'Dados do arquivo invÃ¡lidos.' });
   if (tamanho > 5 * 1024 * 1024)
     return res.status(400).json({ erro: 'Arquivo muito grande. Limite: 5 MB.' });
 
   try {
-    // Verifica acesso à aprovação
+    // Verifica acesso Ã  aprovaÃ§Ã£o
     const acesso = await pool.request()
       .input('id',    sql.Int,     id)
       .input('login', sql.VarChar, login)
@@ -865,7 +844,7 @@ router.post('/api/aprovacoes/:id/anexos', verificarLogin, async (req, res) => {
 });
 
 // ============================================================
-// DELETE /api/aprovacoes/:id/anexos/:anexoId — Remove anexo
+// DELETE /api/aprovacoes/:id/anexos/:anexoId - Remove anexo
 // ============================================================
 router.delete('/api/aprovacoes/:id/anexos/:anexoId', verificarLogin, async (req, res) => {
   const pool    = req.app.locals.pool;
@@ -883,15 +862,15 @@ router.delete('/api/aprovacoes/:id/anexos/:anexoId', verificarLogin, async (req,
       .input('login',       sql.VarChar, login)
       .query(`SELECT enviado_por, nome_original FROM aprovacoes_anexos WHERE id = @id AND aprovacao_id = @aprovacaoId`);
 
-    if (!r.recordset.length) return res.status(404).json({ erro: 'Anexo não encontrado.' });
+    if (!r.recordset.length) return res.status(404).json({ erro: 'Anexo nÃ£o encontrado.' });
 
-    // Verifica criador da aprovação ou quem enviou
+    // Verifica criador da aprovaÃ§Ã£o ou quem enviou
     const apr = await pool.request()
       .input('id', sql.Int, id)
       .query(`SELECT criado_por FROM aprovacoes WHERE id = @id`);
     const criador = apr.recordset[0]?.criado_por;
     if (r.recordset[0].enviado_por !== login && criador !== login)
-      return res.status(403).json({ erro: 'Sem permissão para remover este anexo.' });
+      return res.status(403).json({ erro: 'Sem permissÃ£o para remover este anexo.' });
 
     const nomeArquivo = r.recordset[0].nome_original;
 
@@ -918,7 +897,7 @@ router.delete('/api/aprovacoes/:id/anexos/:anexoId', verificarLogin, async (req,
 });
 
 // ============================================================
-// GET /aprovacoes/relatorios — Página HTML de relatórios
+// GET /aprovacoes/relatorios - PÃ¡gina HTML de relatÃ³rios
 // ============================================================
 router.get('/aprovacoes/relatorios', verificarLogin, (_req, res) => {
   res.sendFile(path.join(__dirname, '../public/aprovacoes/relatoriosAprovacoes.html'));
@@ -926,7 +905,7 @@ router.get('/aprovacoes/relatorios', verificarLogin, (_req, res) => {
 
 
 // ============================================================
-// POST /api/aprovacoes/:id/reenviar-whatsapp — Reenviar notificações WhatsApp (admin)
+// POST /api/aprovacoes/:id/reenviar-whatsapp - Reenviar notificaÃ§Ãµes WhatsApp (admin)
 // ============================================================
 router.post('/api/aprovacoes/:id/reenviar-whatsapp', verificarLogin, async (req, res) => {
   const pool    = req.app.locals.pool;
@@ -936,13 +915,13 @@ router.post('/api/aprovacoes/:id/reenviar-whatsapp', verificarLogin, async (req,
   const nivel   = req.session.usuario.nivel || '';
   const id      = parseInt(req.params.id);
 
-  if (nivel !== 'admin') return res.status(403).json({ erro: 'Apenas administradores podem reenviar notificações.' });
+  if (nivel !== 'admin') return res.status(403).json({ erro: 'Apenas administradores podem reenviar notificaÃ§Ãµes.' });
 
   try {
     const aprR = await pool.request()
       .input('id', sql.Int, id)
       .query('SELECT titulo, objetivo, criado_por_nome, status FROM aprovacoes WHERE id = @id');
-    if (!aprR.recordset.length) return res.status(404).json({ erro: 'Aprovação não encontrada.' });
+    if (!aprR.recordset.length) return res.status(404).json({ erro: 'AprovaÃ§Ã£o nÃ£o encontrada.' });
     const apr = aprR.recordset[0];
 
     if (apr.status !== 'Pendente') return res.status(400).json({ erro: 'Só é possível reenviar para aprovações com status Pendente.' });
@@ -961,18 +940,21 @@ router.post('/api/aprovacoes/:id/reenviar-whatsapp', verificarLogin, async (req,
     let enviados = 0;
     for (let i = 0; i < entries.length; i++) {
       const [aprLogin, numero] = entries[i];
-      const msg =
-        `*Portal WKL — Lembrete: Aprovação Pendente* 🔔\n\n` +
-        `Você ainda tem uma solicitação aguardando sua resposta:\n\n` +
-        `*#${id}* — ${apr.titulo}\n` +
-        `Solicitante: ${apr.criado_por_nome}\n` +
-        (apr.objetivo ? `Objetivo: ${apr.objetivo}\n` : '') +
-        `\nPara responder:\n` +
-        `✅ *aprovar ${id}*\n` +
-        `❌ *reprovar ${id} [motivo]*\n\n` +
-        `Ou acesse: ${portalBase}/aprovacoes`;
-      if (i > 0) await new Promise(r => setTimeout(r, 2000));
-      const result = await notificarWhatsApp(numero, msg);
+      const msg = await renderizarMensagemWhatsApp(pool, 'aprovacoes.lembrete_pendente', {
+        aprovacao_id: id,
+        titulo: apr.titulo,
+        solicitante: apr.criado_por_nome,
+        objetivo: apr.objetivo ? `\nObjetivo: ${apr.objetivo}` : '',
+        link_aprovacoes: `${portalBase}/aprovacoes`,
+      });
+      const result = await enviarWhatsApp(pool, {
+        numero,
+        mensagem: msg,
+        evento: 'aprovacoes.lembrete_pendente',
+        usuario: login,
+        ip: req.ip,
+        sistema: 'aprovacoes',
+      });
       if (result.ok) {
         enviados++;
         registrarLog(pool, {
@@ -983,7 +965,7 @@ router.post('/api/aprovacoes/:id/reenviar-whatsapp', verificarLogin, async (req,
         const motivo = result.erro || `status ${result.status}`;
         registrarLog(pool, {
           usuario: login, ip: req.ip, acao: 'NOTIF_WHATSAPP', sistema: 'aprovacoes',
-          detalhes: `Aprovação #${id}: WhatsApp (reenvio) ERRO para ${aprLogin} (${numero}) — ${motivo}`
+          detalhes: `Aprovação #${id}: WhatsApp (reenvio) ERRO para ${aprLogin} (${numero}) - ${motivo}`
         });
       }
     }
@@ -1008,3 +990,4 @@ router.post('/api/aprovacoes/:id/reenviar-whatsapp', verificarLogin, async (req,
 });
 
 module.exports = router;
+

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * ARQUIVO: routes/contabil.js
  * DESCRICAO: Rotas da Agenda Contabil integrada ao Portal
  */
@@ -8,6 +8,8 @@ const sql = require('mssql');
 const path = require('path');
 const verificarLogin = require('../middleware/verificarLogin');
 const { registrarLog } = require('../services/logService');
+const { enviarNotificacaoWhatsAppPorChips } = require('../services/whatsappDispatchService');
+const { renderizarMensagemWhatsApp } = require('../services/whatsappTemplateService');
 
 const router = express.Router();
 
@@ -45,6 +47,55 @@ async function registrarLogContabil(pool, agendaId, itemId, acao, detalhes, usua
       INSERT INTO cont_logs (agenda_id, item_id, acao, detalhes, usuario)
       VALUES (@agenda_id, @item_id, @acao, @detalhes, @usuario)
     `);
+}
+
+async function getLoginsAgendaContabil(pool, agendaId) {
+  try {
+    const r = await pool.request()
+      .input('agenda_id', sql.Int, agendaId)
+      .query(`
+        SELECT dono AS login
+        FROM cont_agendas
+        WHERE id = @agenda_id
+        UNION
+        SELECT usuario AS login
+        FROM cont_membros
+        WHERE agenda_id = @agenda_id AND permissao IN ('edicao', 'dono')
+      `);
+    return r.recordset.map((row) => String(row.login || '').toLowerCase()).filter(Boolean);
+  } catch {
+    return [];
+  }
+}
+
+async function enviarWhatsAppContabil(pool, evento, contexto, meta = {}) {
+  const eventoLabel = {
+    'contabil.novo_item': 'Novo item contábil',
+    'contabil.item_editado': 'Item contábil editado',
+    'contabil.item_pago': 'Item marcado como pago',
+    'contabil.item_vencido': 'Item vencido',
+  };
+  const mensagem = await renderizarMensagemWhatsApp(pool, 'contabil.evento_padrao', {
+    evento_label: eventoLabel[evento] || evento,
+    titulo_item: contexto.titulo || '-',
+    agenda_nome: contexto.agendaNome || '-',
+    valor: contexto.valor || '-',
+    vencimento: contexto.vencimento || '-',
+    link: 'http://192.168.0.80:3132/agendaContabil',
+  });
+
+  await enviarNotificacaoWhatsAppPorChips(pool, {
+    evento,
+    sistema: 'contabil',
+    mensagem,
+    usuario: meta.usuario || contexto.criadoPor || 'sistema',
+    ip: meta.ip || '',
+    mapaChips: {
+      criado_por_usuario: contexto.criadoPor ? [contexto.criadoPor] : [],
+      gestores: contexto.loginsAgenda || [],
+      gestores_setor: [],
+    },
+  });
 }
 
 function normalizarFrequencia(valor) {
@@ -787,6 +838,15 @@ router.post('/api/contabil/agendas/:id/itens', verificarLogin, async (req, res) 
     }
 
     registrarLog(pool, { usuario, ip: req.ip, acao: 'CRIACAO', sistema: 'contabil', detalhes: `Item contabil criado: ${titulo.trim()}` });
+    const agendaNomeR = await pool.request().input('id', sql.Int, id).query('SELECT nome FROM cont_agendas WHERE id=@id');
+    await enviarWhatsAppContabil(pool, 'contabil.novo_item', {
+      titulo: titulo.trim(),
+      agendaNome: agendaNomeR.recordset[0]?.nome || '',
+      valor: parseFloat(valor || 0).toFixed(2),
+      vencimento: vencimento || '-',
+      criadoPor: usuario,
+      loginsAgenda: await getLoginsAgendaContabil(pool, id),
+    }, { usuario, ip: req.ip });
     res.json({ sucesso: true, mensagem: `${itensSerie.length} item(ns) criado(s).` });
   } catch (erro) {
     logErro.error(`Erro ao criar item contabil: ${erro.message}`);
@@ -943,6 +1003,15 @@ router.put('/api/contabil/itens/:id', verificarLogin, async (req, res) => {
     }
 
     await registrarLogContabil(pool, agendaId, id, 'ATUALIZAR', propagarGrupo ? `Serie recorrente atualizada: ${titulo.trim()}` : `Item atualizado: ${titulo.trim()}`, usuario);
+    const agendaNomeR = await pool.request().input('id', sql.Int, agendaId).query('SELECT nome FROM cont_agendas WHERE id=@id');
+    await enviarWhatsAppContabil(pool, 'contabil.item_editado', {
+      titulo: titulo.trim(),
+      agendaNome: agendaNomeR.recordset[0]?.nome || '',
+      valor: parseFloat(valor || 0).toFixed(2),
+      vencimento: vencimento || '-',
+      criadoPor: usuario,
+      loginsAgenda: await getLoginsAgendaContabil(pool, agendaId),
+    }, { usuario, ip: req.ip });
     res.json({ sucesso: true, mensagem: propagarGrupo ? 'Serie recorrente atualizada.' : 'Item atualizado.' });
   } catch (erro) {
     logErro.error(`Erro ao editar item contabil: ${erro.message}`);
@@ -977,6 +1046,16 @@ router.patch('/api/contabil/itens/:id/status', verificarLogin, async (req, res) 
       .query('UPDATE cont_itens SET status=@status, atualizado_em=GETDATE() WHERE id=@id');
 
     await registrarLogContabil(pool, agendaId, id, status === 'lancado' ? 'LANCAMENTO' : 'ATUALIZAR', `Status -> ${status}: ${itemAtual.recordset[0].titulo}`, usuario);
+    const agendaNomeR = await pool.request().input('id', sql.Int, agendaId).query('SELECT nome FROM cont_agendas WHERE id=@id');
+    const evento = status === 'pago' ? 'contabil.item_pago' : (status === 'vencido' ? 'contabil.item_vencido' : 'contabil.item_editado');
+    await enviarWhatsAppContabil(pool, evento, {
+      titulo: itemAtual.recordset[0].titulo,
+      agendaNome: agendaNomeR.recordset[0]?.nome || '',
+      valor: '-',
+      vencimento: '-',
+      criadoPor: usuario,
+      loginsAgenda: await getLoginsAgendaContabil(pool, agendaId),
+    }, { usuario, ip: req.ip });
     res.json({ sucesso: true, mensagem: 'Status atualizado.' });
   } catch (erro) {
     logErro.error(`Erro ao atualizar status contabil: ${erro.message}`);
@@ -1103,3 +1182,4 @@ router.post('/api/contabil/config', verificarLogin, async (req, res) => {
 });
 
 module.exports = router;
+

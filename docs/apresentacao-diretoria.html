@@ -1,0 +1,1754 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Portal WKL — Apresentação Diretoria</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  font-family: 'Segoe UI', Arial, sans-serif;
+  background: #e8eaf0;
+  color: #1a1a2e;
+}
+
+/* ── SLIDE (A4 landscape) ─────────────────────────────── */
+.slide {
+  width: 297mm;
+  height: 210mm;
+  background: #fff;
+  position: relative;
+  overflow: hidden;
+  margin: 0 auto 16px auto;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.15);
+  page-break-after: always;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── CAPA ─────────────────────────────────────────────── */
+.capa {
+  background: linear-gradient(135deg, #0a0a1f 0%, #111140 45%, #0c1a50 100%);
+  flex: 1;
+  display: flex;
+  align-items: stretch;
+}
+
+.capa-esq {
+  width: 54%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 48px 52px;
+  position: relative;
+}
+
+.capa-esq::after {
+  content: '';
+  position: absolute;
+  right: 0; top: 10%; bottom: 10%;
+  width: 1px;
+  background: linear-gradient(to bottom, transparent, rgba(255,255,255,0.15), transparent);
+}
+
+.capa-tag {
+  font-size: 10px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: #64748b;
+  margin-bottom: 18px;
+}
+
+.capa-titulo {
+  font-size: 38px;
+  font-weight: 900;
+  line-height: 1.1;
+  color: #fff;
+  margin-bottom: 8px;
+}
+
+.capa-titulo span {
+  background: linear-gradient(90deg, #3b82f6, #818cf8);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.capa-subtitulo {
+  font-size: 14px;
+  color: #94a3b8;
+  margin-bottom: 36px;
+  line-height: 1.5;
+}
+
+.capa-chips {
+  display: flex;
+  gap: 10px;
+}
+
+.capa-chip {
+  border-radius: 20px;
+  padding: 6px 16px;
+  font-size: 11px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.capa-dir {
+  width: 46%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 40px;
+  gap: 14px;
+}
+
+.capa-modulo-card {
+  width: 100%;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 12px;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.capa-modulo-icone {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 17px;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.capa-modulo-info strong {
+  display: block;
+  font-size: 13px;
+  font-weight: 700;
+  color: #e2e8f0;
+  margin-bottom: 2px;
+}
+
+.capa-modulo-info span {
+  font-size: 11px;
+  color: #64748b;
+}
+
+.capa-rodape {
+  position: absolute;
+  bottom: 20px;
+  left: 52px;
+  font-size: 10px;
+  color: #334155;
+  display: flex;
+  gap: 24px;
+}
+
+/* ── HEADER SLIDE ─────────────────────────────────────── */
+.slide-header {
+  height: 62px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 36px;
+  flex-shrink: 0;
+}
+
+.slide-header-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.slide-header-icone {
+  width: 40px;
+  height: 40px;
+  border-radius: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 17px;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.slide-header-titulo {
+  font-size: 20px;
+  font-weight: 800;
+  color: #0f0f2e;
+}
+
+.slide-header-sub {
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+.slide-header-badge {
+  font-size: 10px;
+  padding: 4px 14px;
+  border-radius: 20px;
+  font-weight: 600;
+}
+
+.slide-header-sep {
+  height: 2px;
+  flex-shrink: 0;
+}
+
+/* ── BODY ─────────────────────────────────────────────── */
+.slide-body {
+  flex: 1;
+  padding: 20px 36px 16px 36px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ── GRADE DE CARDS ───────────────────────────────────── */
+.cards-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  flex: 1;
+}
+
+.cards-4 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  flex: 1;
+}
+
+.cards-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  flex: 1;
+}
+
+.card {
+  background: #f8fafc;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.card-icon {
+  font-size: 22px;
+  margin-bottom: 4px;
+}
+
+.card-titulo {
+  font-size: 12px;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.card-texto {
+  font-size: 11px;
+  color: #475569;
+  line-height: 1.5;
+  flex: 1;
+}
+
+.card-destaque {
+  border-top: 3px solid;
+}
+
+/* ── LINHA DE FEATURE ─────────────────────────────────── */
+.feat-list {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  flex: 1;
+}
+
+.feat-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 8px 12px;
+  background: #f8fafc;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+
+.feat-item i {
+  font-size: 13px;
+  margin-top: 1px;
+  flex-shrink: 0;
+  width: 14px;
+  text-align: center;
+}
+
+.feat-item span {
+  font-size: 11.5px;
+  color: #334155;
+  line-height: 1.4;
+}
+
+/* ── LAYOUT ESQUERDA + DIREITA ────────────────────────── */
+.layout-lr {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  flex: 1;
+}
+
+.layout-lr-3 {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr 0.9fr;
+  gap: 16px;
+  flex: 1;
+}
+
+/* ── BLOCO DESTAQUE ───────────────────────────────────── */
+.destaque {
+  border-radius: 11px;
+  padding: 14px 16px;
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.destaque i { font-size: 20px; margin-top: 2px; flex-shrink: 0; }
+
+.destaque h4 { font-size: 13px; font-weight: 700; margin-bottom: 5px; }
+.destaque p  { font-size: 11px; line-height: 1.55; }
+
+/* ── FLUXO ────────────────────────────────────────────── */
+.fluxo {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  margin-bottom: 14px;
+}
+
+.fluxo-step {
+  flex: 1;
+  background: #f8fafc;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 12px 10px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.fluxo-step i { font-size: 18px; }
+.fluxo-step strong { font-size: 10.5px; color: #1e293b; display: block; }
+.fluxo-step span   { font-size: 10px; color: #64748b; line-height: 1.3; }
+
+.fluxo-arrow {
+  display: flex;
+  align-items: center;
+  padding: 0 5px;
+  color: #cbd5e1;
+  font-size: 14px;
+}
+
+/* ── STATUS CHIPS ─────────────────────────────────────── */
+.status-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-bottom: 10px;
+}
+
+.status-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  border: 1.5px solid;
+}
+
+/* ── SEÇÃO TÍTULO ─────────────────────────────────────── */
+.sec-titulo {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: #94a3b8;
+  padding-bottom: 6px;
+  border-bottom: 1px solid #e2e8f0;
+  margin-bottom: 10px;
+}
+
+/* ── KPI BAR ──────────────────────────────────────────── */
+.kpi-bar {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.kpi {
+  flex: 1;
+  background: #f8fafc;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 12px 14px;
+  text-align: center;
+}
+
+.kpi-val {
+  font-size: 22px;
+  font-weight: 900;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.kpi-lbl {
+  font-size: 10px;
+  color: #64748b;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+
+/* ── RODAPÉ SLIDE ─────────────────────────────────────── */
+.slide-footer {
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 36px;
+  background: #f8fafc;
+  border-top: 1px solid #e2e8f0;
+  flex-shrink: 0;
+}
+
+.slide-footer span {
+  font-size: 9.5px;
+  color: #94a3b8;
+}
+
+.slide-footer strong { color: #64748b; }
+
+/* ── CORES ────────────────────────────────────────────── */
+.c-tarefas    { color: #10b981; }
+.c-aprovacoes { color: #06b6d4; }
+.c-projetos   { color: #6366f1; }
+
+.bg-tarefas    { background: linear-gradient(135deg, #10b981, #059669); }
+.bg-aprovacoes { background: linear-gradient(135deg, #06b6d4, #0891b2); }
+.bg-projetos   { background: linear-gradient(135deg, #6366f1, #4f46e5); }
+
+.bg-lt    { background: #f0fdf4; }
+.bg-la    { background: #ecfeff; }
+.bg-lp    { background: #eef2ff; }
+
+.brd-t { border-left: 4px solid #10b981; }
+.brd-a { border-left: 4px solid #06b6d4; }
+.brd-p { border-left: 4px solid #6366f1; }
+
+/* ── PRINT ────────────────────────────────────────────── */
+@media print {
+  body { background: #fff; }
+  .slide { margin: 0; box-shadow: none; }
+}
+
+@page {
+  size: A4 landscape;
+  margin: 0;
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- SLIDE 1 — CAPA                                            -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="slide">
+  <div class="capa">
+    <div class="capa-esq">
+      <div class="capa-tag">WKL · Apresentação para Diretoria · 2026</div>
+      <div class="capa-titulo">Portal WKL<br><span>Sistemas de Gestão</span></div>
+      <div class="capa-subtitulo">Visão executiva dos módulos de<br>Tarefas, Aprovações e Projetos</div>
+      <div class="capa-chips">
+        <div class="capa-chip" style="background:rgba(16,185,129,0.12);color:#10b981;border:1px solid rgba(16,185,129,0.25)">
+          <i class="fas fa-list-check"></i> Tarefas
+        </div>
+        <div class="capa-chip" style="background:rgba(6,182,212,0.12);color:#06b6d4;border:1px solid rgba(6,182,212,0.25)">
+          <i class="fas fa-stamp"></i> Aprovações
+        </div>
+        <div class="capa-chip" style="background:rgba(99,102,241,0.12);color:#818cf8;border:1px solid rgba(99,102,241,0.25)">
+          <i class="fas fa-diagram-project"></i> Projetos
+        </div>
+      </div>
+      <div class="capa-rodape">
+        <span>Portal WKL — Uso Interno</span>
+        <span>192.168.0.80:3132</span>
+        <span>Versão 1.3.0</span>
+      </div>
+    </div>
+
+    <div class="capa-dir">
+      <div class="capa-modulo-card">
+        <div class="capa-modulo-icone bg-projetos"><i class="fas fa-diagram-project"></i></div>
+        <div class="capa-modulo-info">
+          <strong>Agenda de Projetos</strong>
+          <span>Projetos, subprojetos e equipes integradas</span>
+        </div>
+      </div>
+      <div class="capa-modulo-card">
+        <div class="capa-modulo-icone bg-tarefas"><i class="fas fa-list-check"></i></div>
+        <div class="capa-modulo-info">
+          <strong>Agenda de Tarefas</strong>
+          <span>Gestão colaborativa com Kanban e relatórios</span>
+        </div>
+      </div>
+      <div class="capa-modulo-card">
+        <div class="capa-modulo-icone bg-aprovacoes"><i class="fas fa-stamp"></i></div>
+        <div class="capa-modulo-info">
+          <strong>Workflow de Aprovações</strong>
+          <span>Multi-aprovador com WhatsApp e e-mail</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- SLIDE 2 — VISÃO GERAL DOS 3 MÓDULOS                       -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="slide">
+  <div class="slide-header">
+    <div class="slide-header-left">
+      <div class="slide-header-icone" style="background:linear-gradient(135deg,#3b82f6,#6366f1)"><i class="fas fa-layer-group"></i></div>
+      <div>
+        <div class="slide-header-titulo">Visão Geral</div>
+        <div class="slide-header-sub">Os três módulos em contexto</div>
+      </div>
+    </div>
+    <div class="slide-header-badge" style="background:#eff6ff;color:#3b82f6;border:1.5px solid #bfdbfe">Módulos Integrados</div>
+  </div>
+  <div class="slide-header-sep" style="background:linear-gradient(90deg,#3b82f6,#6366f1)"></div>
+
+  <div class="slide-body">
+    <div class="cards-3" style="margin-bottom:14px">
+
+      <div class="card card-destaque" style="border-top-color:#6366f1">
+        <div class="card-icon c-projetos"><i class="fas fa-diagram-project"></i></div>
+        <div class="card-titulo">Agenda de Projetos</div>
+        <div class="card-texto">
+          Organiza iniciativas de médio e longo prazo com equipes, subprojetos e marcos. As tarefas operacionais são vinculadas ao projeto, criando visibilidade total do andamento de cada iniciativa.
+        </div>
+        <div style="margin-top:auto; padding-top:8px; border-top:1px solid #e2e8f0; font-size:10px; color:#6366f1; font-weight:700">
+          <i class="fas fa-sitemap"></i> Hierarquia &nbsp;·&nbsp; <i class="fas fa-users"></i> Equipes &nbsp;·&nbsp; <i class="fas fa-link"></i> Integrado
+        </div>
+      </div>
+
+      <div class="card card-destaque" style="border-top-color:#10b981">
+        <div class="card-icon c-tarefas"><i class="fas fa-list-check"></i></div>
+        <div class="card-titulo">Agenda de Tarefas</div>
+        <div class="card-texto">
+          Centraliza todas as tarefas operacionais da empresa em listas compartilhadas. Cada equipe organiza seu trabalho no quadro Kanban com categorias coloridas, prazos e responsáveis definidos.
+        </div>
+        <div style="margin-top:auto; padding-top:8px; border-top:1px solid #e2e8f0; font-size:10px; color:#10b981; font-weight:700">
+          <i class="fas fa-table-columns"></i> Kanban &nbsp;·&nbsp; <i class="fas fa-users"></i> Colaborativo &nbsp;·&nbsp; <i class="fas fa-chart-bar"></i> Relatórios
+        </div>
+      </div>
+
+      <div class="card card-destaque" style="border-top-color:#06b6d4">
+        <div class="card-icon c-aprovacoes"><i class="fas fa-stamp"></i></div>
+        <div class="card-titulo">Workflow de Aprovações</div>
+        <div class="card-texto">
+          Digitaliza o processo de aprovações corporativas. Solicitações são enviadas com documentos anexos, os aprovadores recebem notificações por WhatsApp e e-mail e respondem pelo bot com comandos como <strong>aprovar ID</strong> ou <strong>reprovar ID motivo</strong>.
+        </div>
+        <div style="margin-top:auto; padding-top:8px; border-top:1px solid #e2e8f0; font-size:10px; color:#06b6d4; font-weight:700">
+          <i class="fab fa-whatsapp"></i> WhatsApp &nbsp;·&nbsp; <i class="fas fa-envelope"></i> E-mail &nbsp;·&nbsp; <i class="fas fa-chart-pie"></i> Relatórios
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Barra de integração -->
+    <div style="background:#f8fafc; border:1.5px solid #e2e8f0; border-radius:10px; padding:12px 20px; display:flex; align-items:center; gap:20px;">
+      <i class="fas fa-circle-nodes" style="font-size:20px;color:#6366f1;flex-shrink:0"></i>
+      <div>
+        <div style="font-size:12px;font-weight:700;color:#1e293b;margin-bottom:3px">Integração Nativa entre os Módulos</div>
+        <div style="font-size:11px;color:#475569">Uma tarefa da Agenda de Tarefas pode ser vinculada a um Projeto. Um Projeto pode ter uma Aprovação associada ao seu início. Tudo em um único ambiente, com controle de acesso unificado.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide-footer">
+    <span><strong>Portal WKL</strong> — Apresentação Diretoria</span>
+    <span>Versão 1.3.0 — 2026</span>
+    <span>Slide 2 / 11</span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- SLIDE 3 — PROJETOS: VISÃO EXECUTIVA                       -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="slide">
+  <div class="slide-header">
+    <div class="slide-header-left">
+      <div class="slide-header-icone bg-projetos"><i class="fas fa-diagram-project"></i></div>
+      <div>
+        <div class="slide-header-titulo">Agenda de Projetos</div>
+        <div class="slide-header-sub">Gestão estratégica de iniciativas e equipes</div>
+      </div>
+    </div>
+    <div class="slide-header-badge" style="background:#eef2ff;color:#6366f1;border:1.5px solid #a5b4fc">/agendaProjetos</div>
+  </div>
+  <div class="slide-header-sep" style="background:linear-gradient(90deg,#6366f1,#4f46e5)"></div>
+
+  <div class="slide-body">
+    <div class="layout-lr">
+      <div>
+        <div style="background:#eef2ff;border-left:4px solid #6366f1;border-radius:0 8px 8px 0;padding:12px 16px;margin-bottom:14px;font-size:12px;color:#312e81;line-height:1.6;">
+          Módulo para gestão de projetos corporativos. A Diretoria cria projetos, define equipes e subprojetos. As tarefas operacionais ficam vinculadas — dando visibilidade completa do status de cada iniciativa.
+        </div>
+
+        <div class="sec-titulo">Hierarquia de um projeto</div>
+        <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px">
+          <div style="display:flex;align-items:center;gap:10px;padding:9px 12px;background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0">
+            <i class="fas fa-folder c-projetos" style="font-size:16px"></i>
+            <div>
+              <div style="font-size:12px;font-weight:700;color:#1e293b">Projeto</div>
+              <div style="font-size:10.5px;color:#64748b">Objetivo principal, prazo e equipe responsável</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;padding:9px 12px;background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0;margin-left:20px">
+            <i class="fas fa-folder-open" style="font-size:14px;color:#818cf8"></i>
+            <div>
+              <div style="font-size:11.5px;font-weight:700;color:#1e293b">Subprojeto</div>
+              <div style="font-size:10.5px;color:#64748b">Fase ou entrega parcial do projeto</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;padding:9px 12px;background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0;margin-left:40px">
+            <i class="fas fa-list-check" style="font-size:13px;color:#10b981"></i>
+            <div>
+              <div style="font-size:11px;font-weight:700;color:#1e293b">Tarefas vinculadas</div>
+              <div style="font-size:10.5px;color:#64748b">Tarefas da Agenda atribuídas a este subprojeto</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="sec-titulo">Status de Projeto</div>
+        <div class="status-row">
+          <div class="status-chip" style="background:#f8fafc;color:#64748b;border-color:#e2e8f0"><span style="width:7px;height:7px;border-radius:50%;background:#94a3b8;display:inline-block"></span> Planejado</div>
+          <div class="status-chip" style="background:#eff6ff;color:#3b82f6;border-color:#93c5fd"><span style="width:7px;height:7px;border-radius:50%;background:#3b82f6;display:inline-block"></span> Em Andamento</div>
+          <div class="status-chip" style="background:#f0fdf4;color:#16a34a;border-color:#86efac"><span style="width:7px;height:7px;border-radius:50%;background:#10b981;display:inline-block"></span> Concluído</div>
+        </div>
+      </div>
+
+      <div>
+        <div class="sec-titulo">Funcionalidades</div>
+        <div class="feat-list" style="margin-bottom:10px">
+          <div class="feat-item"><i class="fas fa-folder-plus c-projetos"></i><span><strong>Criar projetos</strong> — Nome, descrição, cor, data início e fim</span></div>
+          <div class="feat-item"><i class="fas fa-sitemap c-projetos"></i><span><strong>Subprojetos</strong> — Dividir o projeto em fases ou entregas</span></div>
+          <div class="feat-item"><i class="fas fa-users c-projetos"></i><span><strong>Equipe</strong> — Membros com permissão de leitura ou edição</span></div>
+          <div class="feat-item"><i class="fas fa-plus-circle c-projetos"></i><span><strong>Criar tarefa no projeto</strong> — Adiciona tarefa diretamente, sem sair do projeto <span style="background:#eef2ff;color:#6366f1;border-radius:6px;padding:0 5px;font-size:9px;font-weight:700">Novo</span></span></div>
+          <div class="feat-item"><i class="fas fa-chart-line c-projetos"></i><span><strong>Progresso via Passos</strong> — Barra de conclusão calculada pelo checklist das tarefas <span style="background:#eef2ff;color:#6366f1;border-radius:6px;padding:0 5px;font-size:9px;font-weight:700">Novo</span></span></div>
+          <div class="feat-item"><i class="fas fa-clock-rotate-left c-projetos"></i><span><strong>Log de atividades</strong> — Histórico completo de ações por usuário no projeto <span style="background:#eef2ff;color:#6366f1;border-radius:6px;padding:0 5px;font-size:9px;font-weight:700">Novo</span></span></div>
+          <div class="feat-item"><i class="fas fa-stamp c-projetos"></i><span><strong>Aprovação integrada</strong> — Solicitar aprovação formal do projeto com um clique</span></div>
+        </div>
+
+        <div class="destaque bg-lp">
+          <i class="fas fa-eye c-projetos"></i>
+          <div>
+            <h4 style="color:#312e81;font-size:12px">Visibilidade para a Diretoria</h4>
+            <p style="color:#3730a3;font-size:11px">Progresso real calculado pelos passos das tarefas, log auditável de cada ação e aprovação formal vinculada — tudo em um único painel.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide-footer">
+    <span><strong>Portal WKL</strong> — Agenda de Projetos</span>
+    <span>Versão 1.3.0 — 2026</span>
+    <span>Slide 3 / 11</span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- SLIDE 4 — PROJETOS: MOCK VISUAL                           -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="slide">
+  <div class="slide-header">
+    <div class="slide-header-left">
+      <div class="slide-header-icone bg-projetos"><i class="fas fa-chart-gantt"></i></div>
+      <div>
+        <div class="slide-header-titulo">Agenda de Projetos — Painel</div>
+        <div class="slide-header-sub">Visão do portfólio de projetos</div>
+      </div>
+    </div>
+    <div class="slide-header-badge" style="background:#eef2ff;color:#6366f1;border:1.5px solid #a5b4fc">Demonstração</div>
+  </div>
+  <div class="slide-header-sep" style="background:linear-gradient(90deg,#6366f1,#4f46e5)"></div>
+
+  <div class="slide-body">
+    <div style="display:flex;gap:14px;flex:1;">
+
+      <!-- COLUNA ESQUERDA: Legenda de hierarquia -->
+      <div style="width:130px;flex-shrink:0;display:flex;flex-direction:column;gap:6px;padding-top:4px">
+        <div style="font-size:9.5px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Hierarquia</div>
+        <div style="display:flex;align-items:center;gap:7px;background:#eef2ff;border-radius:8px;padding:7px 10px">
+          <i class="fas fa-folder" style="color:#6366f1;font-size:13px"></i>
+          <div><div style="font-size:10px;font-weight:700;color:#4f46e5">Projeto Pai</div><div style="font-size:9px;color:#6366f1">Iniciativa principal</div></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:7px;background:#eff6ff;border-radius:8px;padding:7px 10px;margin-left:10px">
+          <i class="fas fa-folder-open" style="color:#3b82f6;font-size:12px"></i>
+          <div><div style="font-size:10px;font-weight:700;color:#1d4ed8">Subprojeto</div><div style="font-size:9px;color:#3b82f6">Fase / entrega</div></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:7px;background:#f0fdf4;border-radius:8px;padding:7px 10px;margin-left:20px">
+          <i class="fas fa-list-check" style="color:#10b981;font-size:11px"></i>
+          <div><div style="font-size:10px;font-weight:700;color:#065f46">Tarefa</div><div style="font-size:9px;color:#10b981">Atividade</div></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:7px;background:#fafafa;border-radius:8px;padding:7px 10px;margin-left:30px;border:1px solid #e2e8f0">
+          <i class="fas fa-circle-dot" style="color:#94a3b8;font-size:10px"></i>
+          <div><div style="font-size:10px;font-weight:700;color:#475569">Subtarefa</div><div style="font-size:9px;color:#94a3b8">Passo / checklist</div></div>
+        </div>
+        <div style="margin-top:auto;background:#f8fafc;border-radius:8px;padding:8px 10px;border:1px solid #e2e8f0">
+          <div style="font-size:9px;font-weight:700;color:#64748b;margin-bottom:5px">Progresso</div>
+          <div style="display:flex;align-items:center;gap:5px;margin-bottom:3px"><span style="width:8px;height:8px;border-radius:50%;background:#10b981;flex-shrink:0"></span><span style="font-size:9px;color:#475569">Concluído</span></div>
+          <div style="display:flex;align-items:center;gap:5px;margin-bottom:3px"><span style="width:8px;height:8px;border-radius:50%;background:#3b82f6;flex-shrink:0"></span><span style="font-size:9px;color:#475569">Em Andamento</span></div>
+          <div style="display:flex;align-items:center;gap:5px"><span style="width:8px;height:8px;border-radius:50%;background:#94a3b8;flex-shrink:0"></span><span style="font-size:9px;color:#475569">Planejado</span></div>
+        </div>
+      </div>
+
+      <!-- COLUNA DIREITA: Árvore do projeto -->
+      <div style="flex:1;display:flex;flex-direction:column;gap:6px;">
+
+      <!-- PROJETO PAI -->
+      <div style="background:linear-gradient(90deg,#eef2ff,#f8fafc);border:1.5px solid #a5b4fc;border-radius:10px;padding:9px 14px;border-left:5px solid #6366f1">
+        <div style="display:flex;align-items:center;gap:9px;">
+          <i class="fas fa-folder" style="color:#6366f1;font-size:16px;flex-shrink:0"></i>
+          <strong style="font-size:12.5px;color:#1e293b">Portal WKL — Implantação do Sistema de Gestão Corporativa</strong>
+          <span style="background:#eff6ff;color:#3b82f6;border-radius:8px;padding:1px 9px;font-size:9.5px;font-weight:700;margin-left:auto;white-space:nowrap">Em Andamento</span>
+          <span style="font-size:9.5px;color:#94a3b8;white-space:nowrap"><i class="fas fa-calendar"></i> Prazo: 30/06/2026</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:6px">
+          <div style="flex:1;height:5px;background:#e2e8f0;border-radius:3px;overflow:hidden"><div style="width:75%;height:100%;background:linear-gradient(90deg,#6366f1,#818cf8);border-radius:3px"></div></div>
+          <span style="font-size:9.5px;color:#6366f1;font-weight:700;white-space:nowrap">75% concluído · <i class="fas fa-users"></i> 5 membros · <i class="fas fa-stamp"></i> <span style="color:#10b981">Aprovado</span></span>
+        </div>
+      </div>
+
+      <!-- SUBPROJETO 1 -->
+      <div style="margin-left:18px;border-left:2px dashed #a5b4fc;padding-left:12px;display:flex;flex-direction:column;gap:5px">
+        <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:7px 12px;border-left:3px solid #3b82f6;display:flex;align-items:center;gap:8px">
+          <i class="fas fa-folder-open" style="color:#3b82f6;font-size:13px;flex-shrink:0"></i>
+          <strong style="font-size:11px;color:#1e293b">Subprojeto: Módulos Operacionais</strong>
+          <span style="background:#f0fdf4;color:#16a34a;border-radius:6px;padding:1px 8px;font-size:9px;font-weight:700;margin-left:auto">Concluído 100%</span>
+        </div>
+
+        <!-- Tarefas do Subprojeto 1 -->
+        <div style="margin-left:16px;border-left:2px dashed #bfdbfe;padding-left:10px;display:flex;flex-direction:column;gap:4px">
+          <!-- Tarefa 1 com subtarefas expandidas -->
+          <div style="background:#fff;border:1px solid #e2e8f0;border-radius:7px;padding:6px 10px">
+            <div style="display:flex;align-items:center;gap:7px;margin-bottom:4px">
+              <i class="fas fa-list-check" style="color:#10b981;font-size:11px;flex-shrink:0"></i>
+              <span style="font-size:10.5px;font-weight:600;color:#1e293b">Agenda de Tarefas</span>
+              <div style="flex:1;height:3px;background:#e2e8f0;border-radius:2px;overflow:hidden;margin:0 6px"><div style="width:100%;height:100%;background:#10b981"></div></div>
+              <span style="font-size:9px;color:#10b981;font-weight:600;white-space:nowrap">4/4 passos</span>
+            </div>
+            <div style="display:flex;gap:8px;margin-left:18px">
+              <span style="font-size:9px;color:#10b981"><i class="fas fa-check-square"></i> Kanban</span>
+              <span style="font-size:9px;color:#10b981"><i class="fas fa-check-square"></i> Relatórios</span>
+              <span style="font-size:9px;color:#10b981"><i class="fas fa-check-square"></i> Anexos</span>
+              <span style="font-size:9px;color:#10b981"><i class="fas fa-check-square"></i> Passos/Checklist</span>
+            </div>
+          </div>
+          <!-- Tarefas resumidas -->
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:5px">
+            <div style="background:#fff;border:1px solid #e2e8f0;border-radius:7px;padding:5px 8px;display:flex;align-items:center;gap:6px">
+              <i class="fas fa-coins" style="color:#10b981;font-size:10px"></i><span style="font-size:9.5px;font-weight:600;color:#1e293b">Financeiro</span>
+              <span style="margin-left:auto;font-size:8.5px;color:#10b981">3/3</span>
+            </div>
+            <div style="background:#fff;border:1px solid #e2e8f0;border-radius:7px;padding:5px 8px;display:flex;align-items:center;gap:6px">
+              <i class="fas fa-ticket" style="color:#10b981;font-size:10px"></i><span style="font-size:9.5px;font-weight:600;color:#1e293b">Chamados</span>
+              <span style="margin-left:auto;font-size:8.5px;color:#10b981">4/4</span>
+            </div>
+            <div style="background:#fff;border:1px solid #e2e8f0;border-radius:7px;padding:5px 8px;display:flex;align-items:center;gap:6px">
+              <i class="fas fa-box-archive" style="color:#10b981;font-size:10px"></i><span style="font-size:9.5px;font-weight:600;color:#1e293b">Patrimônio</span>
+              <span style="margin-left:auto;font-size:8.5px;color:#10b981">3/3</span>
+            </div>
+            <div style="background:#fff;border:1px solid #e2e8f0;border-radius:7px;padding:5px 8px;display:flex;align-items:center;gap:6px">
+              <i class="fas fa-address-book" style="color:#10b981;font-size:10px"></i><span style="font-size:9.5px;font-weight:600;color:#1e293b">Contatos</span>
+              <span style="margin-left:auto;font-size:8.5px;color:#10b981">2/2</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SUBPROJETO 2 -->
+      <div style="margin-left:18px;border-left:2px dashed #a5b4fc;padding-left:12px;display:flex;flex-direction:column;gap:5px">
+        <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:7px 12px;border-left:3px solid #3b82f6;display:flex;align-items:center;gap:8px">
+          <i class="fas fa-folder-open" style="color:#3b82f6;font-size:13px;flex-shrink:0"></i>
+          <strong style="font-size:11px;color:#1e293b">Subprojeto: Módulos Estratégicos</strong>
+          <span style="background:#eff6ff;color:#3b82f6;border-radius:6px;padding:1px 8px;font-size:9px;font-weight:700;margin-left:auto">Em Andamento 80%</span>
+        </div>
+        <div style="margin-left:16px;border-left:2px dashed #bfdbfe;padding-left:10px;display:grid;grid-template-columns:repeat(3,1fr);gap:5px">
+          <div style="background:#fff;border:1px solid #e2e8f0;border-radius:7px;padding:6px 9px">
+            <div style="display:flex;align-items:center;gap:5px;margin-bottom:3px">
+              <i class="fas fa-stamp" style="color:#10b981;font-size:10px"></i><span style="font-size:9.5px;font-weight:600;color:#1e293b">Aprovações</span>
+              <span style="margin-left:auto;font-size:8.5px;color:#10b981;font-weight:600">5/5</span>
+            </div>
+            <div style="display:flex;gap:5px;flex-wrap:wrap">
+              <span style="font-size:8px;color:#10b981"><i class="fas fa-check"></i> Multi-aprovador</span>
+              <span style="font-size:8px;color:#10b981"><i class="fas fa-check"></i> WhatsApp bot</span>
+            </div>
+          </div>
+          <div style="background:#fff;border:1px solid #e2e8f0;border-radius:7px;padding:6px 9px">
+            <div style="display:flex;align-items:center;gap:5px;margin-bottom:3px">
+              <i class="fas fa-diagram-project" style="color:#10b981;font-size:10px"></i><span style="font-size:9.5px;font-weight:600;color:#1e293b">Projetos</span>
+              <span style="margin-left:auto;font-size:8.5px;color:#10b981;font-weight:600">4/4</span>
+            </div>
+            <div style="display:flex;gap:5px;flex-wrap:wrap">
+              <span style="font-size:8px;color:#10b981"><i class="fas fa-check"></i> Subprojetos</span>
+              <span style="font-size:8px;color:#10b981"><i class="fas fa-check"></i> Log auditável</span>
+            </div>
+          </div>
+          <div style="background:#fff;border:1px solid #e2e8f0;border-radius:7px;padding:6px 9px">
+            <div style="display:flex;align-items:center;gap:5px;margin-bottom:3px">
+              <i class="fas fa-book-open" style="color:#3b82f6;font-size:10px"></i><span style="font-size:9.5px;font-weight:600;color:#1e293b">Base Conhecimento</span>
+              <span style="margin-left:auto;font-size:8.5px;color:#3b82f6;font-weight:600">3/4</span>
+            </div>
+            <div style="height:3px;background:#e2e8f0;border-radius:2px"><div style="width:75%;height:100%;background:#3b82f6;border-radius:2px"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SUBPROJETO 3 -->
+      <div style="margin-left:18px;border-left:2px dashed #a5b4fc;padding-left:12px;display:flex;flex-direction:column;gap:5px">
+        <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:7px 12px;border-left:3px solid #3b82f6;display:flex;align-items:center;gap:8px">
+          <i class="fas fa-folder-open" style="color:#3b82f6;font-size:13px;flex-shrink:0"></i>
+          <strong style="font-size:11px;color:#1e293b">Subprojeto: Integrações Externas</strong>
+          <span style="background:#eff6ff;color:#3b82f6;border-radius:6px;padding:1px 8px;font-size:9px;font-weight:700;margin-left:auto">Em Andamento 67%</span>
+        </div>
+        <div style="margin-left:16px;border-left:2px dashed #bfdbfe;padding-left:10px;display:grid;grid-template-columns:repeat(3,1fr);gap:5px">
+          <div style="background:#fff;border:1px solid #e2e8f0;border-radius:7px;padding:6px 9px">
+            <div style="display:flex;align-items:center;gap:5px;margin-bottom:3px">
+              <i class="fab fa-whatsapp" style="color:#10b981;font-size:10px"></i><span style="font-size:9.5px;font-weight:600;color:#1e293b">WhatsApp Bot</span>
+              <span style="margin-left:auto;font-size:8.5px;color:#10b981;font-weight:600">3/3</span>
+            </div>
+            <div style="display:flex;gap:5px;flex-wrap:wrap">
+              <span style="font-size:8px;color:#10b981"><i class="fas fa-check"></i> Bot Baileys</span>
+              <span style="font-size:8px;color:#10b981"><i class="fas fa-check"></i> Auto-login</span>
+            </div>
+          </div>
+          <div style="background:#fff;border:1px solid #e2e8f0;border-radius:7px;padding:6px 9px">
+            <div style="display:flex;align-items:center;gap:5px;margin-bottom:3px">
+              <i class="fas fa-calendar-days" style="color:#10b981;font-size:10px"></i><span style="font-size:9.5px;font-weight:600;color:#1e293b">Google Calendar</span>
+              <span style="margin-left:auto;font-size:8.5px;color:#10b981;font-weight:600">2/2</span>
+            </div>
+            <div style="display:flex;gap:5px;flex-wrap:wrap">
+              <span style="font-size:8px;color:#10b981"><i class="fas fa-check"></i> CalDAV sync</span>
+            </div>
+          </div>
+          <div style="background:#fff;border:1px solid #e2e8f0;border-radius:7px;padding:6px 9px">
+            <div style="display:flex;align-items:center;gap:5px;margin-bottom:3px">
+              <i class="fas fa-building-shield" style="color:#94a3b8;font-size:10px"></i><span style="font-size:9.5px;font-weight:600;color:#1e293b">Active Directory</span>
+              <span style="margin-left:auto;font-size:8.5px;color:#94a3b8;font-weight:600">1/3</span>
+            </div>
+            <div style="height:3px;background:#e2e8f0;border-radius:2px"><div style="width:33%;height:100%;background:#94a3b8;border-radius:2px"></div></div>
+          </div>
+        </div>
+      </div>
+
+      </div><!-- fim coluna direita -->
+    </div>
+  </div>
+      <div style="background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:10px;padding:12px 16px;border-left:4px solid #6366f1">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+          <div style="width:12px;height:12px;border-radius:3px;background:#6366f1;flex-shrink:0"></div>
+          <strong style="font-size:13px;color:#1e293b">Portal WKL — Fase 1: Módulos Operacionais</strong>
+          <span style="background:#f0fdf4;color:#16a34a;border-radius:10px;padding:2px 10px;font-size:10px;font-weight:700;margin-left:auto">Concluído</span>
+          <span style="font-size:10px;color:#94a3b8"><i class="fas fa-calendar-check"></i> Finalizado em 01/03/2026</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+          <div style="flex:1;height:5px;background:#e2e8f0;border-radius:3px;overflow:hidden">
+            <div style="width:100%;height:100%;background:linear-gradient(90deg,#10b981,#059669);border-radius:3px"></div>
+          </div>
+          <span style="font-size:10px;color:#10b981;font-weight:700;white-space:nowrap">100% — 5/5 sistemas entregues</span>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:8px">
+          <div style="background:#fff;border-radius:7px;border:1px solid #e2e8f0;padding:6px 8px;font-size:10px;text-align:center">
+            <i class="fas fa-list-check" style="color:#10b981;display:block;margin-bottom:3px;font-size:13px"></i>
+            <div style="font-weight:600;color:#1e293b">Tarefas</div>
+            <div style="color:#10b981;font-size:9px"><i class="fas fa-check-circle"></i> Entregue</div>
+          </div>
+          <div style="background:#fff;border-radius:7px;border:1px solid #e2e8f0;padding:6px 8px;font-size:10px;text-align:center">
+            <i class="fas fa-coins" style="color:#10b981;display:block;margin-bottom:3px;font-size:13px"></i>
+            <div style="font-weight:600;color:#1e293b">Financeiro</div>
+            <div style="color:#10b981;font-size:9px"><i class="fas fa-check-circle"></i> Entregue</div>
+          </div>
+          <div style="background:#fff;border-radius:7px;border:1px solid #e2e8f0;padding:6px 8px;font-size:10px;text-align:center">
+            <i class="fas fa-ticket" style="color:#10b981;display:block;margin-bottom:3px;font-size:13px"></i>
+            <div style="font-weight:600;color:#1e293b">Chamados</div>
+            <div style="color:#10b981;font-size:9px"><i class="fas fa-check-circle"></i> Entregue</div>
+          </div>
+          <div style="background:#fff;border-radius:7px;border:1px solid #e2e8f0;padding:6px 8px;font-size:10px;text-align:center">
+            <i class="fas fa-box-archive" style="color:#10b981;display:block;margin-bottom:3px;font-size:13px"></i>
+            <div style="font-weight:600;color:#1e293b">Patrimônio</div>
+            <div style="color:#10b981;font-size:9px"><i class="fas fa-check-circle"></i> Entregue</div>
+          </div>
+          <div style="background:#fff;border-radius:7px;border:1px solid #e2e8f0;padding:6px 8px;font-size:10px;text-align:center">
+            <i class="fas fa-address-book" style="color:#10b981;display:block;margin-bottom:3px;font-size:13px"></i>
+            <div style="font-weight:600;color:#1e293b">Contatos</div>
+            <div style="color:#10b981;font-size:9px"><i class="fas fa-check-circle"></i> Entregue</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:12px;font-size:10px;color:#64748b">
+          <span><i class="fas fa-users"></i> 3 membros</span>
+          <span><i class="fas fa-square-check"></i> 5/5 sistemas concluídos</span>
+          <span><i class="fas fa-stamp"></i> Aprovação: <span style="color:#10b981;font-weight:600">Aprovado</span></span>
+          <span><i class="fas fa-clock-rotate-left"></i> Log: 87 ações registradas</span>
+        </div>
+      </div>
+
+      <!-- Projeto 2: Fase 2 — Módulos Estratégicos e Integrações -->
+      <div style="background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:10px;padding:12px 16px;border-left:4px solid #3b82f6">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+          <div style="width:12px;height:12px;border-radius:3px;background:#3b82f6;flex-shrink:0"></div>
+          <strong style="font-size:13px;color:#1e293b">Portal WKL — Fase 2: Módulos Estratégicos e Integrações</strong>
+          <span style="background:#eff6ff;color:#3b82f6;border-radius:10px;padding:2px 10px;font-size:10px;font-weight:700;margin-left:auto">Em Andamento</span>
+          <span style="font-size:10px;color:#94a3b8"><i class="fas fa-calendar"></i> Prazo: 30/06/2026</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+          <div style="flex:1;height:5px;background:#e2e8f0;border-radius:3px;overflow:hidden">
+            <div style="width:71%;height:100%;background:linear-gradient(90deg,#3b82f6,#818cf8);border-radius:3px"></div>
+          </div>
+          <span style="font-size:10px;color:#3b82f6;font-weight:700;white-space:nowrap">71% — 5/7 sistemas entregues</span>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-bottom:8px">
+          <div style="background:#fff;border-radius:7px;border:1px solid #e2e8f0;padding:5px 6px;font-size:10px;text-align:center">
+            <i class="fas fa-stamp" style="color:#10b981;display:block;margin-bottom:2px;font-size:12px"></i>
+            <div style="font-weight:600;color:#1e293b;font-size:9.5px">Aprovações</div>
+            <div style="color:#10b981;font-size:8.5px"><i class="fas fa-check-circle"></i> OK</div>
+          </div>
+          <div style="background:#fff;border-radius:7px;border:1px solid #e2e8f0;padding:5px 6px;font-size:10px;text-align:center">
+            <i class="fas fa-diagram-project" style="color:#10b981;display:block;margin-bottom:2px;font-size:12px"></i>
+            <div style="font-weight:600;color:#1e293b;font-size:9.5px">Projetos</div>
+            <div style="color:#10b981;font-size:8.5px"><i class="fas fa-check-circle"></i> OK</div>
+          </div>
+          <div style="background:#fff;border-radius:7px;border:1px solid #e2e8f0;padding:5px 6px;font-size:10px;text-align:center">
+            <i class="fab fa-whatsapp" style="color:#10b981;display:block;margin-bottom:2px;font-size:12px"></i>
+            <div style="font-weight:600;color:#1e293b;font-size:9.5px">WhatsApp</div>
+            <div style="color:#10b981;font-size:8.5px"><i class="fas fa-check-circle"></i> OK</div>
+          </div>
+          <div style="background:#fff;border-radius:7px;border:1px solid #e2e8f0;padding:5px 6px;font-size:10px;text-align:center">
+            <i class="fas fa-calendar-days" style="color:#10b981;display:block;margin-bottom:2px;font-size:12px"></i>
+            <div style="font-weight:600;color:#1e293b;font-size:9.5px">Calendários</div>
+            <div style="color:#10b981;font-size:8.5px"><i class="fas fa-check-circle"></i> OK</div>
+          </div>
+          <div style="background:#fff;border-radius:7px;border:1px solid #e2e8f0;padding:5px 6px;font-size:10px;text-align:center">
+            <i class="fas fa-book-open" style="color:#10b981;display:block;margin-bottom:2px;font-size:12px"></i>
+            <div style="font-weight:600;color:#1e293b;font-size:9.5px">Base Conhc.</div>
+            <div style="color:#10b981;font-size:8.5px"><i class="fas fa-check-circle"></i> OK</div>
+          </div>
+          <div style="background:#fff;border-radius:7px;border:1px solid #e2e8f0;padding:5px 6px;font-size:10px;text-align:center">
+            <i class="fas fa-building-shield" style="color:#3b82f6;display:block;margin-bottom:2px;font-size:12px"></i>
+            <div style="font-weight:600;color:#1e293b;font-size:9.5px">Integ. AD</div>
+            <div style="color:#3b82f6;font-size:8.5px"><i class="fas fa-spinner"></i> 80%</div>
+          </div>
+          <div style="background:#fff;border-radius:7px;border:1px solid #e2e8f0;padding:5px 6px;font-size:10px;text-align:center">
+            <i class="fas fa-chalkboard-user" style="color:#94a3b8;display:block;margin-bottom:2px;font-size:12px"></i>
+            <div style="font-weight:600;color:#1e293b;font-size:9.5px">Treinamento</div>
+            <div style="color:#94a3b8;font-size:8.5px"><i class="fas fa-clock"></i> Planej.</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:12px;font-size:10px;color:#64748b">
+          <span><i class="fas fa-users"></i> 4 membros</span>
+          <span><i class="fas fa-square-check"></i> 5/7 entregas concluídas</span>
+          <span><i class="fas fa-stamp"></i> Aprovação: <span style="color:#10b981;font-weight:600">Aprovado</span></span>
+          <span><i class="fas fa-clock-rotate-left"></i> Log: 134 ações registradas</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="slide-footer">
+    <span><strong>Portal WKL</strong> — Agenda de Projetos (Painel)</span>
+    <span>Versão 1.3.0 — 2026</span>
+    <span>Slide 4 / 11</span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- SLIDE 5 — AGENDA DE TAREFAS: VISÃO EXECUTIVA              -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="slide">
+  <div class="slide-header">
+    <div class="slide-header-left">
+      <div class="slide-header-icone bg-tarefas"><i class="fas fa-list-check"></i></div>
+      <div>
+        <div class="slide-header-titulo">Agenda de Tarefas</div>
+        <div class="slide-header-sub">Organização e acompanhamento operacional</div>
+      </div>
+    </div>
+    <div class="slide-header-badge" style="background:#f0fdf4;color:#10b981;border:1.5px solid #86efac">/agenda</div>
+  </div>
+  <div class="slide-header-sep" style="background:linear-gradient(90deg,#10b981,#059669)"></div>
+
+  <div class="slide-body">
+    <div class="layout-lr">
+      <div>
+        <div class="sec-titulo">O que é</div>
+        <div style="background:#f0fdf4;border-left:4px solid #10b981;border-radius:0 8px 8px 0;padding:12px 16px;margin-bottom:14px;font-size:12px;color:#065f46;line-height:1.6;">
+          Sistema completo para gestão de tarefas com quadro Kanban visual. Cada equipe cria suas listas, define responsáveis e acompanha o progresso em tempo real, sem necessidade de planilhas ou e-mails.
+        </div>
+        <div class="sec-titulo">Funcionalidades-chave</div>
+        <div class="feat-list">
+          <div class="feat-item"><i class="fas fa-table-columns c-tarefas"></i><span><strong>Quadro Kanban</strong> — A Fazer · Em Andamento · Aguardando · Concluído com drag & drop</span></div>
+          <div class="feat-item"><i class="fas fa-users c-tarefas"></i><span><strong>Listas compartilhadas</strong> — Cada lista tem donos, editores e leitores configuráveis</span></div>
+          <div class="feat-item"><i class="fas fa-square-check c-tarefas"></i><span><strong>Passos / Checklist</strong> — Cada tarefa tem subtarefas com barra de progresso visual</span></div>
+          <div class="feat-item"><i class="fas fa-paperclip c-tarefas"></i><span><strong>Anexos</strong> — Upload de arquivos diretamente na tarefa</span></div>
+          <div class="feat-item"><i class="fas fa-stamp c-tarefas"></i><span><strong>Solicitar Aprovação</strong> — Dispara um workflow de aprovação a partir de qualquer tarefa</span></div>
+          <div class="feat-item"><i class="fab fa-whatsapp c-tarefas"></i><span><strong>Notificação WhatsApp</strong> — Notifica o responsável via WhatsApp ao atribuir ou atualizar a tarefa</span></div>
+          <div class="feat-item"><i class="fas fa-calendar-check c-tarefas"></i><span><strong>Prazos e prioridades</strong> — Alerta visual para tarefas vencidas ou urgentes</span></div>
+          <div class="feat-item"><i class="fas fa-chart-bar c-tarefas"></i><span><strong>Relatórios</strong> — Busca global com filtros por coluna, responsável, período</span></div>
+        </div>
+      </div>
+
+      <div>
+        <div class="sec-titulo">Visualizações e Novas Funções</div>
+        <div class="cards-2" style="gap:8px; margin-bottom:10px;">
+          <div class="card" style="align-items:center;text-align:center;">
+            <i class="fas fa-table-columns" style="font-size:22px;color:#10b981;margin-bottom:4px"></i>
+            <div class="card-titulo">Kanban</div>
+            <div class="card-texto">Progresso dos passos exibido nos cards</div>
+          </div>
+          <div class="card" style="align-items:center;text-align:center;">
+            <i class="fas fa-list" style="font-size:22px;color:#10b981;margin-bottom:4px"></i>
+            <div class="card-titulo">Lista</div>
+            <div class="card-texto">Tabela ordenável por qualquer campo</div>
+          </div>
+        </div>
+        <div class="sec-titulo">Permissões por lista</div>
+        <div class="status-row" style="margin-bottom:8px">
+          <div class="status-chip" style="background:#fffbeb;color:#d97706;border-color:#fcd34d"><i class="fas fa-crown"></i> Dono</div>
+          <div class="status-chip" style="background:#eff6ff;color:#3b82f6;border-color:#93c5fd"><i class="fas fa-pen"></i> Edição</div>
+          <div class="status-chip" style="background:#f0fdf4;color:#16a34a;border-color:#86efac"><i class="fas fa-eye"></i> Leitura</div>
+        </div>
+        <div class="destaque bg-lt">
+          <i class="fas fa-circle-nodes c-tarefas"></i>
+          <div>
+            <h4 style="color:#065f46;font-size:12px">Integração Tarefas ↔ Projetos ↔ Aprovações</h4>
+            <p style="color:#166534;font-size:11px">Uma tarefa pode ser vinculada a um projeto, ter um checklist de passos com progresso, e disparar uma aprovação formal — tudo no mesmo fluxo.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide-footer">
+    <span><strong>Portal WKL</strong> — Agenda de Tarefas</span>
+    <span>Versão 1.3.0 — 2026</span>
+    <span>Slide 5 / 11</span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- SLIDE 6 — TAREFAS: KANBAN VISUAL MOCK                     -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="slide">
+  <div class="slide-header">
+    <div class="slide-header-left">
+      <div class="slide-header-icone bg-tarefas"><i class="fas fa-table-columns"></i></div>
+      <div>
+        <div class="slide-header-titulo">Agenda de Tarefas — Quadro Kanban</div>
+        <div class="slide-header-sub">Visão do fluxo de trabalho em colunas</div>
+      </div>
+    </div>
+    <div class="slide-header-badge" style="background:#f0fdf4;color:#10b981;border:1.5px solid #86efac">Demonstração</div>
+  </div>
+  <div class="slide-header-sep" style="background:linear-gradient(90deg,#10b981,#059669)"></div>
+
+  <div class="slide-body">
+    <!-- Mock Kanban -->
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;flex:1;">
+
+      <!-- Coluna: A Fazer -->
+      <div style="background:#f8fafc;border-radius:10px;border:1.5px solid #e2e8f0;padding:10px;display:flex;flex-direction:column;gap:7px;">
+        <div style="display:flex;align-items:center;gap:7px;margin-bottom:4px;">
+          <span style="width:9px;height:9px;border-radius:50%;background:#94a3b8;flex-shrink:0"></span>
+          <span style="font-size:11px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:1px">A Fazer</span>
+          <span style="margin-left:auto;background:#e2e8f0;border-radius:10px;padding:1px 7px;font-size:10px;color:#64748b;font-weight:700">3</span>
+        </div>
+        <div style="background:#fff;border-radius:8px;border:1px solid #e2e8f0;padding:10px;">
+          <div style="font-size:11px;font-weight:600;color:#1e293b;margin-bottom:5px">Revisar orçamento anual</div>
+          <div style="display:flex;gap:5px;flex-wrap:wrap;">
+            <span style="background:#fef9c3;color:#a16207;border-radius:10px;padding:2px 7px;font-size:9.5px;font-weight:600">Financeiro</span>
+            <span style="font-size:9.5px;color:#94a3b8"><i class="fas fa-calendar"></i> 10/04</span>
+          </div>
+        </div>
+        <div style="background:#fff;border-radius:8px;border:1px solid #e2e8f0;padding:10px;">
+          <div style="font-size:11px;font-weight:600;color:#1e293b;margin-bottom:5px">Atualizar manual do colaborador</div>
+          <div style="display:flex;gap:5px;flex-wrap:wrap;">
+            <span style="background:#f0fdf4;color:#16a34a;border-radius:10px;padding:2px 7px;font-size:9.5px;font-weight:600">RH</span>
+          </div>
+        </div>
+        <div style="background:#fff;border-radius:8px;border:1px solid #e2e8f0;padding:10px;">
+          <div style="font-size:11px;font-weight:600;color:#1e293b;margin-bottom:5px">Pesquisa de fornecedores</div>
+          <div style="display:flex;gap:5px;flex-wrap:wrap;">
+            <span style="background:#eff6ff;color:#3b82f6;border-radius:10px;padding:2px 7px;font-size:9.5px;font-weight:600">Compras</span>
+            <span style="font-size:9.5px;color:#ef4444"><i class="fas fa-exclamation-circle"></i> Urgente</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Coluna: Em Andamento -->
+      <div style="background:#eff6ff;border-radius:10px;border:1.5px solid #bfdbfe;padding:10px;display:flex;flex-direction:column;gap:7px;">
+        <div style="display:flex;align-items:center;gap:7px;margin-bottom:4px;">
+          <span style="width:9px;height:9px;border-radius:50%;background:#3b82f6;flex-shrink:0"></span>
+          <span style="font-size:11px;font-weight:700;color:#1d4ed8;text-transform:uppercase;letter-spacing:1px">Em Andamento</span>
+          <span style="margin-left:auto;background:#bfdbfe;border-radius:10px;padding:1px 7px;font-size:10px;color:#1d4ed8;font-weight:700">2</span>
+        </div>
+        <div style="background:#fff;border-radius:8px;border:1px solid #bfdbfe;padding:10px;">
+          <div style="font-size:11px;font-weight:600;color:#1e293b;margin-bottom:5px">Implantação Portal WKL — TI</div>
+          <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:6px">
+            <span style="background:#eef2ff;color:#6366f1;border-radius:10px;padding:2px 7px;font-size:9.5px;font-weight:600">Projeto TI</span>
+            <span style="font-size:9.5px;color:#94a3b8"><i class="fas fa-user"></i> João S.</span>
+          </div>
+          <!-- Passos / Checklist -->
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px">
+            <div style="flex:1;height:4px;background:#e2e8f0;border-radius:2px;overflow:hidden"><div style="width:60%;height:100%;background:#3b82f6;border-radius:2px"></div></div>
+            <span style="font-size:9px;color:#64748b;white-space:nowrap">3/5 passos</span>
+          </div>
+          <div style="display:flex;gap:4px">
+            <span style="font-size:9px;color:#10b981"><i class="fas fa-check"></i> Levantar req.</span>
+            <span style="font-size:9px;color:#10b981"><i class="fas fa-check"></i> Instalar</span>
+            <span style="font-size:9px;color:#94a3b8"><i class="fas fa-circle"></i> Treinar</span>
+          </div>
+        </div>
+        <div style="background:#fff;border-radius:8px;border:1px solid #bfdbfe;padding:10px;">
+          <div style="font-size:11px;font-weight:600;color:#1e293b;margin-bottom:5px">Treinamento equipe comercial</div>
+          <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:6px">
+            <span style="background:#fdf4ff;color:#a21caf;border-radius:10px;padding:2px 7px;font-size:9.5px;font-weight:600">Comercial</span>
+            <span style="font-size:9.5px;color:#94a3b8"><i class="fas fa-calendar"></i> 15/04</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px">
+            <div style="flex:1;height:4px;background:#e2e8f0;border-radius:2px;overflow:hidden"><div style="width:25%;height:100%;background:#a21caf;border-radius:2px"></div></div>
+            <span style="font-size:9px;color:#64748b;white-space:nowrap">1/4 passos</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Coluna: Aguardando -->
+      <div style="background:#fffbeb;border-radius:10px;border:1.5px solid #fcd34d;padding:10px;display:flex;flex-direction:column;gap:7px;">
+        <div style="display:flex;align-items:center;gap:7px;margin-bottom:4px;">
+          <span style="width:9px;height:9px;border-radius:50%;background:#f59e0b;flex-shrink:0"></span>
+          <span style="font-size:11px;font-weight:700;color:#b45309;text-transform:uppercase;letter-spacing:1px">Aguardando</span>
+          <span style="margin-left:auto;background:#fcd34d;border-radius:10px;padding:1px 7px;font-size:10px;color:#78350f;font-weight:700">2</span>
+        </div>
+        <div style="background:#fff;border-radius:8px;border:1px solid #fcd34d;padding:10px;">
+          <div style="font-size:11px;font-weight:600;color:#1e293b;margin-bottom:5px">Aprovação contrato fornecedor</div>
+          <div style="display:flex;gap:5px;flex-wrap:wrap;">
+            <span style="background:#ecfeff;color:#0891b2;border-radius:10px;padding:2px 7px;font-size:9.5px;font-weight:600">Aprovação</span>
+          </div>
+        </div>
+        <div style="background:#fff;border-radius:8px;border:1px solid #fcd34d;padding:10px;">
+          <div style="font-size:11px;font-weight:600;color:#1e293b;margin-bottom:5px">Retorno cliente sobre proposta</div>
+          <div style="display:flex;gap:5px;flex-wrap:wrap;">
+            <span style="background:#fef2f2;color:#ef4444;border-radius:10px;padding:2px 7px;font-size:9.5px;font-weight:600">Comercial</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Coluna: Concluído -->
+      <div style="background:#f0fdf4;border-radius:10px;border:1.5px solid #86efac;padding:10px;display:flex;flex-direction:column;gap:7px;">
+        <div style="display:flex;align-items:center;gap:7px;margin-bottom:4px;">
+          <span style="width:9px;height:9px;border-radius:50%;background:#10b981;flex-shrink:0"></span>
+          <span style="font-size:11px;font-weight:700;color:#065f46;text-transform:uppercase;letter-spacing:1px">Concluído</span>
+          <span style="margin-left:auto;background:#86efac;border-radius:10px;padding:1px 7px;font-size:10px;color:#065f46;font-weight:700">4</span>
+        </div>
+        <div style="background:#fff;border-radius:8px;border:1px solid #86efac;padding:10px;">
+          <div style="font-size:11px;font-weight:600;color:#1e293b;margin-bottom:5px;text-decoration:line-through;color:#94a3b8">Reunião kickoff projeto</div>
+          <div style="display:flex;gap:5px;">
+            <span style="font-size:9.5px;color:#10b981"><i class="fas fa-check-circle"></i> Concluída em 05/04</span>
+          </div>
+        </div>
+        <div style="background:#fff;border-radius:8px;border:1px solid #86efac;padding:10px;">
+          <div style="font-size:11px;font-weight:600;text-decoration:line-through;color:#94a3b8;margin-bottom:5px">Envio relatório mensal</div>
+          <div style="display:flex;gap:5px;">
+            <span style="font-size:9.5px;color:#10b981"><i class="fas fa-check-circle"></i> Concluída em 01/04</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="slide-footer">
+    <span><strong>Portal WKL</strong> — Agenda de Tarefas (Kanban)</span>
+    <span>Versão 1.3.0 — 2026</span>
+    <span>Slide 6 / 11</span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- SLIDE 7 — APROVAÇÕES: VISÃO EXECUTIVA                     -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="slide">
+  <div class="slide-header">
+    <div class="slide-header-left">
+      <div class="slide-header-icone bg-aprovacoes"><i class="fas fa-stamp"></i></div>
+      <div>
+        <div class="slide-header-titulo">Workflow de Aprovações</div>
+        <div class="slide-header-sub">Decisões corporativas rápidas e rastreáveis</div>
+      </div>
+    </div>
+    <div class="slide-header-badge" style="background:#ecfeff;color:#06b6d4;border:1.5px solid #67e8f9">/aprovacoes</div>
+  </div>
+  <div class="slide-header-sep" style="background:linear-gradient(90deg,#06b6d4,#0891b2)"></div>
+
+  <div class="slide-body">
+    <div class="layout-lr-3">
+      <!-- Col 1 - descrição + benefícios -->
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <div style="background:#ecfeff;border-left:4px solid #06b6d4;border-radius:0 8px 8px 0;padding:12px 16px;font-size:12px;color:#164e63;line-height:1.6;">
+          Digitaliza o processo de aprovações da empresa. Solicitações chegam com documentos e contexto completo. Aprovadores recebem notificação no WhatsApp ou e-mail e respondem com um clique.
+        </div>
+        <div class="sec-titulo">Benefícios para a diretoria</div>
+        <div class="feat-list" style="gap:6px">
+          <div class="feat-item"><i class="fas fa-check-circle c-aprovacoes"></i><span>Rastreabilidade total — quem aprovou, quando e por qual canal</span></div>
+          <div class="feat-item"><i class="fas fa-check-circle c-aprovacoes"></i><span>Elimina aprovações por e-mail sem registro formal</span></div>
+          <div class="feat-item"><i class="fas fa-check-circle c-aprovacoes"></i><span>Resposta pelo WhatsApp — sem precisar abrir o sistema</span></div>
+          <div class="feat-item"><i class="fas fa-check-circle c-aprovacoes"></i><span>Lembretes automáticos para aprovações pendentes</span></div>
+          <div class="feat-item"><i class="fas fa-check-circle c-aprovacoes"></i><span>Relatórios de tempo médio de decisão por aprovador</span></div>
+        </div>
+      </div>
+
+      <!-- Col 2 - tipos de consenso -->
+      <div>
+        <div class="sec-titulo">Tipos de Consenso</div>
+        <div class="feat-list" style="gap:7px;margin-bottom:12px">
+          <div class="feat-item"><i class="fas fa-star" style="color:#f59e0b"></i><span><strong>Unanimidade</strong> — Todos os aprovadores devem aprovar</span></div>
+          <div class="feat-item"><i class="fas fa-chart-pie" style="color:#06b6d4"></i><span><strong>Maioria</strong> — Mais da metade aprova</span></div>
+          <div class="feat-item"><i class="fas fa-user-check" style="color:#10b981"></i><span><strong>Qualquer um</strong> — Basta um aprovar para prosseguir</span></div>
+          <div class="feat-item"><i class="fas fa-percent" style="color:#8b5cf6"></i><span><strong>Percentual</strong> — Mínimo % configurável por solicitação</span></div>
+        </div>
+        <div class="sec-titulo">Status possíveis</div>
+        <div class="status-row">
+          <div class="status-chip" style="background:#fffbeb;color:#d97706;border-color:#fcd34d"><span style="width:7px;height:7px;border-radius:50%;background:#f59e0b;display:inline-block"></span> Pendente</div>
+          <div class="status-chip" style="background:#f0fdf4;color:#16a34a;border-color:#86efac"><span style="width:7px;height:7px;border-radius:50%;background:#10b981;display:inline-block"></span> Aprovado</div>
+          <div class="status-chip" style="background:#fef2f2;color:#dc2626;border-color:#fca5a5"><span style="width:7px;height:7px;border-radius:50%;background:#ef4444;display:inline-block"></span> Reprovado</div>
+          <div class="status-chip" style="background:#f8fafc;color:#64748b;border-color:#e2e8f0"><span style="width:7px;height:7px;border-radius:50%;background:#94a3b8;display:inline-block"></span> Cancelado</div>
+        </div>
+      </div>
+
+      <!-- Col 3 - canais -->
+      <div>
+        <div class="sec-titulo">Canais de notificação</div>
+        <div class="card" style="margin-bottom:10px;border-left:3px solid #25d366">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+            <i class="fab fa-whatsapp" style="font-size:20px;color:#25d366"></i>
+            <strong style="font-size:12px;color:#1e293b">WhatsApp</strong>
+          </div>
+          <div style="font-size:11px;color:#475569">O aprovador recebe a notificação no WhatsApp e responde pelo bot com comandos: <strong>1</strong> para listar pendentes, <strong>aprovar ID</strong> ou <strong>reprovar ID motivo</strong>. Login automático pelo número.</div>
+        </div>
+        <div class="card" style="margin-bottom:10px;border-left:3px solid #3b82f6">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+            <i class="fas fa-envelope" style="font-size:18px;color:#3b82f6"></i>
+            <strong style="font-size:12px;color:#1e293b">E-mail</strong>
+          </div>
+          <div style="font-size:11px;color:#475569">E-mail com resumo da solicitação e link direto para responder no Portal.</div>
+        </div>
+        <div class="card" style="border-left:3px solid #f59e0b">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+            <i class="fas fa-rotate-right" style="font-size:16px;color:#f59e0b"></i>
+            <strong style="font-size:12px;color:#1e293b">Reenviar WhatsApp</strong>
+            <span style="margin-left:auto;background:#fffbeb;color:#d97706;border-radius:10px;padding:1px 8px;font-size:9.5px;font-weight:700">Novo</span>
+          </div>
+          <div style="font-size:11px;color:#475569">Admin pode reenviar a notificação WhatsApp para aprovadores que ainda não responderam, sem precisar cancelar a solicitação.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="slide-footer">
+    <span><strong>Portal WKL</strong> — Workflow de Aprovações</span>
+    <span>Versão 1.3.0 — 2026</span>
+    <span>Slide 7 / 11</span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- SLIDE 8 — APROVAÇÕES: FLUXO COMPLETO                      -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="slide">
+  <div class="slide-header">
+    <div class="slide-header-left">
+      <div class="slide-header-icone bg-aprovacoes"><i class="fas fa-route"></i></div>
+      <div>
+        <div class="slide-header-titulo">Aprovações — Fluxo Completo</div>
+        <div class="slide-header-sub">Do pedido ao resultado em tempo real</div>
+      </div>
+    </div>
+    <div class="slide-header-badge" style="background:#ecfeff;color:#06b6d4;border:1.5px solid #67e8f9">Fluxo Operacional</div>
+  </div>
+  <div class="slide-header-sep" style="background:linear-gradient(90deg,#06b6d4,#0891b2)"></div>
+
+  <div class="slide-body">
+    <!-- Fluxo principal -->
+    <div class="fluxo" style="margin-bottom:18px">
+      <div class="fluxo-step" style="border-color:#06b6d4">
+        <i class="fas fa-file-alt c-aprovacoes"></i>
+        <strong>1. Solicitação</strong>
+        <span>Usuário cria a solicitação com título, descrição e documentos anexos</span>
+      </div>
+      <div class="fluxo-arrow"><i class="fas fa-chevron-right"></i></div>
+      <div class="fluxo-step" style="border-color:#06b6d4">
+        <i class="fas fa-user-plus c-aprovacoes"></i>
+        <strong>2. Aprovadores</strong>
+        <span>Define quem deve aprovar e o tipo de consenso exigido</span>
+      </div>
+      <div class="fluxo-arrow"><i class="fas fa-chevron-right"></i></div>
+      <div class="fluxo-step" style="border-color:#06b6d4">
+        <i class="fab fa-whatsapp c-aprovacoes"></i>
+        <strong>3. Notificação</strong>
+        <span>Cada aprovador recebe WhatsApp e e-mail com os detalhes</span>
+      </div>
+      <div class="fluxo-arrow"><i class="fas fa-chevron-right"></i></div>
+      <div class="fluxo-step" style="border-color:#06b6d4">
+        <i class="fas fa-reply c-aprovacoes"></i>
+        <strong>4. Resposta</strong>
+        <span>Aprovador responde pelo WhatsApp ou pelo Portal, com justificativa</span>
+      </div>
+      <div class="fluxo-arrow"><i class="fas fa-chevron-right"></i></div>
+      <div class="fluxo-step" style="border-color:#06b6d4">
+        <i class="fas fa-calculator c-aprovacoes"></i>
+        <strong>5. Consenso</strong>
+        <span>Sistema calcula o resultado conforme a regra definida</span>
+      </div>
+      <div class="fluxo-arrow"><i class="fas fa-chevron-right"></i></div>
+      <div class="fluxo-step" style="background:#ecfeff;border-color:#06b6d4">
+        <i class="fas fa-flag-checkered c-aprovacoes"></i>
+        <strong>6. Resultado</strong>
+        <span>Solicitante é notificado do resultado com histórico completo</span>
+      </div>
+    </div>
+
+    <!-- Mock de aprovação -->
+    <div style="display:grid;grid-template-columns:1.2fr 0.8fr;gap:16px;">
+      <div style="background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:10px;padding:14px;">
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#94a3b8;margin-bottom:10px">Exemplo de Solicitação</div>
+        <div style="font-size:13px;font-weight:700;color:#1e293b;margin-bottom:4px">Contratação de Serviço — Empresa XYZ</div>
+        <div style="font-size:11px;color:#475569;margin-bottom:10px">Aprovação necessária para contratação de serviço de consultoria no valor de R$ 45.000. Prazo de início: 20/04/2026.</div>
+        <div style="display:flex;gap:8px;margin-bottom:10px">
+          <span style="background:#ecfeff;color:#0891b2;border-radius:6px;padding:3px 10px;font-size:10px;font-weight:700">Unanimidade</span>
+          <span style="background:#f8fafc;color:#64748b;border-radius:6px;padding:3px 10px;font-size:10px;border:1px solid #e2e8f0"><i class="fas fa-paperclip"></i> 2 anexos</span>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:5px;">
+          <div style="display:flex;align-items:center;gap:8px;font-size:11px;">
+            <i class="fas fa-check-circle" style="color:#10b981"></i>
+            <span style="color:#1e293b">Ana Lima</span>
+            <span style="color:#94a3b8;font-size:10px">via WhatsApp · 06/04 09:12</span>
+            <span style="margin-left:auto;color:#10b981;font-size:10px;font-weight:700">APROVADO</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:11px;">
+            <i class="fas fa-check-circle" style="color:#10b981"></i>
+            <span style="color:#1e293b">Carlos Melo</span>
+            <span style="color:#94a3b8;font-size:10px">via Portal · 06/04 10:45</span>
+            <span style="margin-left:auto;color:#10b981;font-size:10px;font-weight:700">APROVADO</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:11px;">
+            <i class="fas fa-clock" style="color:#f59e0b"></i>
+            <span style="color:#1e293b">Paulo Ramos</span>
+            <span style="color:#94a3b8;font-size:10px">Aguardando resposta</span>
+            <span style="margin-left:auto;color:#f59e0b;font-size:10px;font-weight:700">PENDENTE</span>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div class="destaque bg-la">
+          <i class="fab fa-whatsapp" style="color:#25d366"></i>
+          <div>
+            <h4 style="color:#064e3b;font-size:11px">Resposta pelo WhatsApp</h4>
+            <p style="color:#065f46;font-size:10.5px">O aprovador recebe a notificação com o resumo e responde pelo bot: <strong>aprovar ID</strong> ou <strong>reprovar ID motivo</strong>. Login automático pelo número cadastrado. Sem precisar acessar o Portal.</p>
+          </div>
+        </div>
+        <div class="destaque" style="background:#fffbeb">
+          <i class="fas fa-bell" style="color:#f59e0b"></i>
+          <div>
+            <h4 style="color:#78350f;font-size:11px">Lembrete Automático — 08:00</h4>
+            <p style="color:#92400e;font-size:10.5px">Aprovações pendentes geram lembrete automático todo dia às 08:00 para aprovadores que ainda não responderam.</p>
+          </div>
+        </div>
+        <div class="destaque" style="background:#fffbeb;border:1px solid #fcd34d">
+          <i class="fas fa-rotate-right" style="color:#f59e0b"></i>
+          <div>
+            <h4 style="color:#78350f;font-size:11px">Reenviar WhatsApp <span style="background:#fcd34d;border-radius:6px;padding:1px 7px;font-size:9px;font-weight:700">Novo</span></h4>
+            <p style="color:#92400e;font-size:10.5px">Admin pode reenviar a notificação WhatsApp para um aprovador específico pendente, sem cancelar a solicitação.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide-footer">
+    <span><strong>Portal WKL</strong> — Aprovações (Fluxo)</span>
+    <span>Versão 1.3.0 — 2026</span>
+    <span>Slide 8 / 11</span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- SLIDE 9 — INTEGRAÇÃO ENTRE OS 3 MÓDULOS                   -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="slide">
+  <div class="slide-header">
+    <div class="slide-header-left">
+      <div class="slide-header-icone" style="background:linear-gradient(135deg,#3b82f6,#6366f1)"><i class="fas fa-circle-nodes"></i></div>
+      <div>
+        <div class="slide-header-titulo">Integração dos Módulos</div>
+        <div class="slide-header-sub">Como Tarefas, Aprovações e Projetos funcionam juntos</div>
+      </div>
+    </div>
+    <div class="slide-header-badge" style="background:#eff6ff;color:#3b82f6;border:1.5px solid #bfdbfe">Ecossistema Integrado</div>
+  </div>
+  <div class="slide-header-sep" style="background:linear-gradient(90deg,#3b82f6,#6366f1)"></div>
+
+  <div class="slide-body">
+    <!-- Diagrama de integração -->
+    <div style="display:flex;align-items:center;justify-content:center;gap:20px;flex:1;padding:10px 0">
+
+      <!-- Módulo Projetos -->
+      <div style="display:flex;flex-direction:column;align-items:center;gap:0;width:180px">
+        <div style="background:linear-gradient(135deg,#6366f1,#4f46e5);border-radius:14px;width:60px;height:60px;display:flex;align-items:center;justify-content:center;font-size:26px;color:#fff;margin-bottom:10px;box-shadow:0 4px 14px rgba(99,102,241,0.35)">
+          <i class="fas fa-diagram-project"></i>
+        </div>
+        <div style="font-size:13px;font-weight:800;color:#1e293b;margin-bottom:4px;text-align:center">Agenda de Projetos</div>
+        <div style="font-size:10.5px;color:#64748b;text-align:center;line-height:1.4">Define objetivos, equipes, prazos e subprojetos</div>
+        <div style="margin-top:10px;display:flex;flex-direction:column;gap:4px;width:100%">
+          <div style="background:#eef2ff;border-radius:7px;padding:5px 10px;font-size:10px;color:#4f46e5;font-weight:600;text-align:center">Projetos + Subprojetos</div>
+          <div style="background:#eef2ff;border-radius:7px;padding:5px 10px;font-size:10px;color:#4f46e5;font-weight:600;text-align:center">Equipes e permissões</div>
+          <div style="background:#eef2ff;border-radius:7px;padding:5px 10px;font-size:10px;color:#4f46e5;font-weight:600;text-align:center">Aprovação de início</div>
+        </div>
+      </div>
+
+      <!-- Setas bidirecionais -->
+      <div style="display:flex;flex-direction:column;gap:28px;align-items:center">
+        <div style="text-align:center">
+          <div style="font-size:11px;color:#94a3b8;margin-bottom:4px">Tarefas vinculadas ao projeto</div>
+          <div style="color:#6366f1;font-size:18px"><i class="fas fa-arrows-left-right"></i></div>
+        </div>
+        <div style="text-align:center">
+          <div style="font-size:11px;color:#94a3b8;margin-bottom:4px">Aprovação exigida</div>
+          <div style="color:#6366f1;font-size:18px"><i class="fas fa-arrows-left-right"></i></div>
+        </div>
+      </div>
+
+      <!-- Módulo Tarefas -->
+      <div style="display:flex;flex-direction:column;align-items:center;width:180px">
+        <div style="background:linear-gradient(135deg,#10b981,#059669);border-radius:14px;width:60px;height:60px;display:flex;align-items:center;justify-content:center;font-size:26px;color:#fff;margin-bottom:10px;box-shadow:0 4px 14px rgba(16,185,129,0.35)">
+          <i class="fas fa-list-check"></i>
+        </div>
+        <div style="font-size:13px;font-weight:800;color:#1e293b;margin-bottom:4px;text-align:center">Agenda de Tarefas</div>
+        <div style="font-size:10.5px;color:#64748b;text-align:center;line-height:1.4">Executa o trabalho operacional do dia a dia</div>
+        <div style="margin-top:10px;display:flex;flex-direction:column;gap:4px;width:100%">
+          <div style="background:#f0fdf4;border-radius:7px;padding:5px 10px;font-size:10px;color:#059669;font-weight:600;text-align:center">Tarefas com responsável</div>
+          <div style="background:#f0fdf4;border-radius:7px;padding:5px 10px;font-size:10px;color:#059669;font-weight:600;text-align:center">Prazos e prioridades</div>
+          <div style="background:#f0fdf4;border-radius:7px;padding:5px 10px;font-size:10px;color:#059669;font-weight:600;text-align:center">Kanban por equipe</div>
+        </div>
+      </div>
+
+      <!-- Seta para aprovações -->
+      <div style="display:flex;flex-direction:column;gap:28px;align-items:center">
+        <div style="text-align:center">
+          <div style="font-size:11px;color:#94a3b8;margin-bottom:4px">Aprovação de pedido</div>
+          <div style="color:#6366f1;font-size:18px"><i class="fas fa-arrows-left-right"></i></div>
+        </div>
+        <div style="text-align:center">
+          <div style="font-size:11px;color:#94a3b8;margin-bottom:4px">Resposta via WhatsApp</div>
+          <div style="color:#6366f1;font-size:18px"><i class="fas fa-arrows-left-right"></i></div>
+        </div>
+      </div>
+
+      <!-- Módulo Aprovações -->
+      <div style="display:flex;flex-direction:column;align-items:center;width:180px">
+        <div style="background:linear-gradient(135deg,#06b6d4,#0891b2);border-radius:14px;width:60px;height:60px;display:flex;align-items:center;justify-content:center;font-size:26px;color:#fff;margin-bottom:10px;box-shadow:0 4px 14px rgba(6,182,212,0.35)">
+          <i class="fas fa-stamp"></i>
+        </div>
+        <div style="font-size:13px;font-weight:800;color:#1e293b;margin-bottom:4px;text-align:center">Workflow de Aprovações</div>
+        <div style="font-size:10.5px;color:#64748b;text-align:center;line-height:1.4">Formaliza e registra decisões corporativas</div>
+        <div style="margin-top:10px;display:flex;flex-direction:column;gap:4px;width:100%">
+          <div style="background:#ecfeff;border-radius:7px;padding:5px 10px;font-size:10px;color:#0891b2;font-weight:600;text-align:center">Multi-aprovador</div>
+          <div style="background:#ecfeff;border-radius:7px;padding:5px 10px;font-size:10px;color:#0891b2;font-weight:600;text-align:center">WhatsApp + E-mail</div>
+          <div style="background:#ecfeff;border-radius:7px;padding:5px 10px;font-size:10px;color:#0891b2;font-weight:600;text-align:center">Histórico auditável</div>
+        </div>
+      </div>
+
+    </div>
+
+    <div style="background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:10px;padding:12px 20px;display:flex;align-items:center;gap:16px">
+      <i class="fas fa-lightbulb" style="font-size:20px;color:#f59e0b;flex-shrink:0"></i>
+      <div style="font-size:12px;color:#475569;line-height:1.5">
+        <strong style="color:#1e293b">Exemplo prático:</strong> A Diretoria cria um Projeto de "Expansão 2026" → vincula uma Aprovação para autorização do orçamento → aprovadores respondem pelo WhatsApp → após aprovação, a equipe cria as Tarefas operacionais já vinculadas ao projeto → o progresso fica visível em um único lugar.
+      </div>
+    </div>
+  </div>
+
+  <div class="slide-footer">
+    <span><strong>Portal WKL</strong> — Integração dos Módulos</span>
+    <span>Versão 1.3.0 — 2026</span>
+    <span>Slide 9 / 11</span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- SLIDE 10 — INTEGRAÇÕES DO PORTAL                          -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="slide">
+  <div class="slide-header">
+    <div class="slide-header-left">
+      <div class="slide-header-icone" style="background:linear-gradient(135deg,#0891b2,#0e7490)"><i class="fas fa-plug"></i></div>
+      <div>
+        <div class="slide-header-titulo">Integrações do Portal</div>
+        <div class="slide-header-sub">Ecossistema conectado — sistemas externos que alimentam o Portal</div>
+      </div>
+    </div>
+    <div class="slide-header-badge" style="background:#ecfeff;color:#0891b2;border:1.5px solid #67e8f9">Conectividade</div>
+  </div>
+  <div class="slide-header-sep" style="background:linear-gradient(90deg,#0891b2,#6366f1)"></div>
+
+  <div class="slide-body">
+    <div style="display:flex;gap:16px;flex:1;">
+
+      <!-- Centro: Portal -->
+      <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;width:140px;flex-shrink:0;">
+        <div style="background:linear-gradient(135deg,#0a0a1f,#1a1a4e);border-radius:16px;width:72px;height:72px;display:flex;align-items:center;justify-content:center;font-size:30px;color:#818cf8;margin-bottom:8px;box-shadow:0 4px 18px rgba(99,102,241,0.4)">
+          <i class="fas fa-globe"></i>
+        </div>
+        <div style="font-size:12px;font-weight:800;color:#1e293b;text-align:center">Portal WKL</div>
+        <div style="font-size:9.5px;color:#64748b;text-align:center">192.168.0.80:3132</div>
+        <!-- linhas de conexão visuais -->
+        <div style="margin-top:8px;display:flex;flex-direction:column;gap:3px;align-items:center">
+          <div style="width:2px;height:12px;background:linear-gradient(to bottom,#6366f1,transparent)"></div>
+          <i class="fas fa-circle-nodes" style="font-size:14px;color:#94a3b8"></i>
+          <div style="width:2px;height:12px;background:linear-gradient(to top,#6366f1,transparent)"></div>
+        </div>
+      </div>
+
+      <!-- Grid de integrações: 3 colunas × 2 linhas -->
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;flex:1;">
+
+        <!-- Active Directory -->
+        <div style="background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:6px;border-left:4px solid #3b82f6;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:2px">
+            <div style="width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,#3b82f6,#1d4ed8);display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;flex-shrink:0">
+              <i class="fas fa-building-shield"></i>
+            </div>
+            <div>
+              <div style="font-size:11.5px;font-weight:700;color:#1e293b">Active Directory</div>
+              <div style="font-size:9.5px;color:#64748b">Autenticação corporativa</div>
+            </div>
+          </div>
+          <div style="font-size:10.5px;color:#475569;line-height:1.4">Login único com credenciais do domínio Windows (LDAP/AD). Sem necessidade de senha separada para o Portal.</div>
+          <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:2px">
+            <span style="background:#eff6ff;color:#3b82f6;border-radius:6px;padding:2px 7px;font-size:9px;font-weight:600">LDAP</span>
+            <span style="background:#eff6ff;color:#3b82f6;border-radius:6px;padding:2px 7px;font-size:9px;font-weight:600">SSO</span>
+          </div>
+        </div>
+
+        <!-- WhatsApp Bot -->
+        <div style="background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:6px;border-left:4px solid #22c55e;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:2px">
+            <div style="width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,#22c55e,#16a34a);display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;flex-shrink:0">
+              <i class="fab fa-whatsapp"></i>
+            </div>
+            <div>
+              <div style="font-size:11.5px;font-weight:700;color:#1e293b">WhatsApp Bot</div>
+              <div style="font-size:9.5px;color:#64748b">Aprovações via mensagem</div>
+            </div>
+          </div>
+          <div style="font-size:10.5px;color:#475569;line-height:1.4">Bot Baileys com menu de comandos: <strong>1</strong> lista pendentes, <strong>aprovar ID</strong> / <strong>reprovar ID motivo</strong> para responder. Login automático pelo número cadastrado no Portal.</div>
+          <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:2px">
+            <span style="background:#f0fdf4;color:#16a34a;border-radius:6px;padding:2px 7px;font-size:9px;font-weight:600">Baileys</span>
+            <span style="background:#f0fdf4;color:#16a34a;border-radius:6px;padding:2px 7px;font-size:9px;font-weight:600">Menu de comandos</span>
+            <span style="background:#f0fdf4;color:#16a34a;border-radius:6px;padding:2px 7px;font-size:9px;font-weight:600">Auto-login</span>
+          </div>
+        </div>
+
+        <!-- E-mail SMTP -->
+        <div style="background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:6px;border-left:4px solid #f59e0b;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:2px">
+            <div style="width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,#f59e0b,#d97706);display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;flex-shrink:0">
+              <i class="fas fa-envelope"></i>
+            </div>
+            <div>
+              <div style="font-size:11.5px;font-weight:700;color:#1e293b">E-mail / SMTP</div>
+              <div style="font-size:9.5px;color:#64748b">Notificações automáticas</div>
+            </div>
+          </div>
+          <div style="font-size:10.5px;color:#475569;line-height:1.4">Notificações por e-mail para aprovações, alertas financeiros (diário 07:00), lembretes de tarefas e chamados em aberto.</div>
+          <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:2px">
+            <span style="background:#fffbeb;color:#d97706;border-radius:6px;padding:2px 7px;font-size:9px;font-weight:600">Nodemailer</span>
+            <span style="background:#fffbeb;color:#d97706;border-radius:6px;padding:2px 7px;font-size:9px;font-weight:600">Templates HTML</span>
+          </div>
+        </div>
+
+        <!-- Telegram -->
+        <div style="background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:6px;border-left:4px solid #06b6d4;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:2px">
+            <div style="width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,#06b6d4,#0891b2);display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;flex-shrink:0">
+              <i class="fab fa-telegram"></i>
+            </div>
+            <div>
+              <div style="font-size:11.5px;font-weight:700;color:#1e293b">Telegram Bot</div>
+              <div style="font-size:9.5px;color:#64748b">Alertas em tempo real</div>
+            </div>
+          </div>
+          <div style="font-size:10.5px;color:#475569;line-height:1.4">Envio de notificações via Telegram Bot — complementar ao WhatsApp para avisos de aprovação e eventos críticos.</div>
+          <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:2px">
+            <span style="background:#ecfeff;color:#0891b2;border-radius:6px;padding:2px 7px;font-size:9px;font-weight:600">Bot API</span>
+            <span style="background:#ecfeff;color:#0891b2;border-radius:6px;padding:2px 7px;font-size:9px;font-weight:600">Aprovações</span>
+          </div>
+        </div>
+
+        <!-- CalDAV / Google Calendar -->
+        <div style="background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:6px;border-left:4px solid #ef4444;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:2px">
+            <div style="width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,#ef4444,#dc2626);display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;flex-shrink:0">
+              <i class="fas fa-calendar-days"></i>
+            </div>
+            <div>
+              <div style="font-size:11.5px;font-weight:700;color:#1e293b">Google Calendar</div>
+              <div style="font-size:9.5px;color:#64748b">Sincronização CalDAV</div>
+            </div>
+          </div>
+          <div style="font-size:10.5px;color:#475569;line-height:1.4">Calendários do Portal sincronizam com o Google Calendar via protocolo CalDAV. Eventos criados no Portal aparecem no celular automaticamente.</div>
+          <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:2px">
+            <span style="background:#fef2f2;color:#dc2626;border-radius:6px;padding:2px 7px;font-size:9px;font-weight:600">CalDAV</span>
+            <span style="background:#fef2f2;color:#dc2626;border-radius:6px;padding:2px 7px;font-size:9px;font-weight:600">tsdav</span>
+          </div>
+        </div>
+
+        <!-- SQL Server -->
+        <div style="background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:6px;border-left:4px solid #8b5cf6;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:2px">
+            <div style="width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,#8b5cf6,#6d28d9);display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;flex-shrink:0">
+              <i class="fas fa-database"></i>
+            </div>
+            <div>
+              <div style="font-size:11.5px;font-weight:700;color:#1e293b">SQL Server</div>
+              <div style="font-size:9.5px;color:#64748b">Base de dados corporativa</div>
+            </div>
+          </div>
+          <div style="font-size:10.5px;color:#475569;line-height:1.4">Banco de dados centralizado (192.168.0.209:1433) compartilhado com outros sistemas da WKL. Sessões, logs de auditoria e dados persistidos com segurança.</div>
+          <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:2px">
+            <span style="background:#f5f3ff;color:#6d28d9;border-radius:6px;padding:2px 7px;font-size:9px;font-weight:600">MSSQL</span>
+            <span style="background:#f5f3ff;color:#6d28d9;border-radius:6px;padding:2px 7px;font-size:9px;font-weight:600">Auditoria</span>
+            <span style="background:#f5f3ff;color:#6d28d9;border-radius:6px;padding:2px 7px;font-size:9px;font-weight:600">Sessões</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="slide-footer">
+    <span><strong>Portal WKL</strong> — Integrações</span>
+    <span>Versão 1.3.0 — 2026</span>
+    <span>Slide 10 / 11</span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- SLIDE 11 — RESUMO EXECUTIVO                                -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="slide">
+  <div class="slide-header">
+    <div class="slide-header-left">
+      <div class="slide-header-icone" style="background:linear-gradient(135deg,#0f0f2e,#1a1a4e)"><i class="fas fa-flag-checkered"></i></div>
+      <div>
+        <div class="slide-header-titulo">Resumo Executivo</div>
+        <div class="slide-header-sub">Benefícios para a WKL</div>
+      </div>
+    </div>
+    <div class="slide-header-badge" style="background:#f8fafc;color:#64748b;border:1.5px solid #e2e8f0">Conclusão</div>
+  </div>
+  <div class="slide-header-sep" style="background:linear-gradient(90deg,#0f0f2e,#3b82f6,#6366f1)"></div>
+
+  <div class="slide-body">
+    <div class="cards-3" style="margin-bottom:14px">
+
+      <div class="card card-destaque" style="border-top-color:#10b981">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+          <div style="width:36px;height:36px;border-radius:9px;background:linear-gradient(135deg,#10b981,#059669);display:flex;align-items:center;justify-content:center;color:#fff;font-size:15px;flex-shrink:0"><i class="fas fa-list-check"></i></div>
+          <strong style="font-size:13px;color:#1e293b">Agenda de Tarefas</strong>
+        </div>
+        <div class="feat-list" style="gap:5px">
+          <div class="feat-item" style="padding:6px 10px"><i class="fas fa-check c-tarefas"></i><span>Visibilidade do trabalho de cada equipe</span></div>
+          <div class="feat-item" style="padding:6px 10px"><i class="fas fa-check c-tarefas"></i><span>Elimina comunicação dispersa por e-mail</span></div>
+          <div class="feat-item" style="padding:6px 10px"><i class="fas fa-check c-tarefas"></i><span>Relatório instantâneo de produtividade</span></div>
+          <div class="feat-item" style="padding:6px 10px"><i class="fas fa-check c-tarefas"></i><span>Prioridades e prazos claros para todos</span></div>
+        </div>
+      </div>
+
+      <div class="card card-destaque" style="border-top-color:#06b6d4">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+          <div style="width:36px;height:36px;border-radius:9px;background:linear-gradient(135deg,#06b6d4,#0891b2);display:flex;align-items:center;justify-content:center;color:#fff;font-size:15px;flex-shrink:0"><i class="fas fa-stamp"></i></div>
+          <strong style="font-size:13px;color:#1e293b">Aprovações</strong>
+        </div>
+        <div class="feat-list" style="gap:5px">
+          <div class="feat-item" style="padding:6px 10px"><i class="fas fa-check c-aprovacoes"></i><span>Decisões formalizadas com rastreabilidade</span></div>
+          <div class="feat-item" style="padding:6px 10px"><i class="fas fa-check c-aprovacoes"></i><span>Resposta pelo WhatsApp em segundos</span></div>
+          <div class="feat-item" style="padding:6px 10px"><i class="fas fa-check c-aprovacoes"></i><span>Histórico auditável por aprovação</span></div>
+          <div class="feat-item" style="padding:6px 10px"><i class="fas fa-check c-aprovacoes"></i><span>Elimina aprovações informais sem registro</span></div>
+        </div>
+      </div>
+
+      <div class="card card-destaque" style="border-top-color:#6366f1">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+          <div style="width:36px;height:36px;border-radius:9px;background:linear-gradient(135deg,#6366f1,#4f46e5);display:flex;align-items:center;justify-content:center;color:#fff;font-size:15px;flex-shrink:0"><i class="fas fa-diagram-project"></i></div>
+          <strong style="font-size:13px;color:#1e293b">Projetos</strong>
+        </div>
+        <div class="feat-list" style="gap:5px">
+          <div class="feat-item" style="padding:6px 10px"><i class="fas fa-check c-projetos"></i><span>Portfólio de iniciativas em um único painel</span></div>
+          <div class="feat-item" style="padding:6px 10px"><i class="fas fa-check c-projetos"></i><span>Equipes e responsabilidades claras</span></div>
+          <div class="feat-item" style="padding:6px 10px"><i class="fas fa-check c-projetos"></i><span>Ligação direta com tarefas e aprovações</span></div>
+          <div class="feat-item" style="padding:6px 10px"><i class="fas fa-check c-projetos"></i><span>Visibilidade do status de cada entrega</span></div>
+        </div>
+      </div>
+
+    </div>
+
+    <div style="background:linear-gradient(135deg,#0a0a1f,#111140);border-radius:12px;padding:16px 24px;display:flex;align-items:center;gap:20px">
+      <i class="fas fa-building-columns" style="font-size:28px;color:#818cf8;flex-shrink:0"></i>
+      <div>
+        <div style="font-size:14px;font-weight:800;color:#fff;margin-bottom:5px">Portal WKL — Gestão Centralizada</div>
+        <div style="font-size:11.5px;color:#94a3b8;line-height:1.5">Os três módulos formam um ecossistema integrado: a estratégia (Projetos) direciona a execução (Tarefas), e as decisões formais (Aprovações) garantem governança e rastreabilidade em cada etapa do processo.</div>
+      </div>
+      <div style="flex-shrink:0;text-align:right">
+        <div style="font-size:11px;color:#64748b;">Acesse em</div>
+        <div style="font-size:13px;font-weight:700;color:#818cf8;">192.168.0.80:3132</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide-footer">
+    <span><strong>Portal WKL</strong> — Resumo Executivo</span>
+    <span>Versão 1.3.0 — 2026</span>
+    <span>Slide 11 / 11</span>
+  </div>
+</div>
+
+</body>
+</html>

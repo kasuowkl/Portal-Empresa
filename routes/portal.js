@@ -21,7 +21,12 @@ const verificarLogin        = require('../middleware/verificarLogin');
 const { enviarNotificacao, enviarEmailTeste } = require('../services/emailService');
 const { enviarLembreteHoje, enviarLembrete7Dias, enviarLembreteLancamento, enviarContasVencidas } = require('../services/cronFinanceiro');
 const { enviarLembreteAprovacoes } = require('../services/cronAprovacoes');
+const { enviarLembreteWhatsAppAprovacoes } = require('../services/cronWhatsApp');
 const { registrarLog } = require('../services/logService');
+const { testarConexaoProtheus } = require('../services/protheusService');
+const { enviarWhatsApp } = require('../services/whatsappService');
+const { enviarNotificacaoWhatsAppPorChips } = require('../services/whatsappDispatchService');
+const { carregarTemplatesWhatsApp, renderizarMensagemWhatsApp } = require('../services/whatsappTemplateService');
 const router                = express.Router();
 
 // ============================================================
@@ -32,6 +37,30 @@ function verificarAdmin(req, res, next) {
     return res.status(403).json({ erro: 'Acesso restrito a administradores.' });
   }
   next();
+}
+
+async function validarApiKeyWhatsApp(pool, apiKeyInformada) {
+  const apiKey = String(apiKeyInformada || '').trim();
+  if (!apiKey) return false;
+
+  const chaveEnv = String(process.env.WHATSAPP_API_KEY || '').trim();
+  if (chaveEnv && apiKey === chaveEnv) return true;
+
+  try {
+    const resultado = await pool.request()
+      .input('grupo', sql.VarChar, 'whatsapp')
+      .input('chave', sql.VarChar, 'whatsapp_api_key')
+      .query(`
+        SELECT TOP 1 valor
+        FROM configuracoes
+        WHERE grupo = @grupo AND chave = @chave
+      `);
+
+    const chaveConfig = String(resultado.recordset[0]?.valor || '').trim();
+    return !!chaveConfig && apiKey === chaveConfig;
+  } catch {
+    return false;
+  }
 }
 
 const BACKUP_ROOT = path.join(__dirname, '../_backups');
@@ -242,6 +271,14 @@ router.get('/conf/telegram', verificarLogin, verificarAdmin, (req, res) => {
   res.sendFile(path.join(__dirname, '../public/fragmentos/telegram.html'));
 });
 
+router.get('/conf/whatsapp', verificarLogin, verificarAdmin, (req, res) => {
+  res.sendFile(path.join(__dirname, '../public/fragmentos/whatsapp.html'));
+});
+
+router.get('/conf/protheus', verificarLogin, verificarAdmin, (req, res) => {
+  res.sendFile(path.join(__dirname, '../public/fragmentos/protheus.html'));
+});
+
 router.get('/conf/email', verificarLogin, verificarAdmin, (req, res) => {
   res.sendFile(path.join(__dirname, '../public/fragmentos/email.html'));
 });
@@ -426,22 +463,28 @@ router.post('/api/notificacoes', verificarLogin, verificarAdmin, async (req, res
 
 // GET /api/usuarios/por-whatsapp/:numero — Busca usuário pelo número WhatsApp (sem auth, chave API)
 router.get('/api/usuarios/por-whatsapp/:numero', async (req, res) => {
-  const apiKey = req.headers['x-api-key'];
-  if (!apiKey || apiKey !== process.env.WHATSAPP_API_KEY) return res.status(401).json({ erro: 'Não autorizado' });
-
   const pool   = req.app.locals.pool;
+  const apiKey = req.headers['x-api-key'];
   const numero = (req.params.numero || '').replace(/\D/g, '');
+  const autorizado = await validarApiKeyWhatsApp(pool, apiKey);
+
+  if (!autorizado) return res.status(401).json({ erro: 'Não autorizado.' });
   if (!numero) return res.status(400).json({ erro: 'Número inválido' });
 
   try {
     const r = await pool.request()
-      .input('n', sql.VarChar, numero)
+      .input('whatsapp', sql.VarChar, numero)
       .query(`
-        SELECT login, nome FROM usuarios_dominio WHERE whatsapp = @n AND ativo = 1
+        SELECT TOP 1 usuario AS login, nome, nivel
+        FROM usuarios
+        WHERE whatsapp = @whatsapp AND ativo = 1
         UNION ALL
-        SELECT usuario AS login, nome FROM usuarios WHERE whatsapp = @n AND ativo = 1
+        SELECT TOP 1 login, nome, 'usuario' AS nivel
+        FROM usuarios_dominio
+        WHERE whatsapp = @whatsapp AND ativo = 1
       `);
-    if (!r.recordset.length) return res.status(404).json({ erro: 'Usuário não encontrado' });
+
+    if (!r.recordset.length) return res.status(404).json({ erro: 'Usuário não encontrado.' });
     res.json(r.recordset[0]);
   } catch (err) {
     res.status(500).json({ erro: err.message });
@@ -450,10 +493,12 @@ router.get('/api/usuarios/por-whatsapp/:numero', async (req, res) => {
 
 // GET /api/usuarios/lista-whatsapp — Lista todos os usuários + contatos com qualquer telefone (API Key)
 router.get('/api/usuarios/lista-whatsapp', async (req, res) => {
-  const apiKey = req.headers['x-api-key'];
-  if (!apiKey || apiKey !== process.env.WHATSAPP_API_KEY) return res.status(401).json({ erro: 'Não autorizado' });
-
   const pool = req.app.locals.pool;
+  const apiKey = req.headers['x-api-key'];
+  const autorizado = await validarApiKeyWhatsApp(pool, apiKey);
+
+  if (!autorizado) return res.status(401).json({ erro: 'Não autorizado.' });
+
   try {
     const r = await pool.request().query(`
       SELECT nome, usuario AS login, 'local'   AS tipo, ''  AS empresa, whatsapp AS numero
@@ -560,6 +605,23 @@ router.post('/api/usuarios', verificarLogin, verificarAdmin, async (req, res) =>
       `);
 
     logAtividade.info(`Usuário criado: "${usuario}" — por: "${admin}"`);
+    const mensagemWhatsApp = await renderizarMensagemWhatsApp(pool, 'portal.usuario_criado', {
+      nome: nome.trim(),
+      login: usuario.trim().toLowerCase(),
+      nivel,
+      link_login: 'http://192.168.0.80:3132/login.html',
+    });
+    enviarNotificacaoWhatsAppPorChips(pool, {
+      evento: 'portal.usuario_criado',
+      sistema: 'portal',
+      mensagem: mensagemWhatsApp,
+      usuario: admin,
+      ip: req.ip,
+      mapaChips: {
+        novo_usuario: [usuario.trim().toLowerCase()],
+        gestores_setor: [],
+      },
+    }).catch(() => {});
     res.json({ sucesso: true, mensagem: 'Usuário criado com sucesso.' });
 
   } catch (erro) {
@@ -638,36 +700,6 @@ router.patch('/api/usuarios/:id/status', verificarLogin, verificarAdmin, async (
   } catch (erro) {
     logErro.error(`Erro ao alterar status do usuário id=${id}: ${erro.message}`);
     res.status(500).json({ erro: 'Erro ao alterar status.' });
-  }
-});
-
-// GET /api/usuarios/por-whatsapp/:numero — Buscar usuário pelo número WhatsApp (uso interno bot)
-router.get('/api/usuarios/por-whatsapp/:numero', async (req, res) => {
-  const apiKey = req.headers['x-api-key'];
-  const chave  = process.env.WHATSAPP_API_KEY;
-  if (!chave || !apiKey || apiKey !== chave) return res.status(401).json({ erro: 'Não autorizado.' });
-
-  const pool = req.app.locals.pool;
-  const numero = req.params.numero.replace(/\D/g, '');
-  if (!numero) return res.status(400).json({ erro: 'Número inválido.' });
-
-  try {
-    const resultado = await pool.request()
-      .input('whatsapp', sql.VarChar, numero)
-      .query(`
-        SELECT TOP 1 usuario AS login, nome, nivel
-        FROM usuarios
-        WHERE whatsapp = @whatsapp AND ativo = 1
-        UNION ALL
-        SELECT TOP 1 login, nome, 'usuario' AS nivel
-        FROM usuarios_dominio
-        WHERE whatsapp = @whatsapp AND ativo = 1
-      `);
-
-    if (!resultado.recordset.length) return res.status(404).json({ erro: 'Não encontrado.' });
-    res.json(resultado.recordset[0]);
-  } catch (erro) {
-    res.status(500).json({ erro: erro.message });
   }
 });
 
@@ -1008,8 +1040,104 @@ router.post('/api/configuracoes', verificarLogin, verificarAdmin, async (req, re
   }
 });
 
+router.post('/api/protheus/testar', verificarLogin, verificarAdmin, async (req, res) => {
+  const pool = req.app.locals.pool;
+  const logErro = req.app.locals.logErro;
+  const admin = req.session.usuario.usuario || req.session.usuario.login || 'sistema';
+
+  try {
+    const resultado = await testarConexaoProtheus(pool, {
+      ...req.body,
+      usuarioLog: admin,
+      ip: req.ip,
+    });
+
+    if (!resultado.ok) {
+      return res.status(400).json({
+        erro: resultado.erro || 'Falha ao conectar ao Protheus.',
+        detalhe: resultado.detalhe || '',
+      });
+    }
+
+    res.json({
+      sucesso: true,
+      mensagem: resultado.mensagem || 'Conexao com Protheus validada com sucesso.',
+      detalhe: resultado.detalhe || '',
+    });
+  } catch (erro) {
+    logErro.error(`Erro ao testar conexao Protheus: ${erro.message}`);
+    res.status(500).json({ erro: 'Erro ao testar conexao com o Protheus.' });
+  }
+});
+
 // ============================================================
-// POST /api/email/testar — Envia email de teste com as configs salvas
+// API - WHATSAPP (painel administrativo)
+// ============================================================
+router.get('/api/whatsapp/usuarios', verificarLogin, verificarAdmin, async (req, res) => {
+  const pool = req.app.locals.pool;
+  const logErro = req.app.locals.logErro;
+
+  try {
+    const r = await pool.request().query(`
+      SELECT nome, usuario AS login, 'local' AS tipo, whatsapp AS numero
+      FROM usuarios
+      WHERE ativo = 1 AND whatsapp IS NOT NULL AND whatsapp <> ''
+      UNION ALL
+      SELECT nome, login, 'dominio' AS tipo, whatsapp AS numero
+      FROM usuarios_dominio
+      WHERE ativo = 1 AND whatsapp IS NOT NULL AND whatsapp <> ''
+      ORDER BY nome
+    `);
+
+    res.json({ sucesso: true, usuarios: r.recordset });
+  } catch (erro) {
+    logErro.error(`Erro ao listar usuarios WhatsApp: ${erro.message}`);
+    res.status(500).json({ erro: 'Erro ao carregar usuarios com WhatsApp.' });
+  }
+});
+
+router.get('/api/whatsapp/templates', verificarLogin, verificarAdmin, async (req, res) => {
+  const pool = req.app.locals.pool;
+  const logErro = req.app.locals.logErro;
+
+  try {
+    const templates = await carregarTemplatesWhatsApp(pool);
+    res.json({ sucesso: true, templates });
+  } catch (erro) {
+    logErro.error(`Erro ao carregar templates WhatsApp: ${erro.message}`);
+    res.status(500).json({ erro: 'Erro ao carregar mensagens do WhatsApp.' });
+  }
+});
+
+router.post('/api/whatsapp/testar', verificarLogin, verificarAdmin, async (req, res) => {
+  const pool = req.app.locals.pool;
+  const usuario = req.session.usuario.usuario || req.session.usuario.login;
+  const numero = (req.body?.numero || '').replace(/\D/g, '').slice(0, 20);
+  const mensagem = (req.body?.mensagem || '').trim() || 'Portal WKL - teste de integração WhatsApp.';
+
+  if (!numero) return res.status(400).json({ erro: 'Informe um numero para teste.' });
+
+  try {
+    const resultado = await enviarWhatsApp(pool, {
+      numero,
+      mensagem,
+      usuario,
+      ip: req.ip,
+      sistema: 'portal',
+    });
+
+    if (!resultado.ok) {
+      return res.status(400).json({ erro: resultado.erro || `Falha ao enviar teste (${resultado.status || 'sem status'}).` });
+    }
+
+    res.json({ sucesso: true, mensagem: `Mensagem de teste enviada para ${numero}.` });
+  } catch (erro) {
+    res.status(500).json({ erro: `Erro ao enviar teste: ${erro.message}` });
+  }
+});
+
+// ============================================================
+// POST /api/email/testar - Envia email de teste com as configs salvas
 // ============================================================
 router.post('/api/email/testar', verificarLogin, verificarAdmin, async (req, res) => {
   const pool    = req.app.locals.pool;
@@ -1214,6 +1342,7 @@ router.post('/api/email/cron-manual', verificarLogin, verificarAdmin, async (req
     'lembrete_7dias':              () => enviarLembrete7Dias(pool),
     'lembrete_lancamento':         () => enviarLembreteLancamento(pool),
     'aprovacoes_lembrete_pendente':() => enviarLembreteAprovacoes(pool),
+    'whatsapp_aprovacoes_lembrete':() => enviarLembreteWhatsAppAprovacoes(pool),
   };
 
   const nomes = {
@@ -1222,6 +1351,7 @@ router.post('/api/email/cron-manual', verificarLogin, verificarAdmin, async (req
     'lembrete_7dias':              'Lembrar contas dos próximos 7 dias',
     'lembrete_lancamento':         'Lembrete para lançar conta',
     'aprovacoes_lembrete_pendente':'Lembrete de aprovação pendente',
+    'whatsapp_aprovacoes_lembrete':'WhatsApp de aprovações pendentes',
   };
 
   if (!servicoMap[servico]) {
@@ -1230,8 +1360,8 @@ router.post('/api/email/cron-manual', verificarLogin, verificarAdmin, async (req
 
   try {
     await servicoMap[servico]();
-    registrarLog(pool, { usuario: admin, ip: null, acao: 'EMAIL', sistema: 'portal',
-      detalhes: `Serviço de email disparado manualmente: "${nomes[servico]}"` });
+    registrarLog(pool, { usuario: admin, ip: null, acao: servico.startsWith('whatsapp_') ? 'NOTIF_WHATSAPP' : 'EMAIL', sistema: 'portal',
+      detalhes: `Serviço automático disparado manualmente: "${nomes[servico]}"` });
     res.json({ sucesso: true, mensagem: `"${nomes[servico]}" disparado com sucesso para os destinatários reais.` });
   } catch (erro) {
     res.status(500).json({ sucesso: false, erro: 'Erro: ' + erro.message });
@@ -1458,6 +1588,23 @@ router.post('/api/ad/usuarios', verificarLogin, verificarAdmin, async (req, res)
       `);
 
     logAtividade.info(`Usuário do domínio adicionado/atualizado: "${login}" — por: "${admin}"`);
+    const mensagemWhatsApp = await renderizarMensagemWhatsApp(pool, 'portal.usuario_criado', {
+      nome: (nome || login).trim(),
+      login: login.trim().toLowerCase(),
+      nivel: nivel || 'usuario',
+      link_login: 'http://192.168.0.80:3132/login.html',
+    });
+    enviarNotificacaoWhatsAppPorChips(pool, {
+      evento: 'portal.usuario_criado',
+      sistema: 'portal',
+      mensagem: mensagemWhatsApp,
+      usuario: admin,
+      ip: req.ip,
+      mapaChips: {
+        novo_usuario: [login.trim().toLowerCase()],
+        gestores_setor: [],
+      },
+    }).catch(() => {});
     res.json({ sucesso: true, mensagem: 'Usuário adicionado/atualizado no portal.' });
 
   } catch (erro) {
@@ -1783,7 +1930,7 @@ router.post('/api/manutencao/limpar', verificarLogin, verificarAdmin, async (req
   const admin        = req.session.usuario.usuario;
   const { sistema, usuario } = req.body;  // usuario = login específico ou vazio = todos
 
-  if (!['chamados', 'tarefas', 'financeiro', 'contabil', 'logs', 'patrimonio', 'contatos', 'aprovacoes', 'calendarios', 'tudo'].includes(sistema)) {
+  if (!['chamados', 'tarefas', 'financeiro', 'contabil', 'logs', 'patrimonio', 'contatos', 'aprovacoes', 'calendarios', 'projetos', 'conhecimento', 'tudo'].includes(sistema)) {
     return res.status(400).json({ erro: 'Sistema inválido.' });
   }
 
@@ -1796,10 +1943,13 @@ router.post('/api/manutencao/limpar', verificarLogin, verificarAdmin, async (req
   const wListas      = u ? ' WHERE dono = @u' : '';
   const wTarefas     = u ? ' WHERE lista_id IN (SELECT id FROM agenda_listas WHERE dono = @u)' : '';
   const wPassos      = u ? ' WHERE tarefa_id IN (SELECT id FROM agenda_tarefas WHERE lista_id IN (SELECT id FROM agenda_listas WHERE dono = @u))' : '';
+  const wAnexos      = u ? ' WHERE tarefa_id IN (SELECT id FROM agenda_tarefas WHERE lista_id IN (SELECT id FROM agenda_listas WHERE dono = @u))' : '';
+  const wTarefApr    = u ? ' WHERE tarefa_id IN (SELECT id FROM agenda_tarefas WHERE lista_id IN (SELECT id FROM agenda_listas WHERE dono = @u))' : '';
   const wAgMembros   = u ? ' WHERE lista_id IN (SELECT id FROM agenda_listas WHERE dono = @u)' : '';
   const wAgCat       = u ? ' WHERE lista_id IN (SELECT id FROM agenda_listas WHERE dono = @u)' : '';
   const wFinAgendas  = u ? ' WHERE dono = @u' : '';
   const wFinSub      = u ? ' WHERE agenda_id IN (SELECT id FROM fin_agendas WHERE dono = @u)' : '';
+  const wFinApr      = u ? ' WHERE conta_id IN (SELECT id FROM fin_contas WHERE agenda_id IN (SELECT id FROM fin_agendas WHERE dono = @u))' : '';
   const wContbAg     = u ? ' WHERE dono = @u' : '';
   const wContbSub    = u ? ' WHERE agenda_id IN (SELECT id FROM cont_agendas WHERE dono = @u)' : '';
   const wContListas  = u ? ' WHERE dono = @u' : '';
@@ -1809,6 +1959,17 @@ router.post('/api/manutencao/limpar', verificarLogin, verificarAdmin, async (req
   const wCalAgendas  = u ? ' WHERE dono = @u' : '';
   const wCalSub      = u ? ' WHERE agenda_id IN (SELECT id FROM cal_agendas WHERE dono = @u)' : '';
   const wCalDav      = u ? ' WHERE usuario = @u' : '';
+  const wProj        = u ? ' WHERE dono = @u' : '';
+  const wProjSub     = u ? ' WHERE projeto_id IN (SELECT id FROM proj_projetos WHERE dono = @u)' : '';
+  const wProjMembros = u ? ' WHERE projeto_id IN (SELECT id FROM proj_projetos WHERE dono = @u)' : '';
+  const wProjTarefas = u ? ' WHERE projeto_id IN (SELECT id FROM proj_projetos WHERE dono = @u) OR subprojeto_id IN (SELECT id FROM proj_subprojetos WHERE projeto_id IN (SELECT id FROM proj_projetos WHERE dono = @u))' : ' WHERE projeto_id IS NOT NULL OR subprojeto_id IS NOT NULL';
+  const wProjPassos  = u ? ' WHERE tarefa_id IN (SELECT id FROM agenda_tarefas WHERE projeto_id IN (SELECT id FROM proj_projetos WHERE dono = @u) OR subprojeto_id IN (SELECT id FROM proj_subprojetos WHERE projeto_id IN (SELECT id FROM proj_projetos WHERE dono = @u)))' : ' WHERE tarefa_id IN (SELECT id FROM agenda_tarefas WHERE projeto_id IS NOT NULL OR subprojeto_id IS NOT NULL)';
+  const wProjAnexos  = wProjPassos;
+  const wProjTarfApr = wProjPassos;
+  const wKbArtigos   = u ? ' WHERE criado_por = @u' : '';
+  const wKbSub       = u ? ' WHERE artigo_id IN (SELECT id FROM kb_artigos WHERE criado_por = @u)' : '';
+  const wKbAval      = u ? ' WHERE usuario = @u OR artigo_id IN (SELECT id FROM kb_artigos WHERE criado_por = @u)' : '';
+  const wKbCat       = u ? ' WHERE criado_por = @u AND id NOT IN (SELECT DISTINCT categoria_id FROM kb_artigos WHERE categoria_id IS NOT NULL)' : '';
 
   const exec = async (stmt) => {
     try {
@@ -1826,6 +1987,8 @@ router.post('/api/manutencao/limpar', verificarLogin, verificarAdmin, async (req
       if (!u) await exec('UPDATE chamados_contadores SET ultimo_numero = 0');
     }
     if (sistema === 'tarefas' || sistema === 'tudo') {
+      await exec(`DELETE FROM agenda_tarefas_aprovacoes${wTarefApr}`);
+      await exec(`DELETE FROM agenda_anexos${wAnexos}`);
       await exec(`DELETE FROM agenda_passos${wPassos}`);
       await exec(`DELETE FROM agenda_tarefas${wTarefas}`);
       await exec(`DELETE FROM agenda_membros${wAgMembros}`);
@@ -1833,6 +1996,7 @@ router.post('/api/manutencao/limpar', verificarLogin, verificarAdmin, async (req
       await exec(`DELETE FROM agenda_listas${wListas}`);
     }
     if (sistema === 'financeiro' || sistema === 'tudo') {
+      await exec(`DELETE FROM fin_contas_aprovacoes${wFinApr}`);
       await exec(`DELETE FROM fin_logs${wFinSub}`);
       await exec(`DELETE FROM fin_contas${wFinSub}`);
       await exec(`DELETE FROM fin_empresas${wFinSub}`);
@@ -1872,6 +2036,22 @@ router.post('/api/manutencao/limpar', verificarLogin, verificarAdmin, async (req
       await exec(`DELETE FROM cal_membros${wCalSub}`);
       await exec(`DELETE FROM cal_agendas${wCalAgendas}`);
       await exec(`DELETE FROM cal_caldav_config${wCalDav}`);
+    }
+    if (sistema === 'projetos' || sistema === 'tudo') {
+      await exec(`DELETE FROM agenda_tarefas_aprovacoes${wProjTarfApr}`);
+      await exec(`DELETE FROM agenda_anexos${wProjAnexos}`);
+      await exec(`DELETE FROM agenda_passos${wProjPassos}`);
+      await exec(`DELETE FROM agenda_tarefas${wProjTarefas}`);
+      await exec(`DELETE FROM proj_membros${wProjMembros}`);
+      await exec(`DELETE FROM proj_subprojetos${wProjSub}`);
+      await exec(`DELETE FROM proj_projetos${wProj}`);
+    }
+    if (sistema === 'conhecimento' || sistema === 'tudo') {
+      await exec(`DELETE FROM kb_avaliacoes${wKbAval}`);
+      await exec(`DELETE FROM kb_anexos${wKbSub}`);
+      await exec(`DELETE FROM kb_historico${wKbSub}`);
+      await exec(`DELETE FROM kb_artigos${wKbArtigos}`);
+      await exec(`DELETE FROM kb_categorias${wKbCat}`);
     }
 
     const label = u ? ` do usuário "${u}"` : '';
@@ -1932,6 +2112,13 @@ router.post('/api/manutencao/transferir', verificarLogin, verificarAdmin, async 
         .query('UPDATE contatos_listas SET dono = @destino WHERE dono = @origem');
       transferidos.push(`Contatos: ${r.rowsAffected[0]} lista(s)`);
     }
+    if (sistemas.includes('projetos')) {
+      const r = await pool.request()
+        .input('origem',  sql.VarChar, origem)
+        .input('destino', sql.VarChar, destino)
+        .query('UPDATE proj_projetos SET dono = @destino WHERE dono = @origem');
+      transferidos.push(`Projetos: ${r.rowsAffected[0]} projeto(s)`);
+    }
     if (sistemas.includes('calendarios')) {
       const r = await pool.request()
         .input('origem',  sql.VarChar, origem)
@@ -1962,14 +2149,23 @@ router.post('/api/manutencao/reset', verificarLogin, verificarAdmin, async (req,
       'DELETE FROM chamados_historico',
       'UPDATE chamados SET chamado_pai_id = NULL',
       'DELETE FROM chamados',
+      'DELETE FROM chamados_perfis',
+      'DELETE FROM chamados_setores',
       'UPDATE chamados_contadores SET ultimo_numero = 0',
       // Tarefas
+      'DELETE FROM agenda_tarefas_aprovacoes',
+      'DELETE FROM agenda_anexos',
       'DELETE FROM agenda_passos',
       'DELETE FROM agenda_tarefas',
       'DELETE FROM agenda_membros',
       'DELETE FROM agenda_categorias',
       'DELETE FROM agenda_listas',
+      // Projetos
+      'DELETE FROM proj_membros',
+      'DELETE FROM proj_subprojetos',
+      'DELETE FROM proj_projetos',
       // Financeiro
+      'DELETE FROM fin_contas_aprovacoes',
       'DELETE FROM fin_logs',
       'DELETE FROM fin_contas',
       'DELETE FROM fin_empresas',
@@ -1989,6 +2185,12 @@ router.post('/api/manutencao/reset', verificarLogin, verificarAdmin, async (req,
       'DELETE FROM contatos',
       'DELETE FROM contatos_membros',
       'DELETE FROM contatos_listas',
+      // Base de Conhecimento
+      'DELETE FROM kb_avaliacoes',
+      'DELETE FROM kb_anexos',
+      'DELETE FROM kb_historico',
+      'DELETE FROM kb_artigos',
+      'DELETE FROM kb_categorias',
       // Aprovações
       'DELETE FROM aprovacoes_anexos',
       'DELETE FROM aprovacoes_log',
@@ -2000,6 +2202,12 @@ router.post('/api/manutencao/reset', verificarLogin, verificarAdmin, async (req,
       'DELETE FROM cal_membros',
       'DELETE FROM cal_agendas',
       'DELETE FROM cal_caldav_config',
+      // PatrimÃ´nio
+      'DELETE FROM pat_historico',
+      'DELETE FROM pat_bens',
+      'DELETE FROM pat_permissoes',
+      'DELETE FROM pat_unidades',
+      'DELETE FROM pat_categorias',
       // Usuários — mantém apenas admin
       "DELETE FROM usuarios_dominio",
       "DELETE FROM usuarios WHERE nivel <> 'admin'",

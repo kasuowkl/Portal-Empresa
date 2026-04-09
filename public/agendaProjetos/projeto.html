@@ -278,6 +278,58 @@
     </div>
   </div>
 
+  <div id="modal-aprovacao" class="modal oculto">
+    <div class="modal-box" style="max-width:540px;">
+      <div class="modal-header">
+        <h3><i class="fas fa-check-double"></i> Solicitar Aprovação do Projeto</h3>
+        <button onclick="fecharModalAprovacao()" class="btn-fechar"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="aprov-projeto-id">
+        <p style="font-size:.83rem;color:var(--cor-texto-fraco);margin:0 0 14px;">
+          Esta solicitação será criada e acompanhada no sistema Aprovações.
+        </p>
+        <div class="campo-grupo">
+          <label class="campo-label">Título *</label>
+          <input type="text" id="aprov-titulo" class="input-campo" placeholder="Ex: Aprovação final do projeto X" maxlength="200">
+        </div>
+        <div class="campo-grupo">
+          <label class="campo-label">Objetivo / Observações</label>
+          <textarea id="aprov-objetivo" class="input-campo" rows="2" placeholder="Descreva o que está sendo aprovado..."></textarea>
+        </div>
+        <div class="campo-grupo">
+          <label class="campo-label">Tipo de Consenso</label>
+          <select id="aprov-consenso" class="input-campo" onchange="atualizarCampoPercentual()">
+            <option value="unanimidade">Unanimidade (todos aprovam)</option>
+            <option value="maioria_simples">Maioria Simples (&gt;50%)</option>
+            <option value="percentual">Percentual específico</option>
+          </select>
+        </div>
+        <div class="campo-grupo" id="campo-percentual" style="display:none;">
+          <label class="campo-label">Percentual mínimo (%)</label>
+          <input type="number" id="aprov-percentual" class="input-campo" min="1" max="100" value="75" style="width:120px;">
+        </div>
+        <div class="campo-grupo">
+          <label class="campo-label">Aprovadores *</label>
+          <div id="aprov-chips" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;min-height:28px;"></div>
+          <div style="position:relative;">
+            <input type="text" id="aprov-search" class="input-campo" placeholder="Buscar usuário para adicionar..." autocomplete="off"
+                   oninput="filtrarUsuariosAprov(this.value)" onblur="setTimeout(()=>document.getElementById('aprov-sugestoes').style.display='none',150)">
+            <div id="aprov-sugestoes" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:200;
+                 background:var(--cor-fundo-2);border:1px solid var(--cor-borda);border-radius:var(--raio);
+                 max-height:160px;overflow-y:auto;margin-top:2px;box-shadow:0 4px 16px rgba(0,0,0,.4);"></div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button onclick="fecharModalAprovacao()" class="btn-secundario">Cancelar</button>
+        <button onclick="salvarAprovacao()" class="btn-primario" id="btn-salvar-aprovacao">
+          <i class="fas fa-paper-plane"></i> Enviar para Aprovação
+        </button>
+      </div>
+    </div>
+  </div>
+
   <script src="/js/menu.js"></script>
   <script>
   // ============================================================
@@ -292,6 +344,9 @@
   let _minhasListas = [];
   let _rmMembro     = null;
   let _excluirSpId  = null;
+  let _aprovacaoProjetoId = null;
+  let _aprovadoresChips   = [];
+  let _usuariosAprovacao  = [];
 
   // ============================================================
   // INICIALIZAÇÃO
@@ -316,12 +371,21 @@
     }
   }
 
+  function calcularProgressoResumo(item) {
+    if ((item.passos_total || 0) > 0) {
+      return Math.round((item.passos_concluidos || 0) / item.passos_total * 100);
+    }
+    if ((item.tarefas_total || 0) > 0) {
+      return Math.round((item.tarefas_concluidas || 0) / item.tarefas_total * 100);
+    }
+    return 0;
+  }
+
   function renderHeaderProjeto() {
     const p = _projeto;
     document.title = `${p.nome} — Portal WKL`;
 
-    const progresso = p.tarefas_total > 0
-      ? Math.round((p.tarefas_concluidas || 0) / p.tarefas_total * 100) : 0;
+    const progresso = calcularProgressoResumo(p);
 
     document.getElementById('proj-nome').textContent = p.nome;
 
@@ -346,8 +410,24 @@
     const podEditar = _permissao === 'dono' || _permissao === 'edicao';
     const podArquivar = _permissao === 'dono';
     let acoes = '';
+    if (p.aprovacao_status) {
+      const mapaAprov = {
+        'Pendente': { cls:'badge-pendente', txt:'Aprovação Pendente' },
+        'Aprovado': { cls:'badge-concluido', txt:'Aprovado' },
+        'Reprovado': { cls:'badge-cancelado', txt:'Reprovado' }
+      };
+      const infoAprov = mapaAprov[p.aprovacao_status] || { cls:'badge-planejado', txt:p.aprovacao_status };
+      meta += `<span class="badge-status ${infoAprov.cls}">${infoAprov.txt}</span>`;
+    }
+    if (podArquivar && !p.aprovacao_id) {
+      acoes += `<button class="btn-secundario btn-sm" onclick="abrirModalAprovacao(${p.id})"><i class="fas fa-check-double"></i> Solicitar Aprovação</button>`;
+    }
+    if (p.aprovacao_id) {
+      acoes += `<button class="btn-secundario btn-sm" onclick="abrirAprovacaoProjeto()"><i class="fas fa-external-link-alt"></i> Abrir Aprovação</button>`;
+    }
     if (podEditar) acoes += `<button class="btn-secundario btn-sm" onclick="editarProjeto()"><i class="fas fa-edit"></i> Editar</button>`;
     if (podArquivar) acoes += `<button class="btn-secundario btn-sm" onclick="arquivarProjeto()" title="Arquivar projeto"><i class="fas fa-archive"></i></button>`;
+    document.getElementById('proj-meta').innerHTML = meta;
     document.getElementById('proj-acoes').innerHTML = acoes;
 
     // Mostra header e tabs
@@ -404,7 +484,7 @@
       return;
     }
     el.innerHTML = _subprojetos.map(s => {
-      const prog = s.tarefas_total > 0 ? Math.round(s.tarefas_concluidas / s.tarefas_total * 100) : 0;
+      const prog = calcularProgressoResumo(s);
       const podEditar = _permissao === 'dono' || _permissao === 'edicao';
       return `
         <div class="subproj-item" onclick="abrirTarefasSubprojeto(${s.id})" title="Ver tarefas do subprojeto" style="cursor:pointer;">
@@ -1046,6 +1126,118 @@
   function editarProjeto() {
     // Abre index.html com parâmetro de edição
     window.location.href = `/agendaProjetos?editar=${_projetoId}`;
+  }
+
+  async function abrirModalAprovacao(projetoId) {
+    _aprovacaoProjetoId = projetoId;
+    _aprovadoresChips = [];
+    document.getElementById('aprov-projeto-id').value = projetoId;
+    document.getElementById('aprov-titulo').value = _projeto ? `Aprovação: ${_projeto.nome}` : '';
+    document.getElementById('aprov-objetivo').value = _projeto?.descricao || '';
+    document.getElementById('aprov-consenso').value = 'unanimidade';
+    document.getElementById('campo-percentual').style.display = 'none';
+    document.getElementById('aprov-search').value = '';
+    document.getElementById('aprov-sugestoes').style.display = 'none';
+    renderAprovadoresChips();
+    document.getElementById('modal-aprovacao').classList.remove('oculto');
+    if (!_usuariosAprovacao.length) {
+      try {
+        const r = await fetch('/api/projetos/auxiliar/usuarios').then(r => r.json());
+        if (!r.erro) _usuariosAprovacao = r;
+      } catch (_) {}
+    }
+    setTimeout(() => document.getElementById('aprov-titulo').focus(), 50);
+  }
+
+  function fecharModalAprovacao() {
+    document.getElementById('modal-aprovacao').classList.add('oculto');
+    _aprovacaoProjetoId = null;
+  }
+
+  function abrirAprovacaoProjeto() {
+    if (!_projeto?.aprovacao_id) return;
+    window.open(`/aprovacoes?abrir=${_projeto.aprovacao_id}`, '_blank');
+  }
+
+  function atualizarCampoPercentual() {
+    const tipo = document.getElementById('aprov-consenso').value;
+    document.getElementById('campo-percentual').style.display = tipo === 'percentual' ? '' : 'none';
+  }
+
+  function filtrarUsuariosAprov(q) {
+    const sug = document.getElementById('aprov-sugestoes');
+    if (!q.trim()) { sug.style.display = 'none'; return; }
+    const jaAdicionados = _aprovadoresChips.map(a => a.login);
+    const ql = q.toLowerCase();
+    const filtrado = _usuariosAprovacao
+      .filter(u => !jaAdicionados.includes(u.login) &&
+        (u.nome.toLowerCase().includes(ql) || u.login.toLowerCase().includes(ql)))
+      .slice(0, 8);
+    if (!filtrado.length) { sug.style.display = 'none'; return; }
+    sug.innerHTML = filtrado.map(u => `
+      <div style="padding:8px 12px;cursor:pointer;font-size:.84rem;border-bottom:1px solid var(--cor-borda);"
+           onmousedown="adicionarAprovador('${esc(u.login)}','${esc(u.nome)}')"
+           onmouseover="this.style.background='rgba(255,255,255,.06)'"
+           onmouseout="this.style.background=''">
+        <strong>${esc(u.nome)}</strong>
+        <span style="color:var(--cor-texto-fraco);margin-left:6px;">(${esc(u.login)})</span>
+      </div>`).join('');
+    sug.style.display = '';
+  }
+
+  function adicionarAprovador(login, nome) {
+    if (_aprovadoresChips.find(a => a.login === login)) return;
+    _aprovadoresChips.push({ login, nome });
+    renderAprovadoresChips();
+    document.getElementById('aprov-search').value = '';
+    document.getElementById('aprov-sugestoes').style.display = 'none';
+  }
+
+  function removerAprovador(login) {
+    _aprovadoresChips = _aprovadoresChips.filter(a => a.login !== login);
+    renderAprovadoresChips();
+  }
+
+  function renderAprovadoresChips() {
+    document.getElementById('aprov-chips').innerHTML = _aprovadoresChips.map(a => `
+      <span style="display:inline-flex;align-items:center;gap:5px;background:var(--cor-destaque);color:#fff;border-radius:99px;padding:3px 10px 3px 12px;font-size:.8rem;">
+        ${esc(a.nome)}
+        <i class="fas fa-times" style="cursor:pointer;font-size:.7rem;" onclick="removerAprovador('${esc(a.login)}')"></i>
+      </span>`).join('');
+  }
+
+  async function salvarAprovacao() {
+    const titulo = document.getElementById('aprov-titulo').value.trim();
+    const objetivo = document.getElementById('aprov-objetivo').value.trim();
+    const tipo = document.getElementById('aprov-consenso').value;
+    const percentual = tipo === 'percentual' ? parseInt(document.getElementById('aprov-percentual').value) : null;
+
+    if (!titulo) { mostrarMensagem('Título obrigatório.', 'erro'); return; }
+    if (!_aprovadoresChips.length) { mostrarMensagem('Adicione pelo menos um aprovador.', 'erro'); return; }
+
+    const btn = document.getElementById('btn-salvar-aprovacao');
+    btn.disabled = true;
+    try {
+      const resp = await fetch(`/api/projetos/${_aprovacaoProjetoId}/solicitar-aprovacao`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          titulo,
+          objetivo,
+          tipo_consenso: tipo,
+          consenso_valor: percentual,
+          aprovadores: _aprovadoresChips
+        })
+      }).then(r => r.json());
+      if (resp.erro) { mostrarMensagem(resp.erro, 'erro'); return; }
+      fecharModalAprovacao();
+      mostrarMensagem('Aprovação solicitada com sucesso!');
+      await carregarProjeto();
+    } catch (e) {
+      mostrarMensagem('Erro ao solicitar aprovação.', 'erro');
+    } finally {
+      btn.disabled = false;
+    }
   }
 
   async function arquivarProjeto() {

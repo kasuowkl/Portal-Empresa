@@ -1,0 +1,1330 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Fluig TOTVS — Apresentação Diretoria</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  font-family: 'Segoe UI', Arial, sans-serif;
+  background: #e8eaf0;
+  color: #1a1a2e;
+}
+
+.slide {
+  width: 297mm;
+  height: 210mm;
+  background: #fff;
+  position: relative;
+  overflow: hidden;
+  margin: 0 auto 16px auto;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.15);
+  page-break-after: always;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── CAPA ─────────────────────────────────────────────── */
+.capa {
+  background: linear-gradient(135deg, #0c1825 0%, #0f2a3f 45%, #0a1e35 100%);
+  flex: 1;
+  display: flex;
+  align-items: stretch;
+}
+.capa-esq {
+  width: 54%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 48px 52px;
+  position: relative;
+}
+.capa-esq::after {
+  content: '';
+  position: absolute;
+  right: 0; top: 10%; bottom: 10%;
+  width: 1px;
+  background: linear-gradient(to bottom, transparent, rgba(255,255,255,0.12), transparent);
+}
+.capa-tag { font-size:10px; letter-spacing:4px; text-transform:uppercase; color:#64748b; margin-bottom:18px; }
+.capa-titulo { font-size:38px; font-weight:900; line-height:1.1; color:#fff; margin-bottom:8px; }
+.capa-titulo span { background:linear-gradient(90deg,#F47920,#f9a55a); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+.capa-subtitulo { font-size:14px; color:#94a3b8; margin-bottom:36px; line-height:1.5; }
+.capa-chips { display:flex; gap:10px; flex-wrap:wrap; }
+.capa-chip { border-radius:20px; padding:6px 16px; font-size:11px; font-weight:600; display:flex; align-items:center; gap:6px; }
+.capa-dir {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 40px 44px;
+  gap: 16px;
+}
+.capa-modulo-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 12px;
+  padding: 14px 18px;
+}
+.capa-modulo-icone {
+  width: 42px; height: 42px;
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; color: #fff; flex-shrink: 0;
+}
+.capa-modulo-info strong { display:block; font-size:13px; color:#fff; margin-bottom:3px; }
+.capa-modulo-info span { font-size:11px; color:#94a3b8; }
+.capa-rodape {
+  display: flex;
+  gap: 20px;
+  font-size: 10px;
+  color: #475569;
+  margin-top: 36px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+
+/* ── CORES DOS MÓDULOS ──────────────────────────────────── */
+.bg-projetos { background: linear-gradient(135deg,#6366f1,#4f46e5); }
+.bg-atividades { background: linear-gradient(135deg,#0082C8,#005fa3); }
+.bg-aprovacoes { background: linear-gradient(135deg,#F47920,#d4640f); }
+.bg-fluig { background: linear-gradient(135deg,#F47920,#0082C8); }
+
+.c-projetos { color: #6366f1; }
+.c-atividades { color: #0082C8; }
+.c-aprovacoes { color: #F47920; }
+
+/* ── HEADER DO SLIDE ─────────────────────────────────────── */
+.slide-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 24px 10px;
+  flex-shrink: 0;
+}
+.slide-header-left { display:flex; align-items:center; gap:12px; }
+.slide-header-icone {
+  width: 36px; height: 36px;
+  border-radius: 9px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; color: #fff; flex-shrink: 0;
+}
+.slide-header-titulo { font-size:15px; font-weight:800; color:#1e293b; }
+.slide-header-sub { font-size:11px; color:#64748b; }
+.slide-header-badge {
+  font-size:10.5px; font-weight:600;
+  padding: 4px 14px;
+  border-radius: 20px;
+}
+.slide-header-sep { height:3px; flex-shrink:0; }
+
+/* ── BODY ─────────────────────────────────────────────── */
+.slide-body {
+  flex: 1;
+  padding: 14px 24px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.layout-lr { display:grid; grid-template-columns:1fr 1fr; gap:18px; flex:1; }
+.layout-lr-3 { display:grid; grid-template-columns:1.1fr 1fr 1fr; gap:14px; flex:1; }
+.cards-2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.cards-3 { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; flex:1; }
+
+.card {
+  background: #f8fafc;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.card-destaque { border-top: 3px solid transparent; }
+.card-icon { font-size:22px; margin-bottom:4px; }
+.card-titulo { font-size:13px; font-weight:700; color:#1e293b; }
+.card-texto { font-size:11px; color:#475569; line-height:1.55; flex:1; }
+
+.sec-titulo {
+  font-size: 9.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #94a3b8;
+  margin-bottom: 8px;
+}
+
+.feat-list { display:flex; flex-direction:column; gap:6px; }
+.feat-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 11px;
+  color: #475569;
+  background: #f8fafc;
+  border-radius: 7px;
+  padding: 7px 10px;
+}
+.feat-item i { font-size:13px; flex-shrink:0; margin-top:1px; }
+
+.status-row { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px; }
+.status-chip {
+  border-radius: 20px;
+  padding: 4px 12px;
+  font-size: 10.5px;
+  font-weight: 600;
+  border: 1.5px solid;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.destaque {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin-top: 8px;
+  font-size: 11px;
+}
+.destaque i { font-size:18px; flex-shrink:0; margin-top:2px; }
+.destaque h4 { margin-bottom:3px; }
+.destaque p { line-height:1.5; }
+
+.bg-lp { background:#eef2ff; }
+.bg-la { background:#fff7ed; }
+.bg-lt { background:#e0f2fe; }
+
+.fluxo { display:flex; align-items:stretch; gap:0; }
+.fluxo-step {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 5px;
+  background: #f8fafc;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 9px;
+  padding: 10px 8px;
+  font-size: 10.5px;
+  color: #475569;
+}
+.fluxo-step i { font-size:18px; margin-bottom:2px; }
+.fluxo-step strong { font-size:11px; color:#1e293b; }
+.fluxo-arrow { display:flex; align-items:center; padding:0 4px; color:#cbd5e1; font-size:14px; }
+
+/* ── FOOTER ──────────────────────────────────────────── */
+.slide-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 24px;
+  border-top: 1px solid #f1f5f9;
+  font-size: 9.5px;
+  color: #94a3b8;
+  flex-shrink: 0;
+}
+.slide-footer span:last-child { color: #F47920; font-weight: 600; }
+
+@media print {
+  body { background: #fff; }
+  .slide { box-shadow: none; margin: 0; }
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- SLIDE 1 — CAPA                                            -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="slide">
+  <div class="capa">
+    <div class="capa-esq">
+      <div class="capa-tag">TOTVS · Plataforma Digital</div>
+      <div class="capa-titulo">
+        <span>Fluig</span><br>
+        Gestão de Processos e Projetos
+      </div>
+      <div class="capa-subtitulo">
+        Plataforma integrada de BPM, ECM e colaboração corporativa.<br>
+        Processos, aprovações e projetos em um único ambiente.
+      </div>
+      <div class="capa-chips">
+        <div class="capa-chip" style="background:rgba(244,121,32,0.12);color:#F47920;border:1px solid rgba(244,121,32,0.3)">
+          <i class="fas fa-diagram-project"></i> Projetos
+        </div>
+        <div class="capa-chip" style="background:rgba(0,130,200,0.12);color:#0082C8;border:1px solid rgba(0,130,200,0.3)">
+          <i class="fas fa-list-check"></i> Atividades
+        </div>
+        <div class="capa-chip" style="background:rgba(244,121,32,0.12);color:#F47920;border:1px solid rgba(244,121,32,0.3)">
+          <i class="fas fa-stamp"></i> Aprovações BPM
+        </div>
+      </div>
+      <div class="capa-rodape">
+        <span>WKL — Uso Interno</span>
+        <span>TOTVS Fluig</span>
+        <span>Versão 1.7</span>
+      </div>
+    </div>
+
+    <div class="capa-dir">
+      <div class="capa-modulo-card">
+        <div class="capa-modulo-icone bg-projetos"><i class="fas fa-diagram-project"></i></div>
+        <div class="capa-modulo-info">
+          <strong>Gestão de Projetos</strong>
+          <span>Projetos, subprojetos e equipes integradas</span>
+        </div>
+      </div>
+      <div class="capa-modulo-card">
+        <div class="capa-modulo-icone bg-atividades"><i class="fas fa-list-check"></i></div>
+        <div class="capa-modulo-info">
+          <strong>Atividades e Tarefas</strong>
+          <span>Tarefas geradas por workflows BPM</span>
+        </div>
+      </div>
+      <div class="capa-modulo-card">
+        <div class="capa-modulo-icone bg-aprovacoes"><i class="fas fa-stamp"></i></div>
+        <div class="capa-modulo-info">
+          <strong>Aprovações e Processos</strong>
+          <span>BPM visual com formulários e multi-aprovador</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- SLIDE 2 — VISÃO GERAL DOS 3 MÓDULOS                       -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="slide">
+  <div class="slide-header">
+    <div class="slide-header-left">
+      <div class="slide-header-icone" style="background:linear-gradient(135deg,#F47920,#0082C8)"><i class="fas fa-layer-group"></i></div>
+      <div>
+        <div class="slide-header-titulo">Visão Geral — Fluig TOTVS</div>
+        <div class="slide-header-sub">Os três módulos em contexto</div>
+      </div>
+    </div>
+    <div class="slide-header-badge" style="background:#fff7ed;color:#F47920;border:1.5px solid #fdba74">Módulos Integrados</div>
+  </div>
+  <div class="slide-header-sep" style="background:linear-gradient(90deg,#F47920,#0082C8)"></div>
+
+  <div class="slide-body">
+    <div class="cards-3" style="margin-bottom:14px">
+
+      <div class="card card-destaque" style="border-top-color:#6366f1">
+        <div class="card-icon c-projetos"><i class="fas fa-diagram-project"></i></div>
+        <div class="card-titulo">Gestão de Projetos</div>
+        <div class="card-texto">
+          Organiza iniciativas corporativas com hierarquia Projeto → Subprojeto → Tarefa → Subtarefa. Equipes definidas, prazos controlados e progresso calculado automaticamente pelos passos concluídos.
+        </div>
+        <div style="margin-top:auto;padding-top:8px;border-top:1px solid #e2e8f0;font-size:10px;color:#6366f1;font-weight:700">
+          <i class="fas fa-sitemap"></i> Hierarquia &nbsp;·&nbsp; <i class="fas fa-users"></i> Equipes &nbsp;·&nbsp; <i class="fas fa-link"></i> Integrado
+        </div>
+      </div>
+
+      <div class="card card-destaque" style="border-top-color:#0082C8">
+        <div class="card-icon c-atividades"><i class="fas fa-list-check"></i></div>
+        <div class="card-titulo">Atividades e Tarefas</div>
+        <div class="card-texto">
+          Tarefas criadas manualmente ou geradas automaticamente por processos BPM. Cada atividade tem responsável, prazo, formulário digital e checklist de subtarefas com acompanhamento em tempo real.
+        </div>
+        <div style="margin-top:auto;padding-top:8px;border-top:1px solid #e2e8f0;font-size:10px;color:#0082C8;font-weight:700">
+          <i class="fas fa-gears"></i> BPM &nbsp;·&nbsp; <i class="fas fa-file-alt"></i> Formulários &nbsp;·&nbsp; <i class="fab fa-whatsapp"></i> WhatsApp
+        </div>
+      </div>
+
+      <div class="card card-destaque" style="border-top-color:#F47920">
+        <div class="card-icon c-aprovacoes"><i class="fas fa-stamp"></i></div>
+        <div class="card-titulo">Aprovações e Processos BPM</div>
+        <div class="card-texto">
+          Designer visual de processos BPMN com formulários HTML5. Solicitações tramitam com documentos anexos, múltiplos aprovadores e integração nativa com o ERP TOTVS — sem retrabalho de dados.
+        </div>
+        <div style="margin-top:auto;padding-top:8px;border-top:1px solid #e2e8f0;font-size:10px;color:#F47920;font-weight:700">
+          <i class="fas fa-project-diagram"></i> BPMN &nbsp;·&nbsp; <i class="fas fa-envelope"></i> E-mail &nbsp;·&nbsp; <i class="fas fa-building"></i> ERP TOTVS
+        </div>
+      </div>
+
+    </div>
+
+    <div style="background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:10px;padding:12px 20px;display:flex;align-items:center;gap:20px;">
+      <div style="width:42px;height:42px;border-radius:10px;background:linear-gradient(135deg,#F47920,#0082C8);display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px;flex-shrink:0"><i class="fas fa-circle-nodes"></i></div>
+      <div>
+        <div style="font-size:12px;font-weight:700;color:#1e293b;margin-bottom:3px">Integração Nativa entre os Módulos</div>
+        <div style="font-size:11px;color:#475569">Um Projeto cria automaticamente Atividades no Fluig. Cada Atividade pode exigir uma Aprovação por processo BPM. Tudo conectado ao ERP TOTVS — dados em tempo real sem duplicação.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide-footer">
+    <span><strong>Fluig TOTVS</strong> — Apresentação Diretoria</span>
+    <span>Versão 1.7</span>
+    <span>Slide 2 / 11</span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- SLIDE 3 — GESTÃO DE PROJETOS: VISÃO EXECUTIVA             -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="slide">
+  <div class="slide-header">
+    <div class="slide-header-left">
+      <div class="slide-header-icone bg-projetos"><i class="fas fa-diagram-project"></i></div>
+      <div>
+        <div class="slide-header-titulo">Gestão de Projetos</div>
+        <div class="slide-header-sub">Iniciativas corporativas com hierarquia e controle</div>
+      </div>
+    </div>
+    <div class="slide-header-badge" style="background:#eef2ff;color:#6366f1;border:1.5px solid #a5b4fc">Projetos</div>
+  </div>
+  <div class="slide-header-sep" style="background:linear-gradient(90deg,#6366f1,#4f46e5)"></div>
+
+  <div class="slide-body">
+    <div class="layout-lr">
+      <div>
+        <div style="background:#eef2ff;border-left:4px solid #6366f1;border-radius:0 8px 8px 0;padding:12px 16px;margin-bottom:14px;font-size:12px;color:#312e81;line-height:1.6;">
+          Gerenciamento completo de projetos corporativos com hierarquia visual. A Diretoria cria projetos estratégicos, define equipes e subprojetos por fase. As atividades operacionais ficam vinculadas, dando visibilidade total do andamento.
+        </div>
+
+        <div class="sec-titulo">Hierarquia de um projeto no Fluig</div>
+        <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px">
+          <div style="display:flex;align-items:center;gap:10px;padding:9px 12px;background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0">
+            <i class="fas fa-folder c-projetos" style="font-size:16px"></i>
+            <div><div style="font-size:12px;font-weight:700;color:#1e293b">Projeto Pai</div><div style="font-size:10.5px;color:#64748b">Objetivo, prazo, orçamento e equipe responsável</div></div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;padding:9px 12px;background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0;margin-left:20px">
+            <i class="fas fa-folder-open" style="font-size:14px;color:#818cf8"></i>
+            <div><div style="font-size:11.5px;font-weight:700;color:#1e293b">Subprojeto</div><div style="font-size:10.5px;color:#64748b">Fase ou entrega parcial com equipe específica</div></div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;padding:9px 12px;background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0;margin-left:40px">
+            <i class="fas fa-list-check" style="font-size:13px;color:#0082C8"></i>
+            <div><div style="font-size:11px;font-weight:700;color:#1e293b">Tarefa / Atividade</div><div style="font-size:10.5px;color:#64748b">Atividade do Fluig vinculada ao projeto</div></div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;padding:9px 12px;background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0;margin-left:60px">
+            <i class="fas fa-circle-dot" style="font-size:12px;color:#94a3b8"></i>
+            <div><div style="font-size:11px;font-weight:700;color:#1e293b">Subtarefa / Passo</div><div style="font-size:10.5px;color:#64748b">Checklist com progresso visual</div></div>
+          </div>
+        </div>
+
+        <div class="sec-titulo">Status de Projeto</div>
+        <div class="status-row">
+          <div class="status-chip" style="background:#f8fafc;color:#64748b;border-color:#e2e8f0"><span style="width:7px;height:7px;border-radius:50%;background:#94a3b8;display:inline-block"></span> Planejado</div>
+          <div class="status-chip" style="background:#eff6ff;color:#0082C8;border-color:#93c5fd"><span style="width:7px;height:7px;border-radius:50%;background:#0082C8;display:inline-block"></span> Em Andamento</div>
+          <div class="status-chip" style="background:#f0fdf4;color:#16a34a;border-color:#86efac"><span style="width:7px;height:7px;border-radius:50%;background:#10b981;display:inline-block"></span> Concluído</div>
+          <div class="status-chip" style="background:#fef2f2;color:#dc2626;border-color:#fca5a5"><span style="width:7px;height:7px;border-radius:50%;background:#ef4444;display:inline-block"></span> Atrasado</div>
+        </div>
+      </div>
+
+      <div>
+        <div class="sec-titulo">Funcionalidades</div>
+        <div class="feat-list" style="margin-bottom:10px">
+          <div class="feat-item"><i class="fas fa-folder-plus c-projetos"></i><span><strong>Criar projetos</strong> — Nome, descrição, cor, orçamento, data início e fim</span></div>
+          <div class="feat-item"><i class="fas fa-sitemap c-projetos"></i><span><strong>Subprojetos</strong> — Divisão por fase, área ou entregável</span></div>
+          <div class="feat-item"><i class="fas fa-users c-projetos"></i><span><strong>Equipe e papéis</strong> — Gerente, membro, visualizador com permissões distintas</span></div>
+          <div class="feat-item"><i class="fas fa-gears c-projetos"></i><span><strong>Atividades por processo</strong> — Tarefas geradas automaticamente pelo BPM do Fluig</span></div>
+          <div class="feat-item"><i class="fas fa-chart-line c-projetos"></i><span><strong>Progresso automático</strong> — Calculado pelas subtarefas/passos concluídos</span></div>
+          <div class="feat-item"><i class="fas fa-clock-rotate-left c-projetos"></i><span><strong>Log e auditoria</strong> — Histórico completo de ações por usuário</span></div>
+          <div class="feat-item"><i class="fas fa-stamp c-projetos"></i><span><strong>Aprovação integrada</strong> — Solicita aprovação formal do projeto com um clique</span></div>
+          <div class="feat-item"><i class="fas fa-building c-projetos"></i><span><strong>Integração ERP</strong> — Vincula projeto a ordens de serviço e centros de custo no TOTVS</span></div>
+        </div>
+
+        <div class="destaque bg-lp">
+          <i class="fas fa-eye c-projetos"></i>
+          <div>
+            <h4 style="color:#312e81;font-size:12px">Visibilidade para a Diretoria</h4>
+            <p style="color:#3730a3;font-size:11px">Progresso real por passos das atividades, log auditável de cada ação e aprovação formal vinculada — painel único sem planilhas paralelas.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide-footer">
+    <span><strong>Fluig TOTVS</strong> — Gestão de Projetos</span>
+    <span>Versão 1.7</span>
+    <span>Slide 3 / 11</span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- SLIDE 4 — PROJETOS: MOCK HIERÁRQUICO                      -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="slide">
+  <div class="slide-header">
+    <div class="slide-header-left">
+      <div class="slide-header-icone bg-projetos"><i class="fas fa-chart-gantt"></i></div>
+      <div>
+        <div class="slide-header-titulo">Gestão de Projetos — Painel</div>
+        <div class="slide-header-sub">Hierarquia Projeto → Subprojeto → Tarefa → Subtarefa</div>
+      </div>
+    </div>
+    <div class="slide-header-badge" style="background:#eef2ff;color:#6366f1;border:1.5px solid #a5b4fc">Demonstração</div>
+  </div>
+  <div class="slide-header-sep" style="background:linear-gradient(90deg,#6366f1,#4f46e5)"></div>
+
+  <div class="slide-body">
+    <div style="display:flex;gap:14px;flex:1;">
+
+      <!-- Legenda -->
+      <div style="width:122px;flex-shrink:0;display:flex;flex-direction:column;gap:5px;padding-top:2px">
+        <div style="font-size:9px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px">Hierarquia</div>
+        <div style="display:flex;align-items:center;gap:7px;background:#eef2ff;border-radius:7px;padding:6px 9px">
+          <i class="fas fa-folder" style="color:#6366f1;font-size:12px"></i>
+          <div><div style="font-size:9.5px;font-weight:700;color:#4f46e5">Projeto Pai</div></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:7px;background:#eff6ff;border-radius:7px;padding:6px 9px;margin-left:8px">
+          <i class="fas fa-folder-open" style="color:#0082C8;font-size:11px"></i>
+          <div><div style="font-size:9.5px;font-weight:700;color:#0082C8">Subprojeto</div></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:7px;background:#f0fdf4;border-radius:7px;padding:6px 9px;margin-left:16px">
+          <i class="fas fa-list-check" style="color:#10b981;font-size:10px"></i>
+          <div><div style="font-size:9.5px;font-weight:700;color:#065f46">Tarefa</div></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:7px;background:#fafafa;border-radius:7px;padding:6px 9px;margin-left:24px;border:1px solid #e2e8f0">
+          <i class="fas fa-circle-dot" style="color:#94a3b8;font-size:9px"></i>
+          <div><div style="font-size:9.5px;font-weight:700;color:#475569">Subtarefa</div></div>
+        </div>
+        <div style="margin-top:6px;background:#f8fafc;border-radius:7px;padding:7px 9px;border:1px solid #e2e8f0">
+          <div style="font-size:8.5px;font-weight:700;color:#64748b;margin-bottom:4px">Status</div>
+          <div style="display:flex;align-items:center;gap:5px;margin-bottom:2px"><span style="width:7px;height:7px;border-radius:50%;background:#10b981;flex-shrink:0"></span><span style="font-size:8.5px;color:#475569">Concluído</span></div>
+          <div style="display:flex;align-items:center;gap:5px;margin-bottom:2px"><span style="width:7px;height:7px;border-radius:50%;background:#0082C8;flex-shrink:0"></span><span style="font-size:8.5px;color:#475569">Em Andamento</span></div>
+          <div style="display:flex;align-items:center;gap:5px"><span style="width:7px;height:7px;border-radius:50%;background:#94a3b8;flex-shrink:0"></span><span style="font-size:8.5px;color:#475569">Planejado</span></div>
+        </div>
+      </div>
+
+      <!-- Árvore do projeto -->
+      <div style="flex:1;display:flex;flex-direction:column;gap:5px;">
+
+        <!-- PROJETO PAI -->
+        <div style="background:linear-gradient(90deg,#eef2ff,#f8fafc);border:1.5px solid #a5b4fc;border-radius:9px;padding:8px 14px;border-left:5px solid #6366f1">
+          <div style="display:flex;align-items:center;gap:9px;">
+            <i class="fas fa-folder" style="color:#6366f1;font-size:15px;flex-shrink:0"></i>
+            <strong style="font-size:12px;color:#1e293b">Implantação Fluig TOTVS — WKL Gestão Corporativa</strong>
+            <span style="background:#eff6ff;color:#0082C8;border-radius:7px;padding:1px 9px;font-size:9px;font-weight:700;margin-left:auto;white-space:nowrap">Em Andamento</span>
+            <span style="font-size:9px;color:#94a3b8;white-space:nowrap"><i class="fas fa-calendar"></i> Prazo: 30/09/2026</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;margin-top:5px">
+            <div style="flex:1;height:4px;background:#e2e8f0;border-radius:2px;overflow:hidden"><div style="width:68%;height:100%;background:linear-gradient(90deg,#6366f1,#818cf8);border-radius:2px"></div></div>
+            <span style="font-size:9px;color:#6366f1;font-weight:700;white-space:nowrap">68% · <i class="fas fa-users"></i> 6 membros · <i class="fas fa-stamp"></i> <span style="color:#10b981">Aprovado</span></span>
+          </div>
+        </div>
+
+        <!-- SUBPROJETO 1 -->
+        <div style="margin-left:16px;border-left:2px dashed #a5b4fc;padding-left:10px;display:flex;flex-direction:column;gap:4px">
+          <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:7px;padding:6px 11px;border-left:3px solid #0082C8;display:flex;align-items:center;gap:8px">
+            <i class="fas fa-folder-open" style="color:#0082C8;font-size:12px;flex-shrink:0"></i>
+            <strong style="font-size:10.5px;color:#1e293b">Subprojeto: Módulos Operacionais</strong>
+            <span style="background:#f0fdf4;color:#16a34a;border-radius:6px;padding:1px 7px;font-size:8.5px;font-weight:700;margin-left:auto">Concluído 100%</span>
+          </div>
+          <div style="margin-left:14px;border-left:2px dashed #bfdbfe;padding-left:9px;display:flex;flex-direction:column;gap:3px">
+            <!-- Tarefa com subtarefas expandidas -->
+            <div style="background:#fff;border:1px solid #e2e8f0;border-radius:6px;padding:5px 9px">
+              <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px">
+                <i class="fas fa-list-check" style="color:#10b981;font-size:10px;flex-shrink:0"></i>
+                <span style="font-size:10px;font-weight:600;color:#1e293b">Atividades e Tarefas</span>
+                <div style="flex:1;height:3px;background:#e2e8f0;border-radius:2px;overflow:hidden;margin:0 5px"><div style="width:100%;height:100%;background:#10b981"></div></div>
+                <span style="font-size:8.5px;color:#10b981;font-weight:600;white-space:nowrap">4/4 passos</span>
+              </div>
+              <div style="display:flex;gap:10px;margin-left:16px">
+                <span style="font-size:8.5px;color:#10b981"><i class="fas fa-check-square"></i> Kanban Fluig</span>
+                <span style="font-size:8.5px;color:#10b981"><i class="fas fa-check-square"></i> Formulários</span>
+                <span style="font-size:8.5px;color:#10b981"><i class="fas fa-check-square"></i> WhatsApp</span>
+                <span style="font-size:8.5px;color:#10b981"><i class="fas fa-check-square"></i> Notificações</span>
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px">
+              <div style="background:#fff;border:1px solid #e2e8f0;border-radius:6px;padding:4px 7px;display:flex;align-items:center;gap:5px">
+                <i class="fas fa-coins" style="color:#10b981;font-size:9px"></i><span style="font-size:9px;font-weight:600;color:#1e293b">Financeiro</span><span style="margin-left:auto;font-size:8px;color:#10b981">3/3</span>
+              </div>
+              <div style="background:#fff;border:1px solid #e2e8f0;border-radius:6px;padding:4px 7px;display:flex;align-items:center;gap:5px">
+                <i class="fas fa-ticket" style="color:#10b981;font-size:9px"></i><span style="font-size:9px;font-weight:600;color:#1e293b">Chamados</span><span style="margin-left:auto;font-size:8px;color:#10b981">4/4</span>
+              </div>
+              <div style="background:#fff;border:1px solid #e2e8f0;border-radius:6px;padding:4px 7px;display:flex;align-items:center;gap:5px">
+                <i class="fas fa-box-archive" style="color:#10b981;font-size:9px"></i><span style="font-size:9px;font-weight:600;color:#1e293b">Patrimônio</span><span style="margin-left:auto;font-size:8px;color:#10b981">3/3</span>
+              </div>
+              <div style="background:#fff;border:1px solid #e2e8f0;border-radius:6px;padding:4px 7px;display:flex;align-items:center;gap:5px">
+                <i class="fas fa-address-book" style="color:#10b981;font-size:9px"></i><span style="font-size:9px;font-weight:600;color:#1e293b">Contatos</span><span style="margin-left:auto;font-size:8px;color:#10b981">2/2</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SUBPROJETO 2 -->
+        <div style="margin-left:16px;border-left:2px dashed #a5b4fc;padding-left:10px;display:flex;flex-direction:column;gap:4px">
+          <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:7px;padding:6px 11px;border-left:3px solid #0082C8;display:flex;align-items:center;gap:8px">
+            <i class="fas fa-folder-open" style="color:#0082C8;font-size:12px;flex-shrink:0"></i>
+            <strong style="font-size:10.5px;color:#1e293b">Subprojeto: Processos BPM e Aprovações</strong>
+            <span style="background:#eff6ff;color:#0082C8;border-radius:6px;padding:1px 7px;font-size:8.5px;font-weight:700;margin-left:auto">Em Andamento 75%</span>
+          </div>
+          <div style="margin-left:14px;border-left:2px dashed #bfdbfe;padding-left:9px;display:grid;grid-template-columns:repeat(3,1fr);gap:4px">
+            <div style="background:#fff;border:1px solid #e2e8f0;border-radius:6px;padding:5px 8px">
+              <div style="display:flex;align-items:center;gap:5px;margin-bottom:3px">
+                <i class="fas fa-stamp" style="color:#10b981;font-size:9px"></i><span style="font-size:9px;font-weight:600;color:#1e293b">Aprovações BPM</span><span style="margin-left:auto;font-size:8px;color:#10b981">4/4</span>
+              </div>
+              <div style="display:flex;gap:5px;flex-wrap:wrap">
+                <span style="font-size:7.5px;color:#10b981"><i class="fas fa-check"></i> Designer BPMN</span>
+                <span style="font-size:7.5px;color:#10b981"><i class="fas fa-check"></i> Multi-aprovador</span>
+              </div>
+            </div>
+            <div style="background:#fff;border:1px solid #e2e8f0;border-radius:6px;padding:5px 8px">
+              <div style="display:flex;align-items:center;gap:5px;margin-bottom:3px">
+                <i class="fas fa-file-alt" style="color:#10b981;font-size:9px"></i><span style="font-size:9px;font-weight:600;color:#1e293b">Formulários HTML5</span><span style="margin-left:auto;font-size:8px;color:#10b981">3/3</span>
+              </div>
+              <div style="display:flex;gap:5px;flex-wrap:wrap">
+                <span style="font-size:7.5px;color:#10b981"><i class="fas fa-check"></i> Campos dinâmicos</span>
+              </div>
+            </div>
+            <div style="background:#fff;border:1px solid #e2e8f0;border-radius:6px;padding:5px 8px">
+              <div style="display:flex;align-items:center;gap:5px;margin-bottom:3px">
+                <i class="fas fa-building" style="color:#0082C8;font-size:9px"></i><span style="font-size:9px;font-weight:600;color:#1e293b">Integ. ERP</span><span style="margin-left:auto;font-size:8px;color:#0082C8">2/4</span>
+              </div>
+              <div style="height:3px;background:#e2e8f0;border-radius:2px"><div style="width:50%;height:100%;background:#0082C8;border-radius:2px"></div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SUBPROJETO 3 -->
+        <div style="margin-left:16px;border-left:2px dashed #a5b4fc;padding-left:10px;display:flex;flex-direction:column;gap:4px">
+          <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:7px;padding:6px 11px;border-left:3px solid #0082C8;display:flex;align-items:center;gap:8px">
+            <i class="fas fa-folder-open" style="color:#0082C8;font-size:12px;flex-shrink:0"></i>
+            <strong style="font-size:10.5px;color:#1e293b">Subprojeto: Integrações Externas e Treinamento</strong>
+            <span style="background:#f8fafc;color:#64748b;border-radius:6px;padding:1px 7px;font-size:8.5px;font-weight:700;border:1px solid #e2e8f0;margin-left:auto">Planejado 0%</span>
+          </div>
+          <div style="margin-left:14px;border-left:2px dashed #bfdbfe;padding-left:9px;display:grid;grid-template-columns:repeat(3,1fr);gap:4px">
+            <div style="background:#fff;border:1px solid #e2e8f0;border-radius:6px;padding:4px 7px;display:flex;align-items:center;gap:5px">
+              <i class="fas fa-building-shield" style="color:#94a3b8;font-size:9px"></i><span style="font-size:9px;color:#1e293b;font-weight:600">Active Directory</span><span style="margin-left:auto;font-size:8px;color:#94a3b8">0/3</span>
+            </div>
+            <div style="background:#fff;border:1px solid #e2e8f0;border-radius:6px;padding:4px 7px;display:flex;align-items:center;gap:5px">
+              <i class="fab fa-microsoft" style="color:#94a3b8;font-size:9px"></i><span style="font-size:9px;color:#1e293b;font-weight:600">Office 365</span><span style="margin-left:auto;font-size:8px;color:#94a3b8">0/2</span>
+            </div>
+            <div style="background:#fff;border:1px solid #e2e8f0;border-radius:6px;padding:4px 7px;display:flex;align-items:center;gap:5px">
+              <i class="fas fa-chalkboard-user" style="color:#94a3b8;font-size:9px"></i><span style="font-size:9px;color:#1e293b;font-weight:600">Treinamento</span><span style="margin-left:auto;font-size:8px;color:#94a3b8">0/4</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="slide-footer">
+    <span><strong>Fluig TOTVS</strong> — Gestão de Projetos (Painel)</span>
+    <span>Versão 1.7</span>
+    <span>Slide 4 / 11</span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- SLIDE 5 — ATIVIDADES E TAREFAS: VISÃO EXECUTIVA            -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="slide">
+  <div class="slide-header">
+    <div class="slide-header-left">
+      <div class="slide-header-icone bg-atividades"><i class="fas fa-list-check"></i></div>
+      <div>
+        <div class="slide-header-titulo">Atividades e Tarefas</div>
+        <div class="slide-header-sub">Gestão operacional com formulários e BPM</div>
+      </div>
+    </div>
+    <div class="slide-header-badge" style="background:#e0f2fe;color:#0082C8;border:1.5px solid #7dd3fc">Atividades</div>
+  </div>
+  <div class="slide-header-sep" style="background:linear-gradient(90deg,#0082C8,#005fa3)"></div>
+
+  <div class="slide-body">
+    <div class="layout-lr">
+      <div>
+        <div style="background:#e0f2fe;border-left:4px solid #0082C8;border-radius:0 8px 8px 0;padding:12px 16px;margin-bottom:14px;font-size:12px;color:#0c4a6e;line-height:1.6;">
+          Atividades no Fluig são criadas manualmente ou geradas automaticamente por processos BPM. Cada atividade possui formulário digital, responsável, prazo e checklist de subtarefas com acompanhamento visual em tempo real.
+        </div>
+        <div class="sec-titulo">Funcionalidades-chave</div>
+        <div class="feat-list">
+          <div class="feat-item"><i class="fas fa-gears c-atividades"></i><span><strong>Geradas por BPM</strong> — Processos criam tarefas automaticamente ao atingir etapas</span></div>
+          <div class="feat-item"><i class="fas fa-file-alt c-atividades"></i><span><strong>Formulários HTML5</strong> — Campos dinâmicos, validações e integração com dados do ERP</span></div>
+          <div class="feat-item"><i class="fas fa-square-check c-atividades"></i><span><strong>Subtarefas / Checklist</strong> — Passos com barra de progresso visual</span></div>
+          <div class="feat-item"><i class="fas fa-paperclip c-atividades"></i><span><strong>Documentos e Anexos</strong> — Upload vinculado ao ECM do Fluig</span></div>
+          <div class="feat-item"><i class="fas fa-stamp c-atividades"></i><span><strong>Solicitar Aprovação</strong> — Dispara processo BPM diretamente da atividade</span></div>
+          <div class="feat-item"><i class="fab fa-whatsapp c-atividades"></i><span><strong>WhatsApp</strong> — Aprovação e notificação de atividades diretamente pelo WhatsApp</span></div>
+          <div class="feat-item"><i class="fas fa-calendar-check c-atividades"></i><span><strong>Prazos e alertas</strong> — Notificação automática por e-mail e WhatsApp</span></div>
+          <div class="feat-item"><i class="fas fa-chart-bar c-atividades"></i><span><strong>Relatórios</strong> — Produtividade por usuário, departamento e período</span></div>
+        </div>
+      </div>
+
+      <div>
+        <div class="sec-titulo">Visualizações</div>
+        <div class="cards-2" style="gap:8px;margin-bottom:10px">
+          <div class="card" style="align-items:center;text-align:center">
+            <i class="fas fa-table-columns" style="font-size:22px;color:#0082C8;margin-bottom:4px"></i>
+            <div class="card-titulo">Kanban</div>
+            <div class="card-texto">Colunas por etapa do processo com drag & drop</div>
+          </div>
+          <div class="card" style="align-items:center;text-align:center">
+            <i class="fas fa-list" style="font-size:22px;color:#0082C8;margin-bottom:4px"></i>
+            <div class="card-titulo">Lista</div>
+            <div class="card-texto">Tabela com filtros e ordenação por qualquer campo</div>
+          </div>
+        </div>
+
+        <div class="sec-titulo">Permissões por atividade</div>
+        <div class="status-row" style="margin-bottom:8px">
+          <div class="status-chip" style="background:#fffbeb;color:#d97706;border-color:#fcd34d"><i class="fas fa-crown"></i> Gerente</div>
+          <div class="status-chip" style="background:#e0f2fe;color:#0082C8;border-color:#7dd3fc"><i class="fas fa-pen"></i> Executor</div>
+          <div class="status-chip" style="background:#f0fdf4;color:#16a34a;border-color:#86efac"><i class="fas fa-eye"></i> Visualizador</div>
+        </div>
+
+        <div class="destaque bg-lt">
+          <i class="fas fa-circle-nodes c-atividades"></i>
+          <div>
+            <h4 style="color:#0c4a6e;font-size:12px">Integração Atividades ↔ Projetos ↔ Aprovações</h4>
+            <p style="color:#075985;font-size:11px">Uma atividade pode pertencer a um projeto, ter checklist de passos com progresso e disparar uma aprovação BPM — tudo no mesmo fluxo Fluig.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide-footer">
+    <span><strong>Fluig TOTVS</strong> — Atividades e Tarefas</span>
+    <span>Versão 1.7</span>
+    <span>Slide 5 / 11</span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- SLIDE 6 — ATIVIDADES: KANBAN VISUAL MOCK                  -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="slide">
+  <div class="slide-header">
+    <div class="slide-header-left">
+      <div class="slide-header-icone bg-atividades"><i class="fas fa-table-columns"></i></div>
+      <div>
+        <div class="slide-header-titulo">Atividades — Quadro Kanban</div>
+        <div class="slide-header-sub">Visão do fluxo de trabalho em colunas</div>
+      </div>
+    </div>
+    <div class="slide-header-badge" style="background:#e0f2fe;color:#0082C8;border:1.5px solid #7dd3fc">Demonstração</div>
+  </div>
+  <div class="slide-header-sep" style="background:linear-gradient(90deg,#0082C8,#005fa3)"></div>
+
+  <div class="slide-body">
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;flex:1;">
+
+      <!-- Coluna: A Fazer -->
+      <div style="background:#f8fafc;border-radius:10px;border:1.5px solid #e2e8f0;padding:10px;display:flex;flex-direction:column;gap:7px;">
+        <div style="display:flex;align-items:center;gap:7px;margin-bottom:4px;">
+          <span style="width:9px;height:9px;border-radius:50%;background:#94a3b8;flex-shrink:0"></span>
+          <span style="font-size:11px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:1px">A Fazer</span>
+          <span style="margin-left:auto;background:#e2e8f0;border-radius:10px;padding:1px 7px;font-size:10px;color:#64748b;font-weight:700">3</span>
+        </div>
+        <div style="background:#fff;border-radius:8px;border:1px solid #e2e8f0;padding:10px;">
+          <div style="font-size:11px;font-weight:600;color:#1e293b;margin-bottom:5px">Revisar orçamento Q2</div>
+          <div style="display:flex;gap:5px;flex-wrap:wrap;">
+            <span style="background:#fef9c3;color:#a16207;border-radius:10px;padding:2px 7px;font-size:9.5px;font-weight:600">Financeiro</span>
+            <span style="font-size:9.5px;color:#94a3b8"><i class="fas fa-calendar"></i> 10/05</span>
+          </div>
+        </div>
+        <div style="background:#fff;border-radius:8px;border:1px solid #e2e8f0;padding:10px;">
+          <div style="font-size:11px;font-weight:600;color:#1e293b;margin-bottom:5px">Atualizar manual RH</div>
+          <div style="display:flex;gap:5px;flex-wrap:wrap;">
+            <span style="background:#f0fdf4;color:#16a34a;border-radius:10px;padding:2px 7px;font-size:9.5px;font-weight:600">RH</span>
+          </div>
+        </div>
+        <div style="background:#fff;border-radius:8px;border:1px solid #e2e8f0;padding:10px;">
+          <div style="font-size:11px;font-weight:600;color:#1e293b;margin-bottom:5px">Pesquisa fornecedores ERP</div>
+          <div style="display:flex;gap:5px;flex-wrap:wrap;">
+            <span style="background:#e0f2fe;color:#0082C8;border-radius:10px;padding:2px 7px;font-size:9.5px;font-weight:600">TI/Fluig</span>
+            <span style="font-size:9.5px;color:#ef4444"><i class="fas fa-exclamation-circle"></i> Urgente</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Coluna: Em Andamento -->
+      <div style="background:#e0f2fe;border-radius:10px;border:1.5px solid #7dd3fc;padding:10px;display:flex;flex-direction:column;gap:7px;">
+        <div style="display:flex;align-items:center;gap:7px;margin-bottom:4px;">
+          <span style="width:9px;height:9px;border-radius:50%;background:#0082C8;flex-shrink:0"></span>
+          <span style="font-size:11px;font-weight:700;color:#0082C8;text-transform:uppercase;letter-spacing:1px">Em Andamento</span>
+          <span style="margin-left:auto;background:#7dd3fc;border-radius:10px;padding:1px 7px;font-size:10px;color:#0c4a6e;font-weight:700">2</span>
+        </div>
+        <div style="background:#fff;border-radius:8px;border:1px solid #7dd3fc;padding:10px;">
+          <div style="font-size:11px;font-weight:600;color:#1e293b;margin-bottom:5px">Implantação Fluig — TI</div>
+          <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:6px">
+            <span style="background:#eef2ff;color:#6366f1;border-radius:10px;padding:2px 7px;font-size:9.5px;font-weight:600">Projeto TI</span>
+            <span style="font-size:9.5px;color:#94a3b8"><i class="fas fa-user"></i> João S.</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px">
+            <div style="flex:1;height:4px;background:#e2e8f0;border-radius:2px;overflow:hidden"><div style="width:60%;height:100%;background:#0082C8;border-radius:2px"></div></div>
+            <span style="font-size:9px;color:#64748b;white-space:nowrap">3/5 passos</span>
+          </div>
+          <div style="display:flex;gap:6px">
+            <span style="font-size:9px;color:#10b981"><i class="fas fa-check"></i> Instalar</span>
+            <span style="font-size:9px;color:#10b981"><i class="fas fa-check"></i> Configurar</span>
+            <span style="font-size:9px;color:#94a3b8"><i class="fas fa-circle"></i> Treinar</span>
+          </div>
+        </div>
+        <div style="background:#fff;border-radius:8px;border:1px solid #7dd3fc;padding:10px;">
+          <div style="font-size:11px;font-weight:600;color:#1e293b;margin-bottom:5px">Configurar processo BPM</div>
+          <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:6px">
+            <span style="background:#fff7ed;color:#F47920;border-radius:10px;padding:2px 7px;font-size:9.5px;font-weight:600">Aprovações</span>
+            <span style="font-size:9.5px;color:#94a3b8"><i class="fas fa-calendar"></i> 20/05</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px">
+            <div style="flex:1;height:4px;background:#e2e8f0;border-radius:2px;overflow:hidden"><div style="width:40%;height:100%;background:#F47920;border-radius:2px"></div></div>
+            <span style="font-size:9px;color:#64748b;white-space:nowrap">2/5 passos</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Coluna: Aguardando Aprovação -->
+      <div style="background:#fff7ed;border-radius:10px;border:1.5px solid #fdba74;padding:10px;display:flex;flex-direction:column;gap:7px;">
+        <div style="display:flex;align-items:center;gap:7px;margin-bottom:4px;">
+          <span style="width:9px;height:9px;border-radius:50%;background:#F47920;flex-shrink:0"></span>
+          <span style="font-size:11px;font-weight:700;color:#c2410c;text-transform:uppercase;letter-spacing:1px">Ag. Aprovação</span>
+          <span style="margin-left:auto;background:#fdba74;border-radius:10px;padding:1px 7px;font-size:10px;color:#7c2d12;font-weight:700">2</span>
+        </div>
+        <div style="background:#fff;border-radius:8px;border:1px solid #fdba74;padding:10px;">
+          <div style="font-size:11px;font-weight:600;color:#1e293b;margin-bottom:5px">Contrato fornecedor TI</div>
+          <div style="display:flex;gap:5px;flex-wrap:wrap;">
+            <span style="background:#fff7ed;color:#F47920;border-radius:10px;padding:2px 7px;font-size:9.5px;font-weight:600"><i class="fas fa-stamp"></i> BPM Ativo</span>
+          </div>
+        </div>
+        <div style="background:#fff;border-radius:8px;border:1px solid #fdba74;padding:10px;">
+          <div style="font-size:11px;font-weight:600;color:#1e293b;margin-bottom:5px">Licença adicional Fluig</div>
+          <div style="display:flex;gap:5px;flex-wrap:wrap;">
+            <span style="background:#fff7ed;color:#F47920;border-radius:10px;padding:2px 7px;font-size:9.5px;font-weight:600"><i class="fas fa-stamp"></i> BPM Ativo</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Coluna: Concluído -->
+      <div style="background:#f0fdf4;border-radius:10px;border:1.5px solid #86efac;padding:10px;display:flex;flex-direction:column;gap:7px;">
+        <div style="display:flex;align-items:center;gap:7px;margin-bottom:4px;">
+          <span style="width:9px;height:9px;border-radius:50%;background:#10b981;flex-shrink:0"></span>
+          <span style="font-size:11px;font-weight:700;color:#065f46;text-transform:uppercase;letter-spacing:1px">Concluído</span>
+          <span style="margin-left:auto;background:#86efac;border-radius:10px;padding:1px 7px;font-size:10px;color:#065f46;font-weight:700">4</span>
+        </div>
+        <div style="background:#fff;border-radius:8px;border:1px solid #86efac;padding:10px;">
+          <div style="font-size:11px;font-weight:600;text-decoration:line-through;color:#94a3b8;margin-bottom:5px">Kickoff Fluig</div>
+          <span style="font-size:9.5px;color:#10b981"><i class="fas fa-check-circle"></i> Concluída em 10/04</span>
+        </div>
+        <div style="background:#fff;border-radius:8px;border:1px solid #86efac;padding:10px;">
+          <div style="font-size:11px;font-weight:600;text-decoration:line-through;color:#94a3b8;margin-bottom:5px">Mapeamento de processos</div>
+          <span style="font-size:9.5px;color:#10b981"><i class="fas fa-check-circle"></i> Concluída em 01/04</span>
+        </div>
+        <div style="background:#fff;border-radius:8px;border:1px solid #86efac;padding:10px;">
+          <div style="font-size:11px;font-weight:600;text-decoration:line-through;color:#94a3b8;margin-bottom:5px">Instalação servidor Fluig</div>
+          <span style="font-size:9.5px;color:#10b981"><i class="fas fa-check-circle"></i> Concluída em 05/04</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide-footer">
+    <span><strong>Fluig TOTVS</strong> — Atividades (Kanban)</span>
+    <span>Versão 1.7</span>
+    <span>Slide 6 / 11</span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- SLIDE 7 — APROVAÇÕES BPM: VISÃO EXECUTIVA                 -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="slide">
+  <div class="slide-header">
+    <div class="slide-header-left">
+      <div class="slide-header-icone bg-aprovacoes"><i class="fas fa-stamp"></i></div>
+      <div>
+        <div class="slide-header-titulo">Aprovações e Processos BPM</div>
+        <div class="slide-header-sub">Decisões corporativas rápidas, rastreáveis e integradas ao ERP</div>
+      </div>
+    </div>
+    <div class="slide-header-badge" style="background:#fff7ed;color:#F47920;border:1.5px solid #fdba74">BPM / BPMN</div>
+  </div>
+  <div class="slide-header-sep" style="background:linear-gradient(90deg,#F47920,#d4640f)"></div>
+
+  <div class="slide-body">
+    <div class="layout-lr-3">
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <div style="background:#fff7ed;border-left:4px solid #F47920;border-radius:0 8px 8px 0;padding:12px 16px;font-size:12px;color:#7c2d12;line-height:1.6;">
+          Designer visual BPMN — processos desenhados sem código. Solicitações tramitam com formulários HTML5, documentos ECM e aprovadores definidos por cargo ou usuário. Resposta por e-mail, WhatsApp ou portal.
+        </div>
+        <div class="sec-titulo">Benefícios para a Diretoria</div>
+        <div class="feat-list" style="gap:6px">
+          <div class="feat-item"><i class="fas fa-check-circle c-aprovacoes"></i><span>Rastreabilidade total — quem aprovou, quando e por qual canal</span></div>
+          <div class="feat-item"><i class="fas fa-check-circle c-aprovacoes"></i><span>Integração com ERP — dados do Protheus/RM sem redigitação</span></div>
+          <div class="feat-item"><i class="fas fa-check-circle c-aprovacoes"></i><span>Delegação automática em caso de ausência do aprovador</span></div>
+          <div class="feat-item"><i class="fas fa-check-circle c-aprovacoes"></i><span>Relatórios de SLA e tempo médio de decisão por processo</span></div>
+          <div class="feat-item"><i class="fas fa-check-circle c-aprovacoes"></i><span>Histórico auditável com assinatura digital</span></div>
+        </div>
+      </div>
+
+      <div>
+        <div class="sec-titulo">Tipos de Roteamento BPM</div>
+        <div class="feat-list" style="gap:7px;margin-bottom:12px">
+          <div class="feat-item"><i class="fas fa-arrows-split-up-and-left" style="color:#F47920"></i><span><strong>Paralelo</strong> — Todos os aprovadores simultaneamente</span></div>
+          <div class="feat-item"><i class="fas fa-right-long" style="color:#0082C8"></i><span><strong>Sequencial</strong> — Um após o outro em ordem definida</span></div>
+          <div class="feat-item"><i class="fas fa-user-check" style="color:#10b981"></i><span><strong>Por cargo</strong> — Fluig roteia para o responsável pelo cargo</span></div>
+          <div class="feat-item"><i class="fas fa-percent" style="color:#6366f1"></i><span><strong>Por regra</strong> — Desvio condicional por valor, área ou tipo</span></div>
+        </div>
+        <div class="sec-titulo">Status possíveis</div>
+        <div class="status-row">
+          <div class="status-chip" style="background:#fffbeb;color:#d97706;border-color:#fcd34d"><span style="width:7px;height:7px;border-radius:50%;background:#f59e0b;display:inline-block"></span> Pendente</div>
+          <div class="status-chip" style="background:#f0fdf4;color:#16a34a;border-color:#86efac"><span style="width:7px;height:7px;border-radius:50%;background:#10b981;display:inline-block"></span> Aprovado</div>
+          <div class="status-chip" style="background:#fef2f2;color:#dc2626;border-color:#fca5a5"><span style="width:7px;height:7px;border-radius:50%;background:#ef4444;display:inline-block"></span> Reprovado</div>
+          <div class="status-chip" style="background:#f8fafc;color:#64748b;border-color:#e2e8f0"><span style="width:7px;height:7px;border-radius:50%;background:#94a3b8;display:inline-block"></span> Cancelado</div>
+        </div>
+      </div>
+
+      <div>
+        <div class="sec-titulo">Canais de resposta</div>
+        <div class="card" style="margin-bottom:8px;border-left:3px solid #F47920">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+            <i class="fas fa-globe" style="font-size:18px;color:#F47920"></i>
+            <strong style="font-size:12px;color:#1e293b">Portal Fluig</strong>
+          </div>
+          <div style="font-size:11px;color:#475569">Aprovador acessa o painel web, visualiza o formulário completo com documentos e responde com justificativa.</div>
+        </div>
+        <div class="card" style="margin-bottom:8px;border-left:3px solid #25D366">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+            <i class="fab fa-whatsapp" style="font-size:18px;color:#25D366"></i>
+            <strong style="font-size:12px;color:#1e293b">WhatsApp</strong>
+          </div>
+          <div style="font-size:11px;color:#475569">Bot integrado — aprovador recebe notificação e responde com <code style="background:#f1f5f9;padding:1px 5px;border-radius:3px">aprovar ID</code> ou <code style="background:#f1f5f9;padding:1px 5px;border-radius:3px">reprovar ID motivo</code> diretamente pelo WhatsApp.</div>
+        </div>
+        <div class="card" style="border-left:3px solid #475569">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+            <i class="fas fa-envelope" style="font-size:16px;color:#475569"></i>
+            <strong style="font-size:12px;color:#1e293b">E-mail</strong>
+          </div>
+          <div style="font-size:11px;color:#475569">Notificação com link direto para aprovar ou reprovar sem precisar abrir o sistema.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide-footer">
+    <span><strong>Fluig TOTVS</strong> — Aprovações BPM</span>
+    <span>Versão 1.7</span>
+    <span>Slide 7 / 11</span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- SLIDE 8 — APROVAÇÕES: FLUXO BPM COMPLETO                  -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="slide">
+  <div class="slide-header">
+    <div class="slide-header-left">
+      <div class="slide-header-icone bg-aprovacoes"><i class="fas fa-route"></i></div>
+      <div>
+        <div class="slide-header-titulo">Aprovações — Fluxo BPM Completo</div>
+        <div class="slide-header-sub">Do designer visual ao resultado auditável</div>
+      </div>
+    </div>
+    <div class="slide-header-badge" style="background:#fff7ed;color:#F47920;border:1.5px solid #fdba74">Fluxo Operacional</div>
+  </div>
+  <div class="slide-header-sep" style="background:linear-gradient(90deg,#F47920,#d4640f)"></div>
+
+  <div class="slide-body">
+    <div class="fluxo" style="margin-bottom:18px">
+      <div class="fluxo-step" style="border-color:#F47920">
+        <i class="fas fa-pencil-ruler c-aprovacoes"></i>
+        <strong>1. Designer</strong>
+        <span>Processo BPMN desenhado visualmente — sem código</span>
+      </div>
+      <div class="fluxo-arrow"><i class="fas fa-chevron-right"></i></div>
+      <div class="fluxo-step" style="border-color:#F47920">
+        <i class="fas fa-file-alt c-aprovacoes"></i>
+        <strong>2. Solicitação</strong>
+        <span>Usuário preenche formulário HTML5 com dados do ERP</span>
+      </div>
+      <div class="fluxo-arrow"><i class="fas fa-chevron-right"></i></div>
+      <div class="fluxo-step" style="border-color:#F47920">
+        <i class="fas fa-user-plus c-aprovacoes"></i>
+        <strong>3. Roteamento</strong>
+        <span>Fluig roteia para o aprovador por cargo ou regra</span>
+      </div>
+      <div class="fluxo-arrow"><i class="fas fa-chevron-right"></i></div>
+      <div class="fluxo-step" style="border-color:#F47920">
+        <i class="fas fa-bell c-aprovacoes"></i>
+        <strong>4. Notificação</strong>
+        <span>E-mail e WhatsApp com link direto</span>
+      </div>
+      <div class="fluxo-arrow"><i class="fas fa-chevron-right"></i></div>
+      <div class="fluxo-step" style="border-color:#F47920">
+        <i class="fas fa-reply c-aprovacoes"></i>
+        <strong>5. Resposta</strong>
+        <span>Aprovador decide pelo Portal, WhatsApp ou e-mail</span>
+      </div>
+      <div class="fluxo-arrow"><i class="fas fa-chevron-right"></i></div>
+      <div class="fluxo-step" style="background:#fff7ed;border-color:#F47920">
+        <i class="fas fa-flag-checkered c-aprovacoes"></i>
+        <strong>6. ERP atualizado</strong>
+        <span>Resultado integrado automaticamente ao TOTVS</span>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1.2fr 0.8fr;gap:16px;">
+      <div style="background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:10px;padding:14px;">
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#94a3b8;margin-bottom:10px">Exemplo de Processo — Compra de Material</div>
+        <div style="font-size:13px;font-weight:700;color:#1e293b;margin-bottom:4px">Solicitação de Compra — Equipamentos TI</div>
+        <div style="font-size:11px;color:#475569;margin-bottom:10px">Aprovação para aquisição de servidores no valor de R$ 85.000. Integrado ao pedido de compra do Protheus — sem redigitação.</div>
+        <div style="display:flex;gap:8px;margin-bottom:10px">
+          <span style="background:#fff7ed;color:#F47920;border-radius:6px;padding:3px 10px;font-size:10px;font-weight:700">Sequencial</span>
+          <span style="background:#f8fafc;color:#64748b;border-radius:6px;padding:3px 10px;font-size:10px;border:1px solid #e2e8f0"><i class="fas fa-file-alt"></i> Formulário HTML5</span>
+          <span style="background:#f8fafc;color:#64748b;border-radius:6px;padding:3px 10px;font-size:10px;border:1px solid #e2e8f0"><i class="fas fa-building"></i> Protheus #PC-4521</span>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:5px;">
+          <div style="display:flex;align-items:center;gap:8px;font-size:11px;">
+            <i class="fas fa-check-circle" style="color:#10b981"></i>
+            <span style="color:#1e293b">Ana Lima — Gerente TI</span>
+            <span style="color:#94a3b8;font-size:10px">Portal Fluig · 06/04 09:12</span>
+            <span style="margin-left:auto;color:#10b981;font-size:10px;font-weight:700">APROVADO</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:11px;">
+            <i class="fas fa-check-circle" style="color:#10b981"></i>
+            <span style="color:#1e293b">Carlos Melo — Financeiro</span>
+            <span style="color:#94a3b8;font-size:10px">WhatsApp · 06/04 10:45</span>
+            <span style="margin-left:auto;color:#10b981;font-size:10px;font-weight:700">APROVADO</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:11px;">
+            <i class="fas fa-clock" style="color:#F47920"></i>
+            <span style="color:#1e293b">Paulo Ramos — Diretor</span>
+            <span style="color:#94a3b8;font-size:10px">Aguardando</span>
+            <span style="margin-left:auto;color:#F47920;font-size:10px;font-weight:700">PENDENTE</span>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div class="destaque bg-la">
+          <i class="fas fa-building" style="color:#F47920"></i>
+          <div>
+            <h4 style="color:#7c2d12;font-size:11px">Integração TOTVS ERP</h4>
+            <p style="color:#92400e;font-size:10.5px">Dados do Protheus/RM preenchem o formulário automaticamente. Após aprovação, o sistema atualiza o pedido no ERP sem intervenção manual.</p>
+          </div>
+        </div>
+        <div class="destaque" style="background:#fffbeb">
+          <i class="fas fa-user-clock" style="color:#f59e0b"></i>
+          <div>
+            <h4 style="color:#78350f;font-size:11px">Delegação por Ausência</h4>
+            <p style="color:#92400e;font-size:10.5px">Fluig redireciona automaticamente a aprovação para o substituto cadastrado quando o aprovador está de férias ou fora do prazo de SLA.</p>
+          </div>
+        </div>
+        <div class="destaque" style="background:#f0fdf4">
+          <i class="fas fa-file-signature" style="color:#10b981"></i>
+          <div>
+            <h4 style="color:#064e3b;font-size:11px">Assinatura Digital</h4>
+            <p style="color:#065f46;font-size:10.5px">Aprovações com valor jurídico via assinatura digital integrada — conformidade com MP 2.200-2.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide-footer">
+    <span><strong>Fluig TOTVS</strong> — Aprovações BPM (Fluxo)</span>
+    <span>Versão 1.7</span>
+    <span>Slide 8 / 11</span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- SLIDE 9 — INTEGRAÇÃO ENTRE OS 3 MÓDULOS                   -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="slide">
+  <div class="slide-header">
+    <div class="slide-header-left">
+      <div class="slide-header-icone" style="background:linear-gradient(135deg,#F47920,#0082C8)"><i class="fas fa-circle-nodes"></i></div>
+      <div>
+        <div class="slide-header-titulo">Integração dos Módulos Fluig</div>
+        <div class="slide-header-sub">Como Projetos, Atividades e Aprovações funcionam juntos</div>
+      </div>
+    </div>
+    <div class="slide-header-badge" style="background:#fff7ed;color:#F47920;border:1.5px solid #fdba74">Ecossistema Integrado</div>
+  </div>
+  <div class="slide-header-sep" style="background:linear-gradient(90deg,#F47920,#0082C8)"></div>
+
+  <div class="slide-body">
+    <div style="display:flex;align-items:center;justify-content:center;gap:18px;flex:1;padding:10px 0">
+
+      <!-- Módulo Projetos -->
+      <div style="display:flex;flex-direction:column;align-items:center;width:175px">
+        <div style="background:linear-gradient(135deg,#6366f1,#4f46e5);border-radius:14px;width:58px;height:58px;display:flex;align-items:center;justify-content:center;font-size:24px;color:#fff;margin-bottom:10px;box-shadow:0 4px 14px rgba(99,102,241,0.35)"><i class="fas fa-diagram-project"></i></div>
+        <div style="font-size:12.5px;font-weight:800;color:#1e293b;margin-bottom:4px;text-align:center">Gestão de Projetos</div>
+        <div style="font-size:10px;color:#64748b;text-align:center;line-height:1.4">Define objetivos, equipes, prazos e subprojetos</div>
+        <div style="margin-top:10px;display:flex;flex-direction:column;gap:4px;width:100%">
+          <div style="background:#eef2ff;border-radius:7px;padding:5px 10px;font-size:10px;color:#4f46e5;font-weight:600;text-align:center">Projetos + Subprojetos</div>
+          <div style="background:#eef2ff;border-radius:7px;padding:5px 10px;font-size:10px;color:#4f46e5;font-weight:600;text-align:center">Equipes e permissões</div>
+          <div style="background:#eef2ff;border-radius:7px;padding:5px 10px;font-size:10px;color:#4f46e5;font-weight:600;text-align:center">Aprovação de início</div>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:22px;align-items:center">
+        <div style="text-align:center"><div style="font-size:10px;color:#94a3b8;margin-bottom:4px">Atividades vinculadas ao projeto</div><div style="color:#6366f1;font-size:17px"><i class="fas fa-arrows-left-right"></i></div></div>
+        <div style="text-align:center"><div style="font-size:10px;color:#94a3b8;margin-bottom:4px">Aprovação exigida para avançar</div><div style="color:#6366f1;font-size:17px"><i class="fas fa-arrows-left-right"></i></div></div>
+      </div>
+
+      <!-- Módulo Atividades -->
+      <div style="display:flex;flex-direction:column;align-items:center;width:175px">
+        <div style="background:linear-gradient(135deg,#0082C8,#005fa3);border-radius:14px;width:58px;height:58px;display:flex;align-items:center;justify-content:center;font-size:24px;color:#fff;margin-bottom:10px;box-shadow:0 4px 14px rgba(0,130,200,0.35)"><i class="fas fa-list-check"></i></div>
+        <div style="font-size:12.5px;font-weight:800;color:#1e293b;margin-bottom:4px;text-align:center">Atividades e Tarefas</div>
+        <div style="font-size:10px;color:#64748b;text-align:center;line-height:1.4">Executa o trabalho operacional do dia a dia</div>
+        <div style="margin-top:10px;display:flex;flex-direction:column;gap:4px;width:100%">
+          <div style="background:#e0f2fe;border-radius:7px;padding:5px 10px;font-size:10px;color:#0082C8;font-weight:600;text-align:center">Formulários HTML5</div>
+          <div style="background:#e0f2fe;border-radius:7px;padding:5px 10px;font-size:10px;color:#0082C8;font-weight:600;text-align:center">Prazos e prioridades</div>
+          <div style="background:#e0f2fe;border-radius:7px;padding:5px 10px;font-size:10px;color:#0082C8;font-weight:600;text-align:center">Kanban por equipe</div>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:22px;align-items:center">
+        <div style="text-align:center"><div style="font-size:10px;color:#94a3b8;margin-bottom:4px">Aprovação de atividade crítica</div><div style="color:#F47920;font-size:17px"><i class="fas fa-arrows-left-right"></i></div></div>
+        <div style="text-align:center"><div style="font-size:10px;color:#94a3b8;margin-bottom:4px">Resultado atualiza o ERP</div><div style="color:#F47920;font-size:17px"><i class="fas fa-arrows-left-right"></i></div></div>
+      </div>
+
+      <!-- Módulo Aprovações -->
+      <div style="display:flex;flex-direction:column;align-items:center;width:175px">
+        <div style="background:linear-gradient(135deg,#F47920,#d4640f);border-radius:14px;width:58px;height:58px;display:flex;align-items:center;justify-content:center;font-size:24px;color:#fff;margin-bottom:10px;box-shadow:0 4px 14px rgba(244,121,32,0.35)"><i class="fas fa-stamp"></i></div>
+        <div style="font-size:12.5px;font-weight:800;color:#1e293b;margin-bottom:4px;text-align:center">Aprovações BPM</div>
+        <div style="font-size:10px;color:#64748b;text-align:center;line-height:1.4">Formaliza e registra decisões corporativas</div>
+        <div style="margin-top:10px;display:flex;flex-direction:column;gap:4px;width:100%">
+          <div style="background:#fff7ed;border-radius:7px;padding:5px 10px;font-size:10px;color:#F47920;font-weight:600;text-align:center">BPMN visual</div>
+          <div style="background:#fff7ed;border-radius:7px;padding:5px 10px;font-size:10px;color:#F47920;font-weight:600;text-align:center">WhatsApp + E-mail</div>
+          <div style="background:#fff7ed;border-radius:7px;padding:5px 10px;font-size:10px;color:#F47920;font-weight:600;text-align:center">Integra ERP TOTVS</div>
+        </div>
+      </div>
+
+    </div>
+
+    <div style="background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:10px;padding:12px 20px;display:flex;align-items:center;gap:16px">
+      <i class="fas fa-lightbulb" style="font-size:20px;color:#F47920;flex-shrink:0"></i>
+      <div style="font-size:12px;color:#475569;line-height:1.5">
+        <strong style="color:#1e293b">Exemplo prático:</strong> A Diretoria cria um Projeto de "Expansão 2026" no Fluig → o sistema gera automaticamente as Atividades para cada equipe via BPM → atividades críticas disparam Aprovações formais → aprovadores recebem notificação no WhatsApp e respondem com <code style="background:#e2e8f0;padding:1px 5px;border-radius:3px">aprovar ID</code> → após aprovação, o ERP TOTVS é atualizado automaticamente.
+      </div>
+    </div>
+  </div>
+
+  <div class="slide-footer">
+    <span><strong>Fluig TOTVS</strong> — Integração dos Módulos</span>
+    <span>Versão 1.7</span>
+    <span>Slide 9 / 11</span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- SLIDE 10 — INTEGRAÇÕES DO FLUIG                           -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="slide">
+  <div class="slide-header">
+    <div class="slide-header-left">
+      <div class="slide-header-icone" style="background:linear-gradient(135deg,#0082C8,#005fa3)"><i class="fas fa-plug"></i></div>
+      <div>
+        <div class="slide-header-titulo">Integrações do Fluig</div>
+        <div class="slide-header-sub">Ecossistema conectado — sistemas externos integrados nativamente</div>
+      </div>
+    </div>
+    <div class="slide-header-badge" style="background:#e0f2fe;color:#0082C8;border:1.5px solid #7dd3fc">Conectividade</div>
+  </div>
+  <div class="slide-header-sep" style="background:linear-gradient(90deg,#0082C8,#F47920)"></div>
+
+  <div class="slide-body">
+    <div style="display:flex;gap:14px;flex:1;">
+
+      <!-- Centro -->
+      <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;width:130px;flex-shrink:0;">
+        <div style="background:linear-gradient(135deg,#0c1825,#0f2a3f);border-radius:16px;width:68px;height:68px;display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:8px;box-shadow:0 4px 18px rgba(0,0,0,0.3)">
+          <img src="https://www.totvs.com/wp-content/uploads/2020/05/fluig-logo.png" alt="Fluig" style="width:44px;object-fit:contain" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+          <span style="display:none;color:#F47920;font-size:20px;font-weight:900">F</span>
+        </div>
+        <div style="font-size:11.5px;font-weight:800;color:#1e293b;text-align:center">Fluig TOTVS</div>
+        <div style="font-size:9px;color:#64748b;text-align:center">Plataforma Central</div>
+        <div style="margin-top:8px;display:flex;flex-direction:column;gap:3px;align-items:center">
+          <div style="width:2px;height:10px;background:linear-gradient(to bottom,#F47920,transparent)"></div>
+          <i class="fas fa-circle-nodes" style="font-size:13px;color:#94a3b8"></i>
+          <div style="width:2px;height:10px;background:linear-gradient(to top,#0082C8,transparent)"></div>
+        </div>
+      </div>
+
+      <!-- Grid de integrações -->
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:9px;flex:1;">
+
+        <!-- ERP TOTVS Protheus -->
+        <div style="background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:10px;padding:11px;display:flex;flex-direction:column;gap:5px;border-left:4px solid #F47920;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:2px">
+            <div style="width:30px;height:30px;border-radius:7px;background:linear-gradient(135deg,#F47920,#d4640f);display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;flex-shrink:0"><i class="fas fa-building"></i></div>
+            <div><div style="font-size:11px;font-weight:700;color:#1e293b">ERP TOTVS Protheus</div><div style="font-size:9px;color:#64748b">Integração nativa</div></div>
+          </div>
+          <div style="font-size:10px;color:#475569;line-height:1.4">Pedidos de compra, ordens de serviço, centros de custo e aprovações financeiras sincronizados sem redigitação.</div>
+          <div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:2px">
+            <span style="background:#fff7ed;color:#F47920;border-radius:5px;padding:1px 6px;font-size:8.5px;font-weight:600">Protheus</span>
+            <span style="background:#fff7ed;color:#F47920;border-radius:5px;padding:1px 6px;font-size:8.5px;font-weight:600">RM</span>
+            <span style="background:#fff7ed;color:#F47920;border-radius:5px;padding:1px 6px;font-size:8.5px;font-weight:600">Datasul</span>
+          </div>
+        </div>
+
+        <!-- Active Directory -->
+        <div style="background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:10px;padding:11px;display:flex;flex-direction:column;gap:5px;border-left:4px solid #3b82f6;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:2px">
+            <div style="width:30px;height:30px;border-radius:7px;background:linear-gradient(135deg,#3b82f6,#1d4ed8);display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;flex-shrink:0"><i class="fas fa-building-shield"></i></div>
+            <div><div style="font-size:11px;font-weight:700;color:#1e293b">Active Directory</div><div style="font-size:9px;color:#64748b">SSO corporativo</div></div>
+          </div>
+          <div style="font-size:10px;color:#475569;line-height:1.4">Login único com credenciais do domínio Windows. Grupos e cargos do AD mapeados como aprovadores no Fluig automaticamente.</div>
+          <div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:2px">
+            <span style="background:#eff6ff;color:#3b82f6;border-radius:5px;padding:1px 6px;font-size:8.5px;font-weight:600">LDAP</span>
+            <span style="background:#eff6ff;color:#3b82f6;border-radius:5px;padding:1px 6px;font-size:8.5px;font-weight:600">SSO</span>
+          </div>
+        </div>
+
+        <!-- WhatsApp -->
+        <div style="background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:10px;padding:11px;display:flex;flex-direction:column;gap:5px;border-left:4px solid #25D366;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:2px">
+            <div style="width:30px;height:30px;border-radius:7px;background:linear-gradient(135deg,#25D366,#128C7E);display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;flex-shrink:0"><i class="fab fa-whatsapp"></i></div>
+            <div><div style="font-size:11px;font-weight:700;color:#1e293b">WhatsApp Bot</div><div style="font-size:9px;color:#64748b">Aprovações pelo celular</div></div>
+          </div>
+          <div style="font-size:10px;color:#475569;line-height:1.4">Bot integrado notifica aprovadores no WhatsApp. Resposta com <strong>aprovar ID</strong> ou <strong>reprovar ID motivo</strong> — sem abrir o sistema.</div>
+          <div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:2px">
+            <span style="background:#f0fdf4;color:#128C7E;border-radius:5px;padding:1px 6px;font-size:8.5px;font-weight:600">Bot</span>
+            <span style="background:#f0fdf4;color:#128C7E;border-radius:5px;padding:1px 6px;font-size:8.5px;font-weight:600">Auto-login</span>
+          </div>
+        </div>
+
+        <!-- E-mail / SMTP -->
+        <div style="background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:10px;padding:11px;display:flex;flex-direction:column;gap:5px;border-left:4px solid #f59e0b;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:2px">
+            <div style="width:30px;height:30px;border-radius:7px;background:linear-gradient(135deg,#f59e0b,#d97706);display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;flex-shrink:0"><i class="fas fa-envelope"></i></div>
+            <div><div style="font-size:11px;font-weight:700;color:#1e293b">E-mail / SMTP</div><div style="font-size:9px;color:#64748b">Notificações automáticas</div></div>
+          </div>
+          <div style="font-size:10px;color:#475569;line-height:1.4">Alertas de atividades, aprovações pendentes e relatórios periódicos. Templates HTML personalizáveis por processo.</div>
+          <div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:2px">
+            <span style="background:#fffbeb;color:#d97706;border-radius:5px;padding:1px 6px;font-size:8.5px;font-weight:600">SMTP</span>
+            <span style="background:#fffbeb;color:#d97706;border-radius:5px;padding:1px 6px;font-size:8.5px;font-weight:600">Templates</span>
+          </div>
+        </div>
+
+        <!-- ECM / Documentos -->
+        <div style="background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:10px;padding:11px;display:flex;flex-direction:column;gap:5px;border-left:4px solid #10b981;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:2px">
+            <div style="width:30px;height:30px;border-radius:7px;background:linear-gradient(135deg,#10b981,#059669);display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;flex-shrink:0"><i class="fas fa-folder-open"></i></div>
+            <div><div style="font-size:11px;font-weight:700;color:#1e293b">ECM / Documentos</div><div style="font-size:9px;color:#64748b">Gestão documental</div></div>
+          </div>
+          <div style="font-size:10px;color:#475569;line-height:1.4">GED nativo do Fluig — documentos versionados vinculados a processos e aprovações. Controle de acesso por perfil.</div>
+          <div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:2px">
+            <span style="background:#f0fdf4;color:#059669;border-radius:5px;padding:1px 6px;font-size:8.5px;font-weight:600">GED</span>
+            <span style="background:#f0fdf4;color:#059669;border-radius:5px;padding:1px 6px;font-size:8.5px;font-weight:600">Versão</span>
+            <span style="background:#f0fdf4;color:#059669;border-radius:5px;padding:1px 6px;font-size:8.5px;font-weight:600">Assin. Digital</span>
+          </div>
+        </div>
+
+        <!-- API REST / Webhook -->
+        <div style="background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:10px;padding:11px;display:flex;flex-direction:column;gap:5px;border-left:4px solid #8b5cf6;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:2px">
+            <div style="width:30px;height:30px;border-radius:7px;background:linear-gradient(135deg,#8b5cf6,#6d28d9);display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;flex-shrink:0"><i class="fas fa-code"></i></div>
+            <div><div style="font-size:11px;font-weight:700;color:#1e293b">API REST / Webhook</div><div style="font-size:9px;color:#64748b">Integrações customizadas</div></div>
+          </div>
+          <div style="font-size:10px;color:#475569;line-height:1.4">API REST documentada para integrar qualquer sistema externo. Webhooks para acionar eventos em tempo real.</div>
+          <div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:2px">
+            <span style="background:#f5f3ff;color:#6d28d9;border-radius:5px;padding:1px 6px;font-size:8.5px;font-weight:600">REST API</span>
+            <span style="background:#f5f3ff;color:#6d28d9;border-radius:5px;padding:1px 6px;font-size:8.5px;font-weight:600">Webhook</span>
+            <span style="background:#f5f3ff;color:#6d28d9;border-radius:5px;padding:1px 6px;font-size:8.5px;font-weight:600">OAuth2</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="slide-footer">
+    <span><strong>Fluig TOTVS</strong> — Integrações</span>
+    <span>Versão 1.7</span>
+    <span>Slide 10 / 11</span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- SLIDE 11 — RESUMO EXECUTIVO                                -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="slide">
+  <div class="slide-header">
+    <div class="slide-header-left">
+      <div class="slide-header-icone" style="background:linear-gradient(135deg,#0c1825,#1a2a3a)"><i class="fas fa-flag-checkered"></i></div>
+      <div>
+        <div class="slide-header-titulo">Resumo Executivo</div>
+        <div class="slide-header-sub">Benefícios do Fluig TOTVS para a WKL</div>
+      </div>
+    </div>
+    <div class="slide-header-badge" style="background:#f8fafc;color:#64748b;border:1.5px solid #e2e8f0">Conclusão</div>
+  </div>
+  <div class="slide-header-sep" style="background:linear-gradient(90deg,#0c1825,#F47920,#0082C8)"></div>
+
+  <div class="slide-body">
+    <div class="cards-3" style="margin-bottom:14px">
+
+      <div class="card card-destaque" style="border-top-color:#6366f1">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+          <div style="width:34px;height:34px;border-radius:8px;background:linear-gradient(135deg,#6366f1,#4f46e5);display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;flex-shrink:0"><i class="fas fa-diagram-project"></i></div>
+          <strong style="font-size:12.5px;color:#1e293b">Gestão de Projetos</strong>
+        </div>
+        <div class="feat-list" style="gap:5px">
+          <div class="feat-item" style="padding:5px 9px"><i class="fas fa-check c-projetos"></i><span>Hierarquia Projeto → Subprojeto → Tarefa → Subtarefa</span></div>
+          <div class="feat-item" style="padding:5px 9px"><i class="fas fa-check c-projetos"></i><span>Portfólio completo em um único painel</span></div>
+          <div class="feat-item" style="padding:5px 9px"><i class="fas fa-check c-projetos"></i><span>Progresso calculado pelos passos concluídos</span></div>
+          <div class="feat-item" style="padding:5px 9px"><i class="fas fa-check c-projetos"></i><span>Log auditável de todas as ações</span></div>
+        </div>
+      </div>
+
+      <div class="card card-destaque" style="border-top-color:#0082C8">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+          <div style="width:34px;height:34px;border-radius:8px;background:linear-gradient(135deg,#0082C8,#005fa3);display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;flex-shrink:0"><i class="fas fa-list-check"></i></div>
+          <strong style="font-size:12.5px;color:#1e293b">Atividades e Tarefas</strong>
+        </div>
+        <div class="feat-list" style="gap:5px">
+          <div class="feat-item" style="padding:5px 9px"><i class="fas fa-check c-atividades"></i><span>Tarefas geradas automaticamente por BPM</span></div>
+          <div class="feat-item" style="padding:5px 9px"><i class="fas fa-check c-atividades"></i><span>Formulários HTML5 integrados ao ERP TOTVS</span></div>
+          <div class="feat-item" style="padding:5px 9px"><i class="fab fa-whatsapp c-atividades"></i><span>WhatsApp — aprovação e notificação integradas ao bot</span></div>
+          <div class="feat-item" style="padding:5px 9px"><i class="fas fa-check c-atividades"></i><span>Visibilidade de produtividade por equipe</span></div>
+        </div>
+      </div>
+
+      <div class="card card-destaque" style="border-top-color:#F47920">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+          <div style="width:34px;height:34px;border-radius:8px;background:linear-gradient(135deg,#F47920,#d4640f);display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;flex-shrink:0"><i class="fas fa-stamp"></i></div>
+          <strong style="font-size:12.5px;color:#1e293b">Aprovações BPM</strong>
+        </div>
+        <div class="feat-list" style="gap:5px">
+          <div class="feat-item" style="padding:5px 9px"><i class="fas fa-check c-aprovacoes"></i><span>Processos BPMN desenhados sem código</span></div>
+          <div class="feat-item" style="padding:5px 9px"><i class="fas fa-check c-aprovacoes"></i><span>Integração automática com ERP após aprovação</span></div>
+          <div class="feat-item" style="padding:5px 9px"><i class="fas fa-check c-aprovacoes"></i><span>Delegação automática por ausência / SLA</span></div>
+          <div class="feat-item" style="padding:5px 9px"><i class="fas fa-check c-aprovacoes"></i><span>Assinatura digital com validade jurídica</span></div>
+        </div>
+      </div>
+
+    </div>
+
+    <div style="background:linear-gradient(135deg,#0c1825,#0f2a3f);border-radius:12px;padding:16px 24px;display:flex;align-items:center;gap:20px">
+      <div style="width:44px;height:44px;border-radius:11px;background:linear-gradient(135deg,#F47920,#0082C8);display:flex;align-items:center;justify-content:center;font-size:20px;color:#fff;flex-shrink:0"><i class="fas fa-building-columns"></i></div>
+      <div>
+        <div style="font-size:14px;font-weight:800;color:#fff;margin-bottom:5px">Fluig TOTVS — Plataforma Única de Gestão Corporativa</div>
+        <div style="font-size:11.5px;color:#94a3b8;line-height:1.5">Os três módulos formam um ecossistema integrado: Projetos definem a estratégia, Atividades garantem a execução, e Aprovações BPM formalizam as decisões — tudo conectado nativamente ao ERP TOTVS sem retrabalho de dados.</div>
+      </div>
+      <div style="flex-shrink:0;text-align:right">
+        <div style="font-size:10px;color:#475569">Plataforma</div>
+        <div style="font-size:13px;font-weight:700;color:#F47920">TOTVS Fluig</div>
+        <div style="font-size:10px;color:#475569;margin-top:3px">v1.7</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide-footer">
+    <span><strong>Fluig TOTVS</strong> — Resumo Executivo</span>
+    <span>Versão 1.7</span>
+    <span>Slide 11 / 11</span>
+  </div>
+</div>
+
+</body>
+</html>

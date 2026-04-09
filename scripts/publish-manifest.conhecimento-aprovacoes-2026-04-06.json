@@ -1,0 +1,48 @@
+{
+  "items": [
+    {
+      "localPath": "public/baseConhecimento/index.html",
+      "remotePath": "/var/www/html/wkl/Portal/public/baseConhecimento/index.html"
+    },
+    {
+      "localPath": "public/baseConhecimento/css/conhecimento.css",
+      "remotePath": "/var/www/html/wkl/Portal/public/baseConhecimento/css/conhecimento.css"
+    },
+    {
+      "localPath": "public/baseConhecimento/js/core-state.js",
+      "remotePath": "/var/www/html/wkl/Portal/public/baseConhecimento/js/core-state.js"
+    },
+    {
+      "localPath": "public/baseConhecimento/js/core-api.js",
+      "remotePath": "/var/www/html/wkl/Portal/public/baseConhecimento/js/core-api.js"
+    },
+    {
+      "localPath": "public/baseConhecimento/js/core-artigos.js",
+      "remotePath": "/var/www/html/wkl/Portal/public/baseConhecimento/js/core-artigos.js"
+    },
+    {
+      "localPath": "public/baseConhecimento/js/core-categorias.js",
+      "remotePath": "/var/www/html/wkl/Portal/public/baseConhecimento/js/core-categorias.js"
+    },
+    {
+      "localPath": "public/baseConhecimento/js/core-init.js",
+      "remotePath": "/var/www/html/wkl/Portal/public/baseConhecimento/js/core-init.js"
+    },
+    {
+      "localPath": "routes/conhecimento.js",
+      "remotePath": "/var/www/html/wkl/Portal/routes/conhecimento.js"
+    },
+    {
+      "localPath": "public/aprovacoes/index.html",
+      "remotePath": "/var/www/html/wkl/Portal/public/aprovacoes/index.html"
+    },
+    {
+      "localPath": "routes/aprovacoes.js",
+      "remotePath": "/var/www/html/wkl/Portal/routes/aprovacoes.js"
+    },
+    {
+      "localPath": "criarBancoPortal.js",
+      "remotePath": "/var/www/html/wkl/Portal/criarBancoPortal.js"
+    }
+  ]
+}

@@ -10,6 +10,8 @@ const sql            = require('mssql');
 const path           = require('path');
 const verificarLogin   = require('../middleware/verificarLogin');
 const { registrarLog } = require('../services/logService');
+const { enviarNotificacaoWhatsAppPorChips } = require('../services/whatsappDispatchService');
+const { renderizarMensagemWhatsApp } = require('../services/whatsappTemplateService');
 const router           = express.Router();
 
 // ============================================================
@@ -38,6 +40,25 @@ async function getPermissao(pool, listaId, usuario) {
 const NIVEL = { leitura: 1, edicao: 2, dono: 3 };
 function temPermissao(perm, nivelMinimo) {
   return !!perm && (NIVEL[perm] || 0) >= (NIVEL[nivelMinimo] || 0);
+}
+
+async function getLoginsLista(pool, listaId) {
+  try {
+    const r = await pool.request()
+      .input('lista_id', sql.Int, listaId)
+      .query(`
+        SELECT dono AS login
+        FROM contatos_listas
+        WHERE id = @lista_id
+        UNION
+        SELECT usuario AS login
+        FROM contatos_membros
+        WHERE lista_id = @lista_id AND permissao IN ('edicao', 'dono')
+      `);
+    return r.recordset.map((row) => String(row.login || '').toLowerCase()).filter(Boolean);
+  } catch {
+    return [];
+  }
 }
 
 // ============================================================
@@ -337,6 +358,24 @@ router.post('/api/contatos/listas/:id/contatos', verificarLogin, async (req, res
            @data_nascimento, @tags, @observacoes, @favorito, @criado_por)
       `);
     registrarLog(pool, { usuario, ip: req.ip, acao: 'CRIACAO', sistema: 'contatos', detalhes: `Contato criado: ${d.nome?.trim()}${d.empresa ? ` — ${d.empresa}` : ''}` });
+    const mensagemWhatsApp = await renderizarMensagemWhatsApp(pool, 'contatos.novo_contato', {
+      nome: d.nome?.trim() || '-',
+      empresa: d.empresa || '-',
+      lista: listaId,
+      link: 'http://192.168.0.80:3132/contatos',
+    });
+    enviarNotificacaoWhatsAppPorChips(pool, {
+      evento: 'contatos.novo_contato',
+      sistema: 'contatos',
+      mensagem: mensagemWhatsApp,
+      usuario,
+      ip: req.ip,
+      mapaChips: {
+        criado_por_usuario: [usuario],
+        gestores: await getLoginsLista(pool, listaId),
+        gestores_setor: [],
+      },
+    }).catch(() => {});
     res.json({ sucesso: true, contato: result.recordset[0] });
   } catch (erro) {
     logErro.error(`Erro ao criar contato: ${erro.message}`);

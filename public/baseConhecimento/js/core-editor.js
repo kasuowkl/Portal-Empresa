@@ -5,6 +5,14 @@
     return document.getElementById('artigo-editor');
   }
 
+  function getCodeEditor() {
+    return document.getElementById('artigo-codigo-html');
+  }
+
+  function getPreviewFrame() {
+    return document.getElementById('artigo-preview-frame');
+  }
+
   function isSelectionInsideEditor() {
     const editor = getEditor();
     const sel = window.getSelection();
@@ -48,7 +56,7 @@
     wrapper.innerHTML = normalizarHtmlColado(html);
     wrapper.querySelectorAll('*').forEach((el) => {
       [...el.attributes].forEach((attr) => {
-        if (!['href', 'src', 'target', 'rel', 'alt', 'title', 'colspan', 'rowspan'].includes(attr.name)) {
+        if (!['href', 'src', 'target', 'rel', 'alt', 'title', 'colspan', 'rowspan', 'data-kb-doc-token', 'width', 'height', 'loading'].includes(attr.name)) {
           el.removeAttribute(attr.name);
         }
       });
@@ -61,13 +69,97 @@
   }
 
   function getEditorHtml() {
+    if (state.modoEditor === 'codigo' || state.modoEditor === 'pagina') {
+      const bruto = getCodeEditor().value;
+      const normalizado = normalizarHtmlDocumentoCompleto(bruto);
+      if (ehHtmlDocumentoCompleto(normalizado)) return normalizado;
+      return bruto;
+    }
     syncEditorSource();
     return document.getElementById('artigo-conteudo').value;
   }
 
   function setEditorHtml(html) {
-    getEditor().innerHTML = limparHtmlEditor(html || '');
+    const htmlNormalizado = normalizarHtmlDocumentoCompleto(html || '');
+    state.artigoHtmlCompleto = ehHtmlDocumentoCompleto(htmlNormalizado);
+    state.artigoTemDocumentoIncorporado = /kb-doc-embed-pdf|data-kb-doc-token/i.test(htmlNormalizado || '');
+    getEditor().innerHTML = state.artigoHtmlCompleto
+      ? '<div class="kb-html-doc-notice"><i class="fas fa-code"></i> Documento HTML completo detectado. Use os modos <b>Código HTML</b> e <b>Página</b> para preservar classes, ids e scripts.</div>'
+      : limparHtmlEditor(htmlNormalizado || '');
+    getCodeEditor().value = htmlNormalizado || '';
     syncEditorSource();
+    atualizarDisponibilidadeModosEditor();
+    atualizarPreviewEditor();
+  }
+
+  function atualizarPreviewEditor() {
+    const frame = getPreviewFrame();
+    if (!frame) return;
+    const bruto = getCodeEditor().value.trim();
+    const visual = document.getElementById('artigo-conteudo').value.trim();
+    const conteudoBruto = bruto || visual;
+    const conteudoNormalizado = normalizarHtmlDocumentoCompleto(conteudoBruto);
+    const conteudo = ehHtmlDocumentoCompleto(conteudoNormalizado) ? conteudoNormalizado : conteudoBruto;
+    const html = ehHtmlDocumentoCompleto(conteudo)
+      ? prepararHtmlDocumentoParaIframe(conteudo)
+      : (contemHtml(conteudo) ? conteudo : textoParaHtml(conteudo));
+    frame.setAttribute('sandbox', 'allow-same-origin allow-scripts allow-forms allow-modals allow-popups allow-downloads');
+    frame.srcdoc = html || '<!DOCTYPE html><html lang="pt-BR"><body style="font-family:Segoe UI,sans-serif;padding:24px;color:#111827">Sem conteúdo para visualizar.</body></html>';
+  }
+
+  function definirModoEdicaoArtigo(modo) {
+    if (state.artigoHtmlCompleto && modo === 'visual') {
+      modo = 'codigo';
+    }
+    if (state.artigoTemDocumentoIncorporado && modo === 'visual') {
+      modo = 'pagina';
+    }
+
+    state.modoEditor = modo;
+    const editor = getEditor();
+    const codigo = getCodeEditor();
+    const frame = getPreviewFrame();
+    const toolbar = document.querySelector('.kb-editor-toolbar');
+
+    if (modo === 'codigo' || modo === 'pagina') {
+      codigo.value = codigo.value || document.getElementById('artigo-conteudo').value || editor.innerHTML || '';
+    } else if (!state.artigoHtmlCompleto) {
+      editor.innerHTML = limparHtmlEditor(codigo.value || editor.innerHTML || '');
+      syncEditorSource();
+    }
+
+    editor.style.display = modo === 'visual' ? '' : 'none';
+    if (toolbar) toolbar.style.display = modo === 'visual' ? 'flex' : 'none';
+    codigo.style.display = modo === 'codigo' ? 'block' : 'none';
+    frame.style.display = modo === 'pagina' ? 'block' : 'none';
+
+    const botoes = {
+      visual: document.getElementById('btn-editor-modo-visual'),
+      codigo: document.getElementById('btn-editor-modo-codigo'),
+      pagina: document.getElementById('btn-editor-modo-pagina'),
+    };
+    Object.entries(botoes).forEach(([key, btn]) => {
+      if (btn) btn.classList.toggle('ativo', key === modo);
+    });
+
+    atualizarPreviewEditor();
+  }
+
+  function atualizarDisponibilidadeModosEditor() {
+    const btnVisual = document.getElementById('btn-editor-modo-visual');
+    const toolbar = document.querySelector('.kb-editor-toolbar');
+    if (btnVisual) {
+      btnVisual.disabled = !!state.artigoHtmlCompleto || !!state.artigoTemDocumentoIncorporado;
+      btnVisual.title = state.artigoHtmlCompleto
+        ? 'Documentos HTML completos devem ser editados em Código HTML para preservar classes, ids e scripts.'
+        : 'Editar visualmente';
+      if (state.artigoTemDocumentoIncorporado && !state.artigoHtmlCompleto) {
+        btnVisual.title = 'Artigos com PDF incorporado devem ser visualizados em Pagina para manter o preview estavel.';
+      }
+    }
+    if (toolbar && (state.artigoHtmlCompleto || state.artigoTemDocumentoIncorporado) && state.modoEditor !== 'visual') {
+      toolbar.style.display = 'none';
+    }
   }
 
   function criarFragmentoHtml(html) {
@@ -233,7 +325,31 @@
     insertHtmlAtCursor('<a href="' + url + '" target="_blank" rel="noopener noreferrer">' + texto + '</a>');
   }
 
+  function inserirMarcadorDocumentoPendente(item) {
+    if (!item || !item.token || !item.file) return;
+    const nome = esc(item.file.name || 'documento');
+    const token = esc(item.token);
+    const tipoMime = String(item.file.type || '').toLowerCase();
+    const nomeArquivo = String(item.file.name || '').toLowerCase();
+    const ehPdf = tipoMime === 'application/pdf' || nomeArquivo.endsWith('.pdf');
+
+    const html = ehPdf
+      ? '<blockquote data-kb-doc-token="' + token + '"><strong>PDF incorporado:</strong> ' + nome + '<br><em>O arquivo sera anexado e convertido em conteudo legivel ao salvar.</em></blockquote>'
+      : '<blockquote data-kb-doc-token="' + token + '"><strong>Documento incorporado:</strong> ' + nome + '<br><em>O arquivo sera anexado e exibido no conteudo ao salvar.</em></blockquote>';
+
+    if (state.modoEditor === 'codigo' || state.modoEditor === 'pagina') {
+      const codigo = getCodeEditor();
+      codigo.value = (codigo.value || '') + '\n' + html + '\n';
+      atualizarPreviewEditor();
+      return;
+    }
+
+    insertHtmlAtCursor(html);
+  }
+
   window.getEditor = getEditor;
+  window.getCodeEditor = getCodeEditor;
+  window.getPreviewFrame = getPreviewFrame;
   window.isSelectionInsideEditor = isSelectionInsideEditor;
   window.posicionarCursorNoFimEditor = posicionarCursorNoFimEditor;
   window.focusEditor = focusEditor;
@@ -242,6 +358,9 @@
   window.syncEditorSource = syncEditorSource;
   window.getEditorHtml = getEditorHtml;
   window.setEditorHtml = setEditorHtml;
+  window.atualizarPreviewEditor = atualizarPreviewEditor;
+  window.definirModoEdicaoArtigo = definirModoEdicaoArtigo;
+  window.atualizarDisponibilidadeModosEditor = atualizarDisponibilidadeModosEditor;
   window.criarFragmentoHtml = criarFragmentoHtml;
   window.insertFragmentAtCursor = insertFragmentAtCursor;
   window.insertHtmlAtCursor = insertHtmlAtCursor;
@@ -261,4 +380,5 @@
   window.converterParaHtml = converterParaHtml;
   window.previewConteudo = previewConteudo;
   window.inserirLink = inserirLink;
+  window.inserirMarcadorDocumentoPendente = inserirMarcadorDocumentoPendente;
 })();

@@ -1,6 +1,6 @@
-/**
+﻿/**
  * routes/patrimonio.js
- * Gestão de Patrimônio — Portal WKL
+ * GestÃ£o de PatrimÃ´nio â€” Portal WKL
  */
 
 const express            = require('express');
@@ -8,17 +8,26 @@ const router             = express.Router();
 const sql                = require('mssql');
 const path               = require('path');
 const { registrarLog }   = require('../services/logService');
+const { enviarNotificacaoWhatsAppPorChips } = require('../services/whatsappDispatchService');
+const { renderizarMensagemWhatsApp } = require('../services/whatsappTemplateService');
+const {
+  carregarConfigProtheus,
+  listarColunasProtheus,
+  listarDistintosProtheus,
+  listarOpcoesPatrimonioProtheus,
+  buscarAtivosProtheus,
+} = require('../services/protheusService');
 
 function verificarLogin(req, res, next) {
   if (!req.session?.usuario) {
     return req.path.startsWith('/api/')
-      ? res.status(401).json({ erro: 'Não autorizado.' })
+      ? res.status(401).json({ erro: 'NÃ£o autorizado.' })
       : res.redirect('/login.html');
   }
   next();
 }
 
-// Verifica se o usuário tem nível mínimo de acesso ao patrimônio
+// Verifica se o usuÃ¡rio tem nÃ­vel mÃ­nimo de acesso ao patrimÃ´nio
 // Admin sempre passa. Outros consultam pat_permissoes.
 async function verificarAcesso(nivelMinimo, req, res, next) {
   const u = req.session.usuario;
@@ -34,7 +43,7 @@ async function verificarAcesso(nivelMinimo, req, res, next) {
     const nivelUsuario = r.recordset[0]?.nivel || null;
     if (!nivelUsuario || (NIVEL[nivelUsuario] || 0) < (NIVEL[nivelMinimo] || 0)) {
       return req.path.startsWith('/api/')
-        ? res.status(403).json({ erro: 'Sem permissão para esta operação.' })
+        ? res.status(403).json({ erro: 'Sem permissÃ£o para esta operaÃ§Ã£o.' })
         : res.redirect('/login.html');
     }
     req.patNivel = nivelUsuario;
@@ -47,15 +56,159 @@ async function verificarAcesso(nivelMinimo, req, res, next) {
 const acessoVer   = (req, res, next) => verificarAcesso('visualizar', req, res, next);
 const acessoEditar = (req, res, next) => verificarAcesso('editar', req, res, next);
 
+function normalizarTipoEventoPatrimonio(tipo) {
+  return String(tipo || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim();
+}
+
+function tipoGeraTermo(tipo) {
+  return [
+    'disponibilizado',
+    'transferido',
+    'devolvido',
+    'emprestimo',
+    'avaria',
+    'sinistro',
+    'descarte',
+    'manutencao',
+  ].includes(normalizarTipoEventoPatrimonio(tipo));
+}
+
+async function enviarWhatsAppPatrimonio(pool, evento, contexto, meta = {}) {
+  const eventoLabel = {
+    'patrimonio.cadastro': 'Novo ativo cadastrado',
+    'patrimonio.transferencia': 'Ativo transferido',
+    'patrimonio.avaria': 'Avaria registrada',
+    'patrimonio.descarte': 'Ativo descartado',
+  };
+  const mensagem = await renderizarMensagemWhatsApp(pool, 'patrimonio.evento_padrao', {
+    evento_label: eventoLabel[evento] || evento,
+    codigo: contexto.codigo || '-',
+    descricao_item: contexto.descricao || '-',
+    responsavel_atual: contexto.responsavelAtual || '-',
+    novo_responsavel: contexto.novoResponsavel || '-',
+    link: 'http://192.168.0.80:3132/patrimonio/',
+  });
+
+  await enviarNotificacaoWhatsAppPorChips(pool, {
+    evento,
+    sistema: 'patrimonio',
+    mensagem,
+    usuario: meta.usuario || 'sistema',
+    ip: meta.ip || '',
+    mapaChips: {
+      responsavel_atual: contexto.responsavelAtual ? [contexto.responsavelAtual] : [],
+      novo_responsavel: contexto.novoResponsavel ? [contexto.novoResponsavel] : [],
+      gestores_setor: [],
+    },
+  });
+}
+
 // ============================================================
-// PÁGINA
+// PÃGINA
 // ============================================================
 router.get('/patrimonio', verificarLogin, acessoVer, (req, res) => {
   res.sendFile(path.join(__dirname, '../public/patrimonio/index.html'));
 });
 
+router.get('/patrimonio/protheus-teste', verificarLogin, acessoEditar, (req, res) => {
+  res.sendFile(path.join(__dirname, '../public/patrimonio/protheus-teste.html'));
+});
+
+router.get('/api/patrimonio/protheus/schema', verificarLogin, acessoEditar, async (req, res) => {
+  const pool = req.app.locals.pool;
+
+  try {
+    const config = await carregarConfigProtheus(pool);
+    const tabela = String(config.protheus_patrimonio_tabela || config.protheus_patrimonio_alias || 'SN1010').trim().toUpperCase();
+    const colunas = await listarColunasProtheus(pool, tabela);
+    const opcoes = await listarOpcoesPatrimonioProtheus(pool, {
+      tabela,
+      campoFilial: config.protheus_patrimonio_campo_filial || 'N1_FILIAL',
+      campoLocal: config.protheus_patrimonio_campo_local || 'N1_LOCAL',
+      campoStatus: config.protheus_patrimonio_campo_status || 'N1_STATUS',
+      campoFornecedor: config.protheus_patrimonio_campo_fornecedor || 'N1_FORNEC',
+      campoLoja: config.protheus_patrimonio_campo_loja || 'N1_LOJA',
+      campoNota: config.protheus_patrimonio_campo_nota_fiscal || 'N1_NFISCAL',
+    });
+
+    res.json({
+      sucesso: true,
+      tabela,
+      colunas,
+      empresas: opcoes.empresas,
+      filiais: opcoes.filiais,
+      locais: opcoes.locais,
+      empresasCadastro: opcoes.empresasCadastro || opcoes.empresas,
+      filiaisCadastro: opcoes.filiaisCadastro || opcoes.filiais,
+      locaisCadastro: opcoes.locaisCadastro || opcoes.locais,
+      status: opcoes.status,
+      statusBemCadastro: opcoes.statusBemCadastro || [],
+      motivosCadastro: opcoes.motivosCadastro || [],
+      fornecedores: opcoes.fornecedores,
+      notas: opcoes.notas,
+      sugestoes: {
+        codigo: config.protheus_patrimonio_campo_codigo || 'N1_CBASE',
+        descricao: config.protheus_patrimonio_campo_descricao || 'N1_DESCRIC',
+        fornecedor: config.protheus_patrimonio_campo_fornecedor || 'N1_FORNEC',
+        local: config.protheus_patrimonio_campo_local || 'N1_LOCAL',
+        serie: config.protheus_patrimonio_campo_num_serie || 'N1_NSERIE',
+        nota: config.protheus_patrimonio_campo_nota_fiscal || 'N1_NFISCAL',
+        status: config.protheus_patrimonio_campo_status || 'N1_STATUS',
+        barra: config.protheus_patrimonio_campo_codigo_barras || 'N1_CODBAR',
+        filial: config.protheus_patrimonio_campo_filial || 'N1_FILIAL',
+        loja: config.protheus_patrimonio_campo_loja || 'N1_LOJA',
+      },
+      obrigatoriosPortal: ['codigo', 'descricao'],
+      recomendadosPortal: ['categoria', 'fornecedor', 'num_serie', 'nota_fiscal', 'loc_tipo', 'loc_detalhe', 'status', 'estado'],
+    });
+  } catch (e) {
+    res.status(500).json({ erro: e.message });
+  }
+});
+
+router.get('/api/patrimonio/protheus/ativos', verificarLogin, acessoEditar, async (req, res) => {
+  const pool = req.app.locals.pool;
+
+  try {
+    const resultado = await buscarAtivosProtheus(pool, {
+      tabela: req.query.tabela,
+      q: req.query.q,
+      campoBusca: req.query.campoBusca,
+      empresa: req.query.empresa,
+      filial: req.query.filial,
+      status: req.query.status,
+      fornecedor: req.query.fornecedor,
+      nota: req.query.nota,
+      local: req.query.local,
+      limite: req.query.limite,
+      campoCódigo: req.query.campoCodigo,
+      campoDescrição: req.query.campoDescricao,
+      campoFornecedor: req.query.campoFornecedor,
+      campoLocal: req.query.campoLocal,
+      campoSerie: req.query.campoSerie,
+      campoNota: req.query.campoNota,
+      campoStatus: req.query.campoStatus,
+      campoBarra: req.query.campoBarra,
+      campoFilial: req.query.campoFilial,
+    });
+
+    res.json({
+      sucesso: true,
+      tabela: resultado.tabela,
+      mapeamento: resultado.mapeamento,
+      ativos: resultado.rows,
+    });
+  } catch (e) {
+    res.status(500).json({ erro: e.message });
+  }
+});
+
 // ============================================================
-// GET /api/patrimonio/usuarios — Usuários locais + domínio
+// GET /api/patrimonio/usuarios â€” UsuÃ¡rios locais + domÃ­nio
 // ============================================================
 router.get('/api/patrimonio/usuarios', verificarLogin, acessoVer, async (req, res) => {
   const pool = req.app.locals.pool;
@@ -73,7 +226,7 @@ router.get('/api/patrimonio/usuarios', verificarLogin, acessoVer, async (req, re
 });
 
 // ============================================================
-// GET /api/patrimonio/bens — Listar bens
+// GET /api/patrimonio/bens â€” Listar bens
 // ============================================================
 router.get('/api/patrimonio/bens', verificarLogin, acessoVer, async (req, res) => {
   const pool = req.app.locals.pool;
@@ -98,12 +251,26 @@ router.get('/api/patrimonio/bens', verificarLogin, acessoVer, async (req, res) =
 
     const r = await request.query(`
       SELECT TOP 500
-        id, codigo, descricao, categoria, marca, num_serie,
-        loc_tipo, loc_detalhe, status, estado, valor, data_compra,
-        responsavel_atual, setor_atual, criado_em
-      FROM pat_bens
+        b.id, b.codigo, b.descricao, b.categoria, b.marca, b.num_serie,
+        b.loc_tipo, b.loc_detalhe, b.status, b.estado, b.valor, b.data_compra,
+        b.responsavel_atual, b.setor_atual, b.criado_em,
+        ult.tipo AS ultimo_tipo,
+        ult.data_evt AS ultima_data_evt,
+        ult.detalhe AS ultimo_detalhe,
+        ult.numero_termo AS ultimo_numero_termo
+      FROM pat_bens b
+      OUTER APPLY (
+        SELECT TOP 1
+          h.tipo,
+          h.data_evt,
+          h.detalhe,
+          h.numero_termo
+        FROM pat_historico h
+        WHERE h.bem_id = b.id
+        ORDER BY h.data_evt DESC, h.registrado_em DESC, h.id DESC
+      ) ult
       ${where}
-      ORDER BY criado_em DESC
+      ORDER BY b.criado_em DESC
     `);
 
     res.json({ sucesso: true, bens: r.recordset });
@@ -113,7 +280,7 @@ router.get('/api/patrimonio/bens', verificarLogin, acessoVer, async (req, res) =
 });
 
 // ============================================================
-// GET /api/patrimonio/bens/:id — Buscar bem + histórico
+// GET /api/patrimonio/bens/:id â€” Buscar bem + histÃ³rico
 // ============================================================
 router.get('/api/patrimonio/bens/:id', verificarLogin, acessoVer, async (req, res) => {
   const pool = req.app.locals.pool;
@@ -124,7 +291,7 @@ router.get('/api/patrimonio/bens/:id', verificarLogin, acessoVer, async (req, re
       .input('id', sql.Int, id)
       .query('SELECT * FROM pat_bens WHERE id = @id');
 
-    if (!bem.recordset.length) return res.status(404).json({ erro: 'Bem não encontrado.' });
+    if (!bem.recordset.length) return res.status(404).json({ erro: 'Bem nÃ£o encontrado.' });
 
     const hist = await pool.request()
       .input('id', sql.Int, id)
@@ -137,7 +304,7 @@ router.get('/api/patrimonio/bens/:id', verificarLogin, acessoVer, async (req, re
 });
 
 // ============================================================
-// POST /api/patrimonio/bens — Criar bem
+// POST /api/patrimonio/bens â€” Criar bem
 // ============================================================
 router.post('/api/patrimonio/bens', verificarLogin, acessoEditar, async (req, res) => {
   const pool = req.app.locals.pool;
@@ -145,10 +312,11 @@ router.post('/api/patrimonio/bens', verificarLogin, acessoEditar, async (req, re
   const {
     codigo, descricao, categoria, marca, num_serie,
     fornecedor, nota_fiscal, data_compra, valor,
-    loc_tipo, loc_detalhe, loc_obs, estado, status, fotos
+    loc_tipo, loc_detalhe, loc_obs, estado, status, fotos,
+    responsavel_atual, setor_atual
   } = req.body;
 
-  if (!codigo || !descricao) return res.status(400).json({ erro: 'Código e Descrição são obrigatórios.' });
+  if (!codigo || !descricao) return res.status(400).json({ erro: 'CÃ³digo e DescriÃ§Ã£o sÃ£o obrigatÃ³rios.' });
 
   try {
     const r = await pool.request()
@@ -166,21 +334,25 @@ router.post('/api/patrimonio/bens', verificarLogin, acessoEditar, async (req, re
       .input('loc_obs',     sql.VarChar(500),   loc_obs     || null)
       .input('estado',      sql.VarChar(20),    estado      || 'Bom')
       .input('status',      sql.VarChar(30),    status      || 'Ativo')
+      .input('responsavel_atual', sql.VarChar(150), responsavel_atual || null)
+      .input('setor_atual', sql.VarChar(100), setor_atual || null)
       .input('fotos',       sql.VarChar(sql.MAX), fotos ? JSON.stringify(fotos) : null)
       .input('criado_por',  sql.VarChar(100),   u.usuario)
       .query(`
         INSERT INTO pat_bens
           (codigo, descricao, categoria, marca, num_serie, fornecedor, nota_fiscal,
-           data_compra, valor, loc_tipo, loc_detalhe, loc_obs, estado, status, fotos, criado_por)
+           data_compra, valor, loc_tipo, loc_detalhe, loc_obs, estado, status,
+           responsavel_atual, setor_atual, fotos, criado_por)
         OUTPUT INSERTED.id
         VALUES
           (@codigo, @descricao, @categoria, @marca, @num_serie, @fornecedor, @nota_fiscal,
-           @data_compra, @valor, @loc_tipo, @loc_detalhe, @loc_obs, @estado, @status, @fotos, @criado_por)
+           @data_compra, @valor, @loc_tipo, @loc_detalhe, @loc_obs, @estado, @status,
+           @responsavel_atual, @setor_atual, @fotos, @criado_por)
       `);
 
     const novoId = r.recordset[0].id;
 
-    // Histórico inicial automático
+    // HistÃ³rico inicial automÃ¡tico
     await pool.request()
       .input('bem_id',        sql.Int,          novoId)
       .input('data_evt',      sql.Date,         new Date())
@@ -193,18 +365,24 @@ router.post('/api/patrimonio/bens', verificarLogin, acessoEditar, async (req, re
         VALUES (@bem_id, @data_evt, @tipo, @detalhe, @resp, @registrado_por)
       `);
 
-    registrarLog(pool, { usuario: u.usuario, ip: req.ip, acao: 'CRIACAO', sistema: 'patrimonio', detalhes: `Bem cadastrado: ${codigo} — ${descricao}` });
+    registrarLog(pool, { usuario: u.usuario, ip: req.ip, acao: 'CRIACAO', sistema: 'patrimonio', detalhes: `Bem cadastrado: ${codigo} â€” ${descricao}` });
+    enviarWhatsAppPatrimonio(pool, 'patrimonio.cadastro', {
+      codigo,
+      descricao,
+      responsavelAtual: '',
+      novoResponsavel: '',
+    }, { usuario: u.usuario, ip: req.ip }).catch(() => {});
     res.json({ sucesso: true, id: novoId });
   } catch (e) {
     if (e.message.includes('uq_pat_codigo') || e.message.includes('UNIQUE')) {
-      return res.status(409).json({ erro: 'Código já cadastrado.' });
+      return res.status(409).json({ erro: 'CÃ³digo jÃ¡ cadastrado.' });
     }
     res.status(500).json({ erro: e.message });
   }
 });
 
 // ============================================================
-// PUT /api/patrimonio/bens/:id — Atualizar bem
+// PUT /api/patrimonio/bens/:id â€” Atualizar bem
 // ============================================================
 router.put('/api/patrimonio/bens/:id', verificarLogin, acessoEditar, async (req, res) => {
   const pool    = req.app.locals.pool;
@@ -213,7 +391,8 @@ router.put('/api/patrimonio/bens/:id', verificarLogin, acessoEditar, async (req,
   const {
     descricao, categoria, marca, num_serie,
     fornecedor, nota_fiscal, data_compra, valor,
-    loc_tipo, loc_detalhe, loc_obs, estado, status, fotos
+    loc_tipo, loc_detalhe, loc_obs, estado, status, fotos,
+    responsavel_atual, setor_atual
   } = req.body;
 
   try {
@@ -232,6 +411,8 @@ router.put('/api/patrimonio/bens/:id', verificarLogin, acessoEditar, async (req,
       .input('loc_obs',     sql.VarChar(500),   loc_obs     || null)
       .input('estado',      sql.VarChar(20),    estado      || 'Bom')
       .input('status',      sql.VarChar(30),    status      || 'Ativo')
+      .input('responsavel_atual', sql.VarChar(150), responsavel_atual || null)
+      .input('setor_atual', sql.VarChar(100), setor_atual || null)
       .input('fotos',       sql.VarChar(sql.MAX), fotos ? JSON.stringify(fotos) : null)
       .query(`
         UPDATE pat_bens SET
@@ -239,7 +420,9 @@ router.put('/api/patrimonio/bens/:id', verificarLogin, acessoEditar, async (req,
           num_serie = @num_serie, fornecedor = @fornecedor, nota_fiscal = @nota_fiscal,
           data_compra = @data_compra, valor = @valor,
           loc_tipo = @loc_tipo, loc_detalhe = @loc_detalhe, loc_obs = @loc_obs,
-          estado = @estado, status = @status, fotos = @fotos,
+          estado = @estado, status = @status,
+          responsavel_atual = @responsavel_atual, setor_atual = @setor_atual,
+          fotos = @fotos,
           atualizado_em = GETDATE()
         WHERE id = @id
       `);
@@ -252,7 +435,7 @@ router.put('/api/patrimonio/bens/:id', verificarLogin, acessoEditar, async (req,
 });
 
 // ============================================================
-// DELETE /api/patrimonio/bens/:id — Excluir bem
+// DELETE /api/patrimonio/bens/:id â€” Excluir bem
 // ============================================================
 router.delete('/api/patrimonio/bens/:id', verificarLogin, acessoEditar, async (req, res) => {
   const pool    = req.app.locals.pool;
@@ -267,7 +450,7 @@ router.delete('/api/patrimonio/bens/:id', verificarLogin, acessoEditar, async (r
     await pool.request().input('id', sql.Int, id)
       .query('DELETE FROM pat_bens WHERE id = @id');
     const bem = bemR.recordset[0];
-    registrarLog(pool, { usuario, ip: req.ip, acao: 'EXCLUSAO', sistema: 'patrimonio', detalhes: `Bem excluído: ${bem?.codigo} — ${bem?.descricao}` });
+    registrarLog(pool, { usuario, ip: req.ip, acao: 'EXCLUSAO', sistema: 'patrimonio', detalhes: `Bem excluÃ­do: ${bem?.codigo} â€” ${bem?.descricao}` });
     res.json({ sucesso: true });
   } catch (e) {
     res.status(500).json({ erro: e.message });
@@ -275,12 +458,10 @@ router.delete('/api/patrimonio/bens/:id', verificarLogin, acessoEditar, async (r
 });
 
 // ============================================================
-// POST /api/patrimonio/bens/:id/historico — Registrar evento
+// POST /api/patrimonio/bens/:id/historico â€” Registrar evento
 // ============================================================
 
 // Tipos que geram termos formais
-const TIPOS_COM_TERMO = ['Disponibilizado', 'Transferido', 'Devolvido', 'Empréstimo', 'Avaria', 'Sinistro', 'Descarte', 'Manutenção'];
-
 router.post('/api/patrimonio/bens/:id/historico', verificarLogin, acessoEditar, async (req, res) => {
   const pool = req.app.locals.pool;
   const u    = req.session.usuario;
@@ -291,12 +472,12 @@ router.post('/api/patrimonio/bens/:id/historico', verificarLogin, acessoEditar, 
     responsavel_de, responsavel_para, setor_destino, novo_estado
   } = req.body;
 
-  if (!resp) return res.status(400).json({ erro: 'Responsável é obrigatório.' });
+  if (!resp) return res.status(400).json({ erro: 'ResponsÃ¡vel Ã© obrigatÃ³rio.' });
 
   try {
-    // Gerar número do termo (ex: TERM-20260306-0042)
+    // Gerar nÃºmero do termo (ex: TERM-20260306-0042)
     let numero_termo = null;
-    if (TIPOS_COM_TERMO.includes(tipo)) {
+    if (tipoGeraTermo(tipo)) {
       const hoje = new Date();
       const yyyymmdd = `${hoje.getFullYear()}${String(hoje.getMonth()+1).padStart(2,'0')}${String(hoje.getDate()).padStart(2,'0')}`;
       const countR = await pool.request().query(`SELECT COUNT(*)+1 AS n FROM pat_historico WHERE numero_termo IS NOT NULL`);
@@ -328,7 +509,7 @@ router.post('/api/patrimonio/bens/:id/historico', verificarLogin, acessoEditar, 
 
     const histId = ins.recordset[0].id;
 
-    // Aplica alterações no bem
+    // Aplica alteraÃ§Ãµes no bem
     const sets = ['atualizado_em = GETDATE()'];
     const req2 = pool.request().input('id', sql.Int, id);
 
@@ -339,7 +520,7 @@ router.post('/api/patrimonio/bens/:id/historico', verificarLogin, acessoEditar, 
     if (responsavel_para) { sets.push('responsavel_atual = @resp_atual');  req2.input('resp_atual',         sql.VarChar(150), responsavel_para);  }
     if (setor_destino)    { sets.push('setor_atual = @setor_atual');       req2.input('setor_atual',        sql.VarChar(100), setor_destino);     }
 
-    // Devolvido/Descarte: limpa responsável atual
+    // Devolvido/Descarte: limpa responsÃ¡vel atual
     if (tipo === 'Devolvido' || tipo === 'Descarte') {
       sets.push('responsavel_atual = NULL');
       sets.push('setor_atual = NULL');
@@ -351,7 +532,29 @@ router.post('/api/patrimonio/bens/:id/historico', verificarLogin, acessoEditar, 
 
     const bemR = await pool.request().input('id', sql.Int, id).query('SELECT codigo, descricao FROM pat_bens WHERE id=@id');
     const bem  = bemR.recordset[0];
-    registrarLog(pool, { usuario: u.usuario, ip: req.ip, acao: 'EDICAO', sistema: 'patrimonio', detalhes: `${tipo} registrado: ${bem?.codigo} — ${bem?.descricao}${numero_termo ? ` (${numero_termo})` : ''}` });
+    registrarLog(pool, { usuario: u.usuario, ip: req.ip, acao: 'EDICAO', sistema: 'patrimonio', detalhes: `${tipo} registrado: ${bem?.codigo} â€” ${bem?.descricao}${numero_termo ? ` (${numero_termo})` : ''}` });
+    if (tipo === 'Transferido') {
+      enviarWhatsAppPatrimonio(pool, 'patrimonio.transferencia', {
+        codigo: bem?.codigo,
+        descricao: bem?.descricao,
+        responsavelAtual: responsavel_de || '',
+        novoResponsavel: responsavel_para || '',
+      }, { usuario: u.usuario, ip: req.ip }).catch(() => {});
+    } else if (tipo === 'Avaria' || tipo === 'Sinistro') {
+      enviarWhatsAppPatrimonio(pool, 'patrimonio.avaria', {
+        codigo: bem?.codigo,
+        descricao: bem?.descricao,
+        responsavelAtual: responsavel_de || resp || '',
+        novoResponsavel: '',
+      }, { usuario: u.usuario, ip: req.ip }).catch(() => {});
+    } else if (tipo === 'Descarte') {
+      enviarWhatsAppPatrimonio(pool, 'patrimonio.descarte', {
+        codigo: bem?.codigo,
+        descricao: bem?.descricao,
+        responsavelAtual: responsavel_de || resp || '',
+        novoResponsavel: '',
+      }, { usuario: u.usuario, ip: req.ip }).catch(() => {});
+    }
     res.json({ sucesso: true, histId, numero_termo });
   } catch (e) {
     res.status(500).json({ erro: e.message });
@@ -371,7 +574,7 @@ router.get('/api/patrimonio/categorias', verificarLogin, acessoVer, async (req, 
 
 router.post('/api/patrimonio/categorias', verificarLogin, acessoEditar, async (req, res) => {
   const { nome } = req.body;
-  if (!nome?.trim()) return res.status(400).json({ erro: 'Nome obrigatório.' });
+  if (!nome?.trim()) return res.status(400).json({ erro: 'Nome obrigatÃ³rio.' });
   try {
     const r = await req.app.locals.pool.request()
       .input('nome', sql.VarChar(80), nome.trim())
@@ -379,7 +582,7 @@ router.post('/api/patrimonio/categorias', verificarLogin, acessoEditar, async (r
     res.json({ sucesso: true, id: r.recordset[0].id });
   } catch (e) {
     if (e.message.includes('UNIQUE') || e.message.includes('unique'))
-      return res.status(409).json({ erro: 'Categoria já existe.' });
+      return res.status(409).json({ erro: 'Categoria jÃ¡ existe.' });
     res.status(500).json({ erro: e.message });
   }
 });
@@ -406,7 +609,7 @@ router.get('/api/patrimonio/unidades', verificarLogin, acessoVer, async (req, re
 
 router.post('/api/patrimonio/unidades', verificarLogin, acessoEditar, async (req, res) => {
   const { nome } = req.body;
-  if (!nome?.trim()) return res.status(400).json({ erro: 'Nome obrigatório.' });
+  if (!nome?.trim()) return res.status(400).json({ erro: 'Nome obrigatÃ³rio.' });
   try {
     const r = await req.app.locals.pool.request()
       .input('nome', sql.VarChar(80), nome.trim())
@@ -414,7 +617,7 @@ router.post('/api/patrimonio/unidades', verificarLogin, acessoEditar, async (req
     res.json({ sucesso: true, id: r.recordset[0].id });
   } catch (e) {
     if (e.message.includes('UNIQUE') || e.message.includes('unique'))
-      return res.status(409).json({ erro: 'Unidade já existe.' });
+      return res.status(409).json({ erro: 'Unidade jÃ¡ existe.' });
     res.status(500).json({ erro: e.message });
   }
 });
@@ -429,7 +632,7 @@ router.delete('/api/patrimonio/unidades/:id', verificarLogin, acessoEditar, asyn
 });
 
 // ============================================================
-// GET /api/patrimonio/meu-acesso — Retorna nível do usuário logado
+// GET /api/patrimonio/meu-acesso â€” Retorna nÃ­vel do usuÃ¡rio logado
 // ============================================================
 router.get('/api/patrimonio/meu-acesso', verificarLogin, async (req, res) => {
   const u = req.app.locals.pool;
@@ -446,11 +649,11 @@ router.get('/api/patrimonio/meu-acesso', verificarLogin, async (req, res) => {
 });
 
 // ============================================================
-// PERMISSÕES (apenas admin)  /api/patrimonio/permissoes
+// PERMISSÃ•ES (apenas admin)  /api/patrimonio/permissoes
 // ============================================================
 function verificarAdmin(req, res, next) {
   if (req.session?.usuario?.nivel !== 'admin')
-    return res.status(403).json({ erro: 'Somente administradores podem gerenciar permissões.' });
+    return res.status(403).json({ erro: 'Somente administradores podem gerenciar permissÃµes.' });
   next();
 }
 
@@ -465,7 +668,7 @@ router.get('/api/patrimonio/permissoes', verificarLogin, verificarAdmin, async (
 router.post('/api/patrimonio/permissoes', verificarLogin, verificarAdmin, async (req, res) => {
   const { usuario, nivel } = req.body;
   if (!usuario?.trim() || !['visualizar', 'editar'].includes(nivel))
-    return res.status(400).json({ erro: 'Dados inválidos.' });
+    return res.status(400).json({ erro: 'Dados invÃ¡lidos.' });
   try {
     await req.app.locals.pool.request()
       .input('usuario', sql.VarChar(100), usuario.trim())
@@ -522,3 +725,4 @@ router.get('/api/patrimonio/contato/:nome', verificarLogin, async (req, res) => 
 });
 
 module.exports = router;
+

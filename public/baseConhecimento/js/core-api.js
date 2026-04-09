@@ -8,6 +8,9 @@
     listarCategorias() {
       return json('/api/conhecimento/categorias');
     },
+    listarFiltros() {
+      return json('/api/conhecimento/filtros');
+    },
     salvarCategoria(id, dados) {
       return json(id ? '/api/conhecimento/categorias/' + id : '/api/conhecimento/categorias', {
         method: id ? 'PUT' : 'POST',
@@ -37,6 +40,9 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(dados)
       });
+    },
+    obterPdfConvertido(id) {
+      return json('/api/conhecimento/anexos/' + id + '/pdf-html');
     },
     excluirArtigo(id) {
       return json('/api/conhecimento/artigos/' + id, { method: 'DELETE' });

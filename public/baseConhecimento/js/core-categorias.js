@@ -52,10 +52,14 @@
     for (const cat of state.categorias) {
       select.innerHTML += '<option value="' + cat.id + '">' + esc(cat.nome) + '</option>';
     }
+    if (window.preencherFiltros) window.preencherFiltros();
   }
 
   function filtrarCategoria(id) {
     state.categoriaAtiva = id;
+    state.filtros.categoria_id = id ? String(id) : '';
+    const selectFiltro = document.getElementById('filtro-categoria');
+    if (selectFiltro) selectFiltro.value = id ? String(id) : '';
     const cat = state.categorias.find((item) => item.id === id);
     document.getElementById('titulo-secao').textContent = cat ? cat.nome : 'Todos os Artigos';
     window.carregarArtigos();

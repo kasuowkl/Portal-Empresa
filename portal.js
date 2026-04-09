@@ -24,6 +24,7 @@ const winston        = require('winston');
 const { criarBancoPortal, getPool }     = require('./criarBancoPortal');
 const { iniciarCronFinanceiro }         = require('./services/cronFinanceiro');
 const { iniciarCronAprovacoes }         = require('./services/cronAprovacoes');
+const { iniciarCronWhatsApp }           = require('./services/cronWhatsApp');
 const { iniciarCronCalendarios }        = require('./services/cronCalendarios');
 const { criarMssqlSessionStore }        = require('./services/sessionStore');
 
@@ -171,6 +172,7 @@ async function iniciarServidor() {
     // 3. Inicia os agendadores de lembretes e sincronizações
     iniciarCronFinanceiro(app.locals.pool);
     iniciarCronAprovacoes(app.locals.pool);
+    iniciarCronWhatsApp(app.locals.pool);
     iniciarCronCalendarios(app.locals);
 
     // 4. Inicia o servidor HTTP

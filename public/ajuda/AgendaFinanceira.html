@@ -199,7 +199,7 @@
         <a href="#status">Status e Fluxo</a>
         <a href="#configuracoes">Configurações</a>
         <a href="#logs">Logs de Auditoria</a>
-        <a href="#notificacoes">Notificações por E-mail</a>
+        <a href="#notificacoes">Notifica&ccedil;&otilde;es por E-mail e WhatsApp</a>
         <a href="#compartilhar">Compartilhar</a>
         <a href="#permissoes">Permissões</a>
         <br>
@@ -270,6 +270,10 @@
           Ao editar um lançamento recorrente, apenas aquela parcela é alterada. Para excluir todas as parcelas do grupo, use o botão <strong>Excluir Grupo</strong>.
         </div>
       </section>
+        <div class="doc-info">
+          <i class="fab fa-whatsapp" style="color:#25d366; margin-right:6px"></i>
+          Cada tentativa de envio por WhatsApp fica registrada em <strong>Configurações → Logs</strong> com a ação <strong>NOTIF_WHATSAPP</strong>, incluindo status e detalhe do envio.
+        </div>
 
       <!-- RECORRÊNCIA -->
       <section class="doc-secao" id="recorrencia">
@@ -407,7 +411,7 @@
       <!-- NOTIFICAÇÕES -->
       <section class="doc-secao" id="notificacoes">
         <h2><i class="fas fa-bell"></i> Notificações por E-mail</h2>
-        <p>O módulo Financeiro envia e-mails automáticos para o <strong>dono</strong> da agenda e os <strong>membros com permissão de edição</strong>. Configure em <strong>Configurações → E-mail → Financeiro</strong>.</p>
+        <p>O módulo Financeiro envia e-mails automáticos para o <strong>dono</strong> da agenda e os <strong>membros com permissão de edição</strong>. Os mesmos eventos também podem ser enviados por WhatsApp via <strong>Configurações → WhatsApp → Financeiro</strong>.</p>
 
         <p><strong>Eventos em tempo real (disparados na ação):</strong></p>
 
@@ -455,7 +459,7 @@
 
         <div class="doc-info">
           <i class="fas fa-info-circle" style="color:#10b981; margin-right:6px"></i>
-          Os lembretes diários são enviados <strong>individualmente</strong> para cada membro da agenda (dono + editores), com as contas específicas das agendas que ele participa. Se não houver contas no período, o e-mail não é disparado. Use o botão <strong>"Testar e-mails Financeiro"</strong> em Configurações → E-mail → Financeiro para validar o envio.
+          Os lembretes diários são enviados <strong>individualmente</strong> para cada membro da agenda (dono + editores), com as contas específicas das agendas que ele participa. Se não houver contas no período, o envio não é disparado. Para WhatsApp, o painel permite combinar <strong>Criado por</strong>, <strong>Compartilhados com edição</strong>, <strong>Gestores do setor</strong>, <strong>Administradores</strong> e <strong>WhatsApp padrão</strong>.
         </div>
       </section>
 

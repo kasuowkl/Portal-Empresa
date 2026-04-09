@@ -1,0 +1,20 @@
+{
+  "items": [
+    {
+      "localPath": "public/configuracoes.html",
+      "remotePath": "/var/www/html/wkl/Portal/public/configuracoes.html"
+    },
+    {
+      "localPath": "public/fragmentos/protheus.html",
+      "remotePath": "/var/www/html/wkl/Portal/public/fragmentos/protheus.html"
+    },
+    {
+      "localPath": "routes/portal.js",
+      "remotePath": "/var/www/html/wkl/Portal/routes/portal.js"
+    },
+    {
+      "localPath": "services/protheusService.js",
+      "remotePath": "/var/www/html/wkl/Portal/services/protheusService.js"
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "items": [
+    {
+      "localPath": "routes/auth.js",
+      "remotePath": "/var/www/html/wkl/Portal/routes/auth.js"
+    },
+    {
+      "localPath": "routes/chamados.js",
+      "remotePath": "/var/www/html/wkl/Portal/routes/chamados.js"
+    },
+    {
+      "localPath": "routes/financeiro.js",
+      "remotePath": "/var/www/html/wkl/Portal/routes/financeiro.js"
+    },
+    {
+      "localPath": "routes/contabil.js",
+      "remotePath": "/var/www/html/wkl/Portal/routes/contabil.js"
+    },
+    {
+      "localPath": "routes/contatos.js",
+      "remotePath": "/var/www/html/wkl/Portal/routes/contatos.js"
+    },
+    {
+      "localPath": "routes/patrimonio.js",
+      "remotePath": "/var/www/html/wkl/Portal/routes/patrimonio.js"
+    },
+    {
+      "localPath": "routes/portal.js",
+      "remotePath": "/var/www/html/wkl/Portal/routes/portal.js"
+    },
+    {
+      "localPath": "services/cronFinanceiro.js",
+      "remotePath": "/var/www/html/wkl/Portal/services/cronFinanceiro.js"
+    },
+    {
+      "localPath": "services/whatsappDispatchService.js",
+      "remotePath": "/var/www/html/wkl/Portal/services/whatsappDispatchService.js"
+    }
+  ]
+}

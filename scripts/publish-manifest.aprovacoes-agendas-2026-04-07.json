@@ -1,0 +1,20 @@
+{
+  "items": [
+    {
+      "localPath": "public/agendaTarefas/index.html",
+      "remotePath": "/var/www/html/wkl/Portal/public/agendaTarefas/index.html"
+    },
+    {
+      "localPath": "public/agendaFinanceira/index.html",
+      "remotePath": "/var/www/html/wkl/Portal/public/agendaFinanceira/index.html"
+    },
+    {
+      "localPath": "routes/financeiro.js",
+      "remotePath": "/var/www/html/wkl/Portal/routes/financeiro.js"
+    },
+    {
+      "localPath": "criarBancoPortal.js",
+      "remotePath": "/var/www/html/wkl/Portal/criarBancoPortal.js"
+    }
+  ]
+}

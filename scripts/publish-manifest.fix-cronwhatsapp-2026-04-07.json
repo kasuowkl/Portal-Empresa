@@ -1,0 +1,8 @@
+{
+  "items": [
+    {
+      "localPath": "services/cronWhatsApp.js",
+      "remotePath": "/var/www/html/wkl/Portal/services/cronWhatsApp.js"
+    }
+  ]
+}

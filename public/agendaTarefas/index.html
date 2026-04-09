@@ -1,15 +1,15 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <!--
   ARQUIVO: public/agendaTarefas/index.html
-  VERSÃO:  1.0.0
+  VERSÃƒO:  1.0.0
   DATA:    2026-03-03
-  DESCRIÇÃO: Agenda de Tarefas — módulo integrado ao Portal WKL
+  DESCRIÃ‡ÃƒO: Agenda de Tarefas â€” mÃ³dulo integrado ao Portal WKL
 -->
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Portal WKL — Agenda de Tarefas</title>
+  <title>Portal WKL â€” Agenda de Tarefas</title>
 
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="/css/style.css">
@@ -18,9 +18,18 @@
 
   <style>
     /* Remove padding-top do body para a agenda ocupar tela cheia abaixo do menu */
-    body { padding-top: var(--altura-menu); overflow: hidden; }
+    body {
+      padding-top: var(--altura-menu);
+      overflow: hidden;
+      --border: var(--cor-borda);
+      --text: var(--cor-texto);
+      --gray: var(--cor-texto-fraco);
+      --primary: var(--cor-destaque);
+      --card: var(--cor-fundo-2);
+      --purple: var(--cor-destaque);
+    }
 
-    /* ── Passos / checklist ── */
+    /* â”€â”€ Passos / checklist â”€â”€ */
     .passos-box {
       background: var(--cor-fundo-2);
       border: 1px solid var(--cor-borda);
@@ -179,6 +188,167 @@
       outline-offset: -4px;
       border-radius: 8px;
     }
+    .coluna-agenda-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 12px;
+      background: var(--cor-fundo);
+      border: 1px solid var(--cor-borda);
+      border-radius: var(--raio);
+      margin-bottom: 8px;
+      transition: border-color .15s, background .15s, opacity .15s, transform .15s;
+    }
+    .coluna-agenda-item[draggable="true"] { cursor: grab; }
+    .coluna-agenda-item.dragging {
+      opacity: .45;
+      cursor: grabbing;
+    }
+    .coluna-agenda-item.drag-over {
+      border-color: var(--cor-destaque);
+      background: rgba(59, 130, 246, 0.08);
+      transform: translateY(-1px);
+    }
+    .coluna-agenda-handle {
+      color: var(--cor-texto-fraco);
+      cursor: grab;
+      font-size: .85rem;
+      width: 16px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+    .coluna-agenda-item.dragging .coluna-agenda-handle { cursor: grabbing; }
+    .chip-selector {
+      border: 1px solid var(--cor-borda);
+      border-radius: 8px;
+      background: #0f172a;
+      position: relative;
+    }
+    .chip-selector-top {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      padding: 8px 10px;
+      min-height: 42px;
+      align-items: center;
+      cursor: text;
+    }
+    .chip-selector-top input {
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--cor-texto);
+      font-size: 0.85rem;
+      font-family: inherit;
+      flex: 1;
+      min-width: 130px;
+    }
+    .chip-selector-top input::placeholder { color: var(--cor-texto-fraco); }
+    .chip-selector:focus-within { border-color: var(--cor-destaque); }
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: rgba(59,130,246,0.15);
+      border: 1px solid rgba(59,130,246,0.4);
+      border-radius: 20px;
+      padding: 3px 8px 3px 10px;
+      font-size: 0.78rem;
+      color: var(--cor-texto);
+      white-space: nowrap;
+    }
+    .chip-obs {
+      background: rgba(16,185,129,0.12);
+      border-color: rgba(16,185,129,0.4);
+    }
+    .chip-rem {
+      cursor: pointer;
+      color: var(--cor-texto-fraco);
+      line-height: 1;
+      font-size: 1rem;
+      padding: 0 2px;
+      border-radius: 50%;
+      transition: 0.15s;
+    }
+    .chip-rem:hover {
+      color: #ef4444;
+      background: rgba(239,68,68,0.15);
+    }
+    .chip-dropdown {
+      border-top: 1px solid var(--cor-borda);
+      max-height: 180px;
+      overflow-y: auto;
+      display: none;
+      border-radius: 0 0 8px 8px;
+      background: #0f172a;
+    }
+    .chip-dropdown.aberto { display: block; }
+    .chip-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 12px;
+      cursor: pointer;
+      border-bottom: 1px solid var(--cor-borda);
+      transition: background .15s;
+    }
+    .chip-item:last-child { border-bottom: none; }
+    .chip-item:hover { background: rgba(59,130,246,0.08); }
+    .chip-item.selecionado { background: rgba(59,130,246,0.06); }
+    .chip-item-nome { font-size: 0.85rem; }
+    .chip-item-login { font-size: 0.75rem; color: var(--cor-texto-fraco); }
+    .consenso-select {
+      width: 100%;
+      background: #0f172a;
+      border: 1px solid var(--cor-borda);
+      border-radius: 8px;
+      padding: 10px 32px 10px 14px;
+      color: var(--cor-texto);
+      font-size: 0.9rem;
+      font-family: inherit;
+      cursor: pointer;
+      transition: border-color .2s;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2394a3b8' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+    }
+    .consenso-select:focus {
+      outline: none;
+      border-color: var(--cor-destaque);
+    }
+    .campo-grupo { margin-bottom: 16px; }
+    .campo-grupo label {
+      display: block;
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: var(--cor-texto-fraco);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+    }
+    .campo-grupo input,
+    .campo-grupo textarea {
+      width: 100%;
+      background: #0f172a;
+      border: 1px solid var(--cor-borda);
+      border-radius: 8px;
+      padding: 10px 14px;
+      color: var(--cor-texto);
+      font-size: 0.9rem;
+      font-family: inherit;
+      transition: border-color .2s;
+      resize: vertical;
+    }
+    .campo-grupo input:focus,
+    .campo-grupo textarea:focus {
+      outline: none;
+      border-color: var(--cor-destaque);
+    }
+    .campo-grupo input::placeholder,
+    .campo-grupo textarea::placeholder {
+      color: var(--cor-texto-fraco);
+    }
   </style>
 </head>
 <body>
@@ -186,12 +356,12 @@
   <!-- Menu compartilhado -->
   <div id="menu-container"></div>
 
-  <!-- ═══════════════════════════════════════════════════════════
+  <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
        LAYOUT PRINCIPAL
-       ═══════════════════════════════════════════════════════════ -->
+       â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
   <div class="agenda-layout">
 
-    <!-- ── Sidebar: lista de projetos ───────────────────────── -->
+    <!-- â”€â”€ Sidebar: lista de projetos â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
     <aside class="agenda-sidebar" id="sidebar">
 
       <div class="sidebar-titulo">Minhas listas</div>
@@ -210,22 +380,22 @@
 
     </aside>
 
-    <!-- ── Conteúdo principal ───────────────────────────────── -->
+    <!-- â”€â”€ ConteÃºdo principal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
     <main class="agenda-conteudo" id="conteudo">
 
       <!-- tela de boas-vindas -->
       <div class="agenda-vazia" id="tela-boas-vindas">
         <i class="fas fa-tasks"></i>
-        <h3>Selecione ou crie uma lista para começar</h3>
+        <h3>Selecione ou crie uma lista para comeÃ§ar</h3>
         <button class="btn btn-primario btn-sm" style="width:auto" onclick="abrirModalLista()">
           <i class="fas fa-plus"></i> Nova lista
         </button>
       </div>
 
-      <!-- painel de lista (oculto até selecionar) -->
+      <!-- painel de lista (oculto atÃ© selecionar) -->
       <div id="painel-lista" style="display:none; flex-direction:column; flex:1">
 
-        <!-- cabeçalho da lista -->
+        <!-- cabeÃ§alho da lista -->
         <div class="lista-header">
           <span class="lista-header-cor" id="hdr-cor"></span>
           <span class="lista-header-nome-wrap">
@@ -256,6 +426,7 @@
               <option value="a_fazer">A fazer</option>
               <option value="em_andamento">Em andamento</option>
               <option value="concluida">Concluída</option>
+              <option value="aguardando">Aguardando</option>
             </select>
             <select class="filtro-select" id="filtro-prioridade" onchange="aplicarFiltros()">
               <option value="">Todas as prioridades</option>
@@ -285,7 +456,7 @@
                 <th>Prioridade</th>
                 <th>Categoria</th>
                 <th>Status</th>
-                <th class="col-acoes">Ações</th>
+                <th class="col-acoes">AÃ§Ãµes</th>
               </tr>
             </thead>
             <tbody id="tbody-tarefas">
@@ -303,9 +474,9 @@
     </main>
   </div>
 
-  <!-- ═══════════════════════════════════════════════════════════
-       MODAL — Nova / Editar Lista
-       ═══════════════════════════════════════════════════════════ -->
+  <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+       MODAL â€” Nova / Editar Lista
+       â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
   <div class="modal-overlay" id="modal-lista">
     <div class="modal">
       <div class="modal-header">
@@ -326,7 +497,7 @@
           <label>Cor</label>
           <div class="cor-picker-wrap">
             <input type="color" id="lista-cor" value="#3b82f6">
-            <span style="font-size:0.85rem; color:var(--cor-texto-fraco)">Escolha uma cor de identificação</span>
+            <span style="font-size:0.85rem; color:var(--cor-texto-fraco)">Escolha uma cor de identificaÃ§Ã£o</span>
           </div>
         </div>
       </div>
@@ -340,9 +511,9 @@
     </div>
   </div>
 
-  <!-- ═══════════════════════════════════════════════════════════
-       MODAL — Gerenciar Membros
-       ═══════════════════════════════════════════════════════════ -->
+  <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+       MODAL â€” Gerenciar Membros
+       â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
   <div class="modal-overlay" id="modal-membros">
     <div class="modal modal-lg">
       <div class="modal-header">
@@ -357,11 +528,11 @@
         </div>
         <div class="add-membro-form">
           <select id="membro-usuario-sel">
-            <option value="">Selecione o usuário...</option>
+            <option value="">Selecione o usuÃ¡rio...</option>
           </select>
           <select id="membro-permissao-sel">
             <option value="leitura">Leitura</option>
-            <option value="edicao">Edição</option>
+            <option value="edicao">EdiÃ§Ã£o</option>
           </select>
           <button class="btn btn-primario btn-sm" onclick="adicionarMembro()" style="width:auto">
             <i class="fas fa-plus"></i> Adicionar
@@ -375,9 +546,9 @@
     </div>
   </div>
 
-  <!-- ═══════════════════════════════════════════════════════════
-       MODAL — Nova / Editar Tarefa
-       ═══════════════════════════════════════════════════════════ -->
+  <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+       MODAL â€” Nova / Editar Tarefa
+       â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
   <div class="modal-overlay" id="modal-tarefa">
     <div class="modal modal-lg">
 
@@ -408,7 +579,7 @@
           <label style="font-size:0.85rem;color:var(--cor-texto-fraco);display:block;margin-bottom:6px"><i class="fas fa-users"></i> Colaboradores:</label>
           <div id="sub-passo-chips" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;min-height:28px;align-items:flex-start;padding:4px 0"></div>
           <div style="display:flex;gap:6px;margin-bottom:8px">
-            <input type="text" id="sub-passo-usuario" placeholder="Adicionar usuário..."
+            <input type="text" id="sub-passo-usuario" placeholder="Adicionar usuÃ¡rio..."
                    style="flex:1;padding:8px 10px;border-radius:6px;background:var(--cor-fundo);border:1px solid var(--cor-borda);color:var(--cor-texto);font-size:12px;outline:none;box-sizing:border-box"
                    onkeydown="if(event.key==='Enter'){event.preventDefault();adicionarColaboradorSubModal()}"
                    list="sub-passo-usuarios">
@@ -457,6 +628,7 @@
               <option value="a_fazer">A Fazer</option>
               <option value="em_andamento">Em Andamento</option>
               <option value="concluida">Concluída</option>
+              <option value="aguardando">Aguardando</option>
             </select>
           </div>
         </div>
@@ -469,6 +641,16 @@
             <select id="tarefa-categoria">
               <option value="">Sem categoria</option>
             </select>
+          </div>
+        </div>
+
+        <div class="form-grupo" id="secao-aprovacao-tarefa" style="display:none">
+          <label><i class="fas fa-clipboard-check" style="font-size:0.82rem;margin-right:5px;opacity:.7"></i>Aprovações vinculadas</label>
+          <div class="passos-box">
+            <div id="aprovacao-tarefa-resumo" style="color:var(--cor-texto-fraco);font-size:0.85rem;padding:2px 0">
+              Nenhuma aprovação vinculada a esta tarefa.
+            </div>
+            <div id="aprovacao-tarefa-lista" style="display:flex;flex-direction:column;gap:8px;margin-top:10px"></div>
           </div>
         </div>
 
@@ -519,7 +701,15 @@
                 style="display:none;background:var(--cor-fundo-3);color:var(--cor-texto);width:auto;margin-right:auto">
           <i class="fas fa-exchange-alt"></i> Transferir
         </button>
-        <button class="btn btn-sm" onclick="fecharModalTarefa()"
+        <button id="btn-solicitar-aprovacao-tarefa" class="btn btn-sm" onclick="abrirModalSolicitarAprovacaoTarefa()"
+                style="display:none;background:#1f3b65;color:#fff;width:auto">
+          <i class="fas fa-clipboard-check"></i> Solicitar Aprovação
+        </button>
+        <button id="btn-abrir-aprovacao-tarefa" class="btn btn-sm" onclick="abrirUltimaAprovacaoTarefa()"
+                style="display:none;background:#183153;color:#fff;width:auto">
+          <i class="fas fa-external-link-alt"></i> Abrir Aprovação
+        </button>
+        <button id="btn-cancelar-tarefa" class="btn btn-sm" onclick="fecharModalTarefa()"
                 style="background:var(--cor-fundo-3);color:var(--cor-texto)">Cancelar</button>
         <button class="btn btn-primario btn-sm" onclick="salvarTarefa()" style="width:auto">
           <i class="fas fa-save"></i> Salvar
@@ -528,9 +718,145 @@
     </div>
   </div>
 
-  <!-- ═══════════════════════════════════════════════════════════
-       MODAL — Transferir Tarefa
-       ═══════════════════════════════════════════════════════════ -->
+  <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+       MODAL â€” Transferir Tarefa
+       â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+  <div class="modal-overlay" id="modal-solicitar-aprovacao-tarefa-legado" style="display:none !important">
+    <div class="modal" style="max-width:680px">
+      <div class="modal-header">
+        <div class="modal-titulo"><i class="fas fa-plus-circle"></i> Solicitar Aprovação</div>
+        <button class="modal-fechar" onclick="fecharModalSolicitarAprovacaoTarefa()"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="modal-corpo">
+        <div class="campo-grupo">
+          <label>Título *</label>
+          <input type="text" id="apr-tarefa-titulo" placeholder="Ex: Aprovação de compra de equipamentos" maxlength="200">
+        </div>
+        <div class="campo-grupo">
+          <label>Objetivo / Descrição</label>
+          <textarea id="apr-tarefa-objetivo" rows="4" placeholder="Descreva o que está sendo solicitado para aprovação..."></textarea>
+        </div>
+        <div class="campo-grupo">
+          <label>Tipo de Consenso</label>
+          <select class="consenso-select" id="apr-tarefa-consenso" onchange="atualizarConsensoAprovacaoTarefa()">
+            <option value="unanimidade">Unanimidade — todos os aprovadores devem aprovar</option>
+            <option value="maioria_simples">Maioria Simples — mais da metade (50% + 1)</option>
+            <option value="maioria_qualificada">Maioria Qualificada — percentual mínimo personalizado</option>
+            <option value="quorum_minimo">Quórum Mínimo — número mínimo de participantes</option>
+          </select>
+          <div id="apr-tarefa-consenso-extra-wrap" style="display:none;margin-top:10px">
+            <div style="display:flex;align-items:center;gap:8px">
+              <input type="number" id="apr-tarefa-consenso-valor" class="consenso-select"
+                style="width:110px;padding:8px 12px" min="1" max="99" placeholder="Ex: 67">
+              <span id="apr-tarefa-consenso-extra-sufixo" style="color:var(--gray);font-size:.85rem"></span>
+            </div>
+            <small id="apr-tarefa-consenso-extra-hint" style="color:var(--gray);font-size:.75rem;margin-top:4px;display:block"></small>
+          </div>
+        </div>
+
+        <div class="campo-grupo">
+          <label>Aprovadores *</label>
+          <div class="chip-selector">
+            <div class="chip-selector-top" onclick="document.getElementById('apr-tarefa-busca').focus()">
+              <div id="apr-tarefa-chips"></div>
+              <input type="text" id="apr-tarefa-busca" placeholder="Buscar e adicionar aprovador..."
+                oninput="filtrarChipDropdownAprovTarefa()" onfocus="abrirChipDropdownAprovTarefa()" onblur="fecharChipDropdownAprovTarefa()">
+            </div>
+            <div class="chip-dropdown" id="apr-tarefa-dropdown"></div>
+          </div>
+        </div>
+
+        <div class="campo-grupo">
+          <label>Observadores <span style="font-weight:400;text-transform:none;font-size:.75rem;opacity:.7">(opcional — recebem notificações)</span></label>
+          <div class="chip-selector">
+            <div class="chip-selector-top" onclick="document.getElementById('apr-tarefa-busca-obs').focus()">
+              <div id="apr-tarefa-chips-obs"></div>
+              <input type="text" id="apr-tarefa-busca-obs" placeholder="Buscar e adicionar observador..."
+                oninput="filtrarChipDropdownObsTarefa()" onfocus="abrirChipDropdownObsTarefa()" onblur="fecharChipDropdownObsTarefa()">
+            </div>
+            <div class="chip-dropdown" id="apr-tarefa-dropdown-obs"></div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-rodape">
+        <button class="btn btn-sm" onclick="fecharModalSolicitarAprovacaoTarefa()"
+                style="background:var(--cor-fundo-3);color:var(--cor-texto)">Cancelar</button>
+        <button class="btn btn-primario btn-sm" onclick="solicitarAprovacaoDaTarefa()" style="width:auto">
+          <i class="fas fa-paper-plane"></i> Criar no Sistema Aprovações
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modal-form-aprovacao-tarefa">
+    <div class="modal" style="max-width:680px">
+      <div class="modal-header">
+        <div class="modal-titulo" id="modal-form-titulo-tarefa-novo"><i class="fas fa-plus-circle"></i> Solicitar Aprovação</div>
+        <button class="modal-fechar" onclick="fecharModalSolicitarAprovacaoTarefa()"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="modal-corpo">
+        <div class="campo-grupo">
+          <label>TÍTULO *</label>
+          <input type="text" id="inp-titulo" placeholder="Ex: Aprovação de compra de equipamentos" maxlength="200">
+        </div>
+
+        <div class="campo-grupo">
+          <label>OBJETIVO / DESCRIÃ‡ÃƒO</label>
+          <textarea id="inp-objetivo" rows="4" placeholder="Descreva o que está sendo solicitado para aprovação..."></textarea>
+        </div>
+
+        <div class="campo-grupo">
+          <label>TIPO DE CONSENSO</label>
+          <select class="consenso-select" id="inp-consenso" onchange="atualizarConsensoAprovacaoTarefa()">
+            <option value="unanimidade">Unanimidade — todos os aprovadores devem aprovar</option>
+            <option value="maioria_simples">Maioria Simples — mais da metade (50% + 1)</option>
+            <option value="maioria_qualificada">Maioria Qualificada — percentual mínimo personalizado</option>
+            <option value="quorum_minimo">Quórum Mínimo — número mínimo de participantes</option>
+          </select>
+          <div id="consenso-extra" style="display:none;margin-top:10px">
+            <div style="display:flex;align-items:center;gap:8px">
+              <input type="number" id="inp-consenso-valor" class="consenso-select"
+                style="width:110px;padding:8px 12px" min="1" max="99" placeholder="Ex: 67">
+              <span id="consenso-extra-sufixo" style="color:var(--gray);font-size:.85rem"></span>
+            </div>
+            <small id="consenso-extra-hint" style="color:var(--gray);font-size:.75rem;margin-top:4px;display:block"></small>
+          </div>
+        </div>
+
+        <div class="campo-grupo">
+          <label>APROVADORES *</label>
+          <div class="chip-selector" id="chip-selector">
+            <div class="chip-selector-top" onclick="document.getElementById('chip-busca').focus()">
+              <div id="chips-container"></div>
+              <input type="text" id="chip-busca" placeholder="Buscar e adicionar aprovador..."
+                oninput="filtrarChipDropdown()" onfocus="abrirChipDropdown()" onblur="fecharChipDropdown()">
+            </div>
+            <div class="chip-dropdown" id="chip-dropdown"></div>
+          </div>
+        </div>
+
+        <div class="campo-grupo">
+          <label>OBSERVADORES <span style="font-weight:400;text-transform:none;font-size:.75rem;opacity:.7">(opcional — recebem notificações)</span></label>
+          <div class="chip-selector" id="chip-selector-obs">
+            <div class="chip-selector-top" onclick="document.getElementById('chip-busca-obs').focus()">
+              <div id="chips-container-obs"></div>
+              <input type="text" id="chip-busca-obs" placeholder="Buscar e adicionar observador..."
+                oninput="filtrarChipDropdownObs()" onfocus="abrirChipDropdownObs()" onblur="fecharChipDropdownObs()">
+            </div>
+            <div class="chip-dropdown" id="chip-dropdown-obs"></div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-rodape">
+        <button class="btn btn-sm" onclick="fecharModalSolicitarAprovacaoTarefa()"
+                style="background:var(--cor-fundo-3);color:var(--cor-texto)">Cancelar</button>
+        <button class="btn btn-primario btn-sm" id="btn-form-submit-tarefa" onclick="solicitarAprovacaoDaTarefa()" style="width:auto">
+          <i class="fas fa-paper-plane"></i> Criar no Sistema Aprovações
+        </button>
+      </div>
+    </div>
+  </div>
+
   <div class="modal-overlay" id="modal-transferir">
     <div class="modal" style="max-width:400px">
       <div class="modal-header">
@@ -539,7 +865,7 @@
       </div>
       <div class="modal-corpo">
         <div style="font-size:0.85rem;color:var(--cor-texto-fraco);margin-bottom:14px">
-          Escolha a lista de destino. Os passos e anexos serão mantidos.
+          Escolha a lista de destino. Os passos e anexos serÃ£o mantidos.
         </div>
         <div class="form-grupo">
           <label>Lista de destino</label>
@@ -558,9 +884,9 @@
     </div>
   </div>
 
-  <!-- ═══════════════════════════════════════════════════════════
-       MODAL — Categorias
-       ═══════════════════════════════════════════════════════════ -->
+  <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+       MODAL â€” Categorias
+       â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
   <div class="modal-overlay" id="modal-categorias">
     <div class="modal">
       <div class="modal-header">
@@ -592,9 +918,9 @@
   <!-- Toast de feedback -->
   <div class="toast" id="toast"></div>
 
-  <!-- ═══════════════════════════════════════════════════════════
-       MODAL — Mudar Status (Kanban)
-       ═══════════════════════════════════════════════════════════ -->
+  <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+       MODAL â€” Mudar Status (Kanban)
+       â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
   <div class="modal-overlay" id="modal-status">
     <div class="modal" style="max-width:360px">
       <div class="modal-header">
@@ -615,7 +941,7 @@
   </div>
 
   <!-- Menu compartilhado -->
-  <!-- MODAL — Configurar colunas kanban ───────────── -->
+  <!-- MODAL â€” Configurar colunas kanban â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
   <div class="modal-overlay" id="modal-colunas-agenda">
     <div class="modal" style="max-width:460px;">
       <div class="modal-header">
@@ -631,7 +957,7 @@
       <div class="modal-rodape">
         <button onclick="resetarColunasAgenda()" class="btn btn-sm"
                 style="background:var(--cor-fundo-3);color:var(--cor-texto);width:auto;margin-right:auto;">
-          <i class="fas fa-undo"></i> Padrão
+          <i class="fas fa-undo"></i> PadrÃ£o
         </button>
         <button onclick="fecharModalColunasAgenda()" class="btn btn-sm"
                 style="background:var(--cor-fundo-3);color:var(--cor-texto);">Cancelar</button>
@@ -642,36 +968,46 @@
 
   <script src="/js/menu.js"></script>
 
-  <!-- ═══════════════════════════════════════════════════════════
+  <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
        JAVASCRIPT DA AGENDA
-       ═══════════════════════════════════════════════════════════ -->
+       â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
   <script>
   (function () {
     'use strict';
 
-    // ── Estado global ──────────────────────────────────────────
+    // â”€â”€ Estado global â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     let listaAtiva  = null;   // objeto da lista corrente
     let tarefas     = [];     // todas as tarefas da lista
     let categorias  = [];     // categorias da lista
-    let usuarios    = [];     // todos os usuários (para seletor de membros)
+    let usuarios    = [];     // todos os usuÃ¡rios (para seletor de membros)
     let permissao   = null;   // 'dono' | 'edicao' | 'leitura'
     let viewAtual   = 'lista';
 
-    // ── Config colunas kanban (agenda) ─────────────
+    // â”€â”€ Config colunas kanban (agenda) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     const COLUNAS_AGENDA_PADRAO = [
       { key: 'a_fazer',      label: 'A Fazer',      cor: '#9e9e9e', visivel: true },
       { key: 'em_andamento', label: 'Em Andamento', cor: '#4e9af1', visivel: true },
-      { key: 'concluida',    label: 'Concluída',    cor: '#4caf50', visivel: true }
+      { key: 'concluida',    label: 'Concluída',    cor: '#4caf50', visivel: true },
+      { key: 'aguardando',   label: 'Aguardando',   cor: '#8b5cf6', visivel: true }
     ];
+    function normalizarChaveColunaAgenda(col) {
+      const label = String(col?.label || '').trim().toLowerCase();
+      if (label === 'a fazer') return 'a_fazer';
+      if (label === 'em andamento') return 'em_andamento';
+      if (label === 'concluída' || label === 'concluida') return 'concluida';
+      if (label === 'aguardando') return 'aguardando';
+      return col?.key || ('col_' + Date.now());
+    }
     function carregarColunasAgenda() {
       try {
         const s = localStorage.getItem('agenda_kanban_cfg');
         if (s) {
           const p = JSON.parse(s);
+          const normalizadas = Array.isArray(p) ? p.map(c => ({ ...c, key: normalizarChaveColunaAgenda(c) })) : [];
           return COLUNAS_AGENDA_PADRAO.map(pad => {
-            const c = p.find(x => x.key === pad.key);
+            const c = normalizadas.find(x => x.key === pad.key);
             return c ? { ...pad, ...c } : { ...pad };
-          });
+          }).concat(normalizadas.filter(c => !COLUNAS_AGENDA_PADRAO.find(pad => pad.key === c.key)).map(c => ({ ...c })));
         }
       } catch (_) {}
       return COLUNAS_AGENDA_PADRAO.map(c => ({ ...c }));
@@ -679,15 +1015,19 @@
     let _colunasAgenda = carregarColunasAgenda();
     let _colunasAgendaTemp = [];
     let _dragId = null, _dragTitulo = null, _dragStatus = null; // drag-and-drop kanban
-    let _passos = [];          // { id?, texto, concluido } — passos em edição
-    let _passosCanEdit = true; // se o usuário pode editar
-    let _tarefaCriadoPor = null; // criador da tarefa (para padrão de colaboradores)
-    let _anexos = [];          // anexos da tarefa em edição
-    let _listasParaTransferir = []; // listas disponíveis para transferência
+    let _dragColunaAgendaIndex = null;
+    let _passos = [];          // { id?, texto, concluido } â€” passos em ediÃ§Ã£o
+    let _passosCanEdit = true; // se o usuÃ¡rio pode editar
+    let _tarefaCriadoPor = null; // criador da tarefa (para padrÃ£o de colaboradores)
+    let _anexos = [];          // anexos da tarefa em ediÃ§Ã£o
+    let _listasParaTransferir = []; // listas disponÃ­veis para transferÃªncia
+    let _aprovacoesTarefa = []; // aprovaÃ§Ãµes vinculadas Ã  tarefa aberta
+    let _aprovadoresTarefaSelecionados = [];
+    let _observadoresTarefaSelecionados = [];
 
-    // ── Inicialização ──────────────────────────────────────────
+    // â”€â”€ InicializaÃ§Ã£o â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     console.log('AGENDA DE TAREFAS CARREGADA');
-    // ── Deep link: ?tarefa=ID&from=projeto&projetoId=X ────────
+    // â”€â”€ Deep link: ?tarefa=ID&from=projeto&projetoId=X â”€â”€â”€â”€â”€â”€â”€â”€
     (function () {
       const params = new URLSearchParams(window.location.search);
       const tarefaId  = params.get('tarefa') ? parseInt(params.get('tarefa')) : null;
@@ -703,7 +1043,7 @@
       carregarUsuarios();
     });
 
-    // ── Toast ──────────────────────────────────────────────────
+    // â”€â”€ Toast â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     let toastTimer;
     function toast(msg, tipo = 'ok') {
       const el = document.getElementById('toast');
@@ -713,22 +1053,33 @@
       toastTimer = setTimeout(() => el.classList.remove('visivel'), 3500);
     }
 
-    // ── Helpers ────────────────────────────────────────────────
-    function fmtData(d) {
+    // â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    function normalizarDataISO(d) {
       if (!d) return '';
-      const dt = new Date(d + 'T00:00:00');
+      return String(d).includes('T') ? String(d).slice(0, 10) : String(d);
+    }
+
+    function fmtData(d) {
+      const iso = normalizarDataISO(d);
+      if (!iso) return '';
+      const dt = new Date(`${iso}T00:00:00`);
+      if (Number.isNaN(dt.getTime())) return '';
       return dt.toLocaleDateString('pt-BR');
     }
 
     function isVencido(d) {
-      if (!d) return false;
-      return new Date(d + 'T23:59:59') < new Date();
+      const iso = normalizarDataISO(d);
+      if (!iso) return false;
+      const dt = new Date(`${iso}T23:59:59`);
+      if (Number.isNaN(dt.getTime())) return false;
+      return dt < new Date();
     }
 
-    const PRIORIDADE_LABEL = { alta: 'Alta', media: 'Média', baixa: 'Baixa' };
-    const STATUS_LABEL     = { a_fazer: 'A Fazer', em_andamento: 'Em Andamento', concluida: 'Concluída' };
 
-    // ── Carregar listas da sidebar ─────────────────────────────
+    const PRIORIDADE_LABEL = { alta: 'Alta', media: 'Média', baixa: 'Baixa' };
+    const STATUS_LABEL     = { a_fazer: 'A Fazer', em_andamento: 'Em Andamento', concluida: 'Concluída', aguardando: 'Aguardando' };
+
+    // â”€â”€ Carregar listas da sidebar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     async function carregarListas() {
       try {
         const r = await fetch('/api/agenda/listas');
@@ -748,7 +1099,7 @@
           secaoComp.style.display = 'none';
         }
 
-        // Reseleciona a lista ativa se ainda existir, ou restaura a última aberta
+        // Reseleciona a lista ativa se ainda existir, ou restaura a Ãºltima aberta
         if (listaAtiva) {
           const atual = listas.find(l => l.id === listaAtiva.id);
           if (atual) selecionarLista(atual);
@@ -793,7 +1144,7 @@
       `).join('');
     }
 
-    // ── Selecionar lista ───────────────────────────────────────
+    // â”€â”€ Selecionar lista â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     window.selecionarLista = async function (lista) {
       listaAtiva = lista;
       permissao  = lista.permissao;
@@ -812,7 +1163,7 @@
       const painel = document.getElementById('painel-lista');
       painel.style.display = 'flex';
 
-      // Cabeçalho
+      // CabeÃ§alho
       document.getElementById('hdr-cor').style.background = lista.cor;
       document.getElementById('hdr-nome').textContent     = lista.nome;
       const hdrDono = document.getElementById('hdr-dono');
@@ -823,7 +1174,7 @@
         hdrDono.style.display = 'none';
       }
 
-      // Ações do cabeçalho (dono vs membro)
+      // AÃ§Ãµes do cabeÃ§alho (dono vs membro)
       const hdrAcoes = document.getElementById('hdr-acoes');
       if (permissao === 'dono') {
         hdrAcoes.innerHTML = `
@@ -854,14 +1205,14 @@
         hdrAcoes.innerHTML = '';
       }
 
-      // Botão nova tarefa
+      // BotÃ£o nova tarefa
       document.getElementById('btn-nova-tarefa').style.display =
         (permissao === 'dono' || permissao === 'edicao') ? '' : 'none';
 
       await Promise.all([carregarCategorias(), carregarTarefas()]);
     };
 
-    // ── Tarefas ────────────────────────────────────────────────
+    // â”€â”€ Tarefas â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     async function carregarTarefas() {
       if (!listaAtiva) return;
       const r = await fetch(`/api/agenda/listas/${listaAtiva.id}/tarefas`);
@@ -869,7 +1220,7 @@
       tarefas = (await r.json()).tarefas || [];
       renderTarefas();
 
-      // Deep link: abrir tarefa específica automaticamente
+      // Deep link: abrir tarefa especÃ­fica automaticamente
       if (window._abrirTarefaAoCarregar) {
         const tid = window._abrirTarefaAoCarregar;
         const t = tarefas.find(x => x.id === tid);
@@ -942,13 +1293,13 @@
           <td>
             ${t.prazo
               ? `<span class="${vcdo && !checked ? 'prazo-vencido' : ''}">${fmtData(t.prazo)}</span>`
-              : '<span style="color:var(--cor-texto-fraco)">—</span>'}
+              : '<span style="color:var(--cor-texto-fraco)">â€”</span>'}
           </td>
           <td><span class="badge badge-${t.prioridade}">${PRIORIDADE_LABEL[t.prioridade]}</span></td>
           <td>${cat
               ? `<span class="badge" style="background:${cat.cor}22;color:${cat.cor}">${esc(cat.nome)}</span>`
-              : '<span style="color:var(--cor-texto-fraco)">—</span>'}</td>
-          <td><span class="badge badge-${t.status}">${STATUS_LABEL[t.status]}</span></td>
+              : '<span style="color:var(--cor-texto-fraco)">â€”</span>'}</td>
+          <td><span class="badge badge-${t.status}">${STATUS_LABEL[t.status] || t.status}</span></td>
           <td class="col-acoes">
             ${canEdit ? `
               <button class="btn-icone" title="Editar" onclick='editarTarefa(${JSON.stringify(t)})'>
@@ -962,7 +1313,7 @@
       }).join('');
     }
 
-    // Vista Kanban — dinâmica
+    // Vista Kanban â€” dinÃ¢mica
     function renderKanban() {
       const lista   = tarefasFiltradas();
       const canEdit = permissao === 'dono' || permissao === 'edicao';
@@ -1010,7 +1361,7 @@
       if (canEdit) configurarDragDrop();
     }
 
-    // ── Configurar colunas (agenda) ────────────────
+    // â”€â”€ Configurar colunas (agenda) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     window.abrirModalColunasAgenda = function () {
       _colunasAgendaTemp = _colunasAgenda.map(c => ({ ...c }));
       renderColunasAgendaModal();
@@ -1020,9 +1371,8 @@
     function renderColunasAgendaModal() {
       document.getElementById('colunas-agenda-lista').innerHTML =
         _colunasAgendaTemp.map((col, i) => `
-          <div style="display:flex;align-items:center;gap:10px;padding:9px 12px;
-                      background:var(--cor-fundo);border:1px solid var(--cor-borda);
-                      border-radius:var(--raio);margin-bottom:8px;" id="ca-item-${i}">
+          <div class="coluna-agenda-item" id="ca-item-${i}" data-index="${i}" draggable="true">
+            <i class="fas fa-grip-vertical coluna-agenda-handle" title="Arrastar coluna"></i>
             <div style="width:22px;height:22px;border-radius:50%;background:${col.cor};
                         flex-shrink:0;cursor:pointer;border:2px solid rgba(255,255,255,.2);
                         overflow:hidden;position:relative;" title="Cor">
@@ -1049,6 +1399,7 @@
              onmouseout="this.style.borderColor='var(--cor-borda)'">
           <i class="fas fa-plus"></i> Nova coluna
         </div>`;
+      configurarDragDropColunasAgenda();
     }
 
     window.toggleColunaAgendaTemp = function(i) {
@@ -1077,9 +1428,50 @@
     function lerColunasAgendaDoForm() {
       return _colunasAgendaTemp.map((col, i) => ({
         ...col,
+        key:   normalizarChaveColunaAgenda({ ...col, label: document.getElementById(`ca-label-${i}`)?.value.trim() || col.label }),
         label: document.getElementById(`ca-label-${i}`)?.value.trim() || col.label,
         cor:   document.getElementById(`ca-cor-${i}`)?.value           || col.cor,
       }));
+    }
+
+    function configurarDragDropColunasAgenda() {
+      document.querySelectorAll('#colunas-agenda-lista .coluna-agenda-item[draggable="true"]').forEach(item => {
+        item.addEventListener('dragstart', () => {
+          _colunasAgendaTemp = lerColunasAgendaDoForm();
+          _dragColunaAgendaIndex = parseInt(item.dataset.index, 10);
+          item.classList.add('dragging');
+        });
+
+        item.addEventListener('dragend', () => {
+          item.classList.remove('dragging');
+          document.querySelectorAll('#colunas-agenda-lista .coluna-agenda-item').forEach(el => el.classList.remove('drag-over'));
+          _dragColunaAgendaIndex = null;
+        });
+
+        item.addEventListener('dragover', (e) => {
+          if (_dragColunaAgendaIndex === null) return;
+          e.preventDefault();
+          item.classList.add('drag-over');
+        });
+
+        item.addEventListener('dragleave', () => {
+          item.classList.remove('drag-over');
+        });
+
+        item.addEventListener('drop', (e) => {
+          if (_dragColunaAgendaIndex === null) return;
+          e.preventDefault();
+          item.classList.remove('drag-over');
+          const destino = parseInt(item.dataset.index, 10);
+          if (Number.isNaN(destino) || destino === _dragColunaAgendaIndex) return;
+
+          const atual = [..._colunasAgendaTemp];
+          const [movida] = atual.splice(_dragColunaAgendaIndex, 1);
+          atual.splice(destino, 0, movida);
+          _colunasAgendaTemp = atual;
+          renderColunasAgendaModal();
+        });
+      });
     }
 
     window.salvarColunasAgenda = function () {
@@ -1102,9 +1494,9 @@
       document.getElementById('modal-colunas-agenda').classList.remove('visivel');
     };
 
-    // ── Drag-and-drop Kanban ───────────────────────────────────
+    // â”€â”€ Drag-and-drop Kanban â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     function configurarDragDrop() {
-      // Cards — dragstart / dragend
+      // Cards â€” dragstart / dragend
       document.querySelectorAll('.kanban-card[draggable="true"]').forEach(card => {
         card.addEventListener('dragstart', e => {
           _dragId     = card.dataset.id;
@@ -1118,7 +1510,7 @@
         });
       });
 
-      // Colunas — zona de soltar
+      // Colunas â€” zona de soltar
       document.querySelectorAll('.kanban-cards').forEach(col => {
         col.addEventListener('dragover', e => {
           e.preventDefault();
@@ -1150,16 +1542,16 @@
               body: JSON.stringify({ status: novoStatus })
             });
             if (!r.ok) { toast('Erro ao mover tarefa', 'erro'); return; }
-            toast(`"${titulo}" → "${label}"`, 'sucesso');
+            toast(`"${titulo}" â†’ "${label}"`, 'sucesso');
             await carregarTarefas();
           } catch (_) {
-            toast('Erro de comunicação', 'erro');
+            toast('Erro de comunicaÃ§Ã£o', 'erro');
           }
         });
       });
     }
 
-    // Toggle status rápido (checkbox)
+    // Toggle status rÃ¡pido (checkbox)
     window.toggleStatus = async function (id, statusAtual) {
       const novoStatus = statusAtual === 'concluida' ? 'a_fazer' : 'concluida';
       try {
@@ -1171,19 +1563,20 @@
         if (!r.ok) { toast('Erro ao atualizar status', 'erro'); return; }
         await carregarTarefas();
       } catch (e) {
-        toast('Erro de comunicação', 'erro');
+        toast('Erro de comunicaÃ§Ã£o', 'erro');
       }
     };
 
-    // ── Mudar status via Kanban ────────────────────────────────
+    // â”€â”€ Mudar status via Kanban â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     const STATUS_KANBAN = [
       { value: 'a_fazer',      label: 'A Fazer',       cor: '#94a3b8', icon: 'fa-circle' },
       { value: 'em_andamento', label: 'Em Andamento',  cor: '#3b82f6', icon: 'fa-spinner' },
-      { value: 'concluida',    label: 'Concluída',     cor: '#10b981', icon: 'fa-check-circle' }
+      { value: 'concluida',    label: 'Concluída',     cor: '#10b981', icon: 'fa-check-circle' },
+      { value: 'aguardando',   label: 'Aguardando',    cor: '#8b5cf6', icon: 'fa-hourglass-half' }
     ];
 
     window.abrirModalStatus = function (t) {
-      if (permissao === 'leitura') { toast('Sem permissão para alterar tarefas', 'erro'); return; }
+      if (permissao === 'leitura') { toast('Sem permissÃ£o para alterar tarefas', 'erro'); return; }
 
       document.getElementById('ms-titulo').textContent = t.titulo;
 
@@ -1227,7 +1620,7 @@
         toast(`Status atualizado para "${label}"`, 'sucesso');
         await carregarTarefas();
       } catch (e) {
-        toast('Erro de comunicação', 'erro');
+        toast('Erro de comunicaÃ§Ã£o', 'erro');
       }
     };
 
@@ -1235,7 +1628,7 @@
       if (e.target === this) fecharModalStatus();
     });
 
-    // ── View switch ────────────────────────────────────────────
+    // â”€â”€ View switch â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     window.setView = function (view) {
       viewAtual = view;
       document.getElementById('tab-lista').classList.toggle('ativa',   view === 'lista');
@@ -1246,7 +1639,7 @@
       renderTarefas();
     };
 
-    // ── Categorias ─────────────────────────────────────────────
+    // â”€â”€ Categorias â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     async function carregarCategorias() {
       if (!listaAtiva) return;
       const r = await fetch(`/api/agenda/listas/${listaAtiva.id}/categorias`);
@@ -1266,7 +1659,7 @@
       tCat.value = prev;
     }
 
-    // ── Usuários (para seletor de membros) ─────────────────────
+    // â”€â”€ UsuÃ¡rios (para seletor de membros) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     async function carregarUsuarios() {
       try {
         const r = await fetch('/api/agenda/usuarios');
@@ -1275,7 +1668,7 @@
       } catch (e) { /* silencioso */ }
     }
 
-    // ── Modal Lista ────────────────────────────────────────────
+    // â”€â”€ Modal Lista â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     window.abrirModalLista = function () {
       document.getElementById('lista-id').value         = '';
       document.getElementById('lista-nome').value       = '';
@@ -1321,7 +1714,7 @@
         toast(dados.mensagem || 'Salvo!');
         await carregarListas();
 
-        // Seleciona a lista recém-criada
+        // Seleciona a lista recÃ©m-criada
         if (!id && dados.lista) selecionarLista({ ...dados.lista, permissao: 'dono' });
         else if (id) {
           listaAtiva = { ...listaAtiva, ...corpo };
@@ -1329,33 +1722,33 @@
           document.getElementById('hdr-nome').textContent     = corpo.nome;
         }
       } catch (e) {
-        toast('Erro de comunicação.', 'erro');
+        toast('Erro de comunicaÃ§Ã£o.', 'erro');
       }
     };
 
     window.excluirListaAtiva = async function () {
-      if (!confirm(`Excluir a lista "${listaAtiva.nome}" e TODAS as suas tarefas?\nEsta ação não pode ser desfeita.`)) return;
+      if (!confirm(`Excluir a lista "${listaAtiva.nome}" e TODAS as suas tarefas?\nEsta aÃ§Ã£o nÃ£o pode ser desfeita.`)) return;
       try {
         const r = await fetch(`/api/agenda/listas/${listaAtiva.id}`, { method: 'DELETE' });
         const dados = await r.json();
         if (!r.ok) { toast(dados.erro || 'Erro ao excluir.', 'erro'); return; }
-        toast(dados.mensagem || 'Lista excluída.');
+        toast(dados.mensagem || 'Lista excluÃ­da.');
         listaAtiva = null;
         document.getElementById('tela-boas-vindas').style.display = '';
         document.getElementById('painel-lista').style.display     = 'none';
         await carregarListas();
       } catch (e) {
-        toast('Erro de comunicação.', 'erro');
+        toast('Erro de comunicaÃ§Ã£o.', 'erro');
       }
     };
 
-    // ── Modal Membros ──────────────────────────────────────────
+    // â”€â”€ Modal Membros â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     window.abrirModalMembros = async function () {
       document.getElementById('modal-membros').classList.add('visivel');
 
-      // Popula seletor de usuários
+      // Popula seletor de usuÃ¡rios
       const sel = document.getElementById('membro-usuario-sel');
-      sel.innerHTML = '<option value="">Selecione o usuário...</option>' +
+      sel.innerHTML = '<option value="">Selecione o usuÃ¡rio...</option>' +
         usuarios
           .filter(u => u.login !== listaAtiva.dono)
           .map(u => `<option value="${u.login}">${esc(u.nome)} (${u.login})</option>`)
@@ -1384,7 +1777,7 @@
           <span class="membro-nome">${esc(m.usuario)}</span>
           <select class="membro-permissao" onchange="alterarPermissao('${m.usuario}', this.value)">
             <option value="leitura"  ${m.permissao === 'leitura' ? 'selected' : ''}>Leitura</option>
-            <option value="edicao"   ${m.permissao === 'edicao'  ? 'selected' : ''}>Edição</option>
+            <option value="edicao"   ${m.permissao === 'edicao'  ? 'selected' : ''}>EdiÃ§Ã£o</option>
           </select>
           <button class="btn-icone excluir" onclick="removerMembro('${m.usuario}')">
             <i class="fas fa-times"></i>
@@ -1396,7 +1789,7 @@
     window.adicionarMembro = async function () {
       const usuario   = document.getElementById('membro-usuario-sel').value;
       const permissao = document.getElementById('membro-permissao-sel').value;
-      if (!usuario) { toast('Selecione um usuário.', 'erro'); return; }
+      if (!usuario) { toast('Selecione um usuÃ¡rio.', 'erro'); return; }
 
       try {
         const r = await fetch(`/api/agenda/listas/${listaAtiva.id}/membros`, {
@@ -1408,7 +1801,7 @@
         if (!r.ok) { toast(dados.erro || 'Erro.', 'erro'); return; }
         toast(dados.mensagem || 'Membro adicionado.');
         renderMembros();
-      } catch (e) { toast('Erro de comunicação.', 'erro'); }
+      } catch (e) { toast('Erro de comunicaÃ§Ã£o.', 'erro'); }
     };
 
     window.alterarPermissao = async function (usuario, permissao) {
@@ -1417,7 +1810,7 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ usuario, permissao })
       });
-      toast('Permissão atualizada.');
+      toast('PermissÃ£o atualizada.');
     };
 
     window.removerMembro = async function (usuario) {
@@ -1430,7 +1823,7 @@
       renderMembros();
     };
 
-    // ── Passos / checklist ────────────────────────────────────
+    // â”€â”€ Passos / checklist â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     function renderPassosModal() {
       const ul    = document.getElementById('passos-lista');
       const total = _passos.length;
@@ -1443,7 +1836,7 @@
         barWrap.style.display = '';
         document.getElementById('passos-fill').style.width = pct + '%';
         document.getElementById('passos-fill').style.background = pct === 100 ? '#10b981' : 'var(--cor-destaque)';
-        document.getElementById('passos-progresso').textContent = `${conc}/${total} · ${pct}%`;
+        document.getElementById('passos-progresso').textContent = `${conc}/${total} Â· ${pct}%`;
       } else {
         barWrap.style.display = 'none';
       }
@@ -1455,14 +1848,14 @@
         return;
       }
 
-      console.log('\n╔════════════════════════════════════════╗');
-      console.log('║ RENDERIZANDO LISTA DE PASSOS           ║');
-      console.log('╚════════════════════════════════════════╝');
+      console.log('\nâ•”â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•—');
+      console.log('â•‘ RENDERIZANDO LISTA DE PASSOS           â•‘');
+      console.log('â•šâ•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•');
       console.log('Total de passos:', _passos.length);
       console.log('_passos completo:', JSON.stringify(_passos, null, 2));
       ul.innerHTML = _passos.map((p, i) => {
         let colaboradores = Array.isArray(p.atribuido_para) ? p.atribuido_para : (p.atribuido_para ? [p.atribuido_para] : []);
-        // Se não tiver colaboradores, usar criado_por como padrão
+        // Se nÃ£o tiver colaboradores, usar criado_por como padrÃ£o
         if (colaboradores.length === 0 && _tarefaCriadoPor && !_passosCanEdit) {
           colaboradores = [_tarefaCriadoPor];
         }
@@ -1494,14 +1887,14 @@
         `.trim();
       }).join('');
 
-      // Preencher datalists com usuários
+      // Preencher datalists com usuÃ¡rios
       setTimeout(() => preencherDatalistUsuarios(), 0);
       // Configurar drag-and-drop nos passos
       if (_passosCanEdit) setTimeout(() => configurarDragPassos(), 0);
     }
 
     window.adicionarPassoLocal = function () {
-      console.log('[NOVO PASSO] Clicado botão adicionar passo');
+      console.log('[NOVO PASSO] Clicado botÃ£o adicionar passo');
       const inp = document.getElementById('passo-novo');
       const txt = inp.value.trim();
       console.log('  Texto digitado:', txt);
@@ -1527,25 +1920,25 @@
     };
 
     window._passoEmEdicao = null;
-    window._passoEmEdicaoCopia = null; // Armazena cópia do passo para edição
+    window._passoEmEdicaoCopia = null; // Armazena cÃ³pia do passo para ediÃ§Ã£o
 
     window.editarPassoModal = function (i) {
-      console.log('\n╔════════════════════════════════════════╗');
-      console.log('║ [EDITAR PASSO] ABRINDO SUB-MODAL       ║');
-      console.log('╚════════════════════════════════════════╝');
-      console.log('Índice:', i);
+      console.log('\nâ•”â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•—');
+      console.log('â•‘ [EDITAR PASSO] ABRINDO SUB-MODAL       â•‘');
+      console.log('â•šâ•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•');
+      console.log('Ãndice:', i);
       _passoEmEdicao = i;
       const passo = _passos[i];
       console.log('Passo original:', JSON.stringify(passo));
 
-      // Fazer uma CÓPIA do passo para edição (não modificar original até "Salvar")
+      // Fazer uma CÃ“PIA do passo para ediÃ§Ã£o (nÃ£o modificar original atÃ© "Salvar")
       _passoEmEdicaoCopia = {
         texto: passo.texto,
         atribuido_para: Array.isArray(passo.atribuido_para)
           ? [...passo.atribuido_para]
           : (passo.atribuido_para ? [passo.atribuido_para] : [])
       };
-      console.log('Cópia criada:', JSON.stringify(_passoEmEdicaoCopia));
+      console.log('CÃ³pia criada:', JSON.stringify(_passoEmEdicaoCopia));
       console.log('  _passoEmEdicao =', _passoEmEdicao);
       console.log('  _passoEmEdicaoCopia.atribuido_para =', _passoEmEdicaoCopia.atribuido_para);
 
@@ -1554,7 +1947,7 @@
       // Renderizar chips de colaboradores
       renderChipsColaboradorPasso(_passoEmEdicaoCopia.atribuido_para);
 
-      // Preencher datalist com usuários
+      // Preencher datalist com usuÃ¡rios
       preencherDatalistUsuariosPasso();
 
       document.getElementById('sub-modal-passo').style.display = 'block';
@@ -1574,35 +1967,35 @@
     }
 
     window.adicionarColaboradorSubModal = function () {
-      console.log('\n══════════════════════════════════════════');
+      console.log('\nâ•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•');
       console.log('ADICIONANDO COLABORADOR');
-      console.log('══════════════════════════════════════════');
+      console.log('â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•');
       const inp = document.getElementById('sub-passo-usuario');
       const usuario = inp.value.trim();
-      console.log('✓ Usuário digitado:', usuario);
-      console.log('✓ _passoEmEdicao atual:', _passoEmEdicao);
-      console.log('✓ _passoEmEdicaoCopia ANTES:', JSON.stringify(_passoEmEdicaoCopia));
+      console.log('âœ“ UsuÃ¡rio digitado:', usuario);
+      console.log('âœ“ _passoEmEdicao atual:', _passoEmEdicao);
+      console.log('âœ“ _passoEmEdicaoCopia ANTES:', JSON.stringify(_passoEmEdicaoCopia));
 
       if (!usuario) {
-        console.error('❌ ERRO: Usuário vazio!');
+        console.error('âŒ ERRO: UsuÃ¡rio vazio!');
         return;
       }
       if (!_passoEmEdicaoCopia) {
-        console.error('❌ ERRO: _passoEmEdicaoCopia é nulo!');
+        console.error('âŒ ERRO: _passoEmEdicaoCopia Ã© nulo!');
         return;
       }
 
-      // Usar a CÓPIA, não o original
+      // Usar a CÃ“PIA, nÃ£o o original
       if (!_passoEmEdicaoCopia.atribuido_para) {
-        console.log('⚠ atribuido_para era nulo, criando array');
+        console.log('âš  atribuido_para era nulo, criando array');
         _passoEmEdicaoCopia.atribuido_para = [];
       }
       if (!_passoEmEdicaoCopia.atribuido_para.includes(usuario)) {
         _passoEmEdicaoCopia.atribuido_para.push(usuario);
-        console.log('✅ Colaborador adicionado! Nova lista:', JSON.stringify(_passoEmEdicaoCopia.atribuido_para));
+        console.log('âœ… Colaborador adicionado! Nova lista:', JSON.stringify(_passoEmEdicaoCopia.atribuido_para));
         renderChipsColaboradorPasso(_passoEmEdicaoCopia.atribuido_para);
       } else {
-        console.log('⚠ Colaborador já existe');
+        console.log('âš  Colaborador jÃ¡ existe');
       }
       inp.value = '';
     };
@@ -1610,7 +2003,7 @@
     window.removerColaboradorPasso = function (usuario) {
       if (!_passoEmEdicaoCopia) return;
 
-      // Usar a CÓPIA, não o original
+      // Usar a CÃ“PIA, nÃ£o o original
       if (Array.isArray(_passoEmEdicaoCopia.atribuido_para)) {
         _passoEmEdicaoCopia.atribuido_para = _passoEmEdicaoCopia.atribuido_para.filter(c => c !== usuario);
       }
@@ -1618,39 +2011,39 @@
     };
 
     window.salvarEdicaoPasso = function () {
-      console.log('\n╔════════════════════════════════════════╗');
-      console.log('║ SALVANDO PASSO (SUB-MODAL)             ║');
-      console.log('╚════════════════════════════════════════╝');
+      console.log('\nâ•”â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•—');
+      console.log('â•‘ SALVANDO PASSO (SUB-MODAL)             â•‘');
+      console.log('â•šâ•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•');
       console.log('_passoEmEdicao:', _passoEmEdicao);
       console.log('_passoEmEdicaoCopia:', JSON.stringify(_passoEmEdicaoCopia));
       console.log('_passos.length:', _passos.length);
 
       const novoTexto = document.getElementById('sub-passo-texto').value.trim();
       if (!novoTexto) {
-        alert('O texto do passo não pode estar vazio.');
+        alert('O texto do passo nÃ£o pode estar vazio.');
         return;
       }
 
-      // Aplicar mudanças da CÓPIA ao original só agora
+      // Aplicar mudanÃ§as da CÃ“PIA ao original sÃ³ agora
       if (_passoEmEdicao === null) {
-        console.error('[ERRO] _passoEmEdicao é null! Não foi possível salvar.');
-        toast('Erro: Índice do passo não definido.', 'erro');
+        console.error('[ERRO] _passoEmEdicao Ã© null! NÃ£o foi possÃ­vel salvar.');
+        toast('Erro: Ãndice do passo nÃ£o definido.', 'erro');
         return;
       }
 
       if (_passoEmEdicao < 0 || _passoEmEdicao >= _passos.length) {
         console.error(`[ERRO] _passoEmEdicao ${_passoEmEdicao} fora do range! _passos.length=${_passos.length}`);
-        toast(`Erro: Índice inválido (${_passoEmEdicao}).`, 'erro');
+        toast(`Erro: Ãndice invÃ¡lido (${_passoEmEdicao}).`, 'erro');
         return;
       }
 
       if (!_passos[_passoEmEdicao]) {
-        console.error(`[ERRO] _passos[${_passoEmEdicao}] não existe!`);
-        toast(`Erro: Passo não encontrado no índice ${_passoEmEdicao}.`, 'erro');
+        console.error(`[ERRO] _passos[${_passoEmEdicao}] nÃ£o existe!`);
+        toast(`Erro: Passo nÃ£o encontrado no Ã­ndice ${_passoEmEdicao}.`, 'erro');
         return;
       }
 
-      // Atualizar o passo original com os dados da cópia
+      // Atualizar o passo original com os dados da cÃ³pia
       console.log(`\n[4] salvarEdicaoPasso() - Atualizando passo ${_passoEmEdicao}...`);
       console.log('  Antes:', JSON.stringify(_passos[_passoEmEdicao]));
       console.log('  _passoEmEdicaoCopia.atribuido_para:', JSON.stringify(_passoEmEdicaoCopia.atribuido_para));
@@ -1663,14 +2056,14 @@
       console.log('  Depois:', JSON.stringify(_passos[_passoEmEdicao]));
       console.log('  _passos completo:', JSON.stringify(_passos));
 
-      // ✅ VERIFICAR SE PASSO JÁ TEM ID NO BANCO
+      // âœ… VERIFICAR SE PASSO JÃ TEM ID NO BANCO
       const passoId = _passos[_passoEmEdicao].id;
 
       if (!passoId) {
-        // Passo ainda não foi salvo no banco (novo passo)
-        console.log(`⚠️ Passo ${_passoEmEdicao} ainda não tem ID no banco. Mudanças salvas em memória.`);
-        console.log('   Será sincronizado quando a tarefa for salva.');
-        toast('Passo atualizado! Salve a tarefa para confirmar as mudanças.', 'info');
+        // Passo ainda nÃ£o foi salvo no banco (novo passo)
+        console.log(`âš ï¸ Passo ${_passoEmEdicao} ainda nÃ£o tem ID no banco. MudanÃ§as salvas em memÃ³ria.`);
+        console.log('   SerÃ¡ sincronizado quando a tarefa for salva.');
+        toast('Passo atualizado! Salve a tarefa para confirmar as mudanÃ§as.', 'info');
         fecharSubModalPasso();
         renderPassosModal();
         return;
@@ -1700,14 +2093,14 @@
           return data;
         })
         .then(data => {
-          console.log('✅ Passo salvo no banco com sucesso!', data);
+          console.log('âœ… Passo salvo no banco com sucesso!', data);
           toast('Passo atualizado com sucesso!', 'sucesso');
           fecharSubModalPasso();
           renderPassosModal();
           console.log('[DEBUG] Passo salvo no BD e renderizado!');
         })
         .catch(erro => {
-          console.error('❌ ERRO AO SALVAR PASSO:', erro.message);
+          console.error('âŒ ERRO AO SALVAR PASSO:', erro.message);
           toast('Erro ao salvar passo: ' + erro.message, 'erro');
         });
     };
@@ -1715,7 +2108,7 @@
     window.fecharSubModalPasso = function () {
       document.getElementById('sub-modal-passo').style.display = 'none';
       _passoEmEdicao = null;
-      _passoEmEdicaoCopia = null; // Descartar cópia ao cancelar
+      _passoEmEdicaoCopia = null; // Descartar cÃ³pia ao cancelar
     };
 
     window.adicionarColaboradorModal = async function (i) {
@@ -1757,7 +2150,7 @@
       }
     };
 
-    // ── Carregar usuários para autocomplete ────────────────────
+    // â”€â”€ Carregar usuÃ¡rios para autocomplete â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     let usuariosCache = [];
     async function carregarUsuariosCache() {
       try {
@@ -1783,11 +2176,299 @@
       }
     }
 
-    // ── Modal Tarefa ───────────────────────────────────────────
+    // â”€â”€ Modal Tarefa â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    function renderChips() {
+      document.getElementById('chips-container').innerHTML = _aprovadoresTarefaSelecionados.map(u => `
+        <span class="chip">${esc(u.nome || u.login)}
+          <span class="chip-rem" onmousedown="event.preventDefault();removerChip('${esc(u.login)}')">&times;</span>
+        </span>`).join('');
+    }
+
+    function adicionarChip(login, nome) {
+      if (_aprovadoresTarefaSelecionados.find(u => u.login === login)) { removerChip(login); return; }
+      _aprovadoresTarefaSelecionados.push({ login, nome });
+      renderChips();
+      renderChipDropdown();
+      document.getElementById('chip-busca').value = '';
+    }
+
+    function removerChip(login) {
+      _aprovadoresTarefaSelecionados = _aprovadoresTarefaSelecionados.filter(u => u.login !== login);
+      renderChips();
+      renderChipDropdown();
+    }
+
+    function abrirChipDropdown() {
+      document.getElementById('chip-dropdown').classList.add('aberto');
+      renderChipDropdown();
+    }
+
+    function fecharChipDropdown() {
+      setTimeout(() => document.getElementById('chip-dropdown').classList.remove('aberto'), 180);
+    }
+
+    function filtrarChipDropdown() {
+      document.getElementById('chip-dropdown').classList.add('aberto');
+      renderChipDropdown();
+    }
+
+    function renderChipDropdown() {
+      const q = (document.getElementById('chip-busca').value || '').toLowerCase();
+      const el = document.getElementById('chip-dropdown');
+      const lista = usuariosCache.filter(u => (u.nome || '').toLowerCase().includes(q) || String(u.login || '').toLowerCase().includes(q));
+      if (!lista.length) {
+        el.innerHTML = '<div style="padding:10px 14px;font-size:.82rem;color:var(--gray)">Nenhum resultado.</div>';
+        return;
+      }
+      el.innerHTML = lista.map(u => {
+        const sel = _aprovadoresTarefaSelecionados.find(a => a.login === u.login);
+        return `<div class="chip-item ${sel ? 'selecionado' : ''}"
+          onmousedown="event.preventDefault();adicionarChip('${esc(u.login)}','${esc(u.nome || u.login)}')">
+          <span class="chip-item-nome">${esc(u.nome || u.login)}</span>
+          <span style="display:flex;gap:6px;align-items:center">
+            <span class="chip-item-login">${esc(u.login)}</span>
+            ${sel ? '<i class="fas fa-check" style="color:var(--primary);font-size:.72rem"></i>' : ''}
+          </span>
+        </div>`;
+      }).join('');
+    }
+
+    function renderChipsObs() {
+      document.getElementById('chips-container-obs').innerHTML = _observadoresTarefaSelecionados.map(u => `
+        <span class="chip chip-obs">${esc(u.nome || u.login)}
+          <span class="chip-rem" onmousedown="event.preventDefault();removerChipObs('${esc(u.login)}')">&times;</span>
+        </span>`).join('');
+    }
+
+    function adicionarChipObs(login, nome) {
+      if (_observadoresTarefaSelecionados.find(u => u.login === login)) { removerChipObs(login); return; }
+      _observadoresTarefaSelecionados.push({ login, nome });
+      renderChipsObs();
+      renderChipDropdownObs();
+      document.getElementById('chip-busca-obs').value = '';
+    }
+
+    function removerChipObs(login) {
+      _observadoresTarefaSelecionados = _observadoresTarefaSelecionados.filter(u => u.login !== login);
+      renderChipsObs();
+      renderChipDropdownObs();
+    }
+
+    function abrirChipDropdownObs() {
+      document.getElementById('chip-dropdown-obs').classList.add('aberto');
+      renderChipDropdownObs();
+    }
+
+    function fecharChipDropdownObs() {
+      setTimeout(() => document.getElementById('chip-dropdown-obs').classList.remove('aberto'), 180);
+    }
+
+    function filtrarChipDropdownObs() {
+      document.getElementById('chip-dropdown-obs').classList.add('aberto');
+      renderChipDropdownObs();
+    }
+
+    function renderChipDropdownObs() {
+      const q = (document.getElementById('chip-busca-obs').value || '').toLowerCase();
+      const el = document.getElementById('chip-dropdown-obs');
+      const lista = usuariosCache.filter(u => (u.nome || '').toLowerCase().includes(q) || String(u.login || '').toLowerCase().includes(q));
+      if (!lista.length) {
+        el.innerHTML = '<div style="padding:10px 14px;font-size:.82rem;color:var(--gray)">Nenhum resultado.</div>';
+        return;
+      }
+      el.innerHTML = lista.map(u => {
+        const sel = _observadoresTarefaSelecionados.find(a => a.login === u.login);
+        return `<div class="chip-item ${sel ? 'selecionado' : ''}"
+          onmousedown="event.preventDefault();adicionarChipObs('${esc(u.login)}','${esc(u.nome || u.login)}')">
+          <span class="chip-item-nome">${esc(u.nome || u.login)}</span>
+          <span style="display:flex;gap:6px;align-items:center">
+            <span class="chip-item-login">${esc(u.login)}</span>
+            ${sel ? '<i class="fas fa-check" style="color:var(--primary);font-size:.72rem"></i>' : ''}
+          </span>
+        </div>`;
+      }).join('');
+    }
+
+    window.adicionarChip = adicionarChip;
+    window.removerChip = removerChip;
+    window.abrirChipDropdown = abrirChipDropdown;
+    window.fecharChipDropdown = fecharChipDropdown;
+    window.filtrarChipDropdown = filtrarChipDropdown;
+    window.adicionarChipObs = adicionarChipObs;
+    window.removerChipObs = removerChipObs;
+    window.abrirChipDropdownObs = abrirChipDropdownObs;
+    window.fecharChipDropdownObs = fecharChipDropdownObs;
+    window.filtrarChipDropdownObs = filtrarChipDropdownObs;
+    window.atualizarConsensoAprovacaoTarefa = atualizarConsensoAprovacaoTarefa;
+
+    function atualizarConsensoAprovacaoTarefa() {
+      const tipo = document.getElementById('inp-consenso').value;
+      const wrap = document.getElementById('consenso-extra');
+      const input = document.getElementById('inp-consenso-valor');
+      const label = { textContent: '' };
+      const sufixo = document.getElementById('consenso-extra-sufixo');
+      const hint = document.getElementById('consenso-extra-hint');
+      if (tipo === 'maioria_qualificada') {
+        wrap.style.display = 'block';
+        label.textContent = 'Percentual mÃ­nimo (%)';
+        input.min = '51';
+        input.max = '99';
+        if (!input.value) input.value = '67';
+        sufixo.textContent = '%';
+        hint.textContent = 'Ex: 67 = dois terÃ§os (2/3), 75 = trÃªs quartos (3/4)';
+        return;
+      }
+      if (tipo === 'quorum_minimo') {
+        wrap.style.display = 'block';
+        label.textContent = 'Quantidade mínima de respostas';
+        input.min = '1';
+        input.max = '9999';
+        input.placeholder = 'Ex: 3';
+        if (!input.value) input.value = '1';
+        sufixo.textContent = 'pessoas';
+        hint.textContent = 'Aprovação só é computada após este número de respostas.';
+        return;
+      }
+      wrap.style.display = 'none';
+      input.value = '';
+    }
+
+    async function carregarAprovacoesTarefa(tarefaId) {
+      const secao = document.getElementById('secao-aprovacao-tarefa');
+      const btnSolicitar = document.getElementById('btn-solicitar-aprovacao-tarefa');
+      const btnAbrir = document.getElementById('btn-abrir-aprovacao-tarefa');
+      _aprovacoesTarefa = [];
+      if (!tarefaId) {
+        secao.style.display = 'none';
+        btnSolicitar.style.display = 'none';
+        btnAbrir.style.display = 'none';
+        return;
+      }
+      secao.style.display = '';
+      try {
+        const r = await fetch(`/api/agenda/tarefas/${tarefaId}/aprovacoes`);
+        const d = await r.json();
+        if (r.ok && d.sucesso) _aprovacoesTarefa = d.aprovacoes || [];
+      } catch (_) {}
+      renderAprovacoesTarefa();
+    }
+
+    function renderAprovacoesTarefa() {
+      const resumo = document.getElementById('aprovacao-tarefa-resumo');
+      const lista = document.getElementById('aprovacao-tarefa-lista');
+      const btnAbrir = document.getElementById('btn-abrir-aprovacao-tarefa');
+      const btnSolicitar = document.getElementById('btn-solicitar-aprovacao-tarefa');
+      const tarefaId = document.getElementById('tarefa-id').value;
+      const canCreate = !!tarefaId && (permissao === 'dono' || permissao === 'edicao');
+
+      btnSolicitar.style.display = canCreate ? '' : 'none';
+      btnAbrir.style.display = _aprovacoesTarefa.length ? '' : 'none';
+
+      if (!_aprovacoesTarefa.length) {
+        resumo.textContent = 'Nenhuma aprovação vinculada a esta tarefa.';
+        lista.innerHTML = '';
+        return;
+      }
+
+      resumo.textContent = `${_aprovacoesTarefa.length} aprovação(ões) vinculada(s) a esta tarefa.`;
+      lista.innerHTML = _aprovacoesTarefa.map(apr => `
+        <div style="display:flex;justify-content:space-between;gap:10px;align-items:center;background:rgba(255,255,255,0.02);border:1px solid var(--cor-borda);border-radius:10px;padding:10px 12px">
+          <div style="min-width:0">
+            <div style="font-weight:700;font-size:0.88rem">#${apr.id} - ${esc(apr.titulo)}</div>
+            <div style="font-size:0.78rem;color:var(--cor-texto-fraco);margin-top:3px">
+              Status: ${esc(apr.status)} • ${new Date(apr.criado_em).toLocaleDateString('pt-BR')}
+            </div>
+          </div>
+          <button class="btn btn-sm" type="button" onclick="abrirAprovacaoPorId(${apr.id})"
+                  style="width:auto;background:#183153;color:#fff">
+            <i class="fas fa-external-link-alt"></i> Abrir
+          </button>
+        </div>
+      `).join('');
+    }
+
+    window.abrirModalSolicitarAprovacaoTarefa = async function () {
+      const tarefaId = document.getElementById('tarefa-id').value;
+      if (!tarefaId) { toast('Salve a tarefa antes de solicitar aprovação.', 'aviso'); return; }
+      await carregarUsuariosCache();
+      _aprovadoresTarefaSelecionados = [];
+      _observadoresTarefaSelecionados = [];
+      document.getElementById('modal-form-titulo-tarefa-novo').innerHTML = '<i class="fas fa-plus-circle"></i> Nova Aprovação';
+      document.getElementById('btn-form-submit-tarefa').innerHTML = '<i class="fas fa-paper-plane"></i> Criar Aprovação';
+      document.querySelector('#modal-form-aprovacao-tarefa label[for="inp-titulo"], #modal-form-aprovacao-tarefa .campo-grupo:nth-child(1) label').textContent = 'TÍTULO *';
+      document.querySelector('#modal-form-aprovacao-tarefa .campo-grupo:nth-child(2) label').textContent = 'OBJETIVO / DESCRIÇÃO';
+      document.querySelector('#modal-form-aprovacao-tarefa .campo-grupo:nth-child(3) label').textContent = 'TIPO DE CONSENSO';
+      document.querySelector('#modal-form-aprovacao-tarefa .campo-grupo:nth-child(4) label').textContent = 'APROVADORES *';
+      document.querySelector('#modal-form-aprovacao-tarefa .campo-grupo:nth-child(5) label').innerHTML = 'OBSERVADORES <span style="font-weight:400;text-transform:none;font-size:.75rem;opacity:.7">(opcional — recebem notificações)</span>';
+      document.getElementById('inp-titulo').placeholder = 'Ex: Aprovação de compra de equipamentos';
+      document.getElementById('inp-objetivo').placeholder = 'Descreva o que está sendo solicitado para aprovação...';
+      document.getElementById('chip-busca').placeholder = 'Buscar e adicionar aprovador...';
+      document.getElementById('chip-busca-obs').placeholder = 'Buscar e adicionar observador...';
+      document.getElementById('inp-consenso').options[0].text = 'Unanimidade — todos os aprovadores devem aprovar';
+      document.getElementById('inp-consenso').options[1].text = 'Maioria Simples — mais da metade (50% + 1)';
+      document.getElementById('inp-consenso').options[2].text = 'Maioria Qualificada — percentual mínimo personalizado';
+      document.getElementById('inp-consenso').options[3].text = 'Quórum Mínimo — número mínimo de participantes';
+      renderChips();
+      renderChipsObs();
+      document.getElementById('inp-titulo').value = `Aprovação da tarefa: ${document.getElementById('tarefa-titulo').value.trim() || 'Sem título'}`;
+      document.getElementById('inp-objetivo').value = document.getElementById('tarefa-descricao').value.trim();
+      document.getElementById('inp-consenso').value = 'unanimidade';
+      document.getElementById('inp-consenso-valor').value = '';
+      atualizarConsensoAprovacaoTarefa();
+      document.getElementById('chip-busca').value = '';
+      document.getElementById('chip-busca-obs').value = '';
+      renderChipDropdown();
+      renderChipDropdownObs();
+      document.getElementById('modal-form-aprovacao-tarefa').classList.add('visivel');
+    };
+
+    window.fecharModalSolicitarAprovacaoTarefa = function () {
+      document.getElementById('modal-form-aprovacao-tarefa').classList.remove('visivel');
+    };
+
+    window.abrirAprovacaoPorId = function (id) {
+      window.open(`/aprovacoes?abrir=${id}`, '_blank');
+    };
+
+    window.abrirUltimaAprovacaoTarefa = function () {
+      if (_aprovacoesTarefa.length) abrirAprovacaoPorId(_aprovacoesTarefa[0].id);
+    };
+
+    window.solicitarAprovacaoDaTarefa = async function () {
+      const tarefaId = document.getElementById('tarefa-id').value;
+      const titulo = document.getElementById('inp-titulo').value.trim();
+      const objetivo = document.getElementById('inp-objetivo').value.trim();
+      const tipo_consenso = document.getElementById('inp-consenso').value;
+      const consenso_valor = parseInt(document.getElementById('inp-consenso-valor').value) || null;
+      const aprovadores = _aprovadoresTarefaSelecionados.map(u => u.login);
+      const observadores = _observadoresTarefaSelecionados.map(u => u.login);
+
+      if (!titulo) { toast('Informe o título da aprovação.', 'erro'); return; }
+      if (!aprovadores.length) { toast('Selecione ao menos um aprovador.', 'erro'); return; }
+
+      try {
+        const r = await fetch(`/api/agenda/tarefas/${tarefaId}/solicitar-aprovacao`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ titulo, objetivo, aprovadores, observadores, tipo_consenso, consenso_valor })
+        });
+        const d = await r.json();
+        if (!r.ok) { toast(d.erro || 'Erro ao solicitar aprovação.', 'erro'); return; }
+        fecharModalSolicitarAprovacaoTarefa();
+        document.getElementById('tarefa-status').value = d.status_tarefa || 'aguardando';
+        toast(d.mensagem || 'Solicitação criada com sucesso!');
+        await carregarAprovacoesTarefa(tarefaId);
+        await carregarTarefas();
+      } catch (_) {
+        toast('Erro de comunicação ao solicitar aprovação.', 'erro');
+      }
+    };
+
     window.abrirModalTarefa = async function () {
       _passos = [];
       _passosCanEdit = true;
       _anexos = [];
+      _aprovacoesTarefa = [];
       await carregarUsuariosCache();
       document.getElementById('tarefa-id').value          = '';
       document.getElementById('tarefa-titulo').value      = '';
@@ -1798,7 +2479,10 @@
       document.getElementById('tarefa-categoria').value   = '';
       document.getElementById('modal-tarefa-titulo').textContent = 'Nova Tarefa';
       document.getElementById('btn-transferir-tarefa').style.display = 'none';
+      document.getElementById('btn-solicitar-aprovacao-tarefa').style.display = 'none';
+      document.getElementById('btn-abrir-aprovacao-tarefa').style.display = 'none';
       document.getElementById('secao-anexos').style.display = 'none';
+      document.getElementById('secao-aprovacao-tarefa').style.display = 'none';
       renderPassosModal();
       setTimeout(() => preencherDatalistUsuarios(), 100);
       document.getElementById('modal-tarefa').classList.add('visivel');
@@ -1812,9 +2496,9 @@
       _passos = [];
       _passosCanEdit = canEdit;
       _tarefaCriadoPor = t.criado_por;
-      console.log('Carregando usuários...');
+      console.log('Carregando usuÃ¡rios...');
       await carregarUsuariosCache();
-      console.log('Usuários carregados');
+      console.log('UsuÃ¡rios carregados');
 
       document.getElementById('tarefa-id').value         = t.id;
       document.getElementById('tarefa-titulo').value     = t.titulo;
@@ -1831,8 +2515,9 @@
 
       document.querySelector('#modal-tarefa .modal-rodape .btn-primario').style.display = canEdit ? '' : 'none';
 
-      // Botão de transferência (só para edição com permissão)
+      // BotÃ£o de transferÃªncia (sÃ³ para ediÃ§Ã£o com permissÃ£o)
       document.getElementById('btn-transferir-tarefa').style.display = canEdit ? '' : 'none';
+      document.getElementById('btn-solicitar-aprovacao-tarefa').style.display = canEdit ? '' : 'none';
 
       // Carrega passos existentes
       try {
@@ -1857,12 +2542,13 @@
       document.getElementById('secao-anexos').style.display = '';
       document.getElementById('anexos-add-area').style.display = canEdit ? '' : 'none';
       await carregarAnexos(t.id);
+      await carregarAprovacoesTarefa(t.id);
 
-      // Quando aberto via Projeto, ajusta botões do modal
-      const btnCancelar = document.querySelector('#modal-tarefa .modal-rodape .btn:not(.btn-primario):not(#btn-transferir-tarefa)');
+      // Quando aberto via Projeto, ajusta botÃµes do modal
+      const btnCancelar = document.getElementById('btn-cancelar-tarefa');
       const btnFecharX  = document.querySelector('#modal-tarefa .modal-fechar');
       if (window._fromProjetoId) {
-        if (btnCancelar) btnCancelar.textContent = '← Voltar ao Projeto';
+        if (btnCancelar) btnCancelar.textContent = 'â† Voltar ao Projeto';
         if (btnFecharX)  btnFecharX.style.display = 'none';
       } else {
         if (btnCancelar) btnCancelar.textContent = 'Cancelar';
@@ -1878,11 +2564,12 @@
         return;
       }
       document.getElementById('sub-modal-cat').style.display = 'none';
+      document.getElementById('modal-form-aprovacao-tarefa').classList.remove('visivel');
       document.getElementById('modal-tarefa').classList.remove('visivel');
       _anexos = [];
     };
 
-    // ── Função auxiliar: preparar colaboradores para envio ──
+    // â”€â”€ FunÃ§Ã£o auxiliar: preparar colaboradores para envio â”€â”€
     function prepararColaboradores(atribuido_para) {
       return (atribuido_para && Array.isArray(atribuido_para) && atribuido_para.length > 0)
         ? atribuido_para
@@ -1892,7 +2579,7 @@
     window.salvarTarefa = async function () {
       const id     = document.getElementById('tarefa-id').value;
       const titulo = document.getElementById('tarefa-titulo').value.trim();
-      if (!titulo) { toast('Informe o título da tarefa.', 'erro'); return; }
+      if (!titulo) { toast('Informe o tÃ­tulo da tarefa.', 'erro'); return; }
 
       const corpo = {
         titulo,
@@ -1904,15 +2591,15 @@
       };
 
       try {
-        // ── 1. Validar passos: não permitir passos vazios ──
+        // â”€â”€ 1. Validar passos: nÃ£o permitir passos vazios â”€â”€
         for (let i = 0; i < _passos.length; i++) {
           if (!_passos[i].texto || !_passos[i].texto.trim()) {
-            toast(`Passo ${i + 1} não pode estar vazio.`, 'erro');
+            toast(`Passo ${i + 1} nÃ£o pode estar vazio.`, 'erro');
             return;
           }
         }
 
-        // ── 2. Salvar/atualizar tarefa ──
+        // â”€â”€ 2. Salvar/atualizar tarefa â”€â”€
         const r = id
           ? await fetch(`/api/agenda/tarefas/${id}`, { method: 'PUT',  headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(corpo) })
           : await fetch(`/api/agenda/listas/${listaAtiva.id}/tarefas`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(corpo) });
@@ -1923,7 +2610,7 @@
         const tarefaId = id || dados.id;
         let errosPassos = [];
 
-        // ── 3. Sincronizar passos deletados ──
+        // â”€â”€ 3. Sincronizar passos deletados â”€â”€
         if (id) {
           try {
             const rPassosAPI = await fetch(`/api/agenda/tarefas/${tarefaId}/passos`);
@@ -1946,7 +2633,7 @@
           }
         }
 
-        // ── 4. Salvar passos novos (sem id) ──
+        // â”€â”€ 4. Salvar passos novos (sem id) â”€â”€
         for (const p of _passos.filter(x => !x.id)) {
           const colabParaEnviar = prepararColaboradores(p.atribuido_para);
 
@@ -1965,11 +2652,11 @@
               const dErro = await rPasso.json();
               errosPassos.push(`Falha ao criar passo: ${dErro.erro || 'erro desconhecido'}`);
             } else {
-              // ✅ CAPTURAR E SALVAR O ID DO PASSO CRIADO
+              // âœ… CAPTURAR E SALVAR O ID DO PASSO CRIADO
               const dPasso = await rPasso.json();
               if (dPasso.id) {
                 p.id = dPasso.id;
-                console.log(`✅ Passo criado com ID: ${dPasso.id}`);
+                console.log(`âœ… Passo criado com ID: ${dPasso.id}`);
               }
             }
           } catch (ePasso) {
@@ -1977,7 +2664,7 @@
           }
         }
 
-        // ── 5. Atualizar passos existentes ──
+        // â”€â”€ 5. Atualizar passos existentes â”€â”€
         for (const p of _passos.filter(x => x.id)) {
           const colabParaEnviar = prepararColaboradores(p.atribuido_para);
 
@@ -2000,15 +2687,15 @@
           }
         }
 
-        // ── 6. Notificar (consolidado, 1 email) ──
+        // â”€â”€ 6. Notificar (consolidado, 1 email) â”€â”€
         const tipoNotif = id ? 'editada' : 'nova';
         try {
-          // fire-and-forget: não bloqueia o fluxo do usuário
+          // fire-and-forget: nÃ£o bloqueia o fluxo do usuÃ¡rio
           fetch(`/api/agenda/tarefas/${tarefaId}/notificar?tipo=${tipoNotif}`, { method: 'POST' })
-            .catch(() => {}); // silencia erros de rede — email é melhor-esforço
+            .catch(() => {}); // silencia erros de rede â€” email Ã© melhor-esforÃ§o
         } catch (_) {}
 
-        // ── 7. Finalizar ──
+        // â”€â”€ 7. Finalizar â”€â”€
         if (window._fromProjetoId) {
           window.location.href = `/agendaProjetos/projeto.html?id=${window._fromProjetoId}`;
           return;
@@ -2035,12 +2722,12 @@
         const r    = await fetch(`/api/agenda/tarefas/${id}`, { method: 'DELETE' });
         const dados = await r.json();
         if (!r.ok) { toast(dados.erro || 'Erro.', 'erro'); return; }
-        toast(dados.mensagem || 'Tarefa excluída.');
+        toast(dados.mensagem || 'Tarefa excluÃ­da.');
         await carregarTarefas();
-      } catch (e) { toast('Erro de comunicação.', 'erro'); }
+      } catch (e) { toast('Erro de comunicaÃ§Ã£o.', 'erro'); }
     };
 
-    // ── Modal Categorias ───────────────────────────────────────
+    // â”€â”€ Modal Categorias â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     window.abrirModalCategorias = async function () {
       document.getElementById('modal-categorias').classList.add('visivel');
       renderCategorias();
@@ -2084,7 +2771,7 @@
         document.getElementById('cat-nome').value = '';
         await carregarCategorias();
         renderCategorias();
-      } catch (e) { toast('Erro de comunicação.', 'erro'); }
+      } catch (e) { toast('Erro de comunicaÃ§Ã£o.', 'erro'); }
     };
 
     window.excluirCategoria = async function (id) {
@@ -2093,14 +2780,14 @@
         const r    = await fetch(`/api/agenda/categorias/${id}`, { method: 'DELETE' });
         const dados = await r.json();
         if (!r.ok) { toast(dados.erro || 'Erro.', 'erro'); return; }
-        toast(dados.mensagem || 'Categoria excluída.');
+        toast(dados.mensagem || 'Categoria excluÃ­da.');
         await carregarCategorias();
         renderCategorias();
         renderTarefas();
-      } catch (e) { toast('Erro de comunicação.', 'erro'); }
+      } catch (e) { toast('Erro de comunicaÃ§Ã£o.', 'erro'); }
     };
 
-    // ── Sub-modal inline de categorias ────────────────────────
+    // â”€â”€ Sub-modal inline de categorias â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     window.abrirSubModalCat = function () {
       renderSubCatList();
       document.getElementById('sub-modal-cat').style.display = 'block';
@@ -2143,11 +2830,11 @@
         await carregarCategorias();
         renderSubCatList();
         renderCategorias();
-      } catch (e) { toast('Erro de comunicação.', 'erro'); }
+      } catch (e) { toast('Erro de comunicaÃ§Ã£o.', 'erro'); }
     };
 
     window.excluirCategoriaInline = async function (id) {
-      if (!confirm('Excluir esta categoria? As tarefas vinculadas ficarão sem categoria.')) return;
+      if (!confirm('Excluir esta categoria? As tarefas vinculadas ficarÃ£o sem categoria.')) return;
       try {
         const r = await fetch(`/api/agenda/categorias/${id}`, { method: 'DELETE' });
         const d = await r.json();
@@ -2156,10 +2843,10 @@
         renderSubCatList();
         renderCategorias();
         renderTarefas();
-      } catch (e) { toast('Erro de comunicação.', 'erro'); }
+      } catch (e) { toast('Erro de comunicaÃ§Ã£o.', 'erro'); }
     };
 
-    // ── Drag-and-drop nos passos ──────────────────────────────
+    // â”€â”€ Drag-and-drop nos passos â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     function configurarDragPassos() {
       const items = Array.from(document.querySelectorAll('#passos-lista .passo-item[draggable="true"]'));
       let dragIdx = null;
@@ -2193,7 +2880,7 @@
           _passos.splice(toIdx, 0, moved);
           renderPassosModal();
 
-          // Persiste a nova ordem para passos que já têm ID no banco
+          // Persiste a nova ordem para passos que jÃ¡ tÃªm ID no banco
           const tarefaId = document.getElementById('tarefa-id').value;
           if (tarefaId) {
             const idsOrdenados = _passos.filter(p => p.id).map(p => p.id);
@@ -2209,7 +2896,7 @@
       });
     }
 
-    // ── Anexos ────────────────────────────────────────────────
+    // â”€â”€ Anexos â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     async function carregarAnexos(tarefaId) {
       try {
         const r = await fetch(`/api/agenda/tarefas/${tarefaId}/anexos`);
@@ -2267,7 +2954,7 @@
       }
 
       input.value = '';
-      if (erros) toast(`${erros} arquivo(s) não puderam ser enviados.`, 'erro');
+      if (erros) toast(`${erros} arquivo(s) nÃ£o puderam ser enviados.`, 'erro');
       else toast(`${files.length} anexo(s) adicionado(s)!`);
       await carregarAnexos(tarefaId);
     };
@@ -2291,12 +2978,12 @@
         const r = await fetch(`/api/agenda/anexos/${id}`, { method: 'DELETE' });
         const d = await r.json();
         if (!r.ok) { toast(d.erro || 'Erro.', 'erro'); return; }
-        toast('Anexo excluído.');
+        toast('Anexo excluÃ­do.');
         await carregarAnexos(tarefaId);
-      } catch (_) { toast('Erro de comunicação.', 'erro'); }
+      } catch (_) { toast('Erro de comunicaÃ§Ã£o.', 'erro'); }
     };
 
-    // ── Transferir Tarefa ─────────────────────────────────────
+    // â”€â”€ Transferir Tarefa â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     window.abrirModalTransferir = async function () {
       try {
         const r = await fetch('/api/agenda/listas');
@@ -2308,7 +2995,7 @@
 
         const sel = document.getElementById('transferir-lista-sel');
         if (listas.length === 0) {
-          sel.innerHTML = '<option value="">Nenhuma lista disponível</option>';
+          sel.innerHTML = '<option value="">Nenhuma lista disponÃ­vel</option>';
         } else {
           sel.innerHTML = '<option value="">Selecione...</option>' +
             listas.map(l => `<option value="${l.id}">${esc(l.nome)}</option>`).join('');
@@ -2344,21 +3031,21 @@
         fecharModalTarefa();
         toast(`Tarefa transferida para "${listaNome}"!`);
         await carregarTarefas();
-      } catch (_) { toast('Erro de comunicação.', 'erro'); }
+      } catch (_) { toast('Erro de comunicaÃ§Ã£o.', 'erro'); }
     };
 
     document.getElementById('modal-transferir').addEventListener('click', function (e) {
       if (e.target === this) fecharModalTransferir();
     });
 
-    // ── Fechar modal clicando fora ─────────────────────────────
-    ['modal-lista','modal-membros','modal-tarefa','modal-categorias'].forEach(id => {
+    // â”€â”€ Fechar modal clicando fora â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    ['modal-lista','modal-membros','modal-tarefa','modal-categorias','modal-form-aprovacao-tarefa'].forEach(id => {
       document.getElementById(id).addEventListener('click', function (e) {
         if (e.target === this) this.classList.remove('visivel');
       });
     });
 
-    // ── Escape HTML ────────────────────────────────────────────
+    // â”€â”€ Escape HTML â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     function esc(s) {
       return String(s || '')
         .replace(/&/g, '&amp;')
@@ -2372,3 +3059,7 @@
 
 </body>
 </html>
+
+
+
+

@@ -1,0 +1,767 @@
+﻿<style>
+  .wpp-abas { display: flex; gap: 4px; border-bottom: 1px solid var(--cor-borda); margin-bottom: 24px; flex-wrap: wrap; }
+  .wpp-aba-btn { display: flex; align-items: center; gap: 6px; padding: 8px 14px; background: transparent; border: none; border-bottom: 2px solid transparent; margin-bottom: -1px; color: var(--cor-texto-fraco); font-size: 0.83rem; font-weight: 500; cursor: pointer; transition: color .2s, border-color .2s; white-space: nowrap; }
+  .wpp-aba-btn:hover { color: var(--cor-texto); }
+  .wpp-aba-btn.ativa { color: #25d366; border-color: #25d366; }
+  .wpp-painel { display: none; }
+  .wpp-painel.ativo { display: block; }
+  .wpp-legenda { font-size: .73rem; color: var(--cor-texto-fraco); margin-bottom: 14px; padding: 8px 12px; background: var(--cor-fundo-3); border-radius: 6px; border-left: 3px solid #25d366; line-height: 1.6; }
+  .wpp-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; gap: 12px; }
+  .wpp-header-info strong { display: block; font-size: .92rem; color: var(--cor-texto); }
+  .wpp-header-info small { font-size: .78rem; color: var(--cor-texto-fraco); }
+  .wpp-estado { font-size: .75rem; font-weight: 600; color: var(--cor-texto-fraco); white-space: nowrap; }
+  .wpp-estado.on { color: #25d366; }
+  .wpp-toggle-wrap .toggle { width: 48px; height: 26px; }
+  .wpp-toggle-wrap .toggle-slider::before { width: 20px; height: 20px; top: 3px; left: 3px; }
+  .wpp-toggle-wrap .toggle input:checked + .toggle-slider::before { transform: translateX(22px); }
+  .wpp-secao-titulo { font-size: .73rem; font-weight: 700; text-transform: uppercase; letter-spacing: .6px; color: var(--cor-texto-fraco); margin: 20px 0 10px; padding-bottom: 6px; border-bottom: 1px solid var(--cor-borda); display: flex; align-items: center; gap: 6px; }
+  .wpp-secao-titulo:first-child { margin-top: 0; }
+  .wpp-linha { display: flex; align-items: center; justify-content: space-between; padding: 11px 0; border-bottom: 1px solid rgba(255,255,255,.05); gap: 16px; }
+  .wpp-linha:last-child { border-bottom: none; }
+  .wpp-info { flex: 1; }
+  .wpp-info strong { display: block; font-size: .88rem; color: var(--cor-texto); }
+  .wpp-info small { font-size: .76rem; color: var(--cor-texto-fraco); }
+  .wpp-ctrl { flex-shrink: 0; display: flex; align-items: center; gap: 8px; }
+  .wpp-ctrl input[type="text"], .wpp-ctrl input[type="password"], .wpp-ctrl textarea { width: 320px; padding: 8px 12px; background: var(--cor-fundo-3); border: 1px solid var(--cor-borda); border-radius: 6px; color: var(--cor-texto); font-size: .88rem; outline: none; }
+  .wpp-ctrl textarea { min-height: 90px; resize: vertical; }
+  .wpp-ctrl input:focus, .wpp-ctrl textarea:focus { border-color: #25d366; }
+  .wpp-notif-secao { background: var(--cor-fundo); border: 1px solid var(--cor-borda); border-radius: 8px; overflow: hidden; margin-bottom: 4px; }
+  .wpp-notif-secao-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 16px; background: var(--cor-fundo-3); font-size: .8rem; font-weight: 700; color: var(--cor-texto-fraco); text-transform: uppercase; letter-spacing: .5px; }
+  .wpp-sel-todos { background: none; border: none; color: #25d366; font-size: .74rem; cursor: pointer; padding: 0; font-weight: 500; }
+  .wpp-sel-todos:hover { text-decoration: underline; }
+  .wpp-notif-item { display: flex; align-items: flex-start; gap: 12px; padding: 11px 16px; border-top: 1px solid var(--cor-borda); transition: background .15s; }
+  .wpp-notif-item:hover { background: rgba(37,211,102,.04); }
+  .wpp-notif-item input[type="checkbox"] { width: 16px; height: 16px; flex-shrink: 0; margin-top: 3px; accent-color: #25d366; cursor: pointer; }
+  .wpp-notif-item-info { flex: 1; }
+  .wpp-notif-item-info strong { display: block; font-size: .87rem; color: var(--cor-texto); }
+  .wpp-notif-item-info > small { font-size: .75rem; color: var(--cor-texto-fraco); }
+  .wpp-dest-chips { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 7px; }
+  .wpp-dest-chip { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: 12px; background: var(--cor-fundo-3); border: 1px solid var(--cor-borda); font-size: .72rem; color: var(--cor-texto-fraco); cursor: pointer; transition: all .15s; user-select: none; }
+  .wpp-dest-chip i { font-size: .63rem; }
+  .wpp-dest-chip:hover { border-color: #25d366; color: var(--cor-texto); }
+  .wpp-dest-chip.ativo { background: rgba(37,211,102,.12); border-color: #25d366; color: #25d366; font-weight: 600; }
+  .wpp-rodape { display: flex; align-items: center; justify-content: flex-end; gap: 10px; padding-top: 16px; margin-top: 16px; border-top: 1px solid var(--cor-borda); flex-wrap: wrap; }
+  .wpp-msg-wrap { display: grid; grid-template-columns: 220px 1fr; gap: 18px; }
+  .wpp-msg-sistemas { display: flex; flex-direction: column; gap: 8px; }
+  .wpp-msg-sistema-btn { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border: 1px solid var(--cor-borda); border-radius: 8px; background: var(--cor-fundo-3); color: var(--cor-texto-fraco); cursor: pointer; text-align: left; font-size: .84rem; }
+  .wpp-msg-sistema-btn.ativa { border-color: #25d366; color: #25d366; background: rgba(37,211,102,.08); }
+  .wpp-msg-conteudo { min-width: 0; }
+  .wpp-msg-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+  .wpp-msg-toolbar strong { display: block; color: var(--cor-texto); font-size: .95rem; }
+  .wpp-msg-toolbar small { color: var(--cor-texto-fraco); }
+  .wpp-msg-card { border: 1px solid var(--cor-borda); border-radius: 10px; background: var(--cor-fundo); padding: 14px 16px; margin-bottom: 12px; }
+  .wpp-msg-card h4 { margin: 0 0 6px; font-size: .92rem; color: var(--cor-texto); }
+  .wpp-msg-card p { margin: 0 0 10px; font-size: .78rem; color: var(--cor-texto-fraco); line-height: 1.5; }
+  .wpp-msg-placeholders { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+  .wpp-msg-ph { display: inline-flex; padding: 3px 8px; border-radius: 999px; border: 1px solid var(--cor-borda); background: var(--cor-fundo-3); font-size: .72rem; color: var(--cor-texto-fraco); }
+  .wpp-msg-card textarea { width: 100%; min-height: 170px; resize: vertical; background: var(--cor-fundo-3); color: var(--cor-texto); border: 1px solid var(--cor-borda); border-radius: 8px; padding: 10px 12px; font-size: .84rem; line-height: 1.5; }
+  .wpp-msg-actions { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 10px; }
+  .wpp-msg-status { font-size: .78rem; color: var(--cor-texto-fraco); }
+  .wpp-btn-link { background: transparent; color: #25d366; border: none; cursor: pointer; font-size: .76rem; padding: 0; }
+  .wpp-btn-link:hover { text-decoration: underline; }
+  @media (max-width: 900px) {
+    .wpp-msg-wrap { grid-template-columns: 1fr; }
+    .wpp-msg-sistemas { flex-direction: row; flex-wrap: wrap; }
+  }
+</style>
+
+<div class="barra-acoes">
+  <h3><i class="fab fa-whatsapp" style="color:#25d366"></i> WhatsApp</h3>
+</div>
+
+<div class="wpp-abas" id="wpp-abas"></div>
+<div id="wpp-paineis"></div>
+
+<script>
+(function () {
+  const CHIP_LIBRARY = {
+    whatsapp_padrao: ['fas fa-comment-dots', 'WhatsApp padrao'],
+    admins: ['fas fa-shield-alt', 'Administradores'],
+    gestores_setor: ['fas fa-user-tie', 'Gestores do setor'],
+    gestores: ['fas fa-users', 'Compartilhados com edicao'],
+    solicitante: ['fas fa-user', 'Solicitante'],
+    criado_por_usuario: ['fas fa-user-edit', 'Criado por'],
+    atribuido: ['fas fa-user-tag', 'Atribuido para'],
+    tecnicos_setor: ['fas fa-users-cog', 'Tecnicos do setor'],
+    tecnico_responsavel: ['fas fa-user-cog', 'Tecnico responsavel'],
+    aprovador: ['fas fa-user-check', 'Aprovador'],
+    aprovadores: ['fas fa-user-check', 'Aprovadores'],
+    aprovadores_pendentes: ['fas fa-user-clock', 'Aprovadores pendentes'],
+    observadores: ['fas fa-eye', 'Observadores'],
+    novo_usuario: ['fas fa-user-plus', 'Novo usuario'],
+    responsavel_atual: ['fas fa-user-minus', 'Responsavel atual'],
+    novo_responsavel: ['fas fa-user-plus', 'Novo responsavel'],
+  };
+
+  const SISTEMAS = [
+    { id: 'configuracao', icon: 'fas fa-plug', label: 'Configuracao' },
+    { id: 'mensagens', icon: 'fas fa-pen-to-square', label: 'Mensagens' },
+    { id: 'portal', icon: 'fas fa-home', label: 'Portal', descricao: 'Ative os eventos e selecione os destinatarios clicando nos chips.', legenda: '<i class="fas fa-info-circle" style="color:#25d366"></i> Clique nos <b>chips</b> para ativar/desativar destinatarios. <b>WhatsApp padrao</b> usa o numero salvo na aba Configuracao.', secoes: [] },
+    { id: 'chamados', icon: 'fas fa-ticket-alt', label: 'Chamados', descricao: 'Ative os eventos e selecione os destinatarios clicando nos chips.', legenda: '<i class="fas fa-info-circle" style="color:#25d366"></i> <b>Tecnicos do setor</b> = tecnicos do departamento solicitado Â· <b>Gestores do setor</b> = gestores/supervisores do departamento Â· <b>Solicitante</b> = quem abriu o chamado Â· <b>Aprovador</b> = pessoa solicitada para aprovacao Â· <b>Tecnico responsavel</b> = tecnico atribuido ao chamado', secoes: [] },
+    { id: 'patrimonio', icon: 'fas fa-boxes', label: 'Patrimonio', descricao: 'Ative os eventos e selecione os destinatarios clicando nos chips.', legenda: '<i class="fas fa-info-circle" style="color:#25d366"></i> <b>Responsavel atual</b> = responsavel pelo bem antes da acao Â· <b>Novo responsavel</b> = responsavel apos a transferencia', secoes: [] },
+    { id: 'agenda', icon: 'fas fa-tasks', label: 'Ag. Tarefas', descricao: 'Ative os eventos e selecione os destinatarios clicando nos chips.', legenda: '<i class="fas fa-info-circle" style="color:#25d366"></i> <b>Atribuido para</b> = usuario responsavel pela tarefa - <b>Criado por</b> = usuario que criou a tarefa - <b>Compartilhados com edicao</b> = usuarios da lista com permissao de editar', secoes: [] },
+    { id: 'financeiro', icon: 'fas fa-wallet', label: 'Financeiro', descricao: 'Ative os eventos e selecione os destinatarios clicando nos chips.', legenda: '<i class="fas fa-info-circle" style="color:#25d366"></i> <b>Criado por</b> = usuario que lancou o item - <b>Compartilhados com edicao</b> = usuarios da agenda com permissao de editar - <b>Gestores do setor</b> = responsaveis do setor relacionado, quando houver', secoes: [] },
+    { id: 'contabil', icon: 'fas fa-file-invoice-dollar', label: 'Ag. Contabil', descricao: 'Ative os eventos e selecione os destinatarios clicando nos chips.', legenda: '<i class="fas fa-info-circle" style="color:#25d366"></i> <b>Criado por</b> = usuario que cadastrou o item - <b>Compartilhados com edicao</b> = usuarios da agenda com permissao de editar - <b>Gestores do setor</b> = responsaveis do setor relacionado, quando houver', secoes: [] },
+    { id: 'contatos', icon: 'fas fa-address-book', label: 'Contatos', descricao: 'Ative os eventos e selecione os destinatarios clicando nos chips.', legenda: '<i class="fas fa-info-circle" style="color:#25d366"></i> <b>Criado por</b> = usuario que cadastrou o contato - <b>Compartilhados com edicao</b> = usuarios da lista com permissao de editar - <b>Gestores do setor</b> = responsaveis do setor relacionado, quando houver', secoes: [] },
+    { id: 'aprovacoes', icon: 'fas fa-file-signature', label: 'Aprovacoes', descricao: 'Ative os eventos e selecione os destinatarios clicando nos chips.', legenda: '<i class="fas fa-info-circle" style="color:#25d366"></i> <b>Aprovadores pendentes</b> = participantes que ainda nao responderam Â· <b>Solicitante</b> = criador da solicitacao Â· <b>Observadores</b> = usuarios copiados na aprovacao', secoes: [] },
+  ];
+
+  let config = {};
+  let whatsappTemplates = [];
+  let sistemaMensagensAtivo = 'portal';
+
+  const SISTEMA_MSG_META = {
+    portal: { icon: 'fas fa-home', label: 'Portal' },
+    agenda: { icon: 'fas fa-tasks', label: 'Ag. Tarefas' },
+    agendaProjetos: { icon: 'fas fa-diagram-project', label: 'Projetos' },
+    chamados: { icon: 'fas fa-ticket-alt', label: 'Chamados' },
+    patrimonio: { icon: 'fas fa-boxes', label: 'Patrimonio' },
+    financeiro: { icon: 'fas fa-wallet', label: 'Financeiro' },
+    contabil: { icon: 'fas fa-file-invoice-dollar', label: 'Ag. Contabil' },
+    contatos: { icon: 'fas fa-address-book', label: 'Contatos' },
+    aprovacoes: { icon: 'fas fa-file-signature', label: 'Aprovacoes' },
+  };
+
+  function esc(v) {
+    return String(v || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  function boolConfig(chave, padrao) {
+    if (!Object.prototype.hasOwnProperty.call(config, chave)) return !!padrao;
+    return String(config[chave]) === 'true';
+  }
+
+  function listConfig(chave, padrao) {
+    if (!Object.prototype.hasOwnProperty.call(config, chave)) return Array.isArray(padrao) ? [...padrao] : [];
+    return String(config[chave] || '').split(',').map((item) => item.trim()).filter(Boolean);
+  }
+
+  function chipMarkup(eventKey, tipo, ativo) {
+    const meta = CHIP_LIBRARY[tipo] || ['fas fa-circle', tipo];
+    return `<span class="wpp-dest-chip ${ativo ? 'ativo' : ''}" data-dest="${eventKey}" data-tipo="${tipo}"><i class="${meta[0]}"></i> ${esc(meta[1])}</span>`;
+  }
+
+  function setBadge(inputId, badgeId) {
+    const input = document.getElementById(inputId);
+    const badge = document.getElementById(badgeId);
+    if (!input || !badge) return;
+    badge.textContent = input.checked ? 'Ativado' : 'Desativado';
+    badge.classList.toggle('on', input.checked);
+  }
+
+  SISTEMAS.find((s) => s.id === 'portal').secoes = [
+    {
+      titulo: 'Acesso',
+      eventos: [
+        { id: 'login', titulo: 'Login realizado', descricao: 'Enviado quando um usuario fizer login com sucesso', chips: ['whatsapp_padrao', 'gestores_setor', 'admins'] },
+        { id: 'login_falha', titulo: 'Login com falha', descricao: 'Enviado quando a senha informada estiver errada', chips: ['whatsapp_padrao', 'gestores_setor', 'admins'] },
+        { id: 'usuario_bloqueado', titulo: 'Usuario bloqueado tentou acessar', descricao: 'Enviado quando um usuario bloqueado tenta fazer login', chips: ['whatsapp_padrao', 'gestores_setor', 'admins'] },
+      ],
+    },
+    {
+      titulo: 'Gestao de Usuarios',
+      eventos: [
+        { id: 'usuario_criado', titulo: 'Novo usuario criado', descricao: 'Enviado quando um novo usuario for cadastrado no portal', chips: ['whatsapp_padrao', 'gestores_setor', 'admins', 'novo_usuario'] },
+      ],
+    },
+  ];
+
+  SISTEMAS.find((s) => s.id === 'chamados').secoes = [
+    {
+      titulo: 'Aprovacao',
+      eventos: [
+        { id: 'aprovacao_solicitada', titulo: 'Aprovacao solicitada', descricao: 'Enviado para o aprovador quando um chamado aguarda a sua aprovacao', chips: ['aprovador', 'gestores_setor', 'whatsapp_padrao', 'admins'] },
+        { id: 'aprovacao_concluida', titulo: 'Aprovacao concluida', descricao: 'Enviado ao solicitante e ao tecnico apos o aprovador decidir', chips: ['solicitante', 'tecnico_responsavel', 'gestores_setor', 'whatsapp_padrao'] },
+      ],
+    },
+    {
+      titulo: 'Ciclo de Vida',
+      eventos: [
+        { id: 'novo', titulo: 'Novo chamado aberto', descricao: 'Enviado quando um usuario abrir um novo chamado', chips: ['tecnicos_setor', 'gestores_setor', 'whatsapp_padrao', 'admins'] },
+        { id: 'atribuido', titulo: 'Chamado em atendimento', descricao: 'Enviado quando um tecnico assumir o chamado', chips: ['solicitante', 'tecnico_responsavel', 'gestores_setor', 'whatsapp_padrao'] },
+        { id: 'transferido', titulo: 'Chamado transferido', descricao: 'Enviado quando o chamado mudar de setor', chips: ['solicitante', 'tecnicos_setor', 'gestores_setor', 'whatsapp_padrao'] },
+        { id: 'status_alterado', titulo: 'Status alterado', descricao: 'Enviado em mudancas gerais de status do chamado', chips: ['solicitante', 'tecnico_responsavel', 'whatsapp_padrao'] },
+        { id: 'nova_mensagem', titulo: 'Nova mensagem', descricao: 'Enviado quando houver nova interacao no chamado', chips: ['solicitante', 'tecnico_responsavel', 'whatsapp_padrao'] },
+        { id: 'reaberto', titulo: 'Chamado reaberto', descricao: 'Enviado quando o chamado voltar para atendimento', chips: ['tecnico_responsavel', 'gestores_setor', 'whatsapp_padrao'] },
+        { id: 'concluido', titulo: 'Chamado concluido', descricao: 'Enviado quando o chamado for finalizado', chips: ['solicitante', 'tecnico_responsavel', 'gestores_setor', 'whatsapp_padrao'] },
+        { id: 'cancelado', titulo: 'Chamado cancelado/reprovado', descricao: 'Enviado quando o chamado for encerrado sem aprovacao', chips: ['solicitante', 'gestores_setor', 'whatsapp_padrao'] },
+      ],
+    },
+  ];
+
+  SISTEMAS.find((s) => s.id === 'patrimonio').secoes = [
+    {
+      titulo: 'Movimentacoes',
+      eventos: [
+        { id: 'cadastro', titulo: 'Bem cadastrado', descricao: 'Enviado quando um novo bem for registrado', chips: ['whatsapp_padrao', 'gestores_setor', 'admins'] },
+        { id: 'transferencia', titulo: 'Transferencia de bem', descricao: 'Enviado quando um bem mudar de responsavel ou setor', chips: ['responsavel_atual', 'novo_responsavel', 'gestores_setor', 'whatsapp_padrao'] },
+        { id: 'avaria', titulo: 'Avaria ou sinistro', descricao: 'Enviado quando uma avaria ou sinistro for registrado', chips: ['whatsapp_padrao', 'responsavel_atual', 'gestores_setor', 'admins'] },
+        { id: 'descarte', titulo: 'Bem descartado', descricao: 'Enviado quando um bem for descartado do patrimonio', chips: ['whatsapp_padrao', 'gestores_setor', 'admins'] },
+      ],
+    },
+  ];
+
+  SISTEMAS.find((s) => s.id === 'agenda').secoes = [
+    {
+      titulo: 'Tarefas',
+      eventos: [
+        { id: 'tarefa_criada', titulo: 'Nova tarefa criada', descricao: 'Enviado quando uma nova tarefa for adicionada', chips: ['criado_por_usuario', 'atribuido', 'gestores', 'admins', 'whatsapp_padrao'] },
+        { id: 'tarefa_concluida', titulo: 'Tarefa concluida', descricao: 'Enviado quando uma tarefa for marcada como concluida', chips: ['criado_por_usuario', 'atribuido', 'gestores', 'admins', 'whatsapp_padrao'] },
+        { id: 'passo_atribuido', titulo: 'Passo atribuido', descricao: 'Enviado quando um passo da tarefa for atribuido a um colaborador', chips: ['criado_por_usuario', 'atribuido', 'gestores', 'admins', 'whatsapp_padrao'] },
+        { id: 'tarefa_editada', titulo: 'Tarefa editada', descricao: 'Enviado quando uma tarefa existente for atualizada', chips: ['criado_por_usuario', 'atribuido', 'gestores', 'admins', 'whatsapp_padrao'] },
+        { id: 'passo_concluido', titulo: 'Passo concluido', descricao: 'Enviado quando um passo for marcado como concluido', chips: ['criado_por_usuario', 'atribuido', 'gestores', 'admins', 'whatsapp_padrao'] },
+        { id: 'membro_adicionado', titulo: 'Membro adicionado', descricao: 'Enviado ao usuario quando ele for adicionado a uma lista', chips: ['atribuido', 'criado_por_usuario', 'gestores', 'admins', 'whatsapp_padrao'] },
+      ],
+    },
+  ];
+
+  SISTEMAS.find((s) => s.id === 'financeiro').secoes = [
+    {
+      titulo: 'Contas',
+      eventos: [
+        { id: 'nova_conta', titulo: 'Nova conta', descricao: 'Enviado ao criar um novo lancamento', chips: ['criado_por_usuario', 'gestores', 'gestores_setor', 'admins', 'whatsapp_padrao'] },
+        { id: 'lancamento', titulo: 'Lancamento registrado', descricao: 'Enviado quando um lancamento for efetivado', chips: ['criado_por_usuario', 'gestores', 'gestores_setor', 'admins', 'whatsapp_padrao'] },
+        { id: 'conta_paga', titulo: 'Conta paga', descricao: 'Enviado ao marcar uma conta como paga', chips: ['criado_por_usuario', 'gestores', 'gestores_setor', 'admins', 'whatsapp_padrao'] },
+        { id: 'conta_vencida', titulo: 'Conta vencida', descricao: 'Enviado quando uma conta entrar em atraso', chips: ['criado_por_usuario', 'gestores', 'gestores_setor', 'admins', 'whatsapp_padrao'] },
+        { id: 'lembrete_hoje', titulo: 'Lembrete do dia', descricao: 'Enviado para contas com vencimento no dia', chips: ['criado_por_usuario', 'gestores', 'gestores_setor', 'whatsapp_padrao'] },
+        { id: 'lembrete_7dias', titulo: 'Lembrete em 7 dias', descricao: 'Enviado para contas proximas do vencimento', chips: ['criado_por_usuario', 'gestores', 'gestores_setor', 'whatsapp_padrao'] },
+        { id: 'lembrete_lancamento', titulo: 'Lembrete de lancamento', descricao: 'Enviado para contas em fase de lancamento', chips: ['criado_por_usuario', 'gestores', 'gestores_setor', 'whatsapp_padrao'] },
+        { id: 'conta_vencida_diario', titulo: 'Resumo diario de vencidas', descricao: 'Enviado no consolidado diario de contas vencidas', chips: ['gestores', 'gestores_setor', 'admins', 'whatsapp_padrao'] },
+      ],
+    },
+  ];
+
+  SISTEMAS.find((s) => s.id === 'contabil').secoes = [
+    {
+      titulo: 'Obrigacoes',
+      eventos: [
+        { id: 'novo_item', titulo: 'Novo item contabil', descricao: 'Enviado quando um novo item for cadastrado na agenda contabil', chips: ['criado_por_usuario', 'gestores', 'gestores_setor', 'admins', 'whatsapp_padrao'] },
+        { id: 'item_editado', titulo: 'Item contabil editado', descricao: 'Enviado quando um item contabil existente for atualizado', chips: ['criado_por_usuario', 'gestores', 'gestores_setor', 'admins', 'whatsapp_padrao'] },
+        { id: 'item_pago', titulo: 'Item pago', descricao: 'Enviado quando um item contabil for marcado como pago', chips: ['criado_por_usuario', 'gestores', 'gestores_setor', 'admins', 'whatsapp_padrao'] },
+        { id: 'item_vencido', titulo: 'Item vencido', descricao: 'Enviado quando um item contabil entrar em atraso', chips: ['criado_por_usuario', 'gestores', 'gestores_setor', 'admins', 'whatsapp_padrao'] },
+        { id: 'lembrete_hoje', titulo: 'Lembrete do dia', descricao: 'Enviado para obrigacoes com vencimento no dia', chips: ['criado_por_usuario', 'gestores', 'gestores_setor', 'whatsapp_padrao'] },
+        { id: 'lembrete_7dias', titulo: 'Lembrete em 7 dias', descricao: 'Enviado para obrigacoes proximas do vencimento', chips: ['criado_por_usuario', 'gestores', 'gestores_setor', 'whatsapp_padrao'] },
+        { id: 'resumo_vencidos', titulo: 'Resumo de vencidos', descricao: 'Enviado no consolidado de itens vencidos da agenda contabil', chips: ['gestores', 'gestores_setor', 'admins', 'whatsapp_padrao'] },
+      ],
+    },
+  ];
+
+  SISTEMAS.find((s) => s.id === 'contatos').secoes = [
+    {
+      titulo: 'Cadastro',
+      eventos: [
+        { id: 'novo_contato', titulo: 'Novo contato', descricao: 'Enviado quando um contato for cadastrado', chips: ['criado_por_usuario', 'gestores', 'gestores_setor', 'admins', 'whatsapp_padrao'] },
+      ],
+    },
+  ];
+
+  SISTEMAS.find((s) => s.id === 'aprovacoes').secoes = [
+    {
+      titulo: 'Fluxo',
+      eventos: [
+        { id: 'nova_solicitacao', titulo: 'Nova solicitacao', descricao: 'Enviado aos aprovadores quando surgir uma nova aprovacao pendente', chips: ['aprovadores', 'gestores_setor', 'admins', 'whatsapp_padrao'] },
+        { id: 'aprovada', titulo: 'Solicitacao aprovada', descricao: 'Base pronta para avisar o resultado final aprovado', chips: ['solicitante', 'observadores', 'gestores_setor', 'admins', 'whatsapp_padrao'] },
+        { id: 'reprovada', titulo: 'Solicitacao reprovada', descricao: 'Base pronta para avisar o resultado final reprovado', chips: ['solicitante', 'observadores', 'gestores_setor', 'admins', 'whatsapp_padrao'] },
+        { id: 'cancelada', titulo: 'Solicitacao cancelada', descricao: 'Base pronta para avisar quando a solicitacao for cancelada', chips: ['aprovadores', 'observadores', 'gestores_setor', 'admins', 'whatsapp_padrao'] },
+        { id: 'editada', titulo: 'Solicitacao editada', descricao: 'Base pronta para avisar quando a solicitacao for alterada', chips: ['aprovadores', 'observadores', 'gestores_setor', 'admins', 'whatsapp_padrao'] },
+        { id: 'lembrete_pendente', titulo: 'Lembrete pendente', descricao: 'Enviado no reenvio manual para aprovadores pendentes', chips: ['aprovadores_pendentes', 'gestores_setor', 'admins', 'whatsapp_padrao'] },
+      ],
+    },
+  ];
+
+  function renderPainelConfiguracao() {
+    return `
+      <div id="alerta-whatsapp" class="alerta" style="margin-bottom:16px"></div>
+
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:var(--cor-fundo-3);border:1px solid var(--cor-borda);border-radius:8px;margin-bottom:20px">
+        <div>
+          <strong style="font-size:.92rem;color:var(--cor-texto)">
+            <i class="fab fa-whatsapp" style="color:#25d366;margin-right:6px"></i>
+            Habilitar notificacoes por WhatsApp
+          </strong>
+          <div style="font-size:.76rem;color:var(--cor-texto-fraco);margin-top:2px">
+            Ativa o envio de todos os alertas configurados abaixo via servico externo.
+          </div>
+        </div>
+        <div class="wpp-ctrl wpp-toggle-wrap" style="gap:10px">
+          <span class="wpp-estado" id="estado-whatsapp-ativo">Desativado</span>
+          <label class="toggle">
+            <input type="checkbox" id="whatsapp-ativo" onchange="window.wppBadge('whatsapp-ativo','estado-whatsapp-ativo')">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+
+      <div class="wpp-secao-titulo"><i class="fas fa-server"></i> Servico</div>
+
+      <div class="wpp-linha">
+        <div class="wpp-info"><strong>URL do servico</strong><small>Endereco base do integrador WhatsApp.</small></div>
+        <div class="wpp-ctrl"><input type="text" id="whatsapp-url" placeholder="http://localhost:3200"></div>
+      </div>
+
+      <div class="wpp-linha">
+        <div class="wpp-info"><strong>API Key</strong><small>Chave usada no header x-api-key para autenticar o envio.</small></div>
+        <div class="wpp-ctrl"><input type="password" id="whatsapp-api-key" placeholder="Informe a chave do servico"></div>
+      </div>
+
+      <div class="wpp-linha">
+        <div class="wpp-info"><strong>WhatsApp padrao</strong><small>Numero padrao usado quando o chip "WhatsApp padrao" estiver ativo.</small></div>
+        <div class="wpp-ctrl">
+          <input type="text" id="whatsapp-numero-teste" list="wpp-usuarios-list" placeholder="5511999999999">
+          <datalist id="wpp-usuarios-list"></datalist>
+        </div>
+      </div>
+
+      <div class="wpp-linha">
+        <div class="wpp-info"><strong>Delay entre envios (ms)</strong><small>Intervalo minimo entre uma mensagem e outra para reduzir o risco de bloqueio da conta.</small></div>
+        <div class="wpp-ctrl"><input type="text" id="whatsapp-delay-ms" placeholder="4000"></div>
+      </div>
+
+      <div class="wpp-secao-titulo"><i class="fas fa-vial"></i> Teste</div>
+
+      <div class="wpp-linha">
+        <div class="wpp-info"><strong>Mensagem de teste</strong><small>Texto enviado no botao de teste.</small></div>
+        <div class="wpp-ctrl">
+          <textarea id="whatsapp-mensagem-teste" placeholder="Portal WKL - teste de integracao WhatsApp."></textarea>
+        </div>
+      </div>
+
+      <div class="wpp-rodape">
+        <button class="btn btn-sm" onclick="window.wppTestar()" style="width:auto;background:var(--cor-fundo-3);color:var(--cor-texto)">
+          <i class="fas fa-paper-plane"></i> Enviar teste
+        </button>
+        <button class="btn btn-primario btn-sm" onclick="window.wppSalvarConfiguracao()" style="width:auto">
+          <i class="fas fa-save"></i> Salvar configuracao
+        </button>
+      </div>
+    `;
+  }
+
+  function normalizarTemplateValor(valor) {
+    return String(valor || '').replace(/\r\n/g, '\n');
+  }
+
+  function renderPainelMensagens() {
+    return `
+      <div id="alerta-whatsapp-mensagens" class="alerta" style="margin-bottom:16px"></div>
+      <div class="wpp-msg-wrap">
+        <div class="wpp-msg-sistemas" id="wpp-msg-sistemas"></div>
+        <div class="wpp-msg-conteudo">
+          <div class="wpp-msg-toolbar">
+            <div>
+              <strong id="wpp-msg-sistema-titulo">Mensagens</strong>
+              <small>Edite os textos mantendo os placeholders entre <code>{{ }}</code>.</small>
+            </div>
+          </div>
+          <div id="wpp-msg-lista"></div>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderPainelModulo(sistema) {
+    const sistemaId = sistema.id;
+    return `
+      <div class="wpp-header">
+        <div class="wpp-header-info">
+          <strong><i class="${sistema.icon}" style="color:#25d366;margin-right:6px"></i>Notificacoes - ${esc(sistema.label)}</strong>
+          <small>${esc(sistema.descricao || '')}</small>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;flex-shrink:0">
+          <span class="wpp-estado" id="estado-wpp-${sistemaId}-ativo">Desativado</span>
+          <label class="toggle wpp-toggle-wrap" title="Ativar/desativar notificacoes do modulo">
+            <input type="checkbox" id="wpp-${sistemaId}-ativo" onchange="window.wppBadge('wpp-${sistemaId}-ativo','estado-wpp-${sistemaId}-ativo')">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+
+      <div class="wpp-legenda">${sistema.legenda || ''}</div>
+
+      ${(sistema.secoes || []).map((secao) => `
+        <div class="wpp-notif-secao">
+          <div class="wpp-notif-secao-header">
+            ${esc(secao.titulo)}
+            <button class="wpp-sel-todos" data-sistema="${sistemaId}" data-secao="${esc(secao.titulo)}">Selecionar todos</button>
+          </div>
+          ${secao.eventos.map((evento) => {
+            const eventKey = `${sistemaId}.${evento.id}`;
+            const eventId = `wpp-${sistemaId}-${evento.id}`;
+            return `
+              <div class="wpp-notif-item">
+                <input type="checkbox" id="${eventId}" data-chave="${eventKey}">
+                <div class="wpp-notif-item-info">
+                  <strong>${esc(evento.titulo)}</strong>
+                  <small>${esc(evento.descricao)}</small>
+                  <div class="wpp-dest-chips">
+                    ${(evento.chips || []).map((tipo) => chipMarkup(eventKey, tipo, false)).join('')}
+                  </div>
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      `).join('')}
+
+      <div class="wpp-rodape">
+        <span id="wpp-msg-${sistemaId}" style="font-size:.82rem;color:var(--cor-texto-fraco)"></span>
+        <button class="btn btn-primario btn-sm" onclick="window.wppSalvarModulo('${sistemaId}')" style="width:auto">
+          <i class="fas fa-save"></i> Salvar
+        </button>
+      </div>
+    `;
+  }
+
+  function renderAbas() {
+    const abas = document.getElementById('wpp-abas');
+    const paineis = document.getElementById('wpp-paineis');
+
+    abas.innerHTML = SISTEMAS.map((s, i) => `
+      <button class="wpp-aba-btn ${i === 0 ? 'ativa' : ''}" data-painel="${s.id}">
+        <i class="${s.icon}"></i> ${esc(s.label)}
+      </button>
+    `).join('');
+
+    paineis.innerHTML = SISTEMAS.map((s, i) => `
+      <div class="wpp-painel ${i === 0 ? 'ativo' : ''}" id="wpp-painel-${s.id}">
+        ${s.id === 'configuracao'
+          ? renderPainelConfiguracao()
+          : (s.id === 'mensagens' ? renderPainelMensagens() : renderPainelModulo(s))}
+      </div>
+    `).join('');
+
+    abas.querySelectorAll('.wpp-aba-btn').forEach((btn) => {
+      btn.addEventListener('click', function () {
+        abas.querySelectorAll('.wpp-aba-btn').forEach((b) => b.classList.remove('ativa'));
+        document.querySelectorAll('.wpp-painel').forEach((p) => p.classList.remove('ativo'));
+        btn.classList.add('ativa');
+        document.getElementById(`wpp-painel-${btn.dataset.painel}`).classList.add('ativo');
+      });
+    });
+
+    document.querySelectorAll('.wpp-dest-chip').forEach((chip) => {
+      chip.addEventListener('click', function () {
+        chip.classList.toggle('ativo');
+      });
+    });
+
+    document.querySelectorAll('.wpp-sel-todos').forEach((btn) => {
+      btn.addEventListener('click', function () {
+        const sistemaId = btn.dataset.sistema;
+        const sistema = SISTEMAS.find((item) => item.id === sistemaId);
+        if (!sistema) return;
+        const secao = (sistema.secoes || []).find((item) => item.titulo === btn.dataset.secao);
+        if (!secao) return;
+        secao.eventos.forEach((evento) => {
+          const checkbox = document.getElementById(`wpp-${sistemaId}-${evento.id}`);
+          if (checkbox) checkbox.checked = true;
+        });
+      });
+    });
+  }
+
+  function getSistemasMensagens() {
+    const ids = [...new Set(whatsappTemplates.map((item) => item.sistema).filter(Boolean))];
+    return ids.map((id) => ({
+      id,
+      icon: SISTEMA_MSG_META[id]?.icon || 'fas fa-comment-dots',
+      label: SISTEMA_MSG_META[id]?.label || id,
+    }));
+  }
+
+  function renderEditorMensagens() {
+    const wrapSistemas = document.getElementById('wpp-msg-sistemas');
+    const wrapLista = document.getElementById('wpp-msg-lista');
+    const titulo = document.getElementById('wpp-msg-sistema-titulo');
+    if (!wrapSistemas || !wrapLista || !titulo) return;
+
+    const sistemas = getSistemasMensagens();
+    if (!sistemas.length) {
+      wrapSistemas.innerHTML = '';
+      wrapLista.innerHTML = '<div class="sem-dados">Nenhuma mensagem cadastrada.</div>';
+      return;
+    }
+
+    if (!sistemas.some((item) => item.id === sistemaMensagensAtivo)) {
+      sistemaMensagensAtivo = sistemas[0].id;
+    }
+
+    wrapSistemas.innerHTML = sistemas.map((item) => `
+      <button class="wpp-msg-sistema-btn ${item.id === sistemaMensagensAtivo ? 'ativa' : ''}" data-sistema-msg="${item.id}">
+        <i class="${item.icon}"></i> ${esc(item.label)}
+      </button>
+    `).join('');
+
+    wrapSistemas.querySelectorAll('[data-sistema-msg]').forEach((btn) => {
+      btn.addEventListener('click', function () {
+        sistemaMensagensAtivo = btn.dataset.sistemaMsg;
+        renderEditorMensagens();
+      });
+    });
+
+    const templatesSistema = whatsappTemplates.filter((item) => item.sistema === sistemaMensagensAtivo);
+    titulo.textContent = `Mensagens - ${SISTEMA_MSG_META[sistemaMensagensAtivo]?.label || sistemaMensagensAtivo}`;
+
+    wrapLista.innerHTML = templatesSistema.map((item) => {
+      const valorAtual = normalizarTemplateValor(item.valorSalvo || item.template || '');
+      return `
+        <div class="wpp-msg-card">
+          <h4>${esc(item.titulo)}</h4>
+          <p>${esc(item.descricao || '')}</p>
+          <div class="wpp-msg-placeholders">
+            ${(item.placeholders || []).map((ph) => `<span class="wpp-msg-ph">{{${esc(ph)}}}</span>`).join('')}
+          </div>
+          <textarea id="wpp-template-${esc(item.key)}" data-template-key="${esc(item.key)}">${esc(valorAtual)}</textarea>
+          <div class="wpp-msg-actions">
+            <button class="wpp-btn-link" type="button" data-reset-template="${esc(item.key)}">Restaurar padrao</button>
+            <span class="wpp-msg-status" id="wpp-template-status-${esc(item.key)}"></span>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    wrapLista.querySelectorAll('[data-reset-template]').forEach((btn) => {
+      btn.addEventListener('click', function () {
+        const key = btn.dataset.resetTemplate;
+        const item = whatsappTemplates.find((tpl) => tpl.key === key);
+        const textarea = document.getElementById(`wpp-template-${key}`);
+        if (textarea && item) textarea.value = normalizarTemplateValor(item.template || '');
+      });
+    });
+
+    wrapLista.insertAdjacentHTML('beforeend', `
+      <div class="wpp-rodape">
+        <span id="wpp-msg-editor-status" class="wpp-msg-status"></span>
+        <button class="btn btn-primario btn-sm" type="button" onclick="window.wppSalvarMensagensSistema()" style="width:auto">
+          <i class="fas fa-save"></i> Salvar mensagens
+        </button>
+      </div>
+    `);
+  }
+
+  function preencherTela() {
+    const setVal = (id, valor, padrao) => {
+      const el = document.getElementById(id);
+      if (el) el.value = valor || padrao || '';
+    };
+    const setChk = (id, chave, padrao) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.checked = boolConfig(chave, padrao);
+    };
+
+    setChk('whatsapp-ativo', 'whatsapp_ativo', true);
+    setVal('whatsapp-url', config.whatsapp_url, 'http://localhost:3200');
+    setVal('whatsapp-api-key', config.whatsapp_api_key, '');
+    setVal('whatsapp-numero-teste', config.whatsapp_numero_teste, '');
+    setVal('whatsapp-delay-ms', config.whatsapp_delay_ms, '4000');
+    setVal('whatsapp-mensagem-teste', config.whatsapp_mensagem_teste, 'Portal WKL - teste de integracao WhatsApp.');
+    setBadge('whatsapp-ativo', 'estado-whatsapp-ativo');
+
+    SISTEMAS.filter((s) => !['configuracao', 'mensagens'].includes(s.id)).forEach((sistema) => {
+      const moduloAtivoPadrao = sistema.id === 'aprovacoes';
+      setChk(`wpp-${sistema.id}-ativo`, `wpp.${sistema.id}.ativo`, moduloAtivoPadrao);
+      setBadge(`wpp-${sistema.id}-ativo`, `estado-wpp-${sistema.id}-ativo`);
+
+      (sistema.secoes || []).forEach((secao) => {
+        secao.eventos.forEach((evento) => {
+          const chaveEvento = `wpp.${sistema.id}.${evento.id}`;
+          const padraoEvento = sistema.id === 'aprovacoes' && ['nova_solicitacao', 'lembrete_pendente'].includes(evento.id);
+          setChk(`wpp-${sistema.id}-${evento.id}`, chaveEvento, padraoEvento);
+
+          const destKey = `wpp.dest.${sistema.id}.${evento.id}`;
+          const destAtivos = listConfig(destKey, evento.chips || []);
+          document.querySelectorAll(`.wpp-dest-chip[data-dest="${sistema.id}.${evento.id}"]`).forEach((chip) => {
+            chip.classList.toggle('ativo', destAtivos.includes(chip.dataset.tipo));
+          });
+        });
+      });
+    });
+  }
+
+  async function carregarConfiguracao() {
+    try {
+      const resp = await fetch('/api/configuracoes/whatsapp');
+      if (!resp.ok) return;
+      const data = await resp.json();
+      config = data.config || {};
+      preencherTela();
+    } catch (_) {}
+  }
+
+  async function carregarTemplatesWhatsApp() {
+    try {
+      const resp = await fetch('/api/whatsapp/templates');
+      if (!resp.ok) return;
+      const data = await resp.json();
+      whatsappTemplates = data.templates || [];
+      renderEditorMensagens();
+    } catch (_) {}
+  }
+
+  async function carregarUsuariosWhatsApp() {
+    try {
+      const resp = await fetch('/api/whatsapp/usuarios');
+      if (!resp.ok) return;
+      const data = await resp.json();
+      const list = document.getElementById('wpp-usuarios-list');
+      if (!list) return;
+      list.innerHTML = (data.usuarios || []).map((u) => {
+        const numero = String(u.numero || '').replace(/\D/g, '');
+        const label = `${u.nome || u.login} - ${numero}`;
+        return `<option value="${esc(numero)}">${esc(label)}</option>`;
+      }).join('');
+    } catch (_) {}
+  }
+
+  function alerta(id, msg, tipo) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.className = `alerta alerta-${tipo} visivel`;
+    el.textContent = msg;
+    setTimeout(() => el.classList.remove('visivel'), 5000);
+  }
+
+  window.wppBadge = setBadge;
+
+  window.wppSalvarConfiguracao = async function () {
+    const delayMs = Math.max(1000, parseInt(document.getElementById('whatsapp-delay-ms').value || '4000', 10) || 4000);
+    const configuracoes = {
+      whatsapp_ativo: String(document.getElementById('whatsapp-ativo').checked),
+      whatsapp_url: document.getElementById('whatsapp-url').value.trim(),
+      whatsapp_api_key: document.getElementById('whatsapp-api-key').value.trim(),
+      whatsapp_numero_teste: document.getElementById('whatsapp-numero-teste').value.replace(/\D/g, '').slice(0, 20),
+      whatsapp_delay_ms: String(delayMs),
+      whatsapp_mensagem_teste: document.getElementById('whatsapp-mensagem-teste').value.trim(),
+    };
+
+    document.getElementById('whatsapp-delay-ms').value = String(delayMs);
+
+    try {
+      const resp = await fetch('/api/configuracoes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ grupo: 'whatsapp', configuracoes }),
+      });
+      const data = await resp.json();
+      alerta('alerta-whatsapp', data.mensagem || data.erro, resp.ok ? 'sucesso' : 'erro');
+      if (resp.ok) config = { ...config, ...configuracoes };
+    } catch (_) {
+      alerta('alerta-whatsapp', 'Erro de comunicacao ao salvar configuracao.', 'erro');
+    }
+  };
+
+  window.wppSalvarModulo = async function (sistemaId) {
+    const sistema = SISTEMAS.find((item) => item.id === sistemaId);
+    if (!sistema) return;
+
+    const configuracoes = {
+      [`wpp.${sistemaId}.ativo`]: String(document.getElementById(`wpp-${sistemaId}-ativo`).checked),
+    };
+
+    (sistema.secoes || []).forEach((secao) => {
+      secao.eventos.forEach((evento) => {
+        const eventKey = `${sistemaId}.${evento.id}`;
+        configuracoes[`wpp.${eventKey}`] = String(document.getElementById(`wpp-${sistemaId}-${evento.id}`).checked);
+        const dest = Array.from(document.querySelectorAll(`.wpp-dest-chip.ativo[data-dest="${eventKey}"]`))
+          .map((chip) => chip.dataset.tipo);
+        configuracoes[`wpp.dest.${eventKey}`] = dest.join(',');
+      });
+    });
+
+    try {
+      const resp = await fetch('/api/configuracoes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ grupo: 'whatsapp', configuracoes }),
+      });
+      const data = await resp.json();
+      const msgEl = document.getElementById(`wpp-msg-${sistemaId}`);
+      if (msgEl) {
+        msgEl.style.color = resp.ok ? '#4caf50' : '#f44336';
+        msgEl.textContent = resp.ok ? 'Salvo!' : (data.erro || 'Erro ao salvar.');
+        setTimeout(() => { msgEl.textContent = ''; }, 3000);
+      }
+      if (resp.ok) config = { ...config, ...configuracoes };
+    } catch (_) {
+      const msgEl = document.getElementById(`wpp-msg-${sistemaId}`);
+      if (msgEl) {
+        msgEl.style.color = '#f44336';
+        msgEl.textContent = 'Erro de conexao.';
+      }
+    }
+  };
+
+  window.wppSalvarMensagensSistema = async function () {
+    const templatesSistema = whatsappTemplates.filter((item) => item.sistema === sistemaMensagensAtivo);
+    const configuracoes = {};
+
+    templatesSistema.forEach((item) => {
+      const textarea = document.getElementById(`wpp-template-${item.key}`);
+      if (!textarea) return;
+      const valor = normalizarTemplateValor(textarea.value).trim();
+      configuracoes[`wpp.msg.${item.key}`] = valor;
+    });
+
+    try {
+      const resp = await fetch('/api/configuracoes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ grupo: 'whatsapp', configuracoes }),
+      });
+      const data = await resp.json();
+      const statusEl = document.getElementById('wpp-msg-editor-status');
+      if (statusEl) {
+        statusEl.style.color = resp.ok ? '#4caf50' : '#f44336';
+        statusEl.textContent = resp.ok ? 'Mensagens salvas.' : (data.erro || 'Erro ao salvar.');
+        setTimeout(() => { statusEl.textContent = ''; }, 3500);
+      }
+
+      if (resp.ok) {
+        whatsappTemplates = whatsappTemplates.map((item) => ({
+          ...item,
+          valorSalvo: Object.prototype.hasOwnProperty.call(configuracoes, `wpp.msg.${item.key}`)
+            ? configuracoes[`wpp.msg.${item.key}`]
+            : item.valorSalvo,
+        }));
+        config = { ...config, ...configuracoes };
+      }
+    } catch (_) {
+      const statusEl = document.getElementById('wpp-msg-editor-status');
+      if (statusEl) {
+        statusEl.style.color = '#f44336';
+        statusEl.textContent = 'Erro de conexao.';
+      }
+    }
+  };
+
+  window.wppTestar = async function () {
+    const numero = document.getElementById('whatsapp-numero-teste').value.replace(/\D/g, '').slice(0, 20);
+    const mensagem = document.getElementById('whatsapp-mensagem-teste').value.trim() || 'Portal WKL - teste de integracao WhatsApp.';
+
+    if (!numero) {
+      alerta('alerta-whatsapp', 'Informe um numero de teste antes de enviar.', 'erro');
+      return;
+    }
+
+    try {
+      const resp = await fetch('/api/whatsapp/testar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ numero, mensagem }),
+      });
+      const data = await resp.json();
+      alerta('alerta-whatsapp', data.mensagem || data.erro, resp.ok ? 'sucesso' : 'erro');
+    } catch (_) {
+      alerta('alerta-whatsapp', 'Erro de comunicacao ao enviar o teste.', 'erro');
+    }
+  };
+
+  renderAbas();
+  carregarConfiguracao();
+  carregarUsuariosWhatsApp();
+  carregarTemplatesWhatsApp();
+})();
+</script>
+
+

@@ -1,0 +1,24 @@
+{
+  "items": [
+    {
+      "localPath": "public/configuracoes.html",
+      "remotePath": "/var/www/html/wkl/Portal/public/configuracoes.html"
+    },
+    {
+      "localPath": "public/fragmentos/whatsapp.html",
+      "remotePath": "/var/www/html/wkl/Portal/public/fragmentos/whatsapp.html"
+    },
+    {
+      "localPath": "routes/portal.js",
+      "remotePath": "/var/www/html/wkl/Portal/routes/portal.js"
+    },
+    {
+      "localPath": "routes/aprovacoes.js",
+      "remotePath": "/var/www/html/wkl/Portal/routes/aprovacoes.js"
+    },
+    {
+      "localPath": "services/whatsappService.js",
+      "remotePath": "/var/www/html/wkl/Portal/services/whatsappService.js"
+    }
+  ]
+}
